@@ -726,9 +726,31 @@ const CERCEVELER=[
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='/lobbygg/giris.html';return;}
-  const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email).single();
+  
+  // Önce email ile ara, bulamazsan yeni kayıt oluştur
+  let{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email).single();
+  
+  if(!data){
+    // Kullanici tablosunda yok, otomatik oluştur
+    const{data:yeni}=await sb.from('kullanicilar').insert({
+      kullanici_adi: session.user.email.split('@')[0],
+      email: session.user.email,
+      lcoin: 0,
+      ggcoin: 0,
+      abonelik: 'uye',
+      rozet: 'yeni',
+      kayit_tarihi: new Date().toISOString()
+    }).select().single();
+    data=yeni;
+  }
+  
   kul=data;
-  if(!kul){window.location.href='/lobbygg/giris.html';return;}
+  if(!kul){
+    // Hala null ise loading'i kapat, hata göster
+    document.getElementById('loading').style.display='none';
+    document.body.innerHTML='<div style="text-align:center;padding:60px;color:#ff6b6b;font-family:Montserrat,sans-serif;"><h2>Profil yüklenemedi</h2><p style="margin-top:10px;"><a href="/lobbygg/giris.html" style="color:#39ff14;">Giriş sayfasına dön</a></p></div>';
+    return;
+  }
 
   const nick=kul.kullanici_adi||'Oyuncu';
   document.getElementById('p-name').textContent=nick;
