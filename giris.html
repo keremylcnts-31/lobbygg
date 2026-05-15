@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş Yap - LOBBY.GG</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#050505; color:#fff; font-family:'Montserrat',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+
+.particles { position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+.particle { position:absolute; bottom:-20px; width:5px; height:5px; background:#39ff14; border-radius:50%; box-shadow:0 0 8px #39ff14, 0 0 16px rgba(57,255,20,0.4); animation:floatUp linear infinite; opacity:0; }
+@keyframes floatUp { 0%{transform:translateY(0) translateX(0) scale(0.5);opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{transform:translateY(-110vh) translateX(20px) scale(0.3);opacity:0;} }
+
+body::after { content:''; position:fixed; inset:0; background:radial-gradient(ellipse at top left, rgba(57,255,20,0.07) 0%, transparent 50%), radial-gradient(ellipse at bottom right, rgba(57,255,20,0.05) 0%, transparent 50%); pointer-events:none; z-index:0; }
+
+.auth-wrap { width:100%; max-width:460px; padding:24px; position:relative; z-index:10; }
+
+.auth-logo { text-align:center; margin-bottom:30px; }
+.auth-logo a { font-size:34px; font-weight:900; color:#fff; text-decoration:none; letter-spacing:2px; display:block; }
+.auth-logo a span { color:#39ff14; text-shadow:0 0 20px rgba(57,255,20,0.5); }
+.auth-logo p { font-size:11px; color:#444; font-weight:700; margin-top:6px; letter-spacing:3px; text-transform:uppercase; }
+
+.auth-card { background:#111; border:1px solid #1e1e1e; border-radius:4px; padding:30px; box-shadow:0 25px 60px rgba(0,0,0,0.6); }
+
+.auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:24px; }
+.auth-tab { padding:13px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer; transition:all 0.1s; background:#2a2a2a; color:#aaa; border-radius:2px; border-top:2px solid #444; border-bottom:3px solid #111; border-left:2px solid #333; border-right:2px solid #111; }
+.auth-tab.active { background:#3a7d1e; color:#fff; border-top-color:#5cb832; border-bottom-color:#1e4a09; border-left-color:#4a9e25; border-right-color:#1e4a09; text-shadow:0 1px 2px rgba(0,0,0,0.5); }
+.auth-tab:not(.active):hover { background:#333; color:#ccc; }
+.auth-tab:active { transform:translateY(1px); border-bottom-width:1px; }
+
+.auth-form { display:none; }
+.auth-form.active { display:block; }
+
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.form-group { margin-bottom:16px; }
+.form-row .form-group { margin-bottom:0; }
+.form-label { display:block; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:7px; }
+
+.form-input, .form-select { width:100%; background:#1a1a1a; border-top:2px solid #111; border-left:2px solid #111; border-right:2px solid #333; border-bottom:2px solid #333; color:#ccc; padding:13px 14px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:600; outline:none; transition:all 0.15s; -webkit-appearance:none; }
+.form-input:focus, .form-select:focus { background:#1e1e1e; border-right-color:#3a7d1e; border-bottom-color:#3a7d1e; }
+.form-input::placeholder { color:#3a3a3a; }
+.form-select { cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:30px; }
+.form-select option { background:#1a1a1a; }
+
+.auth-btn { width:100%; background:#3a7d1e; color:#fff; padding:14px; border:none; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:1px; cursor:pointer; transition:all 0.1s; margin-top:4px; border-top:3px solid #5cb832; border-bottom:4px solid #1e4a09; border-left:2px solid #4a9e25; border-right:2px solid #1e4a09; text-shadow:0 1px 2px rgba(0,0,0,0.5); }
+.auth-btn:hover { background:#4a9e25; filter:brightness(1.1); }
+.auth-btn:active { transform:translateY(2px); border-bottom-width:2px; border-top-width:1px; }
+.auth-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+.auth-msg { padding:11px 14px; border-radius:2px; font-size:11px; font-weight:800; text-align:center; display:none; margin-bottom:16px; }
+.auth-msg.success { background:#0d1f00; border:1px solid #2a5000; color:#39ff14; display:block; }
+.auth-msg.error { background:#1f0d0d; border:1px solid #5a1a1a; color:#ff6b6b; display:block; }
+
+.auth-footer { margin-top:18px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.auth-footer a { font-size:11px; font-weight:700; color:#444; text-decoration:none; transition:0.2s; }
+.auth-footer a:hover { color:#39ff14; }
+
+.auth-terms { font-size:10px; color:#444; font-weight:600; line-height:1.7; margin-top:14px; text-align:center; }
+.auth-terms a { color:#39ff14; text-decoration:none; }
+
+@media(max-width:500px) {
+  body { align-items:flex-start; padding-top:16px; }
+  .auth-card { padding:22px 18px; }
+  .auth-logo a { font-size:26px; }
+  .form-row { grid-template-columns:1fr; }
+  .form-row .form-group { margin-bottom:16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="auth-wrap">
+  <div class="auth-logo">
+    <a href="/lobbygg/giris.html">LOBBY<span>.GG</span></a>
+    <p>Minecraft Pazar Yeri</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-giris" onclick="switchTab('giris')">Giriş Yap</button>
+      <button class="auth-tab" id="tab-kayit" onclick="switchTab('kayit')">Kayıt Ol</button>
+    </div>
+
+    <div class="auth-msg" id="authMsg"></div>
+
+    <!-- GİRİŞ -->
+    <div class="auth-form active" id="form-giris">
+      <div class="form-group">
+        <label class="form-label">E-posta Adresi</label>
+        <input type="email" class="form-input" id="giris-email" placeholder="ornek@gmail.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şifre</label>
+        <input type="password" class="form-input" id="giris-sifre" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') girisYap()">
+      </div>
+      <button class="auth-btn" id="giris-btn" onclick="girisYap()">Giriş Yap</button>
+      <div class="auth-footer">
+        <a href="#" onclick="switchTab('kayit'); return false;">Hesabın yok mu? Kayıt ol</a>
+        <a href="#" onclick="sifreSifirla(); return false;">Şifremi unuttum</a>
+      </div>
+    </div>
+
+    <!-- KAYIT -->
+    <div class="auth-form" id="form-kayit">
+      <div class="form-group">
+        <label class="form-label">Kullanıcı Adı (Minecraft Nick) *</label>
+        <input type="text" class="form-input" id="kayit-nick" placeholder="örn: Steve" maxlength="16" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-posta Adresi *</label>
+        <input type="email" class="form-input" id="kayit-email" placeholder="ornek@gmail.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şifre * (En az 6 karakter)</label>
+        <input type="password" class="form-input" id="kayit-sifre" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Yaş *</label>
+          <input type="number" class="form-input" id="kayit-yas" placeholder="18" min="10" max="99">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cinsiyet *</label>
+          <select class="form-select" id="kayit-cinsiyet">
+            <option value="">Seç...</option>
+            <option value="erkek">Erkek</option>
+            <option value="kadin">Kadın</option>
+            <option value="belirtmek-istemiyorum">Belirtmek İstemiyorum</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Discord Kullanıcı Adı (Opsiyonel)</label>
+        <input type="text" class="form-input" id="kayit-discord" placeholder="örn: steve">
+      </div>
+      <button class="auth-btn" id="kayit-btn" onclick="kayitOl()">Hesap Oluştur</button>
+      <div class="auth-terms">
+        Kayıt olarak <a href="#">Kullanım Şartları</a>'nı kabul etmiş olursunuz.
+      </div>
+      <div class="auth-footer" style="justify-content:center; margin-top:12px;">
+        <a href="#" onclick="switchTab('giris'); return false;">Zaten hesabın var mı? Giriş yap</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+// Parçacıklar
+(function(){
+  const c=document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const s=Math.random()*4+3;
+    p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*10+8}s;animation-delay:${Math.random()*8}s;`;
+    c.appendChild(p);
+  }
+})();
+
+// Session kontrolü
+sb.auth.getSession().then(({data:{session}})=>{
+  if(session) window.location.href='/lobbygg/panel.html';
+});
+
+function switchTab(tab){
+  document.getElementById('tab-giris').classList.toggle('active',tab==='giris');
+  document.getElementById('tab-kayit').classList.toggle('active',tab==='kayit');
+  document.getElementById('form-giris').style.display=tab==='giris'?'block':'none';
+  document.getElementById('form-kayit').style.display=tab==='kayit'?'block':'none';
+  document.getElementById('authMsg').className='auth-msg';
+}
+
+function mesaj(tip,metin){
+  const el=document.getElementById('authMsg');
+  el.className='auth-msg '+tip;
+  el.textContent=metin;
+}
+
+async function girisYap(){
+  const email=document.getElementById('giris-email').value.trim();
+  const sifre=document.getElementById('giris-sifre').value;
+  const btn=document.getElementById('giris-btn');
+  if(!email||!sifre) return mesaj('error','E-posta ve şifre boş olamaz!');
+  btn.disabled=true; btn.textContent='Giriş yapılıyor...';
+  const{error}=await sb.auth.signInWithPassword({email,password:sifre});
+  btn.disabled=false; btn.textContent='Giriş Yap';
+  if(error){
+    if(error.message.includes('Invalid login')) return mesaj('error','E-posta veya şifre hatalı!');
+    return mesaj('error',error.message);
+  }
+  mesaj('success','✓ Giriş başarılı!');
+  setTimeout(()=>{window.location.href='/lobbygg/panel.html';},800);
+}
+
+function nickKontrol(nick){
+  if(/\s/.test(nick)) return 'Kullanıcı adında boşluk olamaz!';
+  if(!/^[a-zA-Z0-9_]+$/.test(nick)) return 'Sadece harf, rakam ve _ kullanabilirsin!';
+  if(nick.length<3) return 'En az 3 karakter olmalı!';
+  return null;
+}
+
+async function kayitOl(){
+  const nick=document.getElementById('kayit-nick').value.trim();
+  const email=document.getElementById('kayit-email').value.trim();
+  const sifre=document.getElementById('kayit-sifre').value;
+  const yas=parseInt(document.getElementById('kayit-yas').value);
+  const cinsiyet=document.getElementById('kayit-cinsiyet').value;
+  const discord=document.getElementById('kayit-discord').value.trim();
+  const btn=document.getElementById('kayit-btn');
+
+  if(!nick||!email||!sifre||!yas||!cinsiyet) return mesaj('error','Zorunlu alanları doldur!');
+  const nickHata=nickKontrol(nick);
+  if(nickHata) return mesaj('error',nickHata);
+  if(sifre.length<6) return mesaj('error','Şifre en az 6 karakter olmalı!');
+  if(yas<10||yas>99) return mesaj('error','Geçerli bir yaş gir!');
+
+  btn.disabled=true; btn.textContent='Kontrol ediliyor...';
+
+  // Nick alınmış mı?
+  const{data:varMi}=await sb.from('kullanicilar').select('id').eq('kullanici_adi',nick);
+  if(varMi&&varMi.length>0){
+    btn.disabled=false; btn.textContent='Hesap Oluştur';
+    return mesaj('error','Bu kullanıcı adı zaten alınmış!');
+  }
+
+  // Önce tabloya ekle
+  const{error:insertError}=await sb.from('kullanicilar').insert({
+    kullanici_adi:nick, email, discord, yas, cinsiyet,
+    lcoin:0, ggcoin:0, abonelik:'uye', rozet:'yeni',
+    kayit_tarihi:new Date().toISOString()
+  });
+
+  if(insertError){
+    btn.disabled=false; btn.textContent='Hesap Oluştur';
+    return mesaj('error','Hata: '+insertError.message);
+  }
+
+  btn.textContent='Hesap oluşturuluyor...';
+  const{error}=await sb.auth.signUp({email,password:sifre});
+  if(error){
+    await sb.from('kullanicilar').delete().eq('email',email);
+    btn.disabled=false; btn.textContent='Hesap Oluştur';
+    if(error.message.includes('already registered')) return mesaj('error','Bu e-posta zaten kayıtlı!');
+    return mesaj('error',error.message);
+  }
+
+  await sb.auth.signOut();
+  btn.disabled=false; btn.textContent='Hesap Oluştur';
+  mesaj('success','✓ Hesabın oluşturuldu! Şimdi giriş yapabilirsin.');
+  setTimeout(()=>{
+    switchTab('giris');
+    document.getElementById('giris-email').value=email;
+  },1500);
+}
+
+async function sifreSifirla(){
+  const email=document.getElementById('giris-email').value.trim();
+  if(!email) return mesaj('error','Önce e-posta adresini gir!');
+  const{error}=await sb.auth.resetPasswordForEmail(email);
+  if(error) return mesaj('error',error.message);
+  mesaj('success','✓ Şifre sıfırlama maili gönderildi!');
+}
+</script>
+</body>
+</html>
