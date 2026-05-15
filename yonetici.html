@@ -400,11 +400,11 @@ let benKim=null;
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='/giris.html';return;}
+  if(!session){window.location.href='/lobbygg/giris.html';return;}
   const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email).single();
   benKim=data;
   if(!benKim||benKim.abonelik!=='yonetici'){
-    window.location.href='/panel.html';
+    window.location.href='/lobbygg/panel.html';
     return;
   }
   await genelIstatistik();
@@ -715,7 +715,7 @@ function kuponOlustur(){
 
 async function cikis(){
   await sb.auth.signOut();
-  window.location.href='/giris.html';
+  window.location.href='/lobbygg/giris.html';
 }
 
 function sec(id,el){

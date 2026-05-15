@@ -211,7 +211,7 @@ body { background:#0d0d0d; color:#ccc; font-family:'Montserrat',sans-serif; min-
       <div class="menu-item" data-menu="destek" onclick="sec('destek',this)"><i class="fa-solid fa-headset"></i>Destek Taleplerim</div>
       <div class="menu-item" data-menu="profil" onclick="sec('profil',this)"><i class="fa-solid fa-palette"></i>Profil Özelleştir</div>
       <div class="menu-item" data-menu="ayarlar" onclick="sec('ayarlar',this)"><i class="fa-solid fa-gear"></i>Hesap Ayarları</div>
-      <div class="menu-item admin-only" id="yonetim-menu" style="display:none;" onclick="window.location.href='/yonetici.html'"><i class="fa-solid fa-user-shield"></i>Yönetim Paneli</div>
+      <div class="menu-item admin-only" id="yonetim-menu" style="display:none;" onclick="window.location.href='/lobbygg/yonetici.html'"><i class="fa-solid fa-user-shield"></i>Yönetim Paneli</div>
     </div>
   </div>
 
@@ -725,10 +725,10 @@ const CERCEVELER=[
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='/giris.html';return;}
+  if(!session){window.location.href='/lobbygg/giris.html';return;}
   const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email).single();
   kul=data;
-  if(!kul){window.location.href='/giris.html';return;}
+  if(!kul){window.location.href='/lobbygg/giris.html';return;}
 
   const nick=kul.kullanici_adi||'Oyuncu';
   document.getElementById('p-name').textContent=nick;
@@ -977,7 +977,7 @@ function reklamTab(tab){
 }
 
 function ilanAc(kategori,paket,fiyat){
-  window.location.href='/ilan-ver.html?kategori='+kategori+'&paket='+paket+'&fiyat='+fiyat;
+  window.location.href='/lobbygg/ilan-ver.html?kategori='+kategori+'&paket='+paket+'&fiyat='+fiyat;
 }
 
 function reklamAl(kategori,paket,fiyat){
@@ -994,7 +994,7 @@ function kuponKullan(){
 
 async function cikis(){
   await sb.auth.signOut();
-  window.location.href='/giris.html';
+  window.location.href='/lobbygg/giris.html';
 }
 
 function sec(id,el){

@@ -294,10 +294,10 @@ const FIYAT={
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='/giris.html';return;}
+  if(!session){window.location.href='/lobbygg/giris.html';return;}
   const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email).single();
   kul=data;
-  if(!kul){window.location.href='/giris.html';return;}
+  if(!kul){window.location.href='/lobbygg/giris.html';return;}
   document.getElementById('hdr-lcoin').textContent=kul.lcoin||0;
   document.getElementById('iletisim-discord').value=kul.discord||'';
   document.getElementById('iletisim-gmail').value=kul.email||'';
