@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Paneli - LOBBY.GG</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-height:100vh; }
+
+.hdr { background:#0d0d0d; border-bottom:3px solid #1a2a1a; padding:0 4%; display:flex; justify-content:space-between; align-items:center; height:56px; position:sticky; top:0; z-index:100; }
+.hdr-logo { font-size:18px; font-weight:900; color:#fff; text-decoration:none; }
+.hdr-logo span { color:#39ff14; }
+.hdr-badge { background:#0d1f00; border:1px solid #2a5000; color:#39ff14; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px; padding:3px 10px; border-radius:2px; margin-left:10px; }
+.hdr-right { display:flex; align-items:center; gap:8px; }
+
+.mc-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#3a3a3a; color:#ccc !important; padding:9px 16px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border-top:2px solid #555; border-left:2px solid #555; border-right:2px solid #111; border-bottom:3px solid #111; text-decoration:none; transition:0.1s; }
+.mc-btn:hover { filter:brightness(1.2); }
+.mc-btn:active { transform:translateY(1px); border-bottom-width:1px; }
+.mc-btn-green { background:#3a7d1e; color:#fff !important; border-top-color:#5cb832; border-left-color:#4a9e25; border-right-color:#1e4a09; border-bottom-color:#1e4a09; }
+.mc-btn-red { background:#7d1e1e; color:#ffaaaa !important; border-top-color:#b83232; border-left-color:#9e2525; border-right-color:#3a0909; border-bottom-color:#3a0909; }
+.mc-btn-gold { background:#b38600; color:#fff !important; border-top-color:#e6b800; border-left-color:#c9a200; border-right-color:#665000; border-bottom-color:#665000; }
+.mc-btn-blue { background:#1e4a7d; color:#aaccff !important; border-top-color:#3270b8; border-left-color:#25599e; border-right-color:#091e3a; border-bottom-color:#091e3a; }
+
+.layout { max-width:1200px; margin:0 auto; padding:24px 16px; display:grid; grid-template-columns:220px 1fr; gap:18px; align-items:start; }
+
+.menu { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; overflow:hidden; position:sticky; top:74px; }
+.menu-grp { padding:10px 14px 4px; font-size:9px; font-weight:900; color:#2a2a2a; text-transform:uppercase; letter-spacing:1px; border-top:1px solid #0d0d0d; }
+.menu-grp:first-child { border-top:none; }
+.menu-item { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #0d0d0d; cursor:pointer; font-size:11px; font-weight:900; color:#444; text-transform:uppercase; letter-spacing:0.5px; border-left:3px solid transparent; transition:0.1s; user-select:none; }
+.menu-item:last-child { border-bottom:none; }
+.menu-item:hover { background:#1a1a1a; color:#888; border-left-color:#333; }
+.menu-item.active { color:#39ff14; border-left-color:#39ff14; background:#0d1f00; }
+.menu-item i { width:14px; text-align:center; font-size:12px; }
+.menu-badge { margin-left:auto; background:#7d1e1e; color:#ff8888; font-size:9px; font-weight:900; padding:2px 6px; border-radius:2px; }
+.menu-badge-green { background:#1e4a09; color:#39ff14; }
+
+.content .sec { display:none; }
+.content .sec.active { display:block; }
+
+.sec-title { font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#fff; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+.sec-title::after { content:''; flex:1; height:1px; background:#1a1a1a; }
+.sec-sub { font-size:10px; color:#333; margin-bottom:20px; text-transform:uppercase; letter-spacing:0.5px; }
+
+.box { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; padding:18px; margin-bottom:14px; }
+.ibox { background:#0d0d0d; border-top:2px solid #161616; border-left:2px solid #161616; border-right:2px solid #030303; border-bottom:2px solid #030303; border-radius:2px; padding:14px; margin-bottom:8px; }
+
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.stat-card { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:2px solid #050505; border-radius:2px; padding:16px; }
+.stat-lbl { font-size:9px; color:#333; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.stat-val { font-size:26px; font-weight:900; color:#39ff14; }
+.stat-val.red { color:#ff6b6b; }
+.stat-val.gold { color:#FFD700; }
+
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#333; padding:10px 12px; text-align:left; border-bottom:2px solid #1a1a1a; }
+.tbl td { font-size:11px; font-weight:600; color:#888; padding:12px; border-bottom:1px solid #0d0d0d; vertical-align:middle; }
+.tbl tr:hover td { background:#0d0d0d; }
+
+.f-group { margin-bottom:14px; }
+.f-label { display:block; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#444; margin-bottom:7px; }
+.f-input, .f-select, .f-textarea { width:100%; background:#0d0d0d; border-top:2px solid #080808; border-left:2px solid #080808; border-right:2px solid #1e1e1e; border-bottom:2px solid #1e1e1e; color:#bbb; padding:11px 13px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; outline:none; transition:0.1s; -webkit-appearance:none; }
+.f-input:focus, .f-select:focus, .f-textarea:focus { border-right-color:#39ff14; border-bottom-color:#39ff14; }
+.f-input::placeholder, .f-textarea::placeholder { color:#1e1e1e; }
+.f-select { cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:28px; }
+.f-select option { background:#0d0d0d; }
+.f-textarea { resize:vertical; min-height:80px; }
+
+.durum { display:inline-block; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; padding:3px 8px; border-radius:2px; }
+.d-beklemede { background:#1f1a00; color:#FFD700; border:1px solid #4a4000; }
+.d-aktif { background:#0d1f00; color:#39ff14; border:1px solid #1e4a00; }
+.d-reddedildi { background:#1f0d0d; color:#ff6b6b; border:1px solid #4a1a1a; }
+.d-cevaplandi { background:#0d141f; color:#6bb3ff; border:1px solid #1a3a5a; }
+
+.msg-success { background:#0d1f00; border-left:3px solid #39ff14; color:#39ff14; padding:10px 14px; border-radius:2px; font-size:11px; font-weight:800; margin-bottom:14px; }
+.msg-error { background:#1f0d0d; border-left:3px solid #ff4444; color:#ff6b6b; padding:10px 14px; border-radius:2px; font-size:11px; font-weight:800; margin-bottom:14px; }
+
+/* İLAN DETAY MODAL */
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:500; padding:20px; }
+.modal-bg.active { display:flex; }
+.modal { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; padding:24px; max-width:600px; width:100%; max-height:80vh; overflow-y:auto; }
+.modal-title { font-size:13px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+.modal-close { background:none; border:none; color:#444; font-size:18px; cursor:pointer; }
+
+#loading { position:fixed; inset:0; background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; z-index:9999; }
+.ld-logo { font-size:28px; font-weight:900; color:#fff; }
+.ld-logo span { color:#39ff14; }
+.ld-bar { width:180px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; }
+.ld-fill { height:100%; background:#39ff14; animation:ldAnim 1.5s ease infinite; }
+@keyframes ldAnim { 0%{width:0%} 50%{width:70%} 100%{width:100%} }
+
+@media(max-width:900px) { .layout { grid-template-columns:1fr; } .menu { position:static; } .stat-grid { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-logo">LOBBY<span>.GG</span></div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+</div>
+
+<header class="hdr">
+  <div style="display:flex;align-items:center;">
+    <a href="/lobbygg/index.html" class="hdr-logo">LOBBY<span>.GG</span></a>
+    <span class="hdr-badge"><i class="fa-solid fa-shield-halved"></i> Admin</span>
+  </div>
+  <div class="hdr-right">
+    <a href="/lobbygg/panel.html" class="mc-btn"><i class="fa-solid fa-user"></i> Panelim</a>
+    <button class="mc-btn mc-btn-red" onclick="cikis()"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- MENÜ -->
+  <div>
+    <div class="menu">
+      <div class="menu-grp">Genel</div>
+      <div class="menu-item active" onclick="sec('genel',this)"><i class="fa-solid fa-gauge-high"></i>Özet</div>
+
+      <div class="menu-grp">İlan Yönetimi</div>
+      <div class="menu-item" onclick="sec('ilanlar',this)"><i class="fa-solid fa-bullhorn"></i>Bekleyen İlanlar <span class="menu-badge" id="badge-ilan">0</span></div>
+      <div class="menu-item" onclick="sec('aktif-ilanlar',this)"><i class="fa-solid fa-check-circle"></i>Aktif İlanlar <span class="menu-badge menu-badge-green" id="badge-aktif">0</span></div>
+
+      <div class="menu-grp">Destek</div>
+      <div class="menu-item" onclick="sec('talepler',this)"><i class="fa-solid fa-headset"></i>Destek Talepleri <span class="menu-badge" id="badge-talep">0</span></div>
+      <div class="menu-item" onclick="sec('cevaplandi',this)"><i class="fa-solid fa-check"></i>Cevaplanmış</div>
+    </div>
+  </div>
+
+  <!-- İÇERİK -->
+  <div class="content">
+
+    <!-- ÖZET -->
+    <div class="sec active" id="sec-genel">
+      <div class="sec-title">Admin Özeti</div>
+      <div class="sec-sub">Hoş geldin! Bekleyen işlemlerin aşağıda.</div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">Bekleyen İlan</div><div class="stat-val red" id="s-bekleyen">-</div></div>
+        <div class="stat-card"><div class="stat-lbl">Aktif İlan</div><div class="stat-val" id="s-aktif">-</div></div>
+        <div class="stat-card"><div class="stat-lbl">Bekleyen Talep</div><div class="stat-val gold" id="s-talep">-</div></div>
+      </div>
+
+      <div class="box">
+        <div style="font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Son Bekleyen İlanlar</div>
+        <div id="son-bekleyen-liste"></div>
+      </div>
+
+      <div class="box">
+        <div style="font-size:11px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Son Bekleyen Talepler</div>
+        <div id="son-talep-liste"></div>
+      </div>
+    </div>
+
+    <!-- BEKLEYEN İLANLAR -->
+    <div class="sec" id="sec-ilanlar">
+      <div class="sec-title">Bekleyen İlanlar</div>
+      <div class="sec-sub">Onay bekleyen ilanları incele ve onayla veya reddet</div>
+      <div class="box" id="bekleyen-ilan-liste">
+        <div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div>
+      </div>
+    </div>
+
+    <!-- AKTİF İLANLAR -->
+    <div class="sec" id="sec-aktif-ilanlar">
+      <div class="sec-title">Aktif İlanlar</div>
+      <div class="sec-sub">Yayında olan ilanlar</div>
+      <div class="box" id="aktif-ilan-liste">
+        <div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div>
+      </div>
+    </div>
+
+    <!-- DESTEK TALEPLERİ -->
+    <div class="sec" id="sec-talepler">
+      <div class="sec-title">Bekleyen Destek Talepleri</div>
+      <div class="sec-sub">Kullanıcıların destek taleplerini yanıtla</div>
+      <div id="talep-listesi-wrap">
+        <div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div>
+      </div>
+    </div>
+
+    <!-- CEVAPLANMIŞ -->
+    <div class="sec" id="sec-cevaplandi">
+      <div class="sec-title">Cevaplanmış Talepler</div>
+      <div class="sec-sub">Daha önce yanıtlanan talepler</div>
+      <div class="box" id="cevaplandi-liste">
+        <div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- İLAN DETAY MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="modalKapat(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-baslik">İlan Detayı</span>
+      <button class="modal-close" onclick="document.getElementById('modal-bg').classList.remove('active')">✕</button>
+    </div>
+    <div id="modal-icerik"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+let benKim=null;
+
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='/lobbygg/giris.html';return;}
+  const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
+  if(!data||!data.length){window.location.href='/lobbygg/giris.html';return;}
+  benKim=data[0];
+  // Sadece admin veya yonetici girebilir
+  if(benKim.abonelik!=='admin'&&benKim.abonelik!=='moderator'&&benKim.abonelik!=='yonetici'){
+    window.location.href='/lobbygg/panel.html';
+    return;
+  }
+  await ozetYukle();
+  await bekleyenIlanlariYukle();
+  await aktifIlanlariYukle();
+  await talepleriYukle();
+  await cevaplanmislariYukle();
+  document.getElementById('loading').style.display='none';
+}
+
+async function ozetYukle(){
+  const[{count:bekIlan},{count:aktIlan},{count:bekTalep}]=await Promise.all([
+    sb.from('ilanlar').select('*',{count:'exact',head:true}).eq('durum','beklemede'),
+    sb.from('ilanlar').select('*',{count:'exact',head:true}).eq('durum','aktif'),
+    sb.from('talepler').select('*',{count:'exact',head:true}).eq('durum','bekliyor'),
+  ]);
+  document.getElementById('s-bekleyen').textContent=bekIlan||0;
+  document.getElementById('s-aktif').textContent=aktIlan||0;
+  document.getElementById('s-talep').textContent=bekTalep||0;
+  document.getElementById('badge-ilan').textContent=bekIlan||0;
+  document.getElementById('badge-aktif').textContent=aktIlan||0;
+  document.getElementById('badge-talep').textContent=bekTalep||0;
+
+  // Son bekleyen ilanlar
+  const{data:sonIlanlar}=await sb.from('ilanlar').select('*').eq('durum','beklemede').order('created_at',{ascending:false}).limit(5);
+  const el=document.getElementById('son-bekleyen-liste');
+  if(!sonIlanlar||!sonIlanlar.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Bekleyen ilan yok ✓</div>';return;}
+  el.innerHTML=sonIlanlar.map(i=>ilanKartHTML(i,true)).join('');
+
+  // Son talepler
+  const{data:sonTalepler}=await sb.from('talepler').select('*').eq('durum','bekliyor').order('created_at',{ascending:false}).limit(3);
+  const tel=document.getElementById('son-talep-liste');
+  if(!sonTalepler||!sonTalepler.length){tel.innerHTML='<div style="text-align:center;padding:20px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Bekleyen talep yok ✓</div>';return;}
+  tel.innerHTML=sonTalepler.map(t=>talepHTML(t)).join('');
+}
+
+function ilanKartHTML(i,mini=false){
+  const katRenk={is:'#39ff14',yetkili:'#6bb3ff',medya:'#d966ff',reklam:'#FFD700'};
+  const katAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
+  return `
+    <div class="ibox" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+            <span class="durum ${i.durum==='aktif'?'d-aktif':i.durum==='reddedildi'?'d-reddedildi':'d-beklemede'}">${i.durum||'beklemede'}</span>
+            <span style="font-size:9px;color:${katRenk[i.kategori]||'#aaa'};font-weight:900;text-transform:uppercase;">${katAd[i.kategori]||i.kategori}</span>
+            ${i.one_cikan?'<span style="background:#b38600;color:#fff;font-size:8px;font-weight:900;padding:2px 6px;border-radius:1px;text-transform:uppercase;">⭐ Öne Çıkan</span>':''}
+          </div>
+          <div style="font-size:12px;font-weight:900;color:#ccc;margin-bottom:4px;">${i.baslik||'İsimsiz İlan'}</div>
+          <div style="font-size:10px;color:#444;">
+            Pozisyon: <strong style="color:#888;">${i.alt_kategori||'-'}</strong> ·
+            Fiyat: <strong style="color:#39ff14;">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</strong> ·
+            ${i.created_at?new Date(i.created_at).toLocaleDateString('tr-TR'):''}
+          </div>
+          ${i.aciklama?`<div style="font-size:10px;color:#333;margin-top:6px;line-height:1.6;">${i.aciklama.substring(0,100)}...</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+          <button class="mc-btn" style="padding:6px 12px;font-size:9px;" onclick="ilanDetay(${i.id})"><i class="fa-solid fa-eye"></i> Detay</button>
+          ${i.durum!=='aktif'?`<button class="mc-btn mc-btn-green" style="padding:6px 12px;font-size:9px;" onclick="ilanOnayla(${i.id})"><i class="fa-solid fa-check"></i> Onayla</button>`:''}
+          ${i.durum!=='reddedildi'?`<button class="mc-btn mc-btn-red" style="padding:6px 12px;font-size:9px;" onclick="ilanReddet(${i.id})"><i class="fa-solid fa-times"></i> Reddet</button>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+async function bekleyenIlanlariYukle(){
+  const{data}=await sb.from('ilanlar').select('*').eq('durum','beklemede').order('created_at',{ascending:false});
+  const el=document.getElementById('bekleyen-ilan-liste');
+  if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Bekleyen ilan yok ✓</div>';return;}
+  el.innerHTML=data.map(i=>ilanKartHTML(i)).join('');
+}
+
+async function aktifIlanlariYukle(){
+  const{data}=await sb.from('ilanlar').select('*').eq('durum','aktif').order('created_at',{ascending:false});
+  const el=document.getElementById('aktif-ilan-liste');
+  if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Aktif ilan yok</div>';return;}
+  el.innerHTML=data.map(i=>ilanKartHTML(i)).join('');
+}
+
+async function ilanDetay(id){
+  const{data}=await sb.from('ilanlar').select('*').eq('id',id).single();
+  if(!data)return;
+  const katAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
+  document.getElementById('modal-baslik').textContent=katAd[data.kategori]||'İlan Detayı';
+  document.getElementById('modal-icerik').innerHTML=`
+    <div style="display:grid;gap:8px;">
+      ${[
+        ['Kategori', katAd[data.kategori]||data.kategori],
+        ['Alt Kategori / Pozisyon', data.alt_kategori||'-'],
+        ['Başlık', data.baslik||'-'],
+        ['Fiyat', data.fiyat&&data.fiyat>0?data.fiyat+' TL':'Görüşülür'],
+        ['Seviye', data.seviye?data.seviye+'/10':'-'],
+        ['Açıklama', data.aciklama||'-'],
+        ['Discord', data.discord||'-'],
+        ['E-posta', data.email||'-'],
+        ['Durum', data.durum||'beklemede'],
+        ['Öne Çıkan', data.one_cikan?'Evet':'Hayır'],
+        ['Bitiş Tarihi', data.boost_bitis?new Date(data.boost_bitis).toLocaleDateString('tr-TR'):'-'],
+        ['Oluşturulma', data.created_at?new Date(data.created_at).toLocaleString('tr-TR'):'-'],
+      ].map(([k,v])=>`
+        <div class="ibox" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;gap:10px;">
+          <span style="font-size:9px;color:#444;font-weight:900;text-transform:uppercase;flex-shrink:0;">${k}</span>
+          <span style="font-size:11px;color:#ccc;font-weight:700;text-align:right;">${v}</span>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      ${data.durum!=='aktif'?`<button class="mc-btn mc-btn-green" onclick="ilanOnayla(${data.id});document.getElementById('modal-bg').classList.remove('active')"><i class="fa-solid fa-check"></i> Onayla</button>`:''}
+      ${data.durum!=='reddedildi'?`<button class="mc-btn mc-btn-red" onclick="ilanReddet(${data.id});document.getElementById('modal-bg').classList.remove('active')"><i class="fa-solid fa-times"></i> Reddet</button>`:''}
+      <button class="mc-btn" onclick="ilanSil(${data.id});document.getElementById('modal-bg').classList.remove('active')"><i class="fa-solid fa-trash"></i> Sil</button>
+    </div>
+  `;
+  document.getElementById('modal-bg').classList.add('active');
+}
+
+async function ilanOnayla(id){
+  await sb.from('ilanlar').update({durum:'aktif'}).eq('id',id);
+  await ozetYukle();
+  await bekleyenIlanlariYukle();
+  await aktifIlanlariYukle();
+}
+
+async function ilanReddet(id){
+  await sb.from('ilanlar').update({durum:'reddedildi'}).eq('id',id);
+  await ozetYukle();
+  await bekleyenIlanlariYukle();
+  await aktifIlanlariYukle();
+}
+
+async function ilanSil(id){
+  if(!confirm('Bu ilanı kalıcı olarak silmek istediğine emin misin?'))return;
+  await sb.from('ilanlar').delete().eq('id',id);
+  await ozetYukle();
+  await bekleyenIlanlariYukle();
+  await aktifIlanlariYukle();
+}
+
+function talepHTML(t){
+  return `
+    <div class="ibox" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-size:9px;color:#FFD700;font-weight:900;text-transform:uppercase;margin-bottom:4px;">${t.kategori||'Genel'}</div>
+          <div style="font-size:12px;font-weight:900;color:#ccc;margin-bottom:6px;">${t.konu||'Konu belirtilmemiş'}</div>
+          <div style="font-size:11px;color:#555;line-height:1.6;">${t.mesaj||''}</div>
+          <div style="font-size:9px;color:#333;margin-top:6px;">${t.created_at?new Date(t.created_at).toLocaleString('tr-TR'):''}</div>
+        </div>
+        <button class="mc-btn mc-btn-blue" style="padding:8px 14px;font-size:10px;flex-shrink:0;" onclick="talepCevapla(${t.id})">
+          <i class="fa-solid fa-reply"></i> Yanıtla
+        </button>
+      </div>
+    </div>`;
+}
+
+async function talepleriYukle(){
+  const{data}=await sb.from('talepler').select('*').eq('durum','bekliyor').order('created_at',{ascending:false});
+  const el=document.getElementById('talep-listesi-wrap');
+  if(!data||!data.length){el.innerHTML='<div class="box" style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Bekleyen talep yok ✓</div>';return;}
+  el.innerHTML='<div class="box">'+data.map(t=>talepHTML(t)).join('')+'</div>';
+}
+
+async function cevaplanmislariYukle(){
+  const{data}=await sb.from('talepler').select('*').eq('durum','cevaplandi').order('cevap_tarihi',{ascending:false}).limit(20);
+  const el=document.getElementById('cevaplandi-liste');
+  if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Henüz cevaplanmış talep yok</div>';return;}
+  el.innerHTML=data.map(t=>`
+    <div class="ibox" style="margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:900;color:#ccc;margin-bottom:6px;">${t.konu||'-'}</div>
+      <div style="font-size:11px;color:#555;margin-bottom:8px;">${t.mesaj||''}</div>
+      <div style="background:#0d0d0d;padding:10px;border-radius:2px;border-left:3px solid #39ff14;">
+        <div style="font-size:9px;color:#39ff14;font-weight:900;text-transform:uppercase;margin-bottom:4px;">Cevap:</div>
+        <div style="font-size:11px;color:#888;">${t.cevap||''}</div>
+      </div>
+      <div style="font-size:9px;color:#333;margin-top:8px;">${t.cevap_tarihi?new Date(t.cevap_tarihi).toLocaleString('tr-TR'):''}</div>
+    </div>
+  `).join('');
+}
+
+async function talepCevapla(id){
+  const cevap=prompt('Cevabınızı yazın:');
+  if(!cevap||!cevap.trim())return;
+  await sb.from('talepler').update({
+    durum:'cevaplandi',
+    cevap:cevap.trim(),
+    cevap_tarihi:new Date().toISOString(),
+    cevaplayan_id:benKim.id
+  }).eq('id',id);
+  await talepleriYukle();
+  await cevaplanmislariYukle();
+  await ozetYukle();
+}
+
+function modalKapat(e){
+  if(e.target===document.getElementById('modal-bg')) document.getElementById('modal-bg').classList.remove('active');
+}
+
+async function cikis(){
+  await sb.auth.signOut();
+  window.location.href='/lobbygg/giris.html';
+}
+
+function sec(id,el){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>
