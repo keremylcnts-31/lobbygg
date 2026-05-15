@@ -263,7 +263,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 sb.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = '/panel.html';
+  if (session) window.location.href = '/lobbygg/panel.html';
 });
 
 function switchTab(tab) {
@@ -295,7 +295,7 @@ async function girisYap() {
     return mesaj('error', error.message);
   }
   mesaj('success', '✓ Giriş başarılı! Yönlendiriliyorsun...');
-  setTimeout(() => { window.location.href = '/panel.html'; }, 800);
+  setTimeout(() => { window.location.href = '/lobbygg/panel.html'; }, 800);
 }
 
 function nickKontrol(nick) {
