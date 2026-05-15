@@ -230,7 +230,7 @@ body { background:#0d0d0d; color:#ccc; font-family:'Montserrat',sans-serif; min-
         <div style="font-size:11px;color:#555;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Hızlı İşlemler</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="mc-btn mc-btn-gold" onclick="sec('cuzdan',document.querySelector('[data-menu=cuzdan]'))"><i class="fa-solid fa-plus"></i> LCoin Yükle</button>
-          <a href="/ilan-ver.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-bullhorn"></i> İlan Ver</a>
+          <a href="/lobbygg/ilan-ver.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-bullhorn"></i> İlan Ver</a>
           <button class="mc-btn mc-btn-purple" onclick="sec('profil',document.querySelector('[data-menu=profil]'))"><i class="fa-solid fa-palette"></i> Profili Özelleştir</button>
           <button class="mc-btn mc-btn-blue" onclick="sec('abonelik',document.querySelector('[data-menu=abonelik]'))"><i class="fa-solid fa-crown"></i> Abonelikler</button>
         </div>
@@ -322,7 +322,7 @@ body { background:#0d0d0d; color:#ccc; font-family:'Montserrat',sans-serif; min-
       <div class="sec-title">İlanlarım</div>
       <div class="box">
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <a href="/ilan-ver.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-plus"></i> Yeni İlan Ver</a>
+          <a href="/lobbygg/ilan-ver.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-plus"></i> Yeni İlan Ver</a>
           <button class="mc-btn mc-btn-gold" onclick="alert('Yakında: Haftalık (99 LCoin) veya Aylık (375 LCoin) tek seferlik ilan açma!')"><i class="fa-solid fa-bolt"></i> Hızlı İlan (LCoin ile)</button>
         </div>
       </div>
@@ -330,7 +330,7 @@ body { background:#0d0d0d; color:#ccc; font-family:'Montserrat',sans-serif; min-
         <div class="empty" id="ilan-bos">
           <i class="fa-solid fa-bullhorn"></i>
           <p>Henüz bir ilanın yok</p>
-          <a href="/ilan-ver.html" class="mc-btn mc-btn-green">İlk İlanını Ver</a>
+          <a href="/lobbygg/ilan-ver.html" class="mc-btn mc-btn-green">İlk İlanını Ver</a>
         </div>
         <div id="ilan-list" style="display:none;"></div>
       </div>
@@ -981,7 +981,7 @@ function ilanAc(kategori,paket,fiyat){
 }
 
 function reklamAl(kategori,paket,fiyat){
-  window.location.href='/ilan-ver.html?kategori=reklam&alt='+kategori+'&paket='+paket+'&fiyat='+fiyat;
+  window.location.href='/lobbygg/ilan-ver.html?kategori=reklam&alt='+kategori+'&paket='+paket+'&fiyat='+fiyat;
 }
 
 function kuponKullan(){
