@@ -577,7 +577,6 @@ async function init(){
     ilanlariYukle(),
     feedYukle(),
     seritYukle(),
-    vitrinYukle(),
   ]);
 
   // Sayaç
@@ -890,9 +889,9 @@ async function seritYukle(){
 
 // VİTRİN SLIDER
 const VITRIN=[
-  {type:'image',badge:'ÖNE ÇIKAN',typeLabel:'📣 REKLAM ALANI',typeColor:'#FFD700',typeBg:'rgba(255,215,0,0.15)',img:'https://via.placeholder.com/800x360/111111/39ff14?text=REKLAM+ALANI+-+İlan+Ver!',title:'REKLAM ALANI - Senin İlanın Burada Olabilir',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'FİYATLAR',href:'/lobbygg/panel.html',cls:'vitrin-action-gray'}},
-  {type:'image',badge:'TOPLULUK',typeLabel:'⚔️ KLAN SAVAŞLARI',typeColor:'#b933ff',typeBg:'rgba(185,51,255,0.15)',img:'https://via.placeholder.com/800x360/0a000a/b933ff?text=KLAN+KURUMU+-+Savaş+Başlıyor!',title:'KLAN SAVAŞ ALANI - Klanını Zirveye Taşı',b1:{text:'KLAN KUR',href:'/lobbygg/klanlar.html',cls:'vitrin-action-green'},b2:{text:'KLANLARA BAK',href:'/lobbygg/klanlar.html',cls:'vitrin-action-gray'}},
-  {type:'image',badge:'PREMİUM İLAN',typeLabel:'💼 İŞ İLANI',typeColor:'#39ff14',typeBg:'rgba(57,255,20,0.15)',img:'https://via.placeholder.com/800x360/0a0a0a/39ff14?text=İŞ+İLANI+VER+-+Developer+Builder',title:'İŞ İLANI VER - Developer, Builder, Tasarımcı',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'TÜM İLANLAR',href:'/lobbygg/ilanlar.html',cls:'vitrin-action-gray'}},
+  {type:'image',badge:'ÖNE ÇIKAN',typeLabel:'📣 REKLAM ALANI',typeColor:'#FFD700',typeBg:'rgba(255,215,0,0.15)',img:'https://placehold.co/800x360/111111/39ff14?text=REKLAM+ALANI',title:'REKLAM ALANI - Senin İlanın Burada Olabilir',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'FİYATLAR',href:'/lobbygg/panel.html',cls:'vitrin-action-gray'}},
+  {type:'image',badge:'TOPLULUK',typeLabel:'⚔️ KLAN SAVAŞLARI',typeColor:'#b933ff',typeBg:'rgba(185,51,255,0.15)',img:'https://placehold.co/800x360/0a000a/b933ff?text=KLAN+SAVASLARI',title:'KLAN SAVAŞ ALANI - Klanını Zirveye Taşı',b1:{text:'KLAN KUR',href:'/lobbygg/klanlar.html',cls:'vitrin-action-green'},b2:{text:'KLANLARA BAK',href:'/lobbygg/klanlar.html',cls:'vitrin-action-gray'}},
+  {type:'image',badge:'PREMİUM İLAN',typeLabel:'💼 İŞ İLANI',typeColor:'#39ff14',typeBg:'rgba(57,255,20,0.15)',img:'https://placehold.co/800x360/0a0a0a/39ff14?text=IS+ILANI+VER',title:'İŞ İLANI VER - Developer, Builder, Tasarımcı',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'TÜM İLANLAR',href:'/lobbygg/ilanlar.html',cls:'vitrin-action-gray'}},
 ];
 let vCur=0,vTimer;
 function vitrinRender(idx){
