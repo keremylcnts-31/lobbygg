@@ -306,7 +306,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     <!-- SOL PANEL -->
     <div class="vtr-panel">
       <div class="vtr-panel-head"><div class="vtr-panel-dot" style="background:#FFD700;"></div><h3>PREMİUM <span>İLANLAR</span></h3></div>
-      <div id="vtr-sol-panel"><div style="padding:16px;font-size:10px;color:#333;text-align:center;">Yükleniyor...</div></div>
+      <div id="vtr-sol-panel"></div>
     </div>
     <!-- ORTA SLIDER -->
     <div style="position:relative;display:flex;flex-direction:column;gap:10px;">
@@ -322,7 +322,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     <!-- SAĞ PANEL -->
     <div class="vtr-panel">
       <div class="vtr-panel-head"><div class="vtr-panel-dot" style="background:#39ff14;"></div><h3>ONAYLI <span style="color:#39ff14;">İLANLAR</span></h3></div>
-      <div id="vtr-sag-panel"><div style="padding:16px;font-size:10px;color:#333;text-align:center;">Yükleniyor...</div></div>
+      <div id="vtr-sag-panel"></div>
     </div>
   </div>
 </div>
@@ -340,17 +340,17 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     <div class="market-grid">
       <div class="market-col">
         <div class="market-col-header" style="color:#39ff14;">Yetenek İlanları <span></span></div>
-        <div id="market-is"><div style="padding:20px;font-size:10px;color:#333;text-align:center;">Yükleniyor...</div></div>
+        <div id="market-is"></div>
         <a href="/lobbygg/ilanlar.html" class="market-more">TÜM YETENEK İLANLARI ›</a>
       </div>
       <div class="market-col">
         <div class="market-col-header" style="color:#ff4444;">Yetkili İlanları <span></span></div>
-        <div id="market-yetkili"><div style="padding:20px;font-size:10px;color:#333;text-align:center;">Yükleniyor...</div></div>
+        <div id="market-yetkili"></div>
         <a href="/lobbygg/ilanlar.html" class="market-more">TÜM YETKİLİ İLANLARI ›</a>
       </div>
       <div class="market-col">
         <div class="market-col-header" style="color:#b933ff;">Yayıncı & Medya <span></span></div>
-        <div id="market-medya"><div style="padding:20px;font-size:10px;color:#333;text-align:center;">Yükleniyor...</div></div>
+        <div id="market-medya"></div>
         <a href="/lobbygg/ilanlar.html" class="market-more">TÜM YAYINCI İLANLARI ›</a>
       </div>
     </div>
@@ -364,7 +364,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     <a href="/lobbygg/klanlar.html">TÜM KLANLARI GÖR →</a>
   </div>
   <div class="klan-marquee">
-    <div class="klan-track" id="klan-track"><div style="padding:16px;font-size:10px;color:#333;">Yükleniyor...</div></div>
+    <div class="klan-track" id="klan-track"></div>
   </div>
 </div>
 
@@ -403,8 +403,8 @@ let oKul=null;
 
 function hambToggle(){const m=document.getElementById('mob-menu');m.classList.toggle('open');const ic=document.getElementById('hamb-ico');ic.innerHTML=m.classList.contains('open')?'<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>':'<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>';}
 
-// Maksimum 6 saniyede loading kapat
-setTimeout(()=>{document.getElementById('loading').style.display='none';},6000);
+// Loading hemen kapat
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{document.getElementById('loading').style.display='none';},400);});
 
 async function init(){
   try{
@@ -431,18 +431,20 @@ async function init(){
   }catch(e){document.getElementById('nav-cikis').style.display='flex';}
 
   // Tüm bölümleri paralel yükle, hata olsa bile devam et
-  await Promise.allSettled([istatistik(),vitrinYukle(),tickerYukle(),marketYukle(),klanSeritYukle()]);
-  document.getElementById('loading').style.display='none';
+  // Arka planda yükle, sayfayı bloklamadan
+  Promise.allSettled([istatistik(),vitrinYukle(),tickerYukle(),marketYukle(),klanSeritYukle()]);
 }
 
 // İstatistik
 async function istatistik(){
-  const[{count:k},{count:il},{count:kl}]=await Promise.all([
-    SB.from('kullanicilar').select('*',{count:'exact',head:true}),
-    SB.from('ilanlar').select('*',{count:'exact',head:true}).eq('durum','aktif'),
-    SB.from('klanlar').select('*',{count:'exact',head:true}),
-  ]);
-  animSayi('s-kul',k||0);animSayi('s-ilan',il||0);animSayi('s-klan',kl||0);
+  try{
+    const[{count:k},{count:il},{count:kl}]=await Promise.all([
+      SB.from('kullanicilar').select('*',{count:'exact',head:true}),
+      SB.from('ilanlar').select('*',{count:'exact',head:true}).eq('durum','aktif'),
+      SB.from('klanlar').select('*',{count:'exact',head:true}),
+    ]);
+    animSayi('s-kul',k||0);animSayi('s-ilan',il||0);animSayi('s-klan',kl||0);
+  }catch(e){}
 }
 function animSayi(id,h){const el=document.getElementById(id);let c=0;const st=Math.ceil(h/40);const t=setInterval(()=>{c=Math.min(c+st,h);el.textContent=c.toLocaleString('tr-TR');if(c>=h)clearInterval(t);},30);}
 
@@ -463,7 +465,7 @@ async function vitrinYukle(){
   // Sol panel: premium (is, paket, developer)
   const{data:sol}=await SB.from('ilanlar').select('*').eq('durum','aktif').in('kategori',['is']).order('created_at',{ascending:false}).limit(5);
   // Sağ panel: onaylı (yetkili, medya)
-  const{data:sag}=await SB.from('ilanlar').select('*').eq('durum','aktif').in('kategori',['yetkili','medya']).order('created_at',{ascending:false}).limit(5);
+  const{data:sag}=await SB.from('ilanlar').select('id,kullanici_id,kullanici_nick,kategori,alt_kategori,aciklama,fiyat,one_cikan').eq('durum','aktif').in('kategori',['yetkili','medya']).order('created_at',{ascending:false}).limit(5).then(r=>r).catch(()=>({data:[]}));
 
   // Sol panel
   const solEl=document.getElementById('vtr-sol-panel');
@@ -594,10 +596,11 @@ async function tickerYukle(){
 
 // ─── MARKET (3 SÜTUN) ───
 async function marketYukle(){
+  const cols='id,kullanici_id,kullanici_nick,kategori,alt_kategori,aciklama,fiyat,one_cikan,seviye';
   const[{data:isIlan},{data:yetIlan},{data:medIlan}]=await Promise.all([
-    SB.from('ilanlar').select('*').eq('kategori','is').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
-    SB.from('ilanlar').select('*').eq('kategori','yetkili').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
-    SB.from('ilanlar').select('*').eq('kategori','medya').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
+    SB.from('ilanlar').select(cols).eq('kategori','is').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
+    SB.from('ilanlar').select(cols).eq('kategori','yetkili').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
+    SB.from('ilanlar').select(cols).eq('kategori','medya').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
   ]);
   const render=(el,ilanlar,btnCls)=>{
     if(!ilanlar||!ilanlar.length){document.getElementById(el).innerHTML='<div style="padding:20px;font-size:10px;color:#333;text-align:center;">İlan yok</div>';return;}
@@ -651,7 +654,7 @@ async function marketYukle(){
 
 // ─── KLAN ŞERİDİ ───
 async function klanSeritYukle(){
-  const{data}=await SB.from('klanlar').select('*').order('vote_sayisi',{ascending:false}).limit(8);
+  const{data}=await SB.from('klanlar').select('id,tag,isim,renk,uye_sayisi,vote_sayisi').order('vote_sayisi',{ascending:false}).limit(8);
   const track=document.getElementById('klan-track');
   if(!data||!data.length){track.innerHTML='<div style="padding:16px;font-size:10px;color:#333;">Henüz klan yok</div>';return;}
   const kartlar=data.map((k,i)=>{

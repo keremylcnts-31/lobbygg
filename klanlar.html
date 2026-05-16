@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎮</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Klanlar - LOBBY.GG</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -331,7 +332,7 @@ async function init(){
   sg.innerHTML=SUNUCULAR.map(s=>`<button class="sunucu-btn ${s===KF.sunucu?'aktif':''}" onclick="sunucuSec('${s}')">${s}</button>`).join('');
   // Renk init
   renkGuncelle();
-  await Promise.all([klanlariYukle(),istatistikYukle()]);
+  await Promise.allSettled([klanlariYukle(),istatistikYukle()]);
   document.getElementById('loading').style.display='none';
 }
 

@@ -140,8 +140,9 @@ body{background:#0a0a0a;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 <div id="profil-wrap"></div>
 
 <script>
-// Loading timeout
-setTimeout(()=>{const l=document.getElementById('loading');if(l)l.style.display='none';},6000);
+// Loading - hemen kapat
+setTimeout(()=>{const l=document.getElementById('loading');if(l)l.style.display='none';},5000);
+document.addEventListener('DOMContentLoaded',()=>{});
 
 const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
 let benKim=null,profilKul=null,takipEdiyorMu=false;
