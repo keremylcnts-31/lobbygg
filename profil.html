@@ -8,81 +8,135 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-height:100vh; }
-.nav { background:#080808; border-bottom:2px solid #111; padding:0 5%; display:flex; justify-content:space-between; align-items:center; height:56px; position:sticky; top:0; z-index:100; }
-.nav-logo { font-size:20px; font-weight:900; color:#fff; text-decoration:none; }
-.nav-logo span { color:#39ff14; }
-.mc-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#3a3a3a; color:#ccc !important; padding:9px 16px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border-top:2px solid #555; border-left:2px solid #555; border-right:2px solid #111; border-bottom:3px solid #111; text-decoration:none; transition:0.1s; }
-.mc-btn:hover { filter:brightness(1.2); }
-.mc-btn-green { background:#3a7d1e; color:#fff !important; border-top-color:#5cb832; border-left-color:#4a9e25; border-right-color:#1e4a09; border-bottom-color:#1e4a09; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;color:#ccc;font-family:'Montserrat',sans-serif;min-height:100vh;}
 
-.wrap { max-width:900px; margin:0 auto; padding:32px 20px; }
+/* NAV */
+.nav{background:#050505;border-bottom:2px solid #111;padding:0 5%;display:flex;justify-content:space-between;align-items:center;height:56px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:20px;font-weight:900;color:#fff;text-decoration:none;}
+.nav-logo span{color:#39ff14;}
+.mc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#3a3a3a;color:#ccc!important;padding:9px 16px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;border-top:2px solid #555;border-left:2px solid #555;border-right:2px solid #111;border-bottom:3px solid #111;text-decoration:none;transition:0.1s;}
+.mc-btn:hover{filter:brightness(1.2);}
+.mc-btn:active{transform:translateY(1px);border-bottom-width:1px;}
+.mc-btn-green{background:#3a7d1e;color:#fff!important;border-top-color:#5cb832;border-left-color:#4a9e25;border-right-color:#1e4a09;border-bottom-color:#1e4a09;}
+.mc-btn-blue{background:#1e4a7d;color:#aaccff!important;border-top-color:#3270b8;border-left-color:#25599e;border-right-color:#091e3a;border-bottom-color:#091e3a;}
 
-/* PROFİL KART */
-.profil-kart { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; padding:28px; margin-bottom:20px; }
-.profil-header { display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
-.profil-avatar-wrap { width:90px; height:90px; position:relative; flex-shrink:0; }
-.profil-avatar { width:80px; height:80px; margin:5px; border-radius:4px; object-fit:cover; background:#1a1a1a; }
-.profil-frame { position:absolute; inset:0; border-radius:6px; pointer-events:none; }
-.frame-default { border:2px solid #333; border-radius:6px; }
-.frame-neon-green { border:3px solid #39ff14; box-shadow:0 0 8px #39ff14,0 0 18px #1a8009; animation:pg 1.8s ease-in-out infinite; border-radius:6px; }
-.frame-neon-blue { border:3px solid #00d4ff; box-shadow:0 0 8px #00d4ff,0 0 18px #0066cc; animation:pb 1.6s ease-in-out infinite; border-radius:6px; }
-.frame-neon-purple { border:3px solid #b933ff; box-shadow:0 0 8px #b933ff,0 0 18px #6600cc; animation:pp 2s ease-in-out infinite; border-radius:6px; }
-.frame-neon-red { border:3px solid #ff1a3c; box-shadow:0 0 8px #ff1a3c,0 0 18px #990022; animation:pr 1.5s ease-in-out infinite; border-radius:6px; }
-.frame-neon-yellow { border:3px solid #ffea00; box-shadow:0 0 8px #ffea00,0 0 18px #998800; animation:py 2.2s ease-in-out infinite; border-radius:6px; }
-.frame-neon-orange { border:3px solid #ff6600; box-shadow:0 0 8px #ff6600,0 0 18px #cc3300; animation:po 1.7s ease-in-out infinite; border-radius:6px; }
-.frame-neon-pink { border:3px solid #ff1493; box-shadow:0 0 8px #ff1493,0 0 18px #99095a; animation:ppk 1.9s ease-in-out infinite; border-radius:6px; }
-.frame-neon-cyan { border:3px solid #00ffcc; box-shadow:0 0 8px #00ffcc,0 0 18px #00997a; animation:pc 2.1s ease-in-out infinite; border-radius:6px; }
-@keyframes pg{0%,100%{box-shadow:0 0 8px #39ff14,0 0 18px #1a8009;}50%{box-shadow:0 0 16px #55ff30,0 0 32px #39ff14;}}
-@keyframes pb{0%,100%{box-shadow:0 0 8px #00d4ff,0 0 18px #0066cc;}50%{box-shadow:0 0 16px #44e0ff,0 0 32px #00aaff;}}
-@keyframes pp{0%,100%{box-shadow:0 0 8px #b933ff,0 0 18px #6600cc;}50%{box-shadow:0 0 16px #d966ff,0 0 32px #b933ff;}}
-@keyframes pr{0%,100%{box-shadow:0 0 8px #ff1a3c,0 0 18px #990022;}50%{box-shadow:0 0 16px #ff4d6a,0 0 32px #ff1a3c;}}
-@keyframes py{0%,100%{box-shadow:0 0 8px #ffea00,0 0 18px #998800;}50%{box-shadow:0 0 16px #fff04d,0 0 32px #ffea00;}}
-@keyframes po{0%,100%{box-shadow:0 0 8px #ff6600,0 0 18px #cc3300;}50%{box-shadow:0 0 16px #ff8833,0 0 32px #ff6600;}}
-@keyframes ppk{0%,100%{box-shadow:0 0 8px #ff1493,0 0 18px #99095a;}50%{box-shadow:0 0 16px #ff4dab,0 0 32px #ff1493;}}
-@keyframes pc{0%,100%{box-shadow:0 0 8px #00ffcc,0 0 18px #00997a;}50%{box-shadow:0 0 16px #4dffd9,0 0 32px #00ffcc;}}
+/* PROFİL BANNER */
+.profil-banner{height:220px;position:relative;overflow:hidden;background:linear-gradient(135deg,#0d1a0d 0%,#1a0d2a 50%,#0d0d1a 100%);}
+.profil-banner-img{width:100%;height:100%;object-fit:cover;display:block;}
+.profil-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.8) 100%);}
+.profil-banner-edit{position:absolute;top:14px;right:14px;z-index:10;}
 
-.profil-bilgi { flex:1; }
-.profil-nick-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.profil-nick { font-size:22px; font-weight:900; color:#fff; text-transform:uppercase; }
-.verified { width:20px; height:20px; background:#1da1f2; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; color:#fff; font-weight:900; flex-shrink:0; }
-.profil-badge { display:inline-block; font-size:9px; font-weight:900; text-transform:uppercase; padding:3px 12px; border-radius:2px; margin-bottom:10px; }
-.badge-uye { background:#222; color:#666; border:1px solid #333; }
-.badge-abone { background:#152800; color:#39ff14; border:1px solid #2a5000; }
-.badge-pro { background:#251a00; color:#FFD700; border:1px solid #4a3500; }
-.badge-yonetici { background:#1a0d2a; color:#b933ff; border:1px solid #4a1e7d; }
-.profil-meta { font-size:11px; color:#444; font-weight:600; line-height:1.8; }
-.profil-stats { display:flex; gap:20px; margin-top:14px; flex-wrap:wrap; }
-.profil-stat { text-align:center; }
-.profil-stat-val { font-size:20px; font-weight:900; color:#39ff14; }
-.profil-stat-lbl { font-size:9px; color:#444; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
-.profil-iletisim { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
-.iletisim-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:800; text-decoration:none; border:none; cursor:pointer; transition:0.1s; }
-.iletisim-btn:hover { filter:brightness(1.1); }
+/* PROFİL HEADER */
+.profil-header-wrap{background:#111;border-bottom:2px solid #1a1a1a;padding:0 5%;position:relative;}
+.profil-header{display:flex;align-items:flex-end;gap:20px;padding-bottom:0;position:relative;margin-top:-60px;}
+.profil-avatar-wrap{position:relative;flex-shrink:0;z-index:10;}
+.profil-frame-wrap{width:110px;height:110px;position:relative;border-radius:4px;overflow:hidden;}
+.profil-avatar{width:100%;height:100%;object-fit:cover;display:block;border-radius:4px;}
+.profil-frame{position:absolute;inset:0;border-radius:4px;pointer-events:none;}
+.frame-default{border:3px solid #333;}
+.frame-neon-green{border:3px solid #39ff14;box-shadow:0 0 10px #39ff14,0 0 24px rgba(57,255,20,0.5);animation:pg 1.8s ease-in-out infinite;}
+.frame-neon-blue{border:3px solid #00d4ff;box-shadow:0 0 10px #00d4ff,0 0 24px rgba(0,212,255,0.5);animation:pb 1.6s ease-in-out infinite;}
+.frame-neon-purple{border:3px solid #b933ff;box-shadow:0 0 10px #b933ff,0 0 24px rgba(185,51,255,0.5);animation:pp 2s ease-in-out infinite;}
+.frame-neon-red{border:3px solid #ff1a3c;box-shadow:0 0 10px #ff1a3c,0 0 24px rgba(255,26,60,0.5);animation:pr 1.5s ease-in-out infinite;}
+.frame-neon-yellow{border:3px solid #ffea00;box-shadow:0 0 10px #ffea00,0 0 24px rgba(255,234,0,0.5);animation:py 2.2s ease-in-out infinite;}
+.frame-neon-orange{border:3px solid #ff6600;box-shadow:0 0 10px #ff6600,0 0 24px rgba(255,102,0,0.5);animation:po 1.7s ease-in-out infinite;}
+.frame-neon-pink{border:3px solid #ff1493;box-shadow:0 0 10px #ff1493,0 0 24px rgba(255,20,147,0.5);animation:ppk 1.9s ease-in-out infinite;}
+.frame-neon-cyan{border:3px solid #00ffcc;box-shadow:0 0 10px #00ffcc,0 0 24px rgba(0,255,204,0.5);animation:pc 2.1s ease-in-out infinite;}
+@keyframes pg{0%,100%{box-shadow:0 0 8px #39ff14,0 0 18px #1a8009;}50%{box-shadow:0 0 20px #55ff30,0 0 40px #39ff14;}}
+@keyframes pb{0%,100%{box-shadow:0 0 8px #00d4ff,0 0 18px #0066cc;}50%{box-shadow:0 0 20px #44e0ff,0 0 40px #00aaff;}}
+@keyframes pp{0%,100%{box-shadow:0 0 8px #b933ff,0 0 18px #6600cc;}50%{box-shadow:0 0 20px #d966ff,0 0 40px #b933ff;}}
+@keyframes pr{0%,100%{box-shadow:0 0 8px #ff1a3c,0 0 18px #990022;}50%{box-shadow:0 0 20px #ff4d6a,0 0 40px #ff1a3c;}}
+@keyframes py{0%,100%{box-shadow:0 0 8px #ffea00,0 0 18px #998800;}50%{box-shadow:0 0 20px #fff04d,0 0 40px #ffea00;}}
+@keyframes po{0%,100%{box-shadow:0 0 8px #ff6600,0 0 18px #cc3300;}50%{box-shadow:0 0 20px #ff8833,0 0 40px #ff6600;}}
+@keyframes ppk{0%,100%{box-shadow:0 0 8px #ff1493,0 0 18px #99095a;}50%{box-shadow:0 0 20px #ff4dab,0 0 40px #ff1493;}}
+@keyframes pc{0%,100%{box-shadow:0 0 8px #00ffcc,0 0 18px #00997a;}50%{box-shadow:0 0 20px #4dffd9,0 0 40px #00ffcc;}}
 
-/* İLAN KARTLARI */
-.box { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; padding:18px; margin-bottom:14px; }
-.sec-title { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#555; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
-.sec-title::after { content:''; flex:1; height:1px; background:#1a1a1a; }
-.ilan-kart { background:#1a1a1a; border-top:2px solid #2a2a2a; border-left:2px solid #2a2a2a; border-right:2px solid #060606; border-bottom:2px solid #060606; border-radius:2px; padding:14px; margin-bottom:8px; cursor:pointer; transition:0.15s; }
-.ilan-kart:hover { background:#222; }
-.ilan-tag { display:inline-block; font-size:9px; font-weight:900; text-transform:uppercase; padding:2px 8px; border-radius:1px; margin-bottom:6px; }
-.tag-is { background:#0d1f00; color:#39ff14; }
-.tag-yetkili { background:#0d141f; color:#6bb3ff; }
-.tag-medya { background:#1f0d1f; color:#d966ff; }
-.tag-reklam { background:#1f1400; color:#FFD700; }
+.profil-bilgi{flex:1;padding-bottom:16px;padding-top:20px;}
+.profil-nick-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.profil-nick{font-size:24px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:1px;}
+.verified-badge{width:22px;height:22px;background:#1da1f2;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:900;flex-shrink:0;}
+.klan-tag-badge{font-size:11px;font-weight:900;padding:3px 10px;border-radius:2px;display:inline-flex;align-items:center;gap:4px;}
+.abonelik-badge{font-size:9px;font-weight:900;text-transform:uppercase;padding:3px 10px;border-radius:2px;letter-spacing:1px;}
+.badge-uye{background:#222;color:#555;border:1px solid #333;}
+.badge-abone{background:#0d1f00;color:#39ff14;border:1px solid #2a5000;}
+.badge-pro{background:#1f1400;color:#FFD700;border:1px solid #4a3500;}
+.badge-ultravip{background:#1a0d2a;color:#b933ff;border:1px solid #4a1e7d;}
+.badge-yonetici{background:#1a0d2a;color:#b933ff;border:1px solid #4a1e7d;}
+.badge-admin{background:#1a1a00;color:#ffff00;border:1px solid #4a4a00;}
+.profil-meta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#444;font-weight:600;}
+.profil-meta-item{display:flex;align-items:center;gap:5px;}
+.profil-actions{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;}
 
-#loading { position:fixed; inset:0; background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; z-index:9999; }
-.ld-logo { font-size:28px; font-weight:900; color:#fff; }
-.ld-logo span { color:#39ff14; }
-.ld-bar { width:180px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; }
-.ld-fill { height:100%; background:#39ff14; animation:ld 1.5s ease infinite; }
-@keyframes ld { 0%{width:0%} 50%{width:70%} 100%{width:100%} }
+/* STAT BAR */
+.stat-bar{display:flex;gap:0;border-top:1px solid #1a1a1a;border-bottom:2px solid #0d0d0d;background:#0d0d0d;}
+.stat-item{flex:1;padding:14px;text-align:center;border-right:1px solid #1a1a1a;cursor:default;}
+.stat-item:last-child{border-right:none;}
+.stat-val{font-size:22px;font-weight:900;color:#39ff14;margin-bottom:3px;}
+.stat-lbl{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:1px;font-weight:700;}
 
-.not-found { text-align:center; padding:80px 20px; }
-.not-found i { font-size:50px; color:#222; margin-bottom:16px; display:block; }
-.not-found h2 { font-size:16px; color:#333; font-weight:900; text-transform:uppercase; }
+/* SEKMELER */
+.sekmeler{display:flex;gap:0;border-bottom:2px solid #1a1a1a;background:#111;padding:0 5%;}
+.sekme{padding:14px 20px;font-size:11px;font-weight:900;color:#444;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;border-bottom:3px solid transparent;transition:0.15s;user-select:none;}
+.sekme:hover{color:#888;}
+.sekme.active{color:#39ff14;border-bottom-color:#39ff14;}
+
+/* İÇERİK */
+.profil-icerik{max-width:1100px;margin:0 auto;padding:24px 5%;display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.sekme-icerik{display:none;}
+.sekme-icerik.active{display:block;}
+
+/* KUTULAR */
+.box{background:#111;border-top:2px solid #1a1a1a;border-left:2px solid #1a1a1a;border-right:2px solid #050505;border-bottom:3px solid #050505;border-radius:2px;padding:18px;margin-bottom:14px;}
+.ibox{background:#0d0d0d;border-top:2px solid #161616;border-left:2px solid #161616;border-right:2px solid #030303;border-bottom:2px solid #030303;border-radius:2px;padding:14px;margin-bottom:8px;}
+.box-title{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:#444;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.box-title::before{content:'';display:block;width:3px;height:12px;background:#39ff14;border-radius:2px;}
+
+/* İLAN KART */
+.ilan-kart{background:#1a1a1a;border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;border-right:2px solid #060606;border-bottom:3px solid #060606;border-radius:2px;padding:14px;margin-bottom:10px;cursor:pointer;transition:0.15s;}
+.ilan-kart:hover{background:#222;transform:translateY(-1px);}
+.ilan-tag{display:inline-block;font-size:9px;font-weight:900;text-transform:uppercase;padding:2px 8px;border-radius:1px;margin-bottom:6px;}
+.tag-is{background:#0d1f00;color:#39ff14;}
+.tag-yetkili{background:#0d141f;color:#6bb3ff;}
+.tag-medya{background:#1f0d1f;color:#d966ff;}
+.tag-reklam{background:#1f1400;color:#FFD700;}
+
+/* ROZET */
+.rozet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;}
+.rozet{background:#1a1a1a;border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;border-right:2px solid #060606;border-bottom:2px solid #060606;border-radius:2px;padding:12px;text-align:center;transition:0.15s;}
+.rozet:hover{background:#222;}
+.rozet-ikon{font-size:28px;margin-bottom:6px;}
+.rozet-ad{font-size:9px;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:0.5px;}
+.rozet.kazanildi .rozet-ad{color:#39ff14;}
+.rozet.kazanilmadi{opacity:0.3;filter:grayscale(1);}
+
+/* İLETİŞİM */
+.iletisim-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:800;text-decoration:none;border:none;cursor:pointer;transition:0.1s;}
+.iletisim-btn:hover{filter:brightness(1.1);}
+
+/* SAĞ PANEL */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;}
+.ld-logo{font-size:28px;font-weight:900;color:#fff;}
+.ld-logo span{color:#39ff14;}
+.ld-bar{width:180px;height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;}
+.ld-fill{height:100%;background:#39ff14;animation:ld 1.5s ease infinite;}
+@keyframes ld{0%{width:0%}50%{width:70%}100%{width:100%}}
+
+.not-found{text-align:center;padding:80px 20px;}
+.not-found i{font-size:50px;color:#222;margin-bottom:16px;display:block;}
+.not-found h2{font-size:16px;color:#333;font-weight:900;text-transform:uppercase;margin-bottom:12px;}
+
+@media(max-width:768px){
+  .profil-icerik{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .profil-nick{font-size:18px;}
+  .profil-header{flex-direction:column;align-items:flex-start;margin-top:-40px;}
+  .stat-bar{flex-wrap:wrap;}
+  .stat-item{flex:1 0 50%;}
+}
 </style>
 </head>
 <body>
@@ -100,10 +154,8 @@ body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-
   </div>
 </nav>
 
-<div class="wrap">
-  <div id="profil-wrap">
-    <div style="text-align:center;padding:40px;color:#333;font-size:11px;">Yükleniyor...</div>
-  </div>
+<div id="profil-wrap">
+  <div style="text-align:center;padding:60px;color:#333;font-size:11px;">Yükleniyor...</div>
 </div>
 
 <script>
@@ -111,106 +163,303 @@ const SB_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-async function init(){
-  const params=new URLSearchParams(window.location.search);
-  const nick=params.get('nick');
-  const id=params.get('id');
+let benKim=null; // Oturum açan kullanıcı
+let profilKul=null; // Görüntülenen kullanıcı
 
-  let kul=null;
-  if(id){
-    const{data}=await sb.from('kullanicilar').select('*').eq('id',id).single();
-    kul=data;
-  }else if(nick){
-    // Önce tam eşleşme dene
-    const{data}=await sb.from('kullanicilar').select('*').eq('kullanici_adi',nick);
-    if(data&&data.length>0){
-      kul=data[0];
-    }else{
-      // Büyük/küçük harf farklılığı için ilike dene
-      const{data:data2}=await sb.from('kullanicilar').select('*').ilike('kullanici_adi',nick);
-      if(data2&&data2.length>0)kul=data2[0];
-    }
+const CERCEVELER={
+  'default':'Varsayılan',
+  'neon-green':'Neon Yeşil',
+  'neon-blue':'Neon Mavi',
+  'neon-purple':'Neon Mor',
+  'neon-red':'Neon Kırmızı',
+  'neon-yellow':'Neon Sarı',
+  'neon-orange':'Neon Turuncu',
+  'neon-pink':'Neon Pembe',
+  'neon-cyan':'Neon Turkuaz',
+};
+
+const ROZETLER=[
+  {id:'yeni',ikon:'🌱',ad:'Yeni Üye',aciklama:'Platforma hoş geldin!'},
+  {id:'ilan_veren',ikon:'📣',ad:'İlan Veren',aciklama:'İlk ilanını verdin'},
+  {id:'klan_kurucu',ikon:'⚔️',ad:'Klan Kurucusu',aciklama:'Bir klan kurdun'},
+  {id:'dogrulandi',ikon:'✓',ad:'Doğrulanmış',aciklama:'Kimliğin doğrulandı'},
+  {id:'pro',ikon:'⭐',ad:'Pro Üye',aciklama:'Pro abonelik aktif'},
+  {id:'destekci',ikon:'💎',ad:'Destekçi',aciklama:'Platformu destekledin'},
+];
+
+const ABONELIK_RENK={
+  uye:'badge-uye',abone:'badge-abone',pro:'badge-pro',
+  ultravip:'badge-ultravip',yonetici:'badge-yonetici',
+  admin:'badge-admin',moderator:'badge-admin',
+};
+const ABONELIK_AD={
+  uye:'Üye',abone:'Abone',pro:'Pro',ultravip:'UltraVIP',
+  yonetici:'Yönetici',admin:'Admin',moderator:'Moderatör',
+};
+
+async function init(){
+  // Oturum kontrolü
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
+    if(data&&data.length>0)benKim=data[0];
   }
 
-  if(!kul){
+  // URL parametresi
+  const params=new URLSearchParams(window.location.search);
+  const id=params.get('id');
+  const nick=params.get('nick');
+
+  if(id){
+    const{data}=await sb.from('kullanicilar').select('*').eq('id',parseInt(id));
+    if(data&&data.length>0)profilKul=data[0];
+  }else if(nick){
+    const{data}=await sb.from('kullanicilar').select('*').ilike('kullanici_adi',nick);
+    if(data&&data.length>0)profilKul=data[0];
+  }else if(benKim){
+    profilKul=benKim; // Parametre yoksa kendi profili
+  }
+
+  if(!profilKul){
     document.getElementById('profil-wrap').innerHTML=`
       <div class="not-found">
         <i class="fa-solid fa-user-slash"></i>
         <h2>Kullanıcı Bulunamadı</h2>
+        <p style="font-size:11px;color:#333;margin-bottom:20px;">Bu kullanıcı mevcut değil veya hesabı silinmiş.</p>
+        <a href="/lobbygg/index.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-house"></i> Ana Sayfaya Dön</a>
       </div>`;
     document.getElementById('loading').style.display='none';
     return;
   }
 
-  // Oturum kontrolü (iletişim için)
-  let oturumVar=false;
-  const{data:{session}}=await sb.auth.getSession();
-  if(session)oturumVar=true;
+  // İlanları çek
+  const{data:ilanlar}=await sb.from('ilanlar').select('*').eq('kullanici_id',profilKul.id).eq('durum','aktif');
+  
+  // Klan bilgisi
+  let klan=null;
+  if(profilKul.klan_tag){
+    const{data:kd}=await sb.from('klanlar').select('*').eq('tag',profilKul.klan_tag).single();
+    klan=kd;
+  }
 
-  // İlanları yükle
-  const{data:ilanlar}=await sb.from('ilanlar').select('*').eq('kullanici_id',kul.id).eq('durum','aktif');
+  profilRender(profilKul, ilanlar||[], klan);
+  document.getElementById('loading').style.display='none';
+}
 
-  const cerceve=kul.aktif_cerceve||'default';
-  const badgeClass={uye:'badge-uye',abone:'badge-abone',pro:'badge-pro',yonetici:'badge-yonetici'}[kul.abonelik]||'badge-uye';
-  const badgeAd={uye:'Üye',abone:'Abone',pro:'Pro',yonetici:'Yönetici',admin:'Admin',moderator:'Moderatör'}[kul.abonelik]||'Üye';
-
-  const iletisimHTML=oturumVar?`
-    <div class="profil-iletisim">
-      ${kul.discord?`<a href="https://discord.com/users/${kul.discord}" target="_blank" class="iletisim-btn" style="background:#5865F2;color:#fff;"><i class="fa-brands fa-discord"></i> ${kul.discord}</a>`:''}
-    </div>`:`
-    <div style="background:#0d1f00;border:1px solid #1e4a00;border-radius:2px;padding:12px 14px;margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <span style="font-size:11px;color:#555;font-weight:700;">İletişim bilgilerini görmek için giriş yap.</span>
-      <a href="/lobbygg/giris.html" class="mc-btn mc-btn-green" style="padding:7px 14px;font-size:10px;"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>
-    </div>`;
-
-  const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
-  const tagClass={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
-
+function profilRender(kul, ilanlar, klan){
   document.title=`${kul.kullanici_adi} - LOBBY.GG`;
+  const benimProfil=benKim&&benKim.id===kul.id;
+  const cerceve=kul.aktif_cerceve||'default';
+  const abonelikSinif=ABONELIK_RENK[kul.abonelik]||'badge-uye';
+  const abonelikAd=ABONELIK_AD[kul.abonelik]||'Üye';
+  const avatar=kul.avatar_url||`https://minotar.net/helm/${kul.kullanici_adi}/110.png`;
+  const katilimTarihi=kul.kayit_tarihi?new Date(kul.kayit_tarihi).toLocaleDateString('tr-TR'):'Bilinmiyor';
+
+  // Klan tag HTML
+  const klanHTML=klan?`
+    <span class="klan-tag-badge" style="background:#251a00;border:1px solid #4a3500;color:#FFD700;">
+      <i class="fa-solid fa-shield-halved" style="font-size:10px;"></i>
+      ${klan.isim}
+    </span>`:'';
+
+  // İletişim butonları
+  const iletisimHTML=benKim&&benKim.id!==kul.id?`
+    ${kul.discord?`<a href="https://discord.com/users/${kul.discord}" target="_blank" class="iletisim-btn" style="background:#5865F2;color:#fff;"><i class="fa-brands fa-discord"></i> Discord</a>`:''}
+    <button class="iletisim-btn mc-btn" onclick="mesajGonder(${kul.id})"><i class="fa-solid fa-envelope"></i> Mesaj</button>
+  `:benKim&&benKim.id===kul.id?`
+    <a href="/lobbygg/panel.html" class="mc-btn mc-btn-green" style="padding:9px 16px;"><i class="fa-solid fa-pen"></i> Profili Düzenle</a>
+  `:`
+    <a href="/lobbygg/giris.html" class="mc-btn" style="padding:9px 16px;"><i class="fa-solid fa-right-to-bracket"></i> İletişim İçin Giriş Yap</a>
+  `;
+
+  // Rozetler
+  const kulRozetler=kul.rozet?kul.rozet.split(','):['yeni'];
+  if(kul.dogrulama_rozeti)kulRozetler.push('dogrulandi');
+
+  const rozetHTML=ROZETLER.map(r=>{
+    const kazanildi=kulRozetler.includes(r.id)||
+      (r.id==='ilan_veren'&&ilanlar.length>0)||
+      (r.id==='klan_kurucu'&&klan&&klan.kurucu_id===kul.id);
+    return`<div class="rozet ${kazanildi?'kazanildi':'kazanilmadi'}" title="${r.aciklama}">
+      <div class="rozet-ikon">${r.ikon}</div>
+      <div class="rozet-ad">${r.ad}</div>
+    </div>`;
+  }).join('');
+
+  // İlan kartları
+  const tagMap={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
+  const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
+  const ilanHTML=ilanlar.length?ilanlar.map(i=>`
+    <div class="ilan-kart" onclick="window.location.href='/lobbygg/ilanlar.html'">
+      ${i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:''}
+      <span class="ilan-tag ${tagMap[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+        <div style="font-size:12px;font-weight:900;color:#ccc;">${i.alt_kategori||'-'}</div>
+        <div style="font-size:12px;font-weight:900;color:#39ff14;">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
+      </div>
+      ${i.seviye?`<div style="font-size:10px;color:#39ff14;margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
+      ${i.aciklama&&i.aciklama!=='-'?`<div style="font-size:10px;color:#444;margin-top:6px;line-height:1.6;">${i.aciklama.substring(0,80)}...</div>`:''}
+    </div>`).join('')
+  :`<div style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Aktif ilan yok</div>`;
+
   document.getElementById('profil-wrap').innerHTML=`
-    <div class="profil-kart">
-      <div class="profil-header">
-        <div class="profil-avatar-wrap">
-          <div class="profil-frame frame-${cerceve}"></div>
-          <img src="${kul.avatar_url||`https://minotar.net/helm/${kul.kullanici_adi}/80.png`}" class="profil-avatar" onerror="this.src='https://minotar.net/helm/Steve/80.png'">
-        </div>
-        <div class="profil-bilgi">
-          <div class="profil-nick-row">
-            <div class="profil-nick">${kul.kullanici_adi}</div>
-            ${kul.dogrulama_rozeti?'<div class="verified">✓</div>':''}
-          </div>
-          <div class="profil-badge ${badgeClass}">${badgeAd}</div>
-          <div class="profil-meta">
-            ${kul.yas?`<span>${kul.yas} yaş</span> · `:''}
-            ${kul.cinsiyet?`<span>${kul.cinsiyet}</span> · `:''}
-            ${kul.kayit_tarihi?`Katılım: ${new Date(kul.kayit_tarihi).toLocaleDateString('tr-TR')}`:''}
-          </div>
-          <div class="profil-stats">
-            <div class="profil-stat">
-              <div class="profil-stat-val">${ilanlar?ilanlar.length:0}</div>
-              <div class="profil-stat-lbl">Aktif İlan</div>
+    <!-- BANNER -->
+    <div class="profil-banner">
+      <div style="width:100%;height:100%;background:linear-gradient(135deg,#0d1a0d 0%,#1a0d2a 50%,#0a0a1a 100%);"></div>
+      <div class="profil-banner-overlay"></div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="profil-header-wrap">
+      <div style="max-width:1100px;margin:0 auto;">
+        <div class="profil-header">
+          <div class="profil-avatar-wrap">
+            <div class="profil-frame-wrap">
+              <img src="${avatar}" class="profil-avatar" onerror="this.src='https://minotar.net/helm/Steve/110.png'" alt="">
+              <div class="profil-frame frame-${cerceve}"></div>
             </div>
           </div>
-          ${iletisimHTML}
+          <div class="profil-bilgi">
+            <div class="profil-nick-row">
+              <span class="profil-nick">${kul.kullanici_adi}</span>
+              ${kul.dogrulama_rozeti?'<div class="verified-badge" title="Doğrulanmış Hesap">✓</div>':''}
+              <span class="abonelik-badge ${abonelikSinif}">${abonelikAd}</span>
+              ${klanHTML}
+            </div>
+            <div class="profil-meta-row">
+              ${kul.yas?`<span class="profil-meta-item"><i class="fa-solid fa-cake-candles"></i> ${kul.yas} yaş</span>`:''}
+              ${kul.cinsiyet?`<span class="profil-meta-item"><i class="fa-solid fa-user"></i> ${kul.cinsiyet}</span>`:''}
+              <span class="profil-meta-item"><i class="fa-solid fa-calendar"></i> ${katilimTarihi}'den beri</span>
+              ${kul.discord?`<span class="profil-meta-item"><i class="fa-brands fa-discord" style="color:#5865F2;"></i> ${kul.discord}</span>`:''}
+            </div>
+            <div class="profil-actions">
+              ${iletisimHTML}
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- İSTATİSTİK BAR -->
+      <div class="stat-bar" style="max-width:100%;margin-top:16px;">
+        <div class="stat-item">
+          <div class="stat-val">${ilanlar.length}</div>
+          <div class="stat-lbl">Aktif İlan</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" style="color:#FFD700;">${kul.ggcoin||0}</div>
+          <div class="stat-lbl">GGCoin</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" style="color:#b933ff;">${kulRozetler.length}</div>
+          <div class="stat-lbl">Rozet</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" style="color:#6bb3ff;">${klan?klan.isim:'-'}</div>
+          <div class="stat-lbl">Klan</div>
+        </div>
+      </div>
+
+      <!-- SEKMELER -->
+      <div class="sekmeler">
+        <div class="sekme active" onclick="sekmeAc('ilanlar',this)"><i class="fa-solid fa-bullhorn"></i> İlanlar</div>
+        <div class="sekme" onclick="sekmeAc('rozetler',this)"><i class="fa-solid fa-medal"></i> Rozetler</div>
+        <div class="sekme" onclick="sekmeAc('hakkinda',this)"><i class="fa-solid fa-user"></i> Hakkında</div>
       </div>
     </div>
 
-    ${ilanlar&&ilanlar.length?`
-    <div class="box">
-      <div class="sec-title">Aktif İlanları</div>
-      ${ilanlar.map(i=>`
-        <div class="ilan-kart" onclick="window.location.href='/lobbygg/ilanlar.html'">
-          <span class="ilan-tag ${tagClass[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
-          <div style="font-size:12px;font-weight:900;color:#ccc;margin-bottom:4px;">${i.alt_kategori||'-'}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:11px;color:#555;">${i.aciklama?i.aciklama.substring(0,60)+'...':'-'}</div>
-            <div style="font-size:12px;font-weight:900;color:#39ff14;flex-shrink:0;margin-left:10px;">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
+    <!-- İÇERİK -->
+    <div class="profil-icerik">
+      <div>
+        <!-- İLANLAR SEKMESİ -->
+        <div class="sekme-icerik active" id="sekme-ilanlar">
+          <div class="box">
+            <div class="box-title">Aktif İlanlar</div>
+            ${ilanHTML}
           </div>
-        </div>`).join('')}
-    </div>`:''}
+        </div>
+
+        <!-- ROZETLER SEKMESİ -->
+        <div class="sekme-icerik" id="sekme-rozetler">
+          <div class="box">
+            <div class="box-title">Rozetler</div>
+            <div class="rozet-grid">${rozetHTML}</div>
+          </div>
+        </div>
+
+        <!-- HAKKINDA SEKMESİ -->
+        <div class="sekme-icerik" id="sekme-hakkinda">
+          <div class="box">
+            <div class="box-title">Kullanıcı Bilgileri</div>
+            ${[
+              ['Kullanıcı Adı', kul.kullanici_adi],
+              ['Üyelik', abonelikAd],
+              ['Yaş', kul.yas||'-'],
+              ['Cinsiyet', kul.cinsiyet||'-'],
+              ['Discord', kul.discord||'-'],
+              ['Klan', klan?`[${klan.tag}] ${klan.isim}`:'-'],
+              ['Katılım Tarihi', katilimTarihi],
+              ['Doğrulama', kul.dogrulama_rozeti?'✓ Doğrulanmış Hesap':'Doğrulanmamış'],
+            ].map(([k,v])=>`
+              <div class="ibox" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                <span style="font-size:9px;color:#444;font-weight:900;text-transform:uppercase;">${k}</span>
+                <span style="font-size:11px;color:#ccc;font-weight:700;">${v}</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- SAĞ PANEL -->
+      <div class="sidebar">
+        ${klan?`
+        <div class="box">
+          <div class="box-title">Klan</div>
+          <div style="text-align:center;padding:10px 0;">
+            <div style="font-size:22px;font-weight:900;color:#FFD700;background:#251a00;border:1px solid #4a3500;padding:8px 16px;border-radius:2px;display:inline-block;margin-bottom:10px;">${klan.tag}</div>
+            <div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:4px;">${klan.isim}</div>
+            <div style="font-size:10px;color:#444;">${klan.uye_sayisi||1} üye</div>
+          </div>
+        </div>`:''}
+
+        <div class="box">
+          <div class="box-title">Çerçeve</div>
+          <div style="display:flex;justify-content:center;padding:10px 0;">
+            <div style="width:80px;height:80px;position:relative;">
+              <img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" onerror="this.src='https://minotar.net/helm/Steve/80.png'">
+              <div class="profil-frame frame-${cerceve}" style="position:absolute;inset:0;border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#444;text-align:center;text-transform:uppercase;font-weight:700;">${CERCEVELER[cerceve]||'Varsayılan'}</div>
+        </div>
+
+        <div class="box">
+          <div class="box-title">İstatistikler</div>
+          <div class="ibox" style="display:flex;justify-content:space-between;padding:10px 12px;">
+            <span style="font-size:10px;color:#444;font-weight:800;text-transform:uppercase;">Toplam İlan</span>
+            <span style="font-size:12px;color:#39ff14;font-weight:900;">${ilanlar.length}</span>
+          </div>
+          <div class="ibox" style="display:flex;justify-content:space-between;padding:10px 12px;">
+            <span style="font-size:10px;color:#444;font-weight:800;text-transform:uppercase;">GGCoin</span>
+            <span style="font-size:12px;color:#FFD700;font-weight:900;">${kul.ggcoin||0}</span>
+          </div>
+          <div class="ibox" style="display:flex;justify-content:space-between;padding:10px 12px;">
+            <span style="font-size:10px;color:#444;font-weight:800;text-transform:uppercase;">Rozet Sayısı</span>
+            <span style="font-size:12px;color:#b933ff;font-weight:900;">${kulRozetler.length}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
-  document.getElementById('loading').style.display='none';
+}
+
+function sekmeAc(id, el){
+  document.querySelectorAll('.sekme').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sekme-icerik').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sekme-'+id).classList.add('active');
+}
+
+function mesajGonder(id){
+  alert('Mesajlaşma sistemi yakında aktif olacak!');
 }
 
 init();
