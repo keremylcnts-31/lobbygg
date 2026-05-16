@@ -403,27 +403,35 @@ let oKul=null;
 
 function hambToggle(){const m=document.getElementById('mob-menu');m.classList.toggle('open');const ic=document.getElementById('hamb-ico');ic.innerHTML=m.classList.contains('open')?'<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>':'<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>';}
 
+// Maksimum 6 saniyede loading kapat
+setTimeout(()=>{document.getElementById('loading').style.display='none';},6000);
+
 async function init(){
-  // Auth
   try{
-    const{data:{session}}=await SB.auth.getSession();
+    // Auth - timeout ile
+    const authPromise=SB.auth.getSession();
+    const authTimeout=new Promise(r=>setTimeout(()=>r({data:{session:null}}),3000));
+    const{data:{session}}=await Promise.race([authPromise,authTimeout]);
     if(session){
-      const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);
-      if(data&&data.length>0){
-        oKul=data[0];
-        const nick=oKul.kullanici_adi||'Oyuncu';
-        document.getElementById('nav-giris').style.display='flex';
-        document.getElementById('nav-cikis').style.display='none';
-        document.getElementById('nav-lcoin').textContent=oKul.lcoin||0;
-        document.getElementById('nav-nick').textContent=nick;
-        const pp=document.getElementById('nav-pp');
-        pp.src=oKul.avatar_url||`https://minotar.net/helm/${nick}/30.png`;
-        if(oKul.klan_tag){const kl=document.getElementById('nav-klan');kl.style.display='block';kl.textContent='['+oKul.klan_tag+']';}
-      }else{document.getElementById('nav-cikis').style.display='flex';}
+      try{
+        const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);
+        if(data&&data.length>0){
+          oKul=data[0];
+          const nick=oKul.kullanici_adi||'Oyuncu';
+          document.getElementById('nav-giris').style.display='flex';
+          document.getElementById('nav-cikis').style.display='none';
+          document.getElementById('nav-lcoin').textContent=oKul.lcoin||0;
+          document.getElementById('nav-nick').textContent=nick;
+          const pp=document.getElementById('nav-pp');
+          pp.src=oKul.avatar_url||`https://minotar.net/helm/${nick}/30.png`;
+          if(oKul.klan_tag){const kl=document.getElementById('nav-klan');kl.style.display='block';kl.textContent='['+oKul.klan_tag+']';}
+        }else{document.getElementById('nav-cikis').style.display='flex';}
+      }catch(e){document.getElementById('nav-cikis').style.display='flex';}
     }else{document.getElementById('nav-cikis').style.display='flex';}
   }catch(e){document.getElementById('nav-cikis').style.display='flex';}
 
-  await Promise.all([istatistik(),vitrinYukle(),tickerYukle(),marketYukle(),klanSeritYukle()]);
+  // Tüm bölümleri paralel yükle, hata olsa bile devam et
+  await Promise.allSettled([istatistik(),vitrinYukle(),tickerYukle(),marketYukle(),klanSeritYukle()]);
   document.getElementById('loading').style.display='none';
 }
 

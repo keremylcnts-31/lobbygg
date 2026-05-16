@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎮</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil - LOBBY.GG</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -139,6 +140,9 @@ body{background:#0a0a0a;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 <div id="profil-wrap"></div>
 
 <script>
+// Loading timeout
+setTimeout(()=>{const l=document.getElementById('loading');if(l)l.style.display='none';},6000);
+
 const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
 let benKim=null,profilKul=null,takipEdiyorMu=false;
 
@@ -146,7 +150,9 @@ const BADGEMAP={uye:'badge-uye',abone:'badge-abone',klasik:'badge-abone',premium
 const BADGEAD={uye:'ÜYE',abone:'ABONE',klasik:'KLASİK',premium:'PREMİUM',ultravip:'UltraVIP',yonetici:'YÖNETİCİ',admin:'ADMİN',moderator:'MODERATÖR'};
 
 async function init(){
-  const{data:{session}}=await SB.auth.getSession();
+  const _authP=SB.auth.getSession();
+    const _authT=new Promise(r=>setTimeout(()=>r({data:{session:null}}),3000));
+    const{data:{session}}=await Promise.race([_authP,_authT]);
   if(session){const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);if(data&&data.length>0)benKim=data[0];}
   const p=new URLSearchParams(window.location.search);
   const id=p.get('id'),nick=p.get('nick');
