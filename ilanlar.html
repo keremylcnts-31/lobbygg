@@ -223,7 +223,7 @@ function ilanAc(id){
         <div style="font-size:10px;color:#555;margin-top:2px;">${pozisyon}</div>
         ${i.seviye?`<div style="font-size:11px;color:#39ff14;margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
       </div>
-      <a href="/lobbygg/profil.html?nick=${nick}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
+      <a href="/lobbygg/profil.html?id=${i.kullanici_id}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
     </div>
     ${i.aciklama&&i.aciklama!=='-'?`<div style="background:#111;border-radius:2px;padding:14px;font-size:12px;color:#888;line-height:1.7;margin-bottom:14px;">${i.aciklama}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">

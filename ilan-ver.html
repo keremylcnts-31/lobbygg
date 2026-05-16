@@ -815,16 +815,18 @@ async function ilanYayinla(){
 
   const {error}=await sb.from('ilanlar').insert({
     kullanici_id: kul.id,
+    kullanici_nick: kul.kullanici_adi,
     baslik: baslik,
     kategori: F.kategori,
     alt_kategori: F.altKategori||F.pozisyon,
     aciklama: F.isPuanAciklama||'',
-    fiyat: F.isFiyat||0,
+    fiyat: parseInt(F.isFiyat)||0,
     discord: F.discord,
     email: F.gmail,
-    seviye: F.puan||0,
+    seviye: parseInt(F.puan)||0,
     boost_bitis: bitis.toISOString(),
-    one_cikan: F.oneCikar,
+    one_cikan: F.oneCikar||false,
+    banner_url: F.banner||null,
   });
 
   if(error){
