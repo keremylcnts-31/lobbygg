@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎮</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>İlanlar - LOBBY.GG</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -178,7 +179,7 @@ function render(){
       ${vip?'<div class="vip-badge">VİP İLAN</div>':''}
       ${i.kategori==='reklam'&&i.banner_url?`<img src="${i.banner_url}" class="card-banner" alt="">`:''}
       <div class="card-head">
-        <img src="${i.avatar_url||`https://minotar.net/helm/${nick}/52.png`}" class="card-av" onerror="this.src='https://minotar.net/helm/Steve/52.png'" alt="">
+        <img src="https://minotar.net/helm/${nick}/52.png" class="card-av" onerror="this.src='https://minotar.net/helm/Steve/52.png'" alt="">
         <div class="card-info">
           <span class="card-tag" style="color:${renkTag};">${displayTag.toUpperCase()}</span>
           <h4 class="card-name">${nick}<svg class="icon"><use href="#icon-verified"/></svg></h4>

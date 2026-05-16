@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🎮</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LOBBY.GG - Türkiye'nin Minecraft Topluluğu</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -104,8 +105,13 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;overflow-
 
 /* ── YAYINCI ŞERİDİ ── */
 .ticker-section{background:#050505;border-top:1px solid #111;border-bottom:1px solid #111;padding:14px 0;position:relative;z-index:1;overflow:hidden;}
-.ticker-wrap{display:flex;overflow:hidden;width:100%;}
-.ticker-track{display:flex;gap:16px;white-space:nowrap;width:max-content;}
+.ticker-wrap{display:flex;overflow:hidden;width:100%;position:relative;}
+.ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:5;pointer-events:none;}
+.ticker-wrap::before{left:0;background:linear-gradient(to right,#050505,transparent);}
+.ticker-wrap::after{right:0;background:linear-gradient(to left,#050505,transparent);}
+.ticker-track{display:flex;gap:16px;white-space:nowrap;width:max-content;animation:tickerKay 35s linear infinite;}
+.ticker-track:hover{animation-play-state:paused;}
+@keyframes tickerKay{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 .stream-tag{display:flex;align-items:center;gap:10px;background:#0d0d0d;padding:5px 14px 5px 5px;border-radius:40px;text-decoration:none;transition:.2s;flex-shrink:0;}
 .stream-tag:hover{transform:scale(1.02);}
 .st-kick{border:1px solid #53fc18;}.st-kick:hover{box-shadow:0 0 12px rgba(83,252,24,.4);}
@@ -575,12 +581,7 @@ async function tickerYukle(){
   }).join('');
   track.innerHTML=kartlar+kartlar;
 
-  // Auto scroll
-  const section=document.querySelector('.ticker-section');
-  let paused=false;
-  section.addEventListener('mouseenter',()=>paused=true);
-  section.addEventListener('mouseleave',()=>paused=false);
-  (function scroll(){if(!paused){section.scrollLeft+=1;if(section.scrollLeft>=track.scrollWidth/2)section.scrollLeft=0;}requestAnimationFrame(scroll);})();
+  // CSS animasyon kullanıyor, JS scroll gerekmiyor
 }
 
 // ─── MARKET (3 SÜTUN) ───
@@ -649,7 +650,7 @@ async function klanSeritYukle(){
     const renk=k.renk||'#39ff14';
     const vip=i<3;
     return`<div class="klan-card ${vip?'vip':''}" onclick="window.location.href='/lobbygg/klanlar.html'">
-      <img src="${k.logo_url||`https://minotar.net/helm/${k.tag||'Steve'}/52.png`}" class="klan-av" onerror="this.src='https://minotar.net/helm/Steve/52.png'">
+      <img src="https://minotar.net/helm/${k.tag||'Steve'}/52.png" class="klan-av" onerror="this.src='https://minotar.net/helm/Steve/52.png'">
       <div class="klan-info">
         <div class="klan-tag-lbl" style="color:${renk};">${vip?'ÖNE ÇIKAN KLAN':'KLAN'} [${k.tag}]</div>
         <h3 class="klan-name">${k.isim}</h3>
