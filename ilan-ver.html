@@ -287,26 +287,100 @@ function s2Hazirla(){
     </div>`;
   }else if(kat==='reklam'){
     document.getElementById('s2-title').textContent='Reklam İlanı Detayları';
-    document.getElementById('s2-desc').textContent='Reklam türünü seç ve bilgilerini doldur.';
+    document.getElementById('s2-desc').textContent='Reklam türünü ve platformunu seç.';
     document.getElementById('s2-icerik').innerHTML=`<div class="box">
       <div class="f-group"><label class="f-label">Reklam Türü *</label>
+        <button class="sel-btn" id="rek-sunucu" onclick="rekTuruSec('sunucu')"><div class="sel-btn-icon">🖥️</div><div style="flex:1;"><div class="sel-btn-title">Sunucu Reklamı</div><div class="sel-btn-desc">Minecraft sunucunu tanıt · Sarı çerçeve</div></div><div class="sel-check" id="rekc-sunucu"></div></button>
         <button class="sel-btn" id="rek-medya" onclick="rekTuruSec('medya')"><div class="sel-btn-icon">📱</div><div style="flex:1;"><div class="sel-btn-title">Medya / Yayıncı</div><div class="sel-btn-desc">TikTok, Instagram, YouTube, Kick, Twitch</div></div><div class="sel-check" id="rekc-medya"></div></button>
-        <button class="sel-btn" id="rek-sunucu" onclick="rekTuruSec('sunucu')"><div class="sel-btn-icon">🖥️</div><div style="flex:1;"><div class="sel-btn-title">Sunucu Reklamı</div><div class="sel-btn-desc">Minecraft sunucunu tanıt</div></div><div class="sel-check" id="rekc-sunucu"></div></button>
       </div>
-      <div class="f-group"><label class="f-label">Hesap / Sunucu Adı *</label><input type="text" class="f-input" id="platform-adi" placeholder="Kullanıcı adı veya sunucu adı"></div>
+
+      <!-- SUNUCU ALANLARI -->
       <div id="sunucu-alanlar" style="display:none;">
-        <div class="f-group"><label class="f-label">Sunucu IP *</label><input type="text" class="f-input" id="sunucu-ip" placeholder="örn: play.sunucum.com"></div>
+        <div class="f-group"><label class="f-label">Sunucu Adı *</label><input type="text" class="f-input" id="sunucu-adi" placeholder="HanedanMC"></div>
+        <div class="f-group"><label class="f-label">Sunucu IP *</label><input type="text" class="f-input" id="sunucu-ip" placeholder="play.sunucum.com"></div>
         <div class="f-group"><label class="f-label">Sunucu Site Linki</label><input type="text" class="f-input" id="sunucu-site" placeholder="https://sunucum.com"></div>
-        <div class="f-group"><label class="f-label">Discord Sunucu Linki</label><input type="text" class="f-input" id="sunucu-discord" placeholder="https://discord.gg/..."></div>
+        <div class="f-group"><label class="f-label">Discord Linki</label><input type="text" class="f-input" id="sunucu-discord" placeholder="https://discord.gg/..."></div>
+        <div class="msg-i"><i class="fa-solid fa-palette"></i> Sunucu reklamları pankart üzerinde <strong style="color:#FFD700;">altın sarısı</strong> çerçeve ile görünür.</div>
       </div>
-      <div class="f-group"><label class="f-label">Reklam Bannerı * <span style="color:#ff4444;font-size:9px;">ZORUNLU</span></label>
+
+      <!-- MEDYA PLATFORM SEÇİMİ -->
+      <div id="medya-alanlar" style="display:none;">
+        <div class="f-group"><label class="f-label">Platform Seç * <span style="font-size:9px;color:#444;">(Pankart çerçeve rengi platforma göre otomatik belirlenir)</span></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="plat-grid">
+            <button class="sel-btn" id="plat-kick" onclick="platSec('kick')" style="--renk:#39ff14;flex-direction:column;align-items:center;text-align:center;padding:12px 8px;">
+              <div style="font-size:22px;margin-bottom:4px;">🎮</div>
+              <div class="sel-btn-title" style="font-size:10px;">Kick</div>
+              <div style="font-size:8px;color:#39ff14;font-weight:800;">Yeşil Çerçeve</div>
+              <div class="sel-check" id="platc-kick" style="position:absolute;top:6px;right:6px;"></div>
+            </button>
+            <button class="sel-btn" id="plat-tiktok" onclick="platSec('tiktok')" style="flex-direction:column;align-items:center;text-align:center;padding:12px 8px;position:relative;">
+              <div style="font-size:22px;margin-bottom:4px;">🎵</div>
+              <div class="sel-btn-title" style="font-size:10px;">TikTok</div>
+              <div style="font-size:8px;color:#00d4ff;font-weight:800;">Mavi Çerçeve</div>
+              <div class="sel-check" id="platc-tiktok" style="position:absolute;top:6px;right:6px;"></div>
+            </button>
+            <button class="sel-btn" id="plat-instagram" onclick="platSec('instagram')" style="flex-direction:column;align-items:center;text-align:center;padding:12px 8px;position:relative;">
+              <div style="font-size:22px;margin-bottom:4px;">📸</div>
+              <div class="sel-btn-title" style="font-size:10px;">Instagram</div>
+              <div style="font-size:8px;color:#ff1493;font-weight:800;">Pembe Çerçeve</div>
+              <div class="sel-check" id="platc-instagram" style="position:absolute;top:6px;right:6px;"></div>
+            </button>
+            <button class="sel-btn" id="plat-youtube" onclick="platSec('youtube')" style="flex-direction:column;align-items:center;text-align:center;padding:12px 8px;position:relative;">
+              <div style="font-size:22px;margin-bottom:4px;">▶️</div>
+              <div class="sel-btn-title" style="font-size:10px;">YouTube</div>
+              <div style="font-size:8px;color:#ff1a1a;font-weight:800;">Kırmızı Çerçeve</div>
+              <div class="sel-check" id="platc-youtube" style="position:absolute;top:6px;right:6px;"></div>
+            </button>
+            <button class="sel-btn" id="plat-twitch" onclick="platSec('twitch')" style="flex-direction:column;align-items:center;text-align:center;padding:12px 8px;position:relative;">
+              <div style="font-size:22px;margin-bottom:4px;">📡</div>
+              <div class="sel-btn-title" style="font-size:10px;">Twitch</div>
+              <div style="font-size:8px;color:#9146ff;font-weight:800;">Mor Çerçeve</div>
+              <div class="sel-check" id="platc-twitch" style="position:absolute;top:6px;right:6px;"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- PLATFORM RENK GÖSTERGE -->
+        <div id="plat-renk-goster" style="display:none;" class="msg-i">
+          <i class="fa-solid fa-palette"></i> Pankart çerçeve rengi: <span id="plat-renk-yazi" style="font-weight:900;"></span>
+        </div>
+
+        <!-- KULLANICI ADI -->
+        <div class="f-group"><label class="f-label" id="plat-adi-lbl">Kullanıcı Adı / Kanal Adı * <span style="font-size:9px;color:#ff4444;">(URL girmek yasaktır!)</span></label>
+          <input type="text" class="f-input" id="platform-adi" placeholder="Sadece kullanıcı adı">
+        </div>
+
+        <!-- YOUTUBE ÖZEL: Video mu Banner mı? -->
+        <div id="yt-secim" style="display:none;" class="f-group">
+          <label class="f-label">Reklam Tipi *</label>
+          <button class="sel-btn" id="yt-banner-btn" onclick="ytTipSec('banner')">
+            <div class="sel-btn-icon">🖼️</div><div style="flex:1;"><div class="sel-btn-title">Banner Reklam</div><div class="sel-btn-desc">Görsel banner yükle</div></div><div class="sel-check" id="ytc-banner"></div>
+          </button>
+          <button class="sel-btn" id="yt-video-btn" onclick="ytTipSec('video')">
+            <div class="sel-btn-icon">🎬</div><div style="flex:1;"><div class="sel-btn-title">Video Reklam</div><div class="sel-btn-desc">YouTube video URL gir (banner gerekmez)</div></div><div class="sel-check" id="ytc-video"></div>
+          </button>
+        </div>
+
+        <!-- VIDEO URL (YouTube video reklam) -->
+        <div id="video-url-grup" style="display:none;" class="f-group">
+          <label class="f-label">YouTube Video URL *</label>
+          <input type="text" class="f-input" id="video-url" placeholder="https://youtube.com/watch?v=...">
+        </div>
+      </div>
+
+      <!-- BANNER YÜKLEME (Sunucu ve medya banner tipi) -->
+      <div class="f-group" id="banner-grup">
+        <label class="f-label" id="banner-lbl">Reklam Bannerı * <span style="color:#ff4444;font-size:9px;">ZORUNLU</span></label>
         <div class="banner-area" id="banner-area" onclick="document.getElementById('banner-input').click()">
           <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;color:#444;margin-bottom:8px;display:block;"></i>
           <div style="font-size:11px;color:#444;font-weight:800;text-transform:uppercase;">Banner Yükle (JPG, PNG)</div>
-          <div style="font-size:9px;color:#222;margin-top:4px;">Önerilen: 970x90 veya 300x250 px · Maks 2MB</div>
+          <div style="font-size:9px;color:#222;margin-top:4px;">Önerilen: 970x110 px · Maks 2MB</div>
         </div>
         <input type="file" id="banner-input" accept="image/jpeg,image/png" style="display:none;" onchange="bannerYukle(this)">
-        <div id="banner-prev" style="display:none;margin-top:8px;"><img id="banner-img" style="max-width:100%;border-radius:2px;border:2px solid #3a7d1e;"><div style="font-size:9px;color:#39ff14;margin-top:4px;font-weight:800;">✓ Banner yüklendi</div></div>
+        <div id="banner-prev" style="display:none;margin-top:8px;">
+          <img id="banner-img" style="max-width:100%;border-radius:2px;" id="banner-onizleme-img">
+          <div style="font-size:9px;color:#39ff14;margin-top:4px;font-weight:800;">✓ Banner yüklendi</div>
+        </div>
       </div>
     </div>`;
   }
@@ -366,8 +440,53 @@ function rekTuruSec(tur){
   ['medya','sunucu'].forEach(k=>{const b=document.getElementById('rek-'+k);const c=document.getElementById('rekc-'+k);if(b){b.className='sel-btn';c.textContent='';}});
   document.getElementById('rek-'+tur).className='sel-btn sg';
   document.getElementById('rekc-'+tur).textContent='✓';
-  const sa=document.getElementById('sunucu-alanlar');
-  if(sa)sa.style.display=tur==='sunucu'?'block':'none';
+  document.getElementById('sunucu-alanlar').style.display=tur==='sunucu'?'block':'none';
+  document.getElementById('medya-alanlar').style.display=tur==='medya'?'block':'none';
+  document.getElementById('banner-grup').style.display='block';
+}
+
+const PLAT_RENK={kick:{renk:'#39ff14',ad:'Yeşil'},tiktok:{renk:'#00d4ff',ad:'Mavi'},instagram:{renk:'#ff1493',ad:'Pembe'},youtube:{renk:'#ff1a1a',ad:'Kırmızı'},twitch:{renk:'#9146ff',ad:'Mor'}};
+
+function platSec(plat){
+  F.pozisyon=plat;
+  ['kick','tiktok','instagram','youtube','twitch'].forEach(k=>{
+    const b=document.getElementById('plat-'+k);const c=document.getElementById('platc-'+k);
+    if(b){b.className='sel-btn';if(c)c.textContent='';}
+  });
+  document.getElementById('plat-'+plat).className='sel-btn sg';
+  document.getElementById('platc-'+plat).textContent='✓';
+  // Renk göster
+  const pr=PLAT_RENK[plat];
+  const rg=document.getElementById('plat-renk-goster');
+  const ry=document.getElementById('plat-renk-yazi');
+  if(rg&&ry&&pr){rg.style.display='block';ry.textContent=pr.ad+' Çerçeve';ry.style.color=pr.renk;}
+  // Banner çerçeve rengi güncelle
+  const ba=document.getElementById('banner-area');
+  if(ba&&pr)ba.style.borderColor=pr.renk;
+  // YouTube özel
+  const ytSec=document.getElementById('yt-secim');
+  const videoGrup=document.getElementById('video-url-grup');
+  if(ytSec)ytSec.style.display=plat==='youtube'?'block':'none';
+  if(videoGrup)videoGrup.style.display='none';
+  if(plat!=='youtube'){document.getElementById('banner-grup').style.display='block';}
+  F.icerikTipi=null;
+}
+
+function ytTipSec(tip){
+  F.icerikTipi=tip;
+  ['banner','video'].forEach(k=>{const b=document.getElementById('yt-'+k+'-btn');const c=document.getElementById('ytc-'+k);if(b){b.className='sel-btn';c.textContent='';}});
+  document.getElementById('yt-'+tip+'-btn').className='sel-btn sg';
+  document.getElementById('ytc-'+tip).textContent='✓';
+  const videoGrup=document.getElementById('video-url-grup');
+  const bannerGrup=document.getElementById('banner-grup');
+  if(tip==='video'){
+    if(videoGrup)videoGrup.style.display='block';
+    if(bannerGrup)bannerGrup.style.display='none';
+    F.banner=null;
+  }else{
+    if(videoGrup)videoGrup.style.display='none';
+    if(bannerGrup)bannerGrup.style.display='block';
+  }
 }
 
 function bannerYukle(input){
@@ -536,7 +655,7 @@ async function ilanYayinla(){
     kullanici_nick:kul.kullanici_adi,
     baslik,
     kategori:F.kategori,
-    alt_kategori:F.altKategori||F.pozisyon,
+    alt_kategori:F.altKategori==='sunucu'?'sunucu':(F.pozisyon||F.altKategori),
     aciklama:F.puan?PUAN[F.puan]:'',
     fiyat:parseInt(F.isFiyat)||0,
     discord:F.discord,
