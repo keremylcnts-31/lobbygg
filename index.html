@@ -576,6 +576,7 @@ async function init(){
   try{await ilanlariYukle();}catch(e){}
   try{await feedYukle();}catch(e){}
   try{await seritYukle();}catch(e){}
+  try{await reklamIlanlariVitrine();}catch(e){}
   try{klanSayacBaslat();}catch(e){}
 
   document.getElementById('loading').style.display='none';
@@ -894,12 +895,37 @@ async function seritYukle(){
 }
 
 // VİTRİN SLIDER
-const VITRIN=[
-  {type:'image',badge:'ÖNE ÇIKAN',typeLabel:'📣 REKLAM ALANI',typeColor:'#FFD700',typeBg:'rgba(255,215,0,0.15)',img:'https://placehold.co/800x360/111111/39ff14?text=REKLAM+ALANI',title:'REKLAM ALANI - Senin İlanın Burada Olabilir',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'FİYATLAR',href:'/lobbygg/panel.html',cls:'vitrin-action-gray'}},
+// Vitrin slidelar - DB'den reklam ilanları gelince güncellenir
+let VITRIN=[
+  {type:'image',badge:'ÖNE ÇIKAN',typeLabel:'📣 REKLAM ALANI',typeColor:'#FFD700',typeBg:'rgba(255,215,0,0.15)',img:'https://placehold.co/800x360/111111/FFD700?text=REKLAM+ALANI',title:'REKLAM ALANI - Senin İlanın Burada Olabilir',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'FİYATLAR',href:'/lobbygg/panel.html',cls:'vitrin-action-gray'}},
   {type:'image',badge:'TOPLULUK',typeLabel:'⚔️ KLAN SAVAŞLARI',typeColor:'#b933ff',typeBg:'rgba(185,51,255,0.15)',img:'https://placehold.co/800x360/0a000a/b933ff?text=KLAN+SAVASLARI',title:'KLAN SAVAŞ ALANI - Klanını Zirveye Taşı',b1:{text:'KLAN KUR',href:'/lobbygg/klanlar.html',cls:'vitrin-action-green'},b2:{text:'KLANLARA BAK',href:'/lobbygg/klanlar.html',cls:'vitrin-action-gray'}},
-  {type:'image',badge:'PREMİUM İLAN',typeLabel:'💼 İŞ İLANI',typeColor:'#39ff14',typeBg:'rgba(57,255,20,0.15)',img:'https://placehold.co/800x360/0a0a0a/39ff14?text=IS+ILANI+VER',title:'İŞ İLANI VER - Developer, Builder, Tasarımcı',b1:{text:'İLAN VER',href:'/lobbygg/ilan-ver.html',cls:'vitrin-action-green'},b2:{text:'TÜM İLANLAR',href:'/lobbygg/ilanlar.html',cls:'vitrin-action-gray'}},
 ];
 let vCur=0,vTimer;
+
+// Onaylı reklam ilanlarını vitrine ekle
+async function reklamIlanlariVitrine(){
+  const{data}=await sb.from('ilanlar').select('*').eq('kategori','reklam').eq('durum','aktif').order('one_cikan',{ascending:false}).limit(5);
+  if(!data||!data.length)return;
+  data.forEach(i=>{
+    if(!i.banner_url)return;
+    const tur=i.alt_kategori==='sunucu'?'Sunucu':'Medya';
+    const nick=i.kullanici_nick||i.baslik||'Reklam';
+    VITRIN.push({
+      type:'image',
+      badge:i.one_cikan?'⭐ VIP REKLAM':'SPONSORLU',
+      typeLabel:`📣 ${tur.toUpperCase()} REKLAIMI`,
+      typeColor:'#FFD700',typeBg:'rgba(255,215,0,0.1)',
+      img:i.banner_url,
+      title:`${nick.toUpperCase()} — ${tur} Reklamı`,
+      b1:{text:'İLETİŞİM',href:`/lobbygg/profil.html?nick=${nick}`,cls:'vitrin-action-green'},
+      b2:{text:'KOPYALA',copy:i.discord||'',cls:'vitrin-action-gray'},
+    });
+  });
+  // Dots güncelle
+  const dotsEl=document.getElementById('vitrin-dots');
+  dotsEl.innerHTML='';
+  VITRIN.forEach((_,i)=>{const d=document.createElement('button');d.className='vitrin-dot'+(i===0?' active':'');d.onclick=()=>{vCur=i;vitrinRender(i);vitrinReset();};dotsEl.appendChild(d);});
+}
 function vitrinRender(idx){
   const s=VITRIN[idx];
   document.getElementById('vitrin-badge').textContent=s.badge;
