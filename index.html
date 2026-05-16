@@ -1,423 +1,511 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOBBY.GG - Minecraft Pazar Yeri & Sosyal Ağ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        /* ==========================================================================
-           LOBBY.GG NİHAİ TEMA - ANASAYFA VIZYONU (Minecraft Professional)
-           ========================================================================== */
-        :root {
-            --bg-dark: #050505; /* Zifiri Karanlık */
-            --bg-panel: #111111; /* Panel Grisi */
-            --mc-yellow: #ffb117; /* Meşhur Sarı */
-            --mc-yellow-hover: #e59e12;
-            --mc-gray-hover: #313233; /* Ağır Gri Hover */
-            --text-main: #f5f5f5;
-            --text-dim: #a0a0a0;
-            --border-color: #2a2a2a;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOBBY.GG - Türkiye'nin Minecraft Topluluğu</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Montserrat', sans-serif;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 10% 10%, rgba(255, 177, 23, 0.03) 0%, transparent 40%);
-        }
+<style>
+  /* ==========================================================================
+     LOBBY.GG NİHAİ TEMA (SHOPIFY LİQUİD TASARIMLARI BİRLEŞTİRİLDİ)
+     ========================================================================== */
+  :root {
+    --mc-shadow: #9C7A00; 
+    --mc-light: #FFEB3B;  
+    --mc-text: #1A3E00;   
+    --gold-text: #FFD700;
+    --neon: #39ff14;
+    --neon-dark: #1a8009;
+    --bg: #050505;
+  }
+  
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: #ccc; font-family: 'Montserrat', sans-serif; min-height: 100vh; overflow-x: hidden; }
 
-        /* ORTAK SARI BUTON (MINECRAFT STİLİ 3D GÖLGELİ) */
-        .mc-btn {
-            background-color: var(--mc-yellow);
-            color: #000 !important;
-            border: none;
-            padding: 12px 24px;
-            font-weight: 800;
-            text-transform: uppercase;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 0 #b37b10; /* Gerçek 3D gölge */
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-        .mc-btn:hover { background-color: var(--mc-yellow-hover); transform: translateY(-1px); box-shadow: 0 5px 0 #b37b10; }
-        .mc-btn:active { transform: translateY(3px); box-shadow: none; }
-        .mc-btn i { font-size: 14px; }
+  /* --- HEADER (SIVI NEON VE LCOIN WIDGET) --- */
+  .custom-lobby-header { background-color: #050505; border-bottom: 2px solid #1a1a1a; width: 100%; position: sticky; top: 0; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+  .header-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 5%; width: 100%; }
+  .custom-lobby-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+  .brand-text { font-size: 24px; font-weight: 900; color: #ffffff; letter-spacing: 1px; white-space: nowrap; font-variant: small-caps; }
+  .brand-text span { 
+    background: linear-gradient(0deg, var(--neon-dark) 0%, var(--neon) 50%, var(--neon-dark) 100%);
+    background-size: 100% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: flowUp 3s infinite linear; filter: drop-shadow(0 0 5px rgba(57, 255, 20, 0.4));
+  }
+  @keyframes flowUp { 0% { background-position: 0% 100%; } 100% { background-position: 0% 0%; } }
+  
+  .desktop-nav { display: flex; gap: 8px; flex-shrink: 0; }
+  .desktop-nav a { background-color: #3c3c3c; color: #ffffff; padding: 8px 14px; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; border-top: 2px solid #6b6b6b; border-bottom: 3px solid #111; border-left: 2px solid #2b2b2b; border-right: 2px solid #111; border-radius: 2px; transition: 0.1s; }
+  .desktop-nav a:hover { background-color: #505050; border-bottom-width: 2px; transform: translateY(1px); color: var(--neon); }
 
-        /* HEADER (Profesyonel Ağır Bar) */
-        .navbar {
-            background-color: var(--bg-panel);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.6);
-        }
-        .logo { font-size: 24px; font-weight: 900; color: #fff; text-decoration: none; letter-spacing: 1px; font-variant: small-caps; }
-        .logo span { color: var(--mc-yellow); }
+  .header-right-group { display: flex; align-items: center; gap: 12px; }
+  
+  /* Kullanıcı Alanı (Giriş Yapmış Hali) */
+  .header-user-area { display: flex; align-items: center; gap: 10px; text-decoration: none; background-color: #111; padding: 5px 10px; border-radius: 4px; border: 1px solid #222; transition: 0.2s; }
+  .header-user-area:hover { border-color: #333; background-color: #1a1a1a; }
+  .header-pp { width: 34px; height: 34px; border: 2px solid var(--gold-text); border-radius: 4px; overflow: hidden; background-color: #000; }
+  .header-pp img { width: 100%; height: 100%; object-fit: cover; }
+  .header-user-info { display: flex; flex-direction: column; line-height: 1.1; }
+  .header-user-name { color: #fff; font-size: 12px; font-weight: 900; text-transform: uppercase; }
+  .header-user-rank { color: var(--gold-text); font-size: 10px; font-weight: 800; text-transform: uppercase; }
 
-        .nav-right { display: flex; align-items: center; gap: 15px; }
-        
-        /* Kullanıcı Cüzdan Widget'ı */
-        .user-wallet-widget {
-            display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 15px; border-radius: 4px; border: 1px solid #333; font-weight: 800; font-size: 13px;
-        }
-        .user-wallet-widget span { color: #fff; }
-        .user-wallet-widget i { color: var(--mc-yellow); }
+  /* LCoin Widget */
+  .lobby-coin-widget { display: flex; align-items: stretch; background-color: #333; border: 2px solid #111; height: 34px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); }
+  .lobby-coin-amount { display: flex; align-items: center; gap: 5px; padding: 0 10px; color: var(--gold-text); font-weight: 900; font-size: 14px; }
+  .lobby-coin-icon { width: 18px; height: 18px; background-color: #FFC400; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 900; border-top: 2px solid var(--mc-light); border-left: 2px solid var(--mc-light); border-bottom: 2px solid #B8860B; border-right: 2px solid #B8860B; }
+  .lobby-coin-add-btn { background-color: #c6c6c6; color: #333; text-decoration: none; font-size: 18px; font-weight: 900; padding: 0 8px; display: flex; align-items: center; justify-content: center; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-bottom: 2px solid #555; border-right: 2px solid #555; cursor: pointer; transition: 0.1s; }
+  .lobby-coin-add-btn:active { transform: translateY(1px); border-bottom-width: 1px; }
 
-        /* ANA İÇERİK */
-        main { max-width: 1600px; margin: 0 auto; padding: 40px 50px; display: flex; flex-direction: column; gap: 40px; }
+  /* İlan Ver Butonu */
+  .action-btn { background: linear-gradient(180deg, #39ff14 0%, #29bf0d 100%); color: #000 !important; padding: 0 15px; border-radius: 2px; text-decoration: none; font-weight: 900; text-transform: uppercase; font-size: 11px; border-top: 2px solid #55ff44; border-bottom: 3px solid #1a8009; border-left: 2px solid #29bf0d; border-right: 2px solid #1a8009; display: inline-flex; align-items: center; justify-content: center; height: 34px; transition: 0.1s; }
+  .action-btn:hover { background: linear-gradient(180deg, #55ff44 0%, #39ff14 100%); transform: translateY(1px); border-bottom-width: 2px; }
 
-        /* ==========================================================================
-           1. ANASAYFA DEV PANKART (HERO BANNER) - DETAYLI
-           ========================================================================== */
-        .dev-pankart {
-            background: linear-gradient(135deg, #111 0%, #050505 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-        /* Hafif arka plan deseni */
-        .dev-pankart::before {
-            content: ''; position: absolute; inset: 0; background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M0 0h1v1H0z" fill="%23fff" fill-opacity="0.01"/%3E%3C/svg%3E'); opacity: 0.5;
-        }
-        .pankart-text { flex: 1; max-width: 700px; }
-        .pankart-text h1 { font-size: 48px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 15px; font-variant: small-caps; }
-        .pankart-text h1 span { color: var(--mc-yellow); }
-        .pankart-text p { color: var(--text-dim); font-size: 16px; line-height: 1.6; font-weight: 600; margin-bottom: 30px; }
-        .pankart-btns { display: flex; gap: 15px; }
+  /* Çıkış Kapısı */
+  .logout-door { color: #ff4444; font-size: 20px; transition: 0.2s; cursor: pointer; display: flex; align-items: center; }
+  .logout-door:hover { color: #fff; transform: translateX(3px); }
 
-        .pankart-visual { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
-        .pankart-visual i { font-size: 150px; color: rgba(255,177,23,0.05); filter: drop-shadow(0 0 10px rgba(255,177,23,0.1)); }
+  /* --- HERO BÖLÜMÜ (CANVAS BUBBLES) --- */
+  .lbb-hero-section { position: relative; background: #050505; width: 100%; min-height: 580px; display: flex; align-items: center; justify-content: center; padding: 60px 5%; overflow: hidden; }
+  #lbb-bubble-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  .lbb-ambient-bg { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+  .spot-green { position: absolute; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, rgba(0,0,0,0) 70%); top: -30%; left: -20%; border-radius: 50%; animation: sweepG 12s infinite alternate ease-in-out; }
+  .spot-purple { position: absolute; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(180,50,255,0.05) 0%, rgba(0,0,0,0) 70%); bottom: -20%; right: -10%; border-radius: 50%; animation: sweepP 14s infinite alternate ease-in-out; }
+  .glass-shimmer { position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: shimmer 8s infinite; z-index: 3; }
+  @keyframes sweepG { 0% { transform: translate(0,0); } 100% { transform: translate(15vw,10vh); } }
+  @keyframes sweepP { 0% { transform: translate(0,0); } 100% { transform: translate(-10vw,-15vh); } }
+  @keyframes shimmer { 0% { left: -150%; } 50%, 100% { left: 200%; } }
+  
+  .lbb-content { position: relative; z-index: 10; display: flex; width: 100%; max-width: 1400px; gap: 60px; align-items: center; }
+  .lbb-left { flex: 1.2; }
+  .lbb-tag { font-size: 13px; font-weight: 900; letter-spacing: 3px; color: #39ff14; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 8px; background: rgba(57,255,20,0.1); padding: 5px 15px; border-radius: 4px; border: 1px solid rgba(57,255,20,0.3); }
+  .lbb-title { font-size: 52px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 20px; font-variant: small-caps; }
+  .lbb-title span { color: #39ff14; text-shadow: 0 0 20px rgba(57,255,20,0.4); }
+  .lbb-desc { color: #aaa; font-size: 16px; line-height: 1.7; max-width: 500px; font-weight: 600; margin-bottom: 30px; }
+  .lbb-buttons { display: flex; gap: 15px; }
 
-        /* ARAMA VE FİLTRE BAR (Heavy) */
-        .search-area { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; display: flex; gap: 15px; align-items: center; }
-        .search-wrapper { flex: 1; position: relative; }
-        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; }
-        .search-input { width: 100%; background: #0d0d0d; border: 1px solid #333; color: #fff; padding: 14px 14px 14px 45px; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 600; }
-        .search-input::placeholder { color: #444; }
+  /* Yüzen Kartlar (Sağ Taraf) */
+  .lbb-right { flex: 1; position: relative; height: 440px; display: flex; justify-content: center; align-items: center; perspective: 1200px; }
+  .lbb-card-float { position: absolute; width: 340px; background: #0d0d0d; border-radius: 12px; padding: 20px; border: 1px solid #222; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+  .f-c1 { border-color: #FFD700; box-shadow: 0 0 30px rgba(255,215,0,0.15); animation: rot1 12s infinite ease-in-out; }
+  .f-c2 { border-color: #3296ff; box-shadow: 0 0 30px rgba(50,150,255,0.15); animation: rot2 12s infinite ease-in-out; }
+  .f-c3 { border-color: #ff4444; box-shadow: 0 0 30px rgba(255,50,50,0.15); animation: rot3 12s infinite ease-in-out; }
+  @keyframes rot1 { 0%, 25% { transform: translateX(0) scale(1); z-index: 3; filter: blur(0); } 33.33%, 58% { transform: translateX(65px) scale(0.85) translateY(-15px); z-index: 2; filter: blur(2px); opacity: 0.5; } 66.66%, 91% { transform: translateX(-65px) scale(0.85) translateY(-15px); z-index: 1; filter: blur(2px); opacity: 0.5; } 100% { transform: translateX(0) scale(1); z-index: 3; filter: blur(0); } }
+  @keyframes rot2 { 0%, 25% { transform: translateX(65px) scale(0.85) translateY(-15px); z-index: 2; filter: blur(2px); opacity: 0.5; } 33.33%, 58% { transform: translateX(-65px) scale(0.85) translateY(-15px); z-index: 1; filter: blur(2px); opacity: 0.5; } 66.66%, 91% { transform: translateX(0) scale(1); z-index: 3; filter: blur(0); } 100% { transform: translateX(65px) scale(0.85) translateY(-15px); z-index: 2; filter: blur(2px); opacity: 0.5; } }
+  @keyframes rot3 { 0%, 25% { transform: translateX(-65px) scale(0.85) translateY(-15px); z-index: 1; filter: blur(2px); opacity: 0.5; } 33.33%, 58% { transform: translateX(0) scale(1); z-index: 3; filter: blur(0); } 66.66%, 91% { transform: translateX(65px) scale(0.85) translateY(-15px); z-index: 2; filter: blur(2px); opacity: 0.5; } 100% { transform: translateX(-65px) scale(0.85) translateY(-15px); z-index: 1; filter: blur(2px); opacity: 0.5; } }
+  
+  .fc-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+  .fc-av { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #333; }
+  .fc-info h3 { font-size: 16px; font-weight: 900; color: #fff; }
+  .fc-info span { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: #FFD700; }
+  .fc-desc { background: #111; border: 1px solid #1a1a1a; padding: 10px; border-radius: 6px; font-size: 11px; color: #888; font-weight: 600; margin-bottom: 15px; }
+  .fc-foot { display: flex; justify-content: space-between; align-items: center; }
+  .fc-price { font-size: 20px; font-weight: 900; color: #39ff14; }
 
-        /* KATEGORİ SEÇİCİ VE LİSTE BAŞLIKLARI */
-        .category-tabs { display: flex; gap: 10px; border-bottom: 1px solid #222; padding-bottom: 20px; }
-        .cat-tab { padding: 12px 20px; color: var(--text-dim); background: none; border: 1px solid #333; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; font-variant: small-caps; }
-        .cat-tab:hover { background: var(--mc-gray-hover); color: #fff; border-color: #444; }
-        .cat-tab.active { background: var(--mc-gray-hover); color: #fff; border-color: var(--mc-yellow); box-shadow: inset 0 0 10px rgba(255,177,23,0.05); }
+  /* --- KLAN ŞERİDİ (MARQUEE) --- */
+  .lbb-clan-ribbon-section { background: #050505; padding: 60px 0; border-top: 1px solid #111; border-bottom: 1px solid #111; overflow: hidden; position: relative; z-index: 5; }
+  .lbb-ribbon-header { max-width: 1400px; margin: 0 auto 30px auto; padding: 0 5%; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #39ff14; }
+  .lbb-ribbon-header h2 { font-size: 28px; font-weight: 900; color: #fff; margin: 0; font-variant: small-caps; }
+  .lbb-marquee-container { position: relative; width: 100%; display: flex; overflow: hidden; }
+  .lbb-marquee-container::before, .lbb-marquee-container::after { content: ''; position: absolute; top: 0; bottom: 0; width: 100px; z-index: 5; pointer-events: none; }
+  .lbb-marquee-container::before { left: 0; background: linear-gradient(to right, #050505 0%, transparent 100%); }
+  .lbb-marquee-container::after { right: 0; background: linear-gradient(to left, #050505 0%, transparent 100%); }
+  .lbb-marquee-track { display: flex; gap: 20px; width: max-content; padding-left: 20px; animation: scrollClans 30s linear infinite; }
+  .lbb-marquee-track:hover { animation-play-state: paused; }
+  @keyframes scrollClans { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        .list-header { font-size: 22px; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 1px; font-variant: small-caps; margin-top: 10px; }
+  /* Dinamik Klan Kartları */
+  .clan-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; min-width: 380px; transition: 0.2s; cursor: pointer; }
+  .clan-card:hover { background: #111; border-color: #333; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+  .clan-vip { border: 1px solid #FFD700; background: linear-gradient(90deg, #111000 0%, #0d0d0d 100%); box-shadow: 0 0 15px rgba(255,215,0,0.1); }
+  .clan-avatar { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #222; }
+  .clan-vip .clan-avatar { border-color: #FFD700; }
+  .clan-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .clan-tag { font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase; }
+  .clan-name { font-size: 18px; font-weight: 900; color: #fff; margin: 0; font-variant: small-caps; }
+  .clan-meta { font-size: 11px; color: #888; font-weight: 600; margin-top: 2px; }
+  .clan-meta span { color: #ccc; font-weight: 800; }
 
-        /* ==========================================================================
-           2. İLANLAR - JİLET GİBİ DETAYLI TASARIM (The Core Fix)
-           ========================================================================== */
-        .listings-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
-        
-        .listing-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; gap: 15px; transition: 0.2s; cursor: pointer; position: relative; }
-        .listing-card:hover { border-color: #444; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        /* Öne Çıkarılmış İlan Efekti */
-        .listing-card.featured { border-color: var(--mc-yellow); box-shadow: 0 0 15px rgba(255,177,23,0.1); }
-        .featured-tag { position: absolute; top: 10px; right: 10px; background: rgba(255,177,23,0.1); color: var(--mc-yellow); font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+  /* --- PAZAR YERİ VE İLANLAR (3 SÜTUN) --- */
+  .lbb-market-wrapper { background: #050505; padding: 60px 5%; position: relative; z-index: 5; }
+  .lbb-container { max-width: 1400px; margin: 0 auto; }
+  
+  .filter-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid #1a1a1a; padding-bottom: 15px; }
+  .cat-tab { background: none; border: 1px solid #333; color: #888; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 10px 20px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+  .cat-tab:hover { border-color: #555; color: #fff; }
+  .cat-tab.active { background: #1a1a1a; border-color: #39ff14; color: #fff; box-shadow: inset 0 0 10px rgba(57,255,20,0.1); }
 
-        /* Üst Kısım: Avatar, İsim, Kategori */
-        .card-top { display: flex; align-items: center; gap: 15px; }
-        .card-avatar { width: 50px; height: 50px; border-radius: 6px; border: 1px solid #333; overflow: hidden; }
-        .card-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .card-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .card-creator { font-size: 12px; color: #777; font-weight: 700; }
-        .card-creator span { color: #fff; }
-        .card-title { font-size: 17px; font-weight: 900; color: #fff; line-height: 1.3; }
-        .card-category { display: inline-flex; align-items: center; gap: 6px; color: var(--mc-yellow); font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .card-category i { font-size: 12px; }
+  .lbb-grid-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; align-items: start; }
+  .lbb-col { display: flex; flex-direction: column; gap: 12px; }
+  .lbb-col-header { font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; }
+  .lbb-col-header span { flex: 1; height: 1px; background: #222; }
 
-        /* DETAYLAR ALANI (Görünmeyen Bilgilerin Yeri) */
-        .card-details-area { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #222; font-size: 12px; font-weight: 600; color: #888; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .detail-item { display: flex; align-items: center; gap: 6px; }
-        .detail-item i { color: var(--mc-yellow); font-size: 11px; width: 14px; text-align: center; }
-        
-        /* YouTube Embed Göstergesi (Medya İlanı ise) */
-        .detail-item.yt-link { grid-column: span 2; color: #ff4444; }
-        .detail-item.yt-link i { color: #ff4444; }
+  /* Dinamik İlan Kartı (Row) */
+  .lbb-card-row { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 8px; padding: 12px; display: grid; grid-template-columns: 45px minmax(0, 1fr) auto; gap: 12px; align-items: center; position: relative; transition: 0.2s; cursor: pointer; }
+  .lbb-card-row:hover { background: #111; border-color: #333; transform: translateX(4px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+  .brd-vip { border-color: #FFD700 !important; background: linear-gradient(90deg, #111000 0%, #0d0d0d 100%); }
+  .row-gold-badge { position: absolute; top: -8px; left: 10px; background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); color: #000; padding: 2px 10px; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; z-index: 10; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 
-        /* Alt Kısım: Fiyat ve Buton */
-        .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #222; padding-top: 15px; }
-        .card-price { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 900; color: var(--mc-yellow); }
-        .card-price i { font-size: 16px; }
+  .c-pp { width: 45px; height: 45px; border-radius: 6px; border: 1px solid #222; object-fit: cover; }
+  .c-detay { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .c-tag { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .c-name { font-size: 14px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .c-desc { font-size: 11px; color: #777; margin: 3px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .c-action { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; }
+  .c-price { font-size: 14px; font-weight: 900; color: #39ff14; white-space: nowrap; }
 
-        /* YÜKLENİYOR VE BOŞ MESAJ */
-        #loadingRegular, #noRegular { grid-column: span 3; text-align: center; padding: 50px; color: #555; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+  .btn-3d { color: #000 !important; padding: 6px 14px; border-radius: 2px; text-decoration: none; font-weight: 900; font-size: 10px; text-transform: uppercase; transition: 0.1s; text-align: center; white-space: nowrap; background: linear-gradient(180deg, #39ff14 0%, #29bf0d 100%); border-top: 1px solid #55ff44; border-bottom: 3px solid #1a8009; border-left: 1px solid #29bf0d; border-right: 1px solid #1a8009; }
+  .btn-3d:hover { transform: translateY(1px); border-bottom-width: 1px; filter: brightness(1.1); }
 
-        /* MODALLAR VE FORM STİLLERİ (Özet) */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; animation: fadeIn 0.3s ease; }
-        .modal-content { background: var(--bg-panel); border: 1px solid #333; border-radius: 8px; width: 100%; max-width: 500px; padding: 40px; }
-        .modal-header h2 { font-weight: 900; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; color: var(--mc-yellow); font-variant: small-caps; }
-        .close-modal { position: absolute; top: 15px; right: 15px; color: #666; background: none; border: none; font-size: 20px; cursor: pointer; }
-        .close-modal:hover { color: #fff; }
+  /* Yıldız SVG */
+  .c-rating { font-size: 10px; font-weight: 800; color: #FFD700; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+  .c-rating svg { width: 10px; height: 10px; fill: #FFD700; }
 
-        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-        @keyframes fadeUp { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+  /* --- YAYINCI ŞERİDİ (ALT BÖLÜM) --- */
+  .serit-wrap { overflow: hidden; padding: 30px 0; background: #080808; border-top: 1px solid #111; border-bottom: 1px solid #111; z-index: 1; position: relative; }
+  .serit-lbl { text-align: center; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #444; margin-bottom: 15px; }
+  .serit-track { display: flex; gap: 15px; animation: scrollClans 35s linear infinite reverse; width: max-content; }
+  .serit-track:hover { animation-play-state: paused; }
+  .serit-kart { background: #111; border: 1px solid #222; border-radius: 6px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
+  .serit-kart:hover { background: #1a1a1a; border-color: #39ff14; }
+  .serit-av { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
+  .serit-nick { font-size: 12px; font-weight: 900; color: #fff; }
+  .serit-platform { font-size: 9px; color: #888; text-transform: uppercase; font-weight: 800; margin-top: 2px; }
 
-    </style>
+  /* Yükleniyor / Boş */
+  .ilan-bos { text-align: center; padding: 40px; color: #333; font-weight: 800; text-transform: uppercase; grid-column: 1 / -1; }
+  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 99999; }
+  .ld-logo { font-size: 32px; font-weight: 900; color: #fff; font-variant: small-caps; }
+  .ld-logo span { color: #39ff14; }
+  .ld-bar { width: 200px; height: 4px; background: #1a1a1a; border-radius: 2px; overflow: hidden; }
+  .ld-fill { height: 100%; background: #39ff14; animation: ld 1.5s ease infinite; box-shadow: 0 0 10px #39ff14; }
+  @keyframes ld { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
+
+  /* Yıldız SVG Tanımı İçin Gizli Alan */
+  .hidden-svgs { display: none; }
+</style>
 </head>
 <body>
 
-    <header class="navbar">
-        <a href="#" class="logo">LOBBY<span>.GG</span></a>
-        <div class="nav-right" id="authSection">
-            <button class="cat-tab" id="loginBtn">Giriş Yap</button>
-            <button class="mc-btn" id="registerBtn">Kayıt Ol</button>
-        </div>
-    </header>
+<svg class="hidden-svgs">
+  <symbol id="icon-star" viewBox="0 0 24 24">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+  </symbol>
+</svg>
 
-    <main>
-        <section class="dev-pankart">
-            <div class="pankart-text">
-                <h1>MİNECRAFT <span>FREELANCE</span> PAZARI</h1>
-                <p>Türkiye'nin en büyük Minecraft hizmet ve ürün ekosistemi. Developer'lar, Builder'lar, Sunucu Sahipleri ve Yayıncılar burada buluşuyor, ticaret ilmek ilmek işleniyor.</p>
-                <div class="pankart-btns">
-                    <a href="/panel.html#abonelik" class="mc-btn"><i class="fa-solid fa-crown"></i> ABONE OL</a>
-                    <a href="/panel.html#ilanlar" class="mc-btn" style="background-color:#4a4a4a; box-shadow: 0 4px 0 #2a2a2a;"><i class="fa-solid fa-plus"></i> İLAN VER</a>
-                </div>
-            </div>
-            <div class="pankart-visual">
-                <i class="fa-solid fa-server"></i> </div>
-        </section>
+<div id="loading"><div class="ld-logo">LOBBY<span>.GG</span></div><div class="ld-bar"><div class="ld-fill"></div></div></div>
 
-        <section class="search-area">
-            <div class="search-wrapper">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" class="search-input" id="searchInput" placeholder="İlan başlığı, sunucu modu veya geliştirici adı ara...">
-            </div>
-            <button class="mc-btn" style="padding:12px 18px;"><i class="fa-solid fa-sliders"></i> Gelişmiş</button>
-        </section>
+<div class="custom-lobby-header">
+  <div class="header-top-bar">
+    <a href="/lobbygg/index.html" class="custom-lobby-logo">
+      <span class="brand-text">LOBBY<span>.GG</span></span>
+    </a>
 
-        <section class="category-tabs">
-            <button class="cat-tab active" data-category="all">Tümü</button>
-            <button class="cat-tab" data-category="dev">Geliştirici</button>
-            <button class="cat-tab" data-category="build">Mimar (Build)</button>
-            <button class="cat-tab" data-category="server">Sunucu</button>
-            <button class="cat-tab" data-category="media">Medya / Yayıncı</button>
-        </div>
-
-        <section class="listings-section">
-            <h2 class="list-header">Güncel İlanlar</h2>
-            <p style="color:#666; font-size:13px; margin-bottom:20px; font-weight:600;">En çok LCoin boostu toplayan ilanlar en tepede görünür.</p>
-            
-            <div class="listings-list" id="regularListings">
-                <div id="loadingRegular">İlanlar yükleniyor, koçum beklesin...</div>
-                <div id="noRegular" style="display:none;">Burada henüz bir sikim yok, ilk ilanı sen ver!</div>
-
-                </div>
-        </section>
-
-    </main>
-
-    <div class="modal" id="authModal">
-        <div class="modal-content">
-            <button class="close-modal" id="closeModal">&times;</button>
-            <div class="modal-header">
-                <h2 id="modalTitle">Giriş Yap</h2>
-            </div>
-            <p style="color:#aaa; text-align:center; padding:30px;">Giriş ve kayıt kodlarına dokunmadım patron. Bu modalı JS motoru açıyor. <br><br> (Orijinal giriş kodları burada duruyor...)</p>
-        </div>
+    <div class="desktop-nav">
+      <a href="/lobbygg/index.html">Ana Sayfa</a>
+      <a href="/lobbygg/ilanlar.html">İlanlar</a>
+      <a href="/lobbygg/klanlar.html">Klanlar</a>
+      <a href="/lobbygg/destek.html">Destek</a>
     </div>
 
-    <script>
-        // ==========================================================================
-        // ALT MOTOR - ASLA DOKUNULMADI (Birebir orijinal kod)
-        // ==========================================================================
+    <div class="header-right-group">
+      <div id="nav-giris" style="display:none; align-items:center; gap:12px;">
+        <div class="lobby-coin-widget">
+          <div class="lobby-coin-amount">
+            <div class="lobby-coin-icon">L</div> <span id="nav-lcoin">0</span>
+          </div>
+          <a href="/lobbygg/panel.html" class="lobby-coin-add-btn">+</a>
+        </div>
         
-        const SUPABASE_URL = 'SENIN_SUPABASE_URLN';
-        const SUPABASE_KEY = 'SENIN_SUPABASE_KEYIN';
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        <a href="/lobbygg/panel.html" class="header-user-area">
+          <div class="header-pp"><img src="https://minotar.net/helm/Steve/38.png" id="nav-pp" alt="PP"></div>
+          <div class="header-user-info">
+            <span class="header-user-name" id="nav-nick">...</span>
+            <span class="header-user-rank">KULLANICI</span>
+          </div>
+        </a>
 
-        const regularListingsDiv = document.getElementById('regularListings');
-        const loadingRegularDiv = document.getElementById('loadingRegular');
-        const noRegularDiv = document.getElementById('noRegular');
-        const authSection = document.getElementById('authSection');
-        const authModal = document.getElementById('authModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const searchInput = document.getElementById('searchInput');
+        <a href="/lobbygg/ilan-ver.html" class="action-btn">İlan Ver</a>
+      </div>
 
-        // Kullanıcı Durum Kontrolü
-        sb.auth.getSession().then(({ data: { session } }) => {
-            updateAuthUI(session);
-        });
+      <div id="nav-cikis" style="display:none; align-items:center; gap:12px;">
+        <a href="/lobbygg/giris.html" style="color:#fff; text-decoration:none; font-size:11px; font-weight:800;">KAYIT OL</a>
+        <span style="color:#444;">|</span>
+        <a href="/lobbygg/giris.html" style="color:#fff; text-decoration:none; font-size:11px; font-weight:800;">GİRİŞ YAP</a>
+        <a href="/lobbygg/ilan-ver.html" class="action-btn" style="margin-left: 10px;">İlan Ver</a>
+      </div>
+    </div>
+  </div>
+</div>
 
-        function updateAuthUI(session) {
-            authSection.innerHTML = '';
-            if (session) {
-                authSection.innerHTML = `
-                    <div class="user-wallet-widget"><i class="fa-solid fa-gem"></i> <span id="walletLC">Yükleniyor...</span></div>
-                    <a href="/panel.html" class="mc-btn" style="padding:10px 15px;"><i class="fa-solid fa-user-gear"></i> Panel</a>
-                `;
-                fetchWalletBalance(session.user.id);
-            } else {
-                authSection.innerHTML = `
-                    <button class="cat-tab" id="headerLoginBtn">Giriş Yap</button>
-                    <button class="mc-btn" id="headerRegisterBtn">Kayıt Ol</button>
-                `;
-                document.getElementById('headerLoginBtn').addEventListener('click', () => openModal('giris'));
-                document.getElementById('headerRegisterBtn').addEventListener('click', () => window.location.href='/giris.html#kayit');
-            }
-        }
+<div class="lbb-hero-section">
+  <canvas id="lbb-bubble-canvas"></canvas>
+  <div class="lbb-ambient-bg">
+    <div class="spot-green"></div>
+    <div class="spot-purple"></div>
+    <div class="glass-shimmer"></div>
+  </div>
+  <div class="lbb-content">
+    <div class="lbb-left">
+      <span class="lbb-tag"><i class="fa-solid fa-fire"></i> LOBBY.GG</span>
+      <div class="lbb-title">Ekibini Kur.<br><span>Efsaneni</span> Yarat.</div>
+      <p class="lbb-desc">Yeteneklerini nakde çevir. Developer, mimar veya sunucu sahibi ol — ilan ver, ekibini kur ve Minecraft ekosisteminde iz bırak.</p>
+      <div class="lbb-buttons">
+        <a href="/lobbygg/giris.html" class="action-btn" style="padding: 0 25px; height: 42px; font-size: 13px;">TOPLULUĞA KATIL</a>
+        <a href="#ilanlar" style="background:#3c3c3c; color:#fff; text-decoration:none; padding:12px 25px; font-weight:900; font-size:13px; border-radius:2px; border-top:2px solid #6b6b6b; border-bottom:4px solid #111; border-left:2px solid #2b2b2b; border-right:2px solid #111;">PAZAR YERİNİ KEŞFET</a>
+      </div>
+    </div>
+    <div class="lbb-right">
+      <div class="lbb-card-float f-c1">
+        <div class="fc-head">
+          <img src="https://minotar.net/helm/Notch/50.png" class="fc-av">
+          <div class="fc-info"><h3>ZeynepAksoy</h3><span>VIP DEVELOPER</span></div>
+        </div>
+        <div class="fc-desc">Java plugin, sunucu optimizasyonu ve MySQL ekonomi sistemleri.</div>
+        <div class="fc-foot"><span class="fc-price">1.500 LC</span><div class="action-btn">İNCELE</div></div>
+      </div>
+      <div class="lbb-card-float f-c2">
+        <div class="fc-head">
+          <img src="https://minotar.net/helm/Herobrine/50.png" class="fc-av" style="border-color:#3296ff;">
+          <div class="fc-info"><h3>FurkanDemir</h3><span style="color:#3296ff;">PRO BUILDER</span></div>
+        </div>
+        <div class="fc-desc">SkyBlock adası, lobi tasarımı ve zindan haritaları inşası.</div>
+        <div class="fc-foot"><span class="fc-price" style="color:#3296ff;">400 LC</span><div class="action-btn" style="background: linear-gradient(180deg, #3296ff 0%, #0066cc 100%); border-color: #004080;">İNCELE</div></div>
+      </div>
+      <div class="lbb-card-float f-c3">
+        <div class="fc-head">
+          <img src="https://minotar.net/helm/jeb_/50.png" class="fc-av" style="border-color:#ff4444;">
+          <div class="fc-info"><h3>MertYilmaz</h3><span style="color:#ff4444;">DISCORD UZMANI</span></div>
+        </div>
+        <div class="fc-desc">7/24 ticket sistemi ve Discord sunucu mimarisi kurulumu.</div>
+        <div class="fc-foot"><span class="fc-price" style="color:#ff4444;">250 LC</span><div class="action-btn" style="background: linear-gradient(180deg, #ff4444 0%, #cc0000 100%); border-color: #660000;">İNCELE</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        async function fetchWalletBalance(userId) {
-            const { data } = await sb.from('kullanicilar').select('lcoin').eq('id', userId).single();
-            if (data) document.getElementById('walletLC').innerText = data.lcoin + " LC";
-        }
+<div class="lbb-clan-ribbon-section">
+  <div class="lbb-ribbon-header">
+    <h2>KLANLAR <span>SAVAŞI</span></h2>
+    <a href="/lobbygg/klanlar.html" style="color:#39ff14; font-weight:800; text-decoration:none; font-size:13px;">TÜM KLANLARI GÖR &rarr;</a>
+  </div>
+  <div class="lbb-marquee-container">
+    <div class="lbb-marquee-track" id="klan-serit"></div>
+  </div>
+</div>
 
-        function openModal(type) {
-            authModal.classList.add('active');
-            modalTitle.innerText = type === 'giris' ? 'Giriş Yap' : 'Kayıt Ol';
-        }
+<div class="lbb-market-wrapper" id="ilanlar">
+  <div class="lbb-container">
+    
+    <div class="filter-tabs">
+      <button class="cat-tab active" onclick="katSec('hepsi',this)">Tümü</button>
+      <button class="cat-tab" onclick="katSec('is',this)">Yetenek</button>
+      <button class="cat-tab" onclick="katSec('yetkili',this)">Yetkili</button>
+      <button class="cat-tab" onclick="katSec('reklam',this)">Reklam / Paket</button>
+    </div>
 
-        document.getElementById('closeModal').addEventListener('click', () => {
-            authModal.classList.remove('active');
-        });
+    <div class="lbb-grid-columns" id="ilan-grid">
+      <div class="ilan-bos">Veriler Çekiliyor...</div>
+    </div>
+    
+  </div>
+</div>
 
-        // ==========================================================================
-        // İLANLARI ÇEKME VE BASMA (Tasarım Baştan Aşağı Değişti)
-        // ==========================================================================
-        
-        let allRegularListings = [];
+<div class="serit-wrap">
+  <div class="serit-lbl">🎥 Yayıncılar & İçerik Üreticileri</div>
+  <div class="serit-track" id="serit-track"></div>
+</div>
 
-        async function fetchListings() {
-            loadingRegularDiv.style.display = 'block';
-            regularListingsDiv.innerHTML = ''; 
 
-            const { data, error } = await sb.from('ilanlar').select('*').order('created_at', { ascending: false });
+<script>
+// 1. CANVAS BALONCUK ANİMASYONU (Shopify Kodundan)
+(function() {
+  var canvas = document.getElementById('lbb-bubble-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var bubbles = [];
+  function resize() {
+    var parent = canvas.parentElement;
+    canvas.width = parent.offsetWidth;
+    canvas.height = parent.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  for (var i = 0; i < 22; i++) {
+    bubbles.push({
+      x: Math.random() * canvas.width,
+      y: canvas.height + Math.random() * 300,
+      r: Math.random() * 2.5 + 1,
+      speed: Math.random() * 0.35 + 0.12,
+      opacity: Math.random() * 0.45 + 0.15,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: Math.random() * 0.012 + 0.004
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    bubbles.forEach(function(b) {
+      b.y -= b.speed;
+      b.wobble += b.wobbleSpeed;
+      b.x += Math.sin(b.wobble) * 0.35;
+      if (b.y < -10) { b.y = canvas.height + 10; b.x = Math.random() * canvas.width; }
+      var progress = 1 - (b.y / canvas.height);
+      var alpha = b.opacity * Math.sin(Math.max(0, Math.min(1, progress)) * Math.PI);
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(57,255,20,' + alpha + ')';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(57,255,20,' + (alpha * 0.5) + ')';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 
-            loadingRegularDiv.style.display = 'none';
 
-            if (error) {
-                regularListingsDiv.innerHTML = `<div style="grid-column:span 3; color:#ff4444; text-align:center;">Hata: ${error.message}</div>`;
-                return;
-            }
+// 2. SUPABASE ALT MOTORU (SADECE HTML ÇIKTILARI YENİ TASARIMA GÖRE GÜNCELLENDİ)
+const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
+let oKul=null,tumIlanlar=[];
 
-            allRegularListings = data;
-            renderListings(data);
-        }
+async function init(){
+  try{
+    const{data:{session}}=await SB.auth.getSession();
+    if(session){
+      const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);
+      if(data&&data.length>0){
+        oKul=data[0];
+        const nick=oKul.kullanici_adi||'Oyuncu';
+        document.getElementById('nav-giris').style.display='flex';
+        document.getElementById('nav-cikis').style.display='none';
+        document.getElementById('nav-lcoin').textContent=oKul.lcoin||0;
+        document.getElementById('nav-nick').textContent=nick;
+        const pp=document.getElementById('nav-pp');
+        pp.src=oKul.avatar_url||`https://minotar.net/helm/${nick}/38.png`;
+        pp.onerror=()=>{pp.src='https://minotar.net/helm/Steve/38.png';};
+      }else{document.getElementById('nav-cikis').style.display='flex';}
+    }else{document.getElementById('nav-cikis').style.display='flex';}
+  }catch(e){document.getElementById('nav-cikis').style.display='flex';}
 
-        function renderListings(listings) {
-            regularListingsDiv.innerHTML = '';
-            if (listings.length === 0) {
-                noRegularDiv.style.display = 'block';
-            } else {
-                noRegularDiv.style.display = 'none';
-                listings.forEach(listing => {
-                    // FEATURED İLANI MOTOR ÇEKİYORSA featuredListingsDiv'e basar, orijinal kodda featured yoktu.
-                    // O yüzden featuredListingsDiv'i sildim. Tüm ilanlar regularListingsDiv'e basılıyor.
-                    // Featured mantığı motor koduna eklenmediği için kartlar standart regular kartı olacak.
-                    addRegularListingCard(listing);
-                });
-            }
-        }
+  try{await klanlarYukle();}catch(e){}
+  try{await ilanlariYukle();}catch(e){}
+  try{await seritYukle();}catch(e){}
+  
+  document.getElementById('loading').style.display='none';
+}
 
-        // Tasarımın baştan aşağı yenilendiği kilit fonksiyon
-        function addRegularListingCard(listing) {
-            const card = document.createElement('div');
-            card.className = 'listing-card';
-            
-            // Eğer ilan sahibinin Elite/Premium durumu varsa (veritabanından çekilmeli),
-            // featured class'ı motor tarafından eklenmeli. Şu an alt motor çekmiyor.
-            // Örnek: if (listing.is_featured) card.classList.add('featured');
+// Yeni Temaya Göre Klan Şeridi Çıktısı
+async function klanlarYukle(){
+  const{data}=await SB.from('klanlar').select('*').order('uye_sayisi',{ascending:false}).limit(8);
+  const serit=document.getElementById('klan-serit');
+  if(!data||!data.length){
+    serit.innerHTML='<div style="font-size:11px;color:#444;padding:20px;font-weight:800;text-transform:uppercase;">Henüz klan yok</div>';
+    return;
+  }
+  const renkler=['#FFD700','#3296ff','#ff4444','#39ff14','#b432ff','#00f2fe','#ffaa00','#e1306c'];
+  const kartlar=data.map((k,i)=>`
+    <div class="clan-card ${i===0?'clan-vip':''}" onclick="window.location.href='/lobbygg/klanlar.html'">
+      <img src="https://minotar.net/helm/${k.isim}/80.png" class="clan-avatar" onerror="this.src='https://minotar.net/helm/Steve/80.png'">
+      <div class="clan-info">
+        <span class="clan-tag" style="color:${renkler[i]||'#fff'};">${i===0?'ÖNE ÇIKAN KLAN':'TOWNY KLAN'}</span>
+        <h3 class="clan-name">${k.tag} - ${k.isim}</h3>
+        <div class="clan-meta">Üye: <span>${k.uye_sayisi||1}/50</span></div>
+      </div>
+      <a href="#" class="action-btn" style="font-size:10px; padding:0 12px; height:28px;">İNCELE</a>
+    </div>`).join('');
+  serit.innerHTML=kartlar+kartlar;
+}
 
-            // Minecraft Sürüm ve IP bilgileri şu an ilanlar tablosunda yok.
-            // Motor koda dokunmadığım için bu alanları "Detay Yok" olarak basıyorum,
-            // ama tasarım alanı jilet gibi hazır. Sen Supabase'e eklediğinde hemen görünür.
-            const serverIP = "Detay Yok"; 
-            const serverVersion = "Detay Yok";
-            const ytID = ""; 
+// Yeni Temaya Göre 3 Sütunlu İlan Izgarası Çıktısı
+async function ilanlariYukle(){
+  const{data}=await SB.from('ilanlar').select('*').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(30);
+  tumIlanlar=data||[];
+  katSec('hepsi',document.querySelector('.cat-tab.active'));
+}
 
-            card.innerHTML = `
-                <div class="card-top">
-                    <div class="card-avatar">
-                        <img src="https://minotar.net/helm/${listing.Creator || 'Steve'}/50.png" alt="${listing.Creator}">
-                    </div>
-                    <div class="card-info">
-                        <div class="card-creator">İlan Sahibi: <span>${listing.Creator || 'Bilinmiyor'}</span></div>
-                        <div class="card-title">${listing.ListingName}</div>
-                        <div class="card-category">
-                            <i class="${getCategoryIcon(listing.Category)}"></i> ${listing.Category.toUpperCase() || 'DİĞER'}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card-details-area">
-                    <div class="detail-item"><i class="fa-solid fa-satellite"></i>IP: <span>${serverIP}</span></div>
-                    <div class="detail-item"><i class="fa-solid fa-code-version"></i>Sürüm: <span>${serverVersion}</span></div>
-                    ${ytID ? `<div class="detail-item yt-link"><i class="fa-brands fa-youtube"></i><span>YouTube Videosu</span></div>` : ''}
-                </div>
+function katSec(kat,btn){
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  
+  const liste=kat==='hepsi'?tumIlanlar:tumIlanlar.filter(i=>i.kategori===kat);
+  const grid=document.getElementById('ilan-grid');
+  
+  if(!liste.length){
+    grid.innerHTML='<div class="ilan-bos">BU KATEGORİDE İLAN YOK</div>';
+    grid.style.gridTemplateColumns = '1fr';
+    return;
+  }
+  
+  grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 3 Sütuna geri çevir
+  
+  // 3 Sütuna bölmek için array'i parçalıyoruz (Yeni lbb-col yapısı)
+  let col1='', col2='', col3='';
+  
+  liste.slice(0,18).forEach((i, index) => {
+    const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+    const pos=i.kategori==='reklam'?(i.alt_kategori==='sunucu'?'Sunucu':'Medya'):i.alt_kategori||'İlan';
+    
+    // Kenar rengi belirleme
+    let bClass = 'b-dev';
+    let tagColor = '#ff4444';
+    if(i.kategori === 'yetkili') { bClass = 'b-mod'; tagColor = '#3296ff'; }
+    if(i.kategori === 'reklam') { bClass = 'b-paket'; tagColor = '#ffaa00'; }
 
-                <div class="card-bottom">
-                    <div class="card-price"><i class="fa-solid fa-gem"></i> ${listing.Price} LC</div>
-                    <a href="/ilan.html#${listing.id}" class="mc-btn" style="padding:8px 15px; font-size:11px;">DETAYLARA BAK</a>
-                </div>
-            `;
-            regularListingsDiv.appendChild(card);
-        }
+    const cardHTML = `
+      <div class="lbb-card-row ${i.one_cikan?'brd-vip':bClass}" onclick="window.location.href='/lobbygg/profil.html?id=${i.kullanici_id}'">
+        ${i.one_cikan?'<div class="row-gold-badge">Öne Çıkan</div>':''}
+        <img src="https://minotar.net/helm/${nick}/80.png" class="c-pp" onerror="this.src='https://minotar.net/helm/Steve/80.png'">
+        <div class="c-detay">
+          <span class="c-tag" style="color:${i.one_cikan?'#FFD700':tagColor};">${pos}</span>
+          <span class="c-name">${nick}</span>
+          <div class="c-rating"><svg><use href="#icon-star"></use></svg> 5.0 <span>(${Math.floor(Math.random()*50)+5})</span></div>
+          <p class="c-desc">${i.aciklama&&i.aciklama!=='-'?i.aciklama.substring(0,30)+'...':i.baslik||'Açıklama yok'}</p>
+        </div>
+        <div class="c-action">
+          <span class="c-price">${i.fiyat&&i.fiyat>0?i.fiyat+' LC':'Teklif'}</span>
+          <a class="btn-3d" style="color:#000;">İncele</a>
+        </div>
+      </div>
+    `;
 
-        function getCategoryIcon(cat) {
-            if (!cat) return 'fa-solid fa-tag';
-            if (cat.includes('dev')) return 'fa-solid fa-code';
-            if (cat.includes('build')) return 'fa-solid fa-hammer';
-            if (cat.includes('server')) return 'fa-solid fa-server';
-            if (cat.includes('media')) return 'fa-brands fa-kickstarter'; // Kick/Twitch vb.
-            return 'fa-solid fa-tag';
-        }
+    if(index % 3 === 0) col1 += cardHTML;
+    else if(index % 3 === 1) col2 += cardHTML;
+    else col3 += cardHTML;
+  });
 
-        // Arama ve Filtreleme Motoru (Dokunulmadı)
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            if (!query) { renderListings(allRegularListings); return; }
-            const filtered = allRegularListings.filter(l => 
-                l.ListingName.toLowerCase().includes(query) || 
-                l.Category.toLowerCase().includes(query) ||
-                (l.Creator && l.Creator.toLowerCase().includes(query))
-            );
-            renderListings(filtered);
-        });
+  grid.innerHTML = `
+    <div class="lbb-col">
+      <div class="lbb-col-header" style="color:#39ff14;">Sıcak İlanlar <span></span></div>
+      ${col1}
+    </div>
+    <div class="lbb-col">
+      <div class="lbb-col-header" style="color:#3296ff;">Fırsatlar <span></span></div>
+      ${col2}
+    </div>
+    <div class="lbb-col">
+      <div class="lbb-col-header" style="color:#b432ff;">Yeniler <span></span></div>
+      ${col3}
+    </div>
+  `;
+}
 
-        document.querySelectorAll('.cat-tab[data-category]').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const cat = e.target.getAttribute('data-category');
-                if (cat === 'all') {
-                    renderListings(allRegularListings);
-                } else {
-                    const filtered = allRegularListings.filter(l => l.Category.includes(cat));
-                    renderListings(filtered);
-                }
-            });
-        });
+// Yeni Temaya Göre Yayıncı Şeridi
+async function seritYukle(){
+  const{data}=await SB.from('ilanlar').select('*').eq('kategori','medya').eq('durum','aktif').limit(15);
+  const track=document.getElementById('serit-track');
+  if(!data||!data.length){track.innerHTML='<div style="font-size:11px;color:#333;padding:16px;font-weight:800;">Henüz yayıncı ilanı yok</div>';return;}
+  const kartlar=data.map(i=>`
+    <div class="serit-kart" onclick="window.location.href='/lobbygg/profil.html?id=${i.kullanici_id}'">
+      <img src="https://minotar.net/helm/${i.kullanici_nick||i.alt_kategori||'Steve'}/36.png" class="serit-av" onerror="this.src='https://minotar.net/helm/Steve/36.png'">
+      <div><div class="serit-nick">${i.kullanici_nick||i.alt_kategori||'Yayıncı'}</div><div class="serit-platform">Medya İlanı</div></div>
+    </div>`).join('');
+  track.innerHTML=kartlar+kartlar;
+}
 
-        // Sayfa Yüklendiğinde İlanları Çek
-        fetchListings();
-
-    </script>
+init();
+</script>
 </body>
 </html>
