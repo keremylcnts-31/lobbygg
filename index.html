@@ -589,7 +589,7 @@ function navGirisYapan(){
   document.getElementById('nav-lcoin').textContent=oturumKul.lcoin||0;
   document.getElementById('nav-user-name').textContent=nick;
   document.getElementById('nav-user-rank').textContent=oturumKul.abonelik||'üye';
-  document.getElementById('nav-user-pp').src=oturumKul.avatar_url||`https://minotar.net/hem/${nick}/32.png`;
+  document.getElementById('nav-user-pp').src=oturumKul.avatar_url||`https://minotar.net/helm/${nick}/32.png`;
 }
 
 function navGirisYapmayan(){
@@ -770,7 +770,7 @@ function katSec(kat,btn){
     let nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
     const pozisyon=i.alt_kategori||'-';
     let reklam=i.kategori==='reklam';
-    return`<div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="ilanAc(${i.id})">
+    return`<div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="window.location.href='/lobbygg/profil.html?nick=${i.kullanici_nick||i.alt_kategori||'oyuncu'}'">
       ${i.one_cikan?'<div class="ilan-one-badge">⭐ Öne Çıkan</div>':''}
       ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:80px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:``}
       <div class="ilan-header">

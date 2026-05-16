@@ -121,8 +121,15 @@ async function init(){
     const{data}=await sb.from('kullanicilar').select('*').eq('id',id).single();
     kul=data;
   }else if(nick){
-    const{data}=await sb.from('kullanicilar').select('*').eq('kullanici_adi',nick).single();
-    kul=data;
+    // Önce tam eşleşme dene
+    const{data}=await sb.from('kullanicilar').select('*').eq('kullanici_adi',nick);
+    if(data&&data.length>0){
+      kul=data[0];
+    }else{
+      // Büyük/küçük harf farklılığı için ilike dene
+      const{data:data2}=await sb.from('kullanicilar').select('*').ilike('kullanici_adi',nick);
+      if(data2&&data2.length>0)kul=data2[0];
+    }
   }
 
   if(!kul){
