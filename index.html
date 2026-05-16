@@ -558,35 +558,31 @@ function hamburgerToggle(){
 }
 
 async function init(){
-  // Session kontrol
-  const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
-    if(data&&data.length>0){
-      oturumKul=data[0];
-      navGirisYapan();
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(session){
+      try{
+        const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
+        if(data&&data.length>0){oturumKul=data[0];navGirisYapan();}
+        else{navGirisYapmayan();}
+      }catch(e){navGirisYapmayan();}
+    }else{
+      navGirisYapmayan();
     }
-  }else{
-    navGirisYapmayan();
-  }
+  }catch(e){navGirisYapmayan();}
 
-  // Veri yükle
-  await Promise.all([
-    istatistikYukle(),
-    klanlariYukle(),
-    ilanlariYukle(),
-    feedYukle(),
-    seritYukle(),
-  ]);
-
-  // Sayaç
-  klanSayacBaslat();
+  try{await istatistikYukle();}catch(e){}
+  try{await klanlariYukle();}catch(e){}
+  try{await ilanlariYukle();}catch(e){}
+  try{await feedYukle();}catch(e){}
+  try{await seritYukle();}catch(e){}
+  try{klanSayacBaslat();}catch(e){}
 
   document.getElementById('loading').style.display='none';
 }
 
 function navGirisYapan(){
-  const nick=oturumKul.kullanici_adi||'Oyuncu';
+  let nick=oturumKul.kullanici_adi||'Oyuncu';
   document.getElementById('nav-giris-yapan').style.display='flex';
   document.getElementById('nav-giris-yapmayan').style.display='none';
   document.getElementById('nav-lcoin').textContent=oturumKul.lcoin||0;
@@ -769,9 +765,9 @@ function katSec(kat,btn){
   const tagMap={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
   grid.innerHTML=liste.slice(0,8).map(i=>{
-    const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+    let nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
     const pozisyon=i.alt_kategori||'-';
-    const reklam=i.kategori==='reklam';
+    let reklam=i.kategori==='reklam';
     return`<div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="ilanAc(${i.id})">
       ${i.one_cikan?'<div class="ilan-one-badge">⭐ Öne Çıkan</div>':''}
       ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:80px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:``}
@@ -805,19 +801,19 @@ function ilanAc(id){
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;">İletişim için giriş yap.</div>
       <a href="/lobbygg/giris.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>
     </div>`;
-  const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
-  const reklam=i.kategori==='reklam';
+  let ilanNick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+  let reklam=i.kategori==='reklam';
   document.getElementById('modal-title').textContent=tagAd[i.kategori]||'İlan';
   document.getElementById('modal-body').innerHTML=`
     ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;margin-bottom:14px;border:2px solid #2a2a2a;">`:``}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-      <img src="https://minotar.net/helm/${nick}/56.png" style="width:56px;height:56px;border-radius:3px;border:2px solid var(--border2);" onerror="this.src='https://minotar.net/helm/Steve/56.png'">
+      <img src="https://minotar.net/helm/${ilanNick}/56.png" style="width:56px;height:56px;border-radius:3px;border:2px solid var(--border2);" onerror="this.src='https://minotar.net/helm/Steve/56.png'">
       <div style="flex:1;">
-        <div style="font-size:16px;font-weight:900;color:#fff;">${nick}</div>
+        <div style="font-size:16px;font-weight:900;color:#fff;">${ilanNick}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px;">${reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||''}</div>
         ${i.seviye?`<div style="font-size:11px;color:var(--green);margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
       </div>
-      <a href="/lobbygg/profil.html?nick=${nick}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
+      <a href="/lobbygg/profil.html?nick=${ilanNick}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
     </div>
     ${i.aciklama&&i.aciklama!=='-'?`<div style="background:#111;border-radius:2px;padding:12px;font-size:12px;color:#888;line-height:1.7;margin-bottom:12px;">${i.aciklama}</div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
