@@ -306,11 +306,13 @@ async function ilanDetay(id){
   const katAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
   document.getElementById('modal-baslik').textContent=katAd[data.kategori]||'İlan Detayı';
   document.getElementById('modal-icerik').innerHTML=`
+    ${data.banner_url?`<div style="margin-bottom:14px;"><div style="font-size:9px;color:#444;font-weight:900;text-transform:uppercase;margin-bottom:6px;">REKLAM BANNERI</div><img src="${data.banner_url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:2px;border:2px solid #2a2a2a;"></div>`:''}
     <div style="display:grid;gap:8px;">
       ${[
+        ['Kullanıcı Nick', data.kullanici_nick||'-'],
         ['Kategori', katAd[data.kategori]||data.kategori],
-        ['Alt Kategori / Pozisyon', data.alt_kategori||'-'],
-        ['Başlık', data.baslik||'-'],
+        ['Reklam Türü', data.alt_kategori||'-'],
+        ['Hesap/Sunucu', data.baslik||'-'],
         ['Fiyat', data.fiyat&&data.fiyat>0?data.fiyat+' TL':'Görüşülür'],
         ['Seviye', data.seviye?data.seviye+'/10':'-'],
         ['Açıklama', data.aciklama||'-'],

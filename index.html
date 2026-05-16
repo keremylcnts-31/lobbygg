@@ -770,15 +770,21 @@ function katSec(kat,btn){
   const tagMap={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
   grid.innerHTML=liste.slice(0,8).map(i=>{
-    const nick=i.alt_kategori||'Oyuncu';
+    const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+    const pozisyon=i.alt_kategori||'-';
+    const reklam=i.kategori==='reklam';
     return`<div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="ilanAc(${i.id})">
       ${i.one_cikan?'<div class="ilan-one-badge">⭐ Öne Çıkan</div>':''}
+      ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:80px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:``}
       <div class="ilan-header">
         <img src="https://minotar.net/helm/${nick}/42.png" class="ilan-avatar" onerror="this.src='https://minotar.net/helm/Steve/42.png'">
-        <div><div class="ilan-nick">${nick}</div><div class="ilan-meta">${i.kategori||''}</div></div>
+        <div>
+          <div class="ilan-nick">${nick}</div>
+          <div class="ilan-meta">${reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):pozisyon}</div>
+        </div>
       </div>
       <span class="ilan-tag ${tagMap[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
-      <div class="ilan-desc">${i.aciklama?i.aciklama.substring(0,80)+'...':'Açıklama yok'}</div>
+      <div class="ilan-desc">${i.aciklama&&i.aciklama!=='-'?i.aciklama.substring(0,80)+'...':(reklam?'Reklam ilanı':'Açıklama yok')}</div>
       <div class="ilan-footer">
         <div class="ilan-fiyat">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
         <div class="ilan-seviye">${i.seviye?'⭐ '+i.seviye+'/10':''}</div>
@@ -801,17 +807,22 @@ function ilanAc(id){
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;">İletişim için giriş yap.</div>
       <a href="/lobbygg/giris.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>
     </div>`;
+  const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+  const reklam=i.kategori==='reklam';
   document.getElementById('modal-title').textContent=tagAd[i.kategori]||'İlan';
   document.getElementById('modal-body').innerHTML=`
+    ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;margin-bottom:14px;border:2px solid #2a2a2a;">`:``}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
       <img src="https://minotar.net/helm/${nick}/56.png" style="width:56px;height:56px;border-radius:3px;border:2px solid var(--border2);" onerror="this.src='https://minotar.net/helm/Steve/56.png'">
-      <div>
+      <div style="flex:1;">
         <div style="font-size:16px;font-weight:900;color:#fff;">${nick}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||''}</div>
         ${i.seviye?`<div style="font-size:11px;color:var(--green);margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
       </div>
+      <a href="/lobbygg/profil.html?nick=${nick}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
     </div>
-    ${i.aciklama?`<div style="background:#111;border-radius:2px;padding:12px;font-size:12px;color:#888;line-height:1.7;margin-bottom:12px;">${i.aciklama}</div>`:''}
-    <div style="display:flex;justify-content:space-between;">
+    ${i.aciklama&&i.aciklama!=='-'?`<div style="background:#111;border-radius:2px;padding:12px;font-size:12px;color:#888;line-height:1.7;margin-bottom:12px;">${i.aciklama}</div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
       <div style="font-size:18px;font-weight:900;color:var(--green);">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
       ${i.one_cikan?'<span style="background:#b38600;color:#fff;font-size:9px;font-weight:900;padding:2px 8px;border-radius:1px;">⭐ Öne Çıkan</span>':''}
     </div>

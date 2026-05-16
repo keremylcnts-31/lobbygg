@@ -173,19 +173,22 @@ function renderIlanlar(liste){
   const tagMap={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
   grid.innerHTML=liste.map(i=>{
-    const nick=i.alt_kategori||'Oyuncu';
+    const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+    const reklam=i.kategori==='reklam';
+    const pozisyon=reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||'-';
     return `
       <div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="ilanAc(${i.id})">
         ${i.one_cikan?'<div class="one-badge">⭐ Öne Çıkan</div>':''}
+        ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:80px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:''}
         <div class="ilan-header">
           <img src="https://minotar.net/helm/${nick}/46.png" class="ilan-avatar" onerror="this.src='https://minotar.net/helm/Steve/46.png'">
           <div>
             <div class="ilan-nick">${nick}</div>
-            <div class="ilan-meta">${i.kategori==='medya'?i.alt_kategori||'':i.kategori||''}</div>
+            <div class="ilan-meta">${pozisyon}</div>
           </div>
         </div>
         <span class="ilan-tag ${tagMap[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
-        <div class="ilan-desc">${i.aciklama?i.aciklama.substring(0,90)+'...':'Açıklama yok'}</div>
+        <div class="ilan-desc">${i.aciklama&&i.aciklama!=='-'?i.aciklama.substring(0,90)+'...':(reklam?'Reklam ilanı':'Açıklama yok')}</div>
         <div class="ilan-footer">
           <div class="ilan-fiyat">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
           <div class="ilan-seviye">${i.seviye?'⭐ '+i.seviye+'/10':''}</div>
@@ -198,7 +201,9 @@ function ilanAc(id){
   const i=tumIlanlar.find(x=>x.id===id);
   if(!i)return;
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
-  const nick=i.alt_kategori||'Oyuncu';
+  const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
+  const reklam=i.kategori==='reklam';
+  const pozisyon=reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||'-';
   const iletisim=oturumKul?`
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
       ${i.discord?`<a href="https://discord.com/users/${i.discord}" target="_blank" class="iletisim-btn" style="background:#5865F2;color:#fff;"><i class="fa-brands fa-discord"></i> Discord</a>`:''}
@@ -210,15 +215,18 @@ function ilanAc(id){
     </div>`;
   document.getElementById('modal-baslik').textContent=tagAd[i.kategori]||'İlan Detayı';
   document.getElementById('modal-icerik').innerHTML=`
+    ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;margin-bottom:14px;border:2px solid #2a2a2a;">`:''}
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
       <img src="https://minotar.net/helm/${nick}/60.png" style="width:60px;height:60px;border-radius:3px;border:2px solid #2a2a2a;" onerror="this.src='https://minotar.net/helm/Steve/60.png'">
-      <div>
+      <div style="flex:1;">
         <div style="font-size:16px;font-weight:900;color:#fff;">${nick}</div>
+        <div style="font-size:10px;color:#555;margin-top:2px;">${pozisyon}</div>
         ${i.seviye?`<div style="font-size:11px;color:#39ff14;margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
       </div>
+      <a href="/lobbygg/profil.html?nick=${nick}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
     </div>
-    ${i.aciklama?`<div style="background:#111;border-radius:2px;padding:14px;font-size:12px;color:#888;line-height:1.7;margin-bottom:14px;">${i.aciklama}</div>`:''}
-    <div style="display:flex;justify-content:space-between;align-items:center;">
+    ${i.aciklama&&i.aciklama!=='-'?`<div style="background:#111;border-radius:2px;padding:14px;font-size:12px;color:#888;line-height:1.7;margin-bottom:14px;">${i.aciklama}</div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
       <div style="font-size:18px;font-weight:900;color:#39ff14;">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
       ${i.one_cikan?'<span style="background:#b38600;color:#fff;font-size:9px;font-weight:900;padding:2px 8px;border-radius:1px;text-transform:uppercase;">⭐ Öne Çıkan</span>':''}
     </div>
