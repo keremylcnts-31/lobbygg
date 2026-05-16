@@ -8,80 +8,60 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-height:100vh; }
-.nav { background:#080808; border-bottom:2px solid #111; padding:0 5%; display:flex; justify-content:space-between; align-items:center; height:56px; position:sticky; top:0; z-index:100; }
-.nav-logo { font-size:20px; font-weight:900; color:#fff; text-decoration:none; }
-.nav-logo span { color:#39ff14; }
-.nav-right { display:flex; align-items:center; gap:8px; }
-.mc-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#3a3a3a; color:#ccc !important; padding:9px 16px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border-top:2px solid #555; border-left:2px solid #555; border-right:2px solid #111; border-bottom:3px solid #111; text-decoration:none; transition:0.1s; }
-.mc-btn:hover { filter:brightness(1.2); }
-.mc-btn:active { transform:translateY(1px); border-bottom-width:1px; }
-.mc-btn-green { background:#3a7d1e; color:#fff !important; border-top-color:#5cb832; border-left-color:#4a9e25; border-right-color:#1e4a09; border-bottom-color:#1e4a09; }
-
-.wrap { max-width:1200px; margin:0 auto; padding:32px 20px; }
-
-.page-header { margin-bottom:28px; }
-.page-title { font-size:20px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
-.page-sub { font-size:11px; color:#444; font-weight:600; }
-
-.filtre-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
-.f-input { background:#111; border-top:2px solid #0a0a0a; border-left:2px solid #0a0a0a; border-right:2px solid #2a2a2a; border-bottom:2px solid #2a2a2a; color:#bbb; padding:11px 14px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; outline:none; transition:0.1s; -webkit-appearance:none; }
-.f-input:focus { border-right-color:#3a7d1e; border-bottom-color:#3a7d1e; }
-.f-input::placeholder { color:#2a2a2a; }
-.f-select { background:#111; border-top:2px solid #0a0a0a; border-left:2px solid #0a0a0a; border-right:2px solid #2a2a2a; border-bottom:2px solid #2a2a2a; color:#bbb; padding:11px 14px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; outline:none; cursor:pointer; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:30px; }
-.f-select option { background:#111; }
-
-.kat-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
-.kat-tab { background:#1a1a1a; border-top:2px solid #2a2a2a; border-left:2px solid #2a2a2a; border-right:2px solid #060606; border-bottom:2px solid #060606; color:#444; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; padding:8px 14px; border-radius:2px; cursor:pointer; transition:0.1s; font-family:'Montserrat',sans-serif; }
-.kat-tab:hover { color:#888; }
-.kat-tab.active { background:#3a7d1e; color:#fff; border-top-color:#5cb832; border-left-color:#4a9e25; }
-
-.ilan-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.ilan-kart { background:#1a1a1a; border-top:2px solid #2a2a2a; border-left:2px solid #2a2a2a; border-right:2px solid #060606; border-bottom:3px solid #060606; border-radius:2px; padding:16px; cursor:pointer; transition:0.15s; position:relative; text-decoration:none; display:block; }
-.ilan-kart:hover { background:#222; transform:translateY(-2px); }
-.ilan-kart.one-cikan { border-top-color:#b38600; border-left-color:#b38600; }
-.one-badge { position:absolute; top:10px; right:10px; background:#b38600; color:#fff; font-size:8px; font-weight:900; text-transform:uppercase; padding:2px 7px; border-radius:1px; }
-.ilan-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-.ilan-avatar { width:46px; height:46px; border-radius:3px; object-fit:cover; background:#111; border:2px solid #2a2a2a; flex-shrink:0; }
-.ilan-nick { font-size:13px; font-weight:900; color:#fff; }
-.ilan-meta { font-size:9px; color:#444; margin-top:2px; text-transform:uppercase; }
-.ilan-tag { display:inline-block; font-size:9px; font-weight:900; text-transform:uppercase; padding:2px 8px; border-radius:1px; margin-bottom:8px; }
-.tag-is { background:#0d1f00; color:#39ff14; }
-.tag-yetkili { background:#0d141f; color:#6bb3ff; }
-.tag-medya { background:#1f0d1f; color:#d966ff; }
-.tag-reklam { background:#1f1400; color:#FFD700; }
-.ilan-desc { font-size:11px; color:#555; line-height:1.6; margin-bottom:12px; }
-.ilan-footer { display:flex; justify-content:space-between; align-items:center; border-top:1px solid #111; padding-top:10px; }
-.ilan-fiyat { font-size:13px; font-weight:900; color:#39ff14; }
-.ilan-seviye { font-size:10px; color:#444; }
-.bos { text-align:center; padding:60px 20px; color:#222; grid-column:1/-1; }
-.bos i { font-size:40px; margin-bottom:12px; display:block; }
-.bos p { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
-
-.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:500; padding:20px; }
-.modal-bg.active { display:flex; }
-.modal { background:#1a1a1a; border-top:2px solid #2a2a2a; border-left:2px solid #2a2a2a; border-right:2px solid #060606; border-bottom:3px solid #060606; border-radius:2px; padding:24px; max-width:500px; width:100%; }
-.modal-title { font-size:14px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; display:flex; justify-content:space-between; }
-.modal-close { background:none; border:none; color:#444; font-size:18px; cursor:pointer; }
-.iletisim-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:800; text-decoration:none; cursor:pointer; border:none; transition:0.1s; }
-.iletisim-btn:hover { filter:brightness(1.1); }
-
-#loading { position:fixed; inset:0; background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; z-index:9999; }
-.ld-logo { font-size:28px; font-weight:900; color:#fff; }
-.ld-logo span { color:#39ff14; }
-.ld-bar { width:180px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; }
-.ld-fill { height:100%; background:#39ff14; animation:ld 1.5s ease infinite; }
-@keyframes ld { 0%{width:0%} 50%{width:70%} 100%{width:100%} }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;color:#ccc;font-family:'Montserrat',sans-serif;min-height:100vh;}
+.nav{background:#050505;border-bottom:2px solid #111;padding:0 5%;display:flex;justify-content:space-between;align-items:center;height:56px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:20px;font-weight:900;color:#fff;text-decoration:none;}
+.nav-logo span{color:#39ff14;}
+.nav-right{display:flex;gap:8px;align-items:center;}
+.mc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#3a3a3a;color:#ccc!important;padding:9px 16px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;cursor:pointer;border-top:2px solid #555;border-left:2px solid #555;border-right:2px solid #111;border-bottom:3px solid #111;text-decoration:none;transition:0.1s;}
+.mc-btn:hover{filter:brightness(1.2);}
+.mc-btn-green{background:#3a7d1e;color:#fff!important;border-top-color:#5cb832;border-left-color:#4a9e25;border-right-color:#1e4a09;border-bottom-color:#1e4a09;}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 20px;}
+.page-header{margin-bottom:24px;}
+.page-title{font-size:18px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;}
+.page-sub{font-size:11px;color:#444;}
+.filtre-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.f-input,.f-select{background:#111;border-top:2px solid #0a0a0a;border-left:2px solid #0a0a0a;border-right:2px solid #2a2a2a;border-bottom:2px solid #2a2a2a;color:#bbb;padding:11px 14px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;outline:none;-webkit-appearance:none;}
+.f-input{flex:1;min-width:200px;}
+.f-input::placeholder{color:#222;}
+.f-input:focus,.f-select:focus{border-right-color:#3a7d1e;border-bottom-color:#3a7d1e;}
+.f-select{cursor:pointer;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.f-select option{background:#111;}
+.kat-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.kat-tab{background:#1a1a1a;border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;border-right:2px solid #060606;border-bottom:2px solid #060606;color:#444;font-size:10px;font-weight:900;text-transform:uppercase;padding:7px 12px;border-radius:2px;cursor:pointer;font-family:'Montserrat',sans-serif;transition:0.1s;}
+.kat-tab.active{background:#3a7d1e;color:#fff;border-top-color:#5cb832;}
+.ilan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;}
+.ilan-kart{background:#1a1a1a;border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;border-right:2px solid #060606;border-bottom:3px solid #060606;border-radius:2px;padding:14px;cursor:pointer;transition:0.15s;position:relative;}
+.ilan-kart:hover{background:#222;transform:translateY(-2px);}
+.ilan-kart.one{border-top-color:#b38600;border-left-color:#b38600;}
+.one-badge{position:absolute;top:8px;right:8px;background:#b38600;color:#fff;font-size:8px;font-weight:900;text-transform:uppercase;padding:2px 6px;border-radius:1px;}
+.ilan-banner{width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:10px;}
+.ilan-header{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.ilan-av{width:42px;height:42px;border-radius:2px;object-fit:cover;background:#111;border:2px solid #2a2a2a;flex-shrink:0;}
+.ilan-nick{font-size:12px;font-weight:900;color:#fff;}
+.ilan-pos{font-size:9px;color:#444;margin-top:2px;text-transform:uppercase;}
+.ilan-tag{display:inline-block;font-size:9px;font-weight:900;text-transform:uppercase;padding:2px 7px;border-radius:1px;margin-bottom:7px;}
+.tag-is{background:#0d1f00;color:#39ff14;}
+.tag-yetkili{background:#0d141f;color:#6bb3ff;}
+.tag-medya{background:#1f0d1f;color:#d966ff;}
+.tag-reklam{background:#1f1400;color:#FFD700;}
+.ilan-desc{font-size:10px;color:#333;line-height:1.6;margin-bottom:10px;}
+.ilan-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #111;padding-top:9px;}
+.ilan-fiyat{font-size:12px;font-weight:900;color:#39ff14;}
+.ilan-seviye{font-size:9px;color:#444;}
+.bos{text-align:center;padding:60px;color:#222;grid-column:1/-1;}
+.bos i{font-size:36px;margin-bottom:12px;display:block;}
+#loading{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;}
+.ld-logo{font-size:26px;font-weight:900;color:#fff;}
+.ld-logo span{color:#39ff14;}
+.ld-bar{width:180px;height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;}
+.ld-fill{height:100%;background:#39ff14;animation:ld 1.5s ease infinite;}
+@keyframes ld{0%{width:0%}50%{width:70%}100%{width:100%}}
 </style>
 </head>
 <body>
-
-<div id="loading">
-  <div class="ld-logo">LOBBY<span>.GG</span></div>
-  <div class="ld-bar"><div class="ld-fill"></div></div>
-</div>
-
+<div id="loading"><div class="ld-logo">LOBBY<span>.GG</span></div><div class="ld-bar"><div class="ld-fill"></div></div></div>
 <nav class="nav">
   <a href="/lobbygg/index.html" class="nav-logo">LOBBY<span>.GG</span></a>
   <div class="nav-right">
@@ -89,60 +69,33 @@ body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-
     <a href="/lobbygg/panel.html" class="mc-btn"><i class="fa-solid fa-gauge-high"></i> Panel</a>
   </div>
 </nav>
-
 <div class="wrap">
-  <div class="page-header">
-    <div class="page-title">İlanlar</div>
-    <div class="page-sub">Tüm aktif ilanları keşfet</div>
-  </div>
-
+  <div class="page-header"><div class="page-title">İlanlar</div><div class="page-sub">Tüm aktif ilanları keşfet</div></div>
   <div class="filtre-bar">
-    <input type="text" class="f-input" id="ara" placeholder="🔍 Nick veya pozisyon ara..." style="flex:1;min-width:200px;" oninput="filtrele()">
+    <input type="text" class="f-input" id="ara" placeholder="🔍 Nick veya açıklama ara..." oninput="filtrele()">
     <select class="f-select" id="siralama" onchange="filtrele()">
       <option value="yeni">En Yeni</option>
       <option value="one">Öne Çıkanlar</option>
-      <option value="fiyat-az">Fiyat (Az → Çok)</option>
-      <option value="fiyat-cok">Fiyat (Çok → Az)</option>
+      <option value="fiyat-az">Fiyat (Az→Çok)</option>
+      <option value="fiyat-cok">Fiyat (Çok→Az)</option>
       <option value="seviye">Seviye (Yüksek)</option>
     </select>
   </div>
-
   <div class="kat-tabs">
     <button class="kat-tab active" onclick="katSec('hepsi',this)">🔥 Tümü</button>
-    <button class="kat-tab" onclick="katSec('is',this)">💼 İş İlanları</button>
+    <button class="kat-tab" onclick="katSec('is',this)">💼 İş</button>
     <button class="kat-tab" onclick="katSec('yetkili',this)">🛡️ Yetkili</button>
     <button class="kat-tab" onclick="katSec('medya',this)">🎬 Medya</button>
     <button class="kat-tab" onclick="katSec('reklam',this)">📣 Reklam</button>
   </div>
-
-  <div class="ilan-grid" id="ilan-grid">
-    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#222;font-size:11px;font-weight:900;text-transform:uppercase;">Yükleniyor...</div>
-  </div>
+  <div class="ilan-grid" id="ilan-grid"><div class="bos">Yükleniyor...</div></div>
 </div>
-
-<div class="modal-bg" id="modal-bg" onclick="modalKapat(event)">
-  <div class="modal">
-    <div class="modal-title">
-      <span id="modal-baslik">İlan Detayı</span>
-      <button class="modal-close" onclick="document.getElementById('modal-bg').classList.remove('active')">✕</button>
-    </div>
-    <div id="modal-icerik"></div>
-  </div>
-</div>
-
 <script>
-const SB_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
-let tumIlanlar=[], aktifKat='hepsi', oturumKul=null;
+const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
+let tumIlanlar=[],aktifKat='hepsi';
 
 async function init(){
-  const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
-    if(data&&data.length>0)oturumKul=data[0];
-  }
-  const{data}=await sb.from('ilanlar').select('*').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false});
+  const{data}=await SB.from('ilanlar').select('*').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false});
   tumIlanlar=data||[];
   filtrele();
   document.getElementById('loading').style.display='none';
@@ -158,7 +111,7 @@ function katSec(kat,btn){
 function filtrele(){
   let liste=aktifKat==='hepsi'?[...tumIlanlar]:tumIlanlar.filter(i=>i.kategori===aktifKat);
   const ara=document.getElementById('ara').value.toLowerCase().trim();
-  if(ara)liste=liste.filter(i=>(i.alt_kategori||'').toLowerCase().includes(ara)||(i.baslik||'').toLowerCase().includes(ara)||(i.aciklama||'').toLowerCase().includes(ara));
+  if(ara)liste=liste.filter(i=>(i.kullanici_nick||i.alt_kategori||'').toLowerCase().includes(ara)||(i.aciklama||'').toLowerCase().includes(ara));
   const sira=document.getElementById('siralama').value;
   if(sira==='one')liste.sort((a,b)=>b.one_cikan-a.one_cikan);
   else if(sira==='fiyat-az')liste.sort((a,b)=>(a.fiyat||0)-(b.fiyat||0));
@@ -169,72 +122,29 @@ function filtrele(){
 
 function renderIlanlar(liste){
   const grid=document.getElementById('ilan-grid');
-  if(!liste.length){grid.innerHTML='<div class="bos"><i class="fa-solid fa-bullhorn"></i><p>Bu kategoride ilan yok</p></div>';return;}
+  if(!liste.length){grid.innerHTML='<div class="bos"><i class="fa-solid fa-bullhorn"></i><p style="font-size:11px;font-weight:800;text-transform:uppercase;">İlan bulunamadı</p></div>';return;}
   const tagMap={is:'tag-is',yetkili:'tag-yetkili',medya:'tag-medya',reklam:'tag-reklam'};
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
   grid.innerHTML=liste.map(i=>{
     const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
-    const reklam=i.kategori==='reklam';
-    const pozisyon=reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||'-';
-    return `
-      <div class="ilan-kart ${i.one_cikan?'one-cikan':''}" onclick="ilanAc(${i.id})">
-        ${i.one_cikan?'<div class="one-badge">⭐ Öne Çıkan</div>':''}
-        ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;height:80px;object-fit:cover;border-radius:2px;margin-bottom:10px;">`:''}
-        <div class="ilan-header">
-          <img src="https://minotar.net/helm/${nick}/46.png" class="ilan-avatar" onerror="this.src='https://minotar.net/helm/Steve/46.png'">
-          <div>
-            <div class="ilan-nick">${nick}</div>
-            <div class="ilan-meta">${pozisyon}</div>
-          </div>
-        </div>
-        <span class="ilan-tag ${tagMap[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
-        <div class="ilan-desc">${i.aciklama&&i.aciklama!=='-'?i.aciklama.substring(0,90)+'...':(reklam?'Reklam ilanı':'Açıklama yok')}</div>
-        <div class="ilan-footer">
-          <div class="ilan-fiyat">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
-          <div class="ilan-seviye">${i.seviye?'⭐ '+i.seviye+'/10':''}</div>
-        </div>
-      </div>`;
+    const pos=i.kategori==='reklam'?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||'-';
+    return`<div class="ilan-kart ${i.one_cikan?'one':''}" onclick="window.location.href='/lobbygg/profil.html?id=${i.kullanici_id}'">
+      ${i.one_cikan?'<div class="one-badge">⭐ Öne Çıkan</div>':''}
+      ${i.kategori==='reklam'&&i.banner_url?`<img src="${i.banner_url}" class="ilan-banner">`:''}
+      <div class="ilan-header">
+        <img src="https://minotar.net/helm/${nick}/42.png" class="ilan-av" onerror="this.src='https://minotar.net/helm/Steve/42.png'">
+        <div><div class="ilan-nick">${nick}</div><div class="ilan-pos">${pos}</div></div>
+      </div>
+      <span class="ilan-tag ${tagMap[i.kategori]||'tag-is'}">${tagAd[i.kategori]||i.kategori}</span>
+      <div class="ilan-desc">${i.aciklama&&i.aciklama!=='-'?i.aciklama.substring(0,90)+'...':'Açıklama yok'}</div>
+      <div class="ilan-footer">
+        <div class="ilan-fiyat">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
+        <div class="ilan-seviye">${i.seviye?'⭐ '+i.seviye+'/10':''}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function ilanAc(id){
-  const i=tumIlanlar.find(x=>x.id===id);
-  if(!i)return;
-  const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
-  const nick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
-  const reklam=i.kategori==='reklam';
-  const pozisyon=reklam?(i.alt_kategori==='sunucu'?'Sunucu Reklamı':'Medya Reklamı'):i.alt_kategori||'-';
-  const iletisim=oturumKul?`
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
-      ${i.discord?`<a href="https://discord.com/users/${i.discord}" target="_blank" class="iletisim-btn" style="background:#5865F2;color:#fff;"><i class="fa-brands fa-discord"></i> Discord</a>`:''}
-      ${i.email?`<a href="mailto:${i.email}" class="iletisim-btn" style="background:#1a3a5a;color:#6bb3ff;"><i class="fa-solid fa-envelope"></i> E-posta</a>`:''}
-    </div>`:`
-    <div style="background:#0d1f00;border:1px solid #1e4a00;border-radius:2px;padding:14px;text-align:center;margin-top:16px;">
-      <div style="font-size:11px;color:#555;margin-bottom:12px;font-weight:700;">İletişim bilgilerini görmek için giriş yap.</div>
-      <a href="/lobbygg/giris.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>
-    </div>`;
-  document.getElementById('modal-baslik').textContent=tagAd[i.kategori]||'İlan Detayı';
-  document.getElementById('modal-icerik').innerHTML=`
-    ${reklam&&i.banner_url?`<img src="${i.banner_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;margin-bottom:14px;border:2px solid #2a2a2a;">`:''}
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-      <img src="https://minotar.net/helm/${nick}/60.png" style="width:60px;height:60px;border-radius:3px;border:2px solid #2a2a2a;" onerror="this.src='https://minotar.net/helm/Steve/60.png'">
-      <div style="flex:1;">
-        <div style="font-size:16px;font-weight:900;color:#fff;">${nick}</div>
-        <div style="font-size:10px;color:#555;margin-top:2px;">${pozisyon}</div>
-        ${i.seviye?`<div style="font-size:11px;color:#39ff14;margin-top:4px;">⭐ ${i.seviye}/10 deneyim</div>`:''}
-      </div>
-      <a href="/lobbygg/profil.html?id=${i.kullanici_id}" class="mc-btn" style="padding:7px 12px;font-size:10px;flex-shrink:0;"><i class="fa-solid fa-user"></i> Profil</a>
-    </div>
-    ${i.aciklama&&i.aciklama!=='-'?`<div style="background:#111;border-radius:2px;padding:14px;font-size:12px;color:#888;line-height:1.7;margin-bottom:14px;">${i.aciklama}</div>`:''}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-      <div style="font-size:18px;font-weight:900;color:#39ff14;">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Görüşülür'}</div>
-      ${i.one_cikan?'<span style="background:#b38600;color:#fff;font-size:9px;font-weight:900;padding:2px 8px;border-radius:1px;text-transform:uppercase;">⭐ Öne Çıkan</span>':''}
-    </div>
-    ${iletisim}`;
-  document.getElementById('modal-bg').classList.add('active');
-}
-
-function modalKapat(e){if(e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('active');}
 init();
 </script>
 </body>

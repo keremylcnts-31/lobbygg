@@ -8,89 +8,69 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-height:100vh; }
-.nav { background:#080808; border-bottom:2px solid #111; padding:0 5%; display:flex; justify-content:space-between; align-items:center; height:56px; position:sticky; top:0; z-index:100; }
-.nav-logo { font-size:20px; font-weight:900; color:#fff; text-decoration:none; }
-.nav-logo span { color:#39ff14; }
-.mc-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#3a3a3a; color:#ccc !important; padding:9px 16px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border-top:2px solid #555; border-left:2px solid #555; border-right:2px solid #111; border-bottom:3px solid #111; text-decoration:none; transition:0.1s; }
-.mc-btn:hover { filter:brightness(1.2); }
-.mc-btn:active { transform:translateY(1px); border-bottom-width:1px; }
-.mc-btn-green { background:#3a7d1e; color:#fff !important; border-top-color:#5cb832; border-left-color:#4a9e25; border-right-color:#1e4a09; border-bottom-color:#1e4a09; }
-.mc-btn-red { background:#7d1e1e; color:#ffaaaa !important; border-top-color:#b83232; border-left-color:#9e2525; border-right-color:#3a0909; border-bottom-color:#3a0909; }
-
-.wrap { max-width:1100px; margin:0 auto; padding:32px 20px; }
-.page-title { font-size:20px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
-.page-sub { font-size:11px; color:#444; margin-bottom:28px; }
-
-.layout { display:grid; grid-template-columns:1fr 340px; gap:20px; align-items:start; }
-
-.box { background:#111; border-top:2px solid #1a1a1a; border-left:2px solid #1a1a1a; border-right:2px solid #050505; border-bottom:3px solid #050505; border-radius:2px; padding:18px; margin-bottom:14px; }
-.ibox { background:#0d0d0d; border-top:2px solid #161616; border-left:2px solid #161616; border-right:2px solid #030303; border-bottom:2px solid #030303; border-radius:2px; padding:14px; margin-bottom:8px; }
-.sec-title { font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#555; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
-.sec-title::after { content:''; flex:1; height:1px; background:#1a1a1a; }
-
-.f-group { margin-bottom:14px; }
-.f-label { display:block; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#444; margin-bottom:7px; }
-.f-input { width:100%; background:#0d0d0d; border-top:2px solid #080808; border-left:2px solid #080808; border-right:2px solid #1e1e1e; border-bottom:2px solid #1e1e1e; color:#bbb; padding:12px 13px; border-radius:2px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; outline:none; transition:0.1s; }
-.f-input:focus { border-right-color:#3a7d1e; border-bottom-color:#3a7d1e; }
-.f-input::placeholder { color:#1e1e1e; }
-
-.klan-kart { background:#1a1a1a; border-top:2px solid #2a2a2a; border-left:2px solid #2a2a2a; border-right:2px solid #060606; border-bottom:3px solid #060606; border-radius:2px; padding:16px; margin-bottom:10px; cursor:pointer; transition:0.15s; }
-.klan-kart:hover { background:#222; }
-.klan-tag { font-size:14px; font-weight:900; color:#FFD700; background:#251a00; border:1px solid #4a3500; padding:4px 10px; border-radius:2px; display:inline-block; margin-bottom:8px; }
-.klan-isim { font-size:14px; font-weight:900; color:#fff; margin-bottom:4px; }
-.klan-meta { font-size:10px; color:#444; }
-
-.msg-success { background:#0d1f00; border-left:3px solid #39ff14; color:#39ff14; padding:10px 14px; border-radius:2px; font-size:11px; font-weight:800; margin-bottom:14px; display:none; }
-.msg-error { background:#1f0d0d; border-left:3px solid #ff4444; color:#ff6b6b; padding:10px 14px; border-radius:2px; font-size:11px; font-weight:800; margin-bottom:14px; display:none; }
-
-.benim-klan { background:#0d1f00; border-top:2px solid #1e4a00; border-left:2px solid #1e4a00; border-right:2px solid #051a00; border-bottom:3px solid #051a00; border-radius:2px; padding:16px; margin-bottom:14px; }
-
-#loading { position:fixed; inset:0; background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; z-index:9999; }
-.ld-logo { font-size:28px; font-weight:900; color:#fff; }
-.ld-logo span { color:#39ff14; }
-.ld-bar { width:180px; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden; }
-.ld-fill { height:100%; background:#39ff14; animation:ld 1.5s ease infinite; }
-@keyframes ld { 0%{width:0%} 50%{width:70%} 100%{width:100%} }
-@media(max-width:768px){ .layout { grid-template-columns:1fr; } }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;color:#ccc;font-family:'Montserrat',sans-serif;min-height:100vh;}
+.nav{background:#050505;border-bottom:2px solid #111;padding:0 5%;display:flex;justify-content:space-between;align-items:center;height:56px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:20px;font-weight:900;color:#fff;text-decoration:none;}
+.nav-logo span{color:#39ff14;}
+.mc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#3a3a3a;color:#ccc!important;padding:9px 16px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;cursor:pointer;border-top:2px solid #555;border-left:2px solid #555;border-right:2px solid #111;border-bottom:3px solid #111;text-decoration:none;transition:0.1s;}
+.mc-btn:hover{filter:brightness(1.2);}
+.mc-btn-green{background:#3a7d1e;color:#fff!important;border-top-color:#5cb832;border-left-color:#4a9e25;border-right-color:#1e4a09;border-bottom-color:#1e4a09;}
+.mc-btn-red{background:#7d1e1e;color:#ffaaaa!important;border-top-color:#b83232;border-left-color:#9e2525;border-right-color:#3a0909;border-bottom-color:#3a0909;}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 20px;}
+.page-title{font-size:18px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;}
+.page-sub{font-size:11px;color:#444;margin-bottom:24px;}
+.layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;}
+.box{background:#111;border-top:2px solid #1a1a1a;border-left:2px solid #1a1a1a;border-right:2px solid #050505;border-bottom:3px solid #050505;border-radius:2px;padding:18px;margin-bottom:14px;}
+.ibox{background:#0d0d0d;border-top:2px solid #161616;border-left:2px solid #161616;border-right:2px solid #030303;border-bottom:2px solid #030303;border-radius:2px;padding:14px;margin-bottom:8px;}
+.box-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#444;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.box-title::before{content:'';display:block;width:3px;height:12px;background:#39ff14;border-radius:2px;}
+.f-group{margin-bottom:14px;}
+.f-label{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#444;margin-bottom:7px;}
+.f-input{width:100%;background:#0d0d0d;border-top:2px solid #080808;border-left:2px solid #080808;border-right:2px solid #1e1e1e;border-bottom:2px solid #1e1e1e;color:#bbb;padding:12px 13px;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;outline:none;transition:0.1s;}
+.f-input:focus{border-right-color:#3a7d1e;border-bottom-color:#3a7d1e;}
+.f-input::placeholder{color:#1e1e1e;}
+.klan-kart{background:#1a1a1a;border-top:2px solid #2a2a2a;border-left:2px solid #2a2a2a;border-right:2px solid #060606;border-bottom:3px solid #060606;border-radius:2px;padding:16px;margin-bottom:10px;cursor:pointer;transition:0.15s;}
+.klan-kart:hover{background:#222;}
+.klan-sira{font-size:11px;font-weight:900;color:#444;flex-shrink:0;width:24px;}
+.klan-tag-txt{font-size:13px;font-weight:900;padding:3px 10px;border-radius:2px;display:inline-block;margin-bottom:6px;}
+.klan-isim{font-size:13px;font-weight:900;color:#fff;margin-bottom:4px;}
+.klan-meta{font-size:10px;color:#444;}
+.msg-s{background:#0d1f00;border-left:3px solid #39ff14;color:#39ff14;padding:10px 14px;border-radius:2px;font-size:11px;font-weight:800;margin-bottom:12px;display:none;}
+.msg-e{background:#1f0d0d;border-left:3px solid #ff4444;color:#ff6b6b;padding:10px 14px;border-radius:2px;font-size:11px;font-weight:800;margin-bottom:12px;display:none;}
+.benim-klan{background:#0d1f00;border-top:2px solid #1e4a00;border-left:2px solid #1e4a00;border-right:2px solid #051a00;border-bottom:3px solid #051a00;border-radius:2px;padding:16px;margin-bottom:14px;}
+/* TAG RENK SEÇİCİ */
+.renk-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.renk-opt{width:28px;height:28px;border-radius:3px;cursor:pointer;border:3px solid transparent;transition:0.1s;}
+.renk-opt.active{border-color:#fff;transform:scale(1.15);}
+#loading{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;}
+.ld-logo{font-size:28px;font-weight:900;color:#fff;}
+.ld-logo span{color:#39ff14;}
+.ld-bar{width:180px;height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;}
+.ld-fill{height:100%;background:#39ff14;animation:ld 1.5s ease infinite;}
+@keyframes ld{0%{width:0%}50%{width:70%}100%{width:100%}}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
-<div id="loading">
-  <div class="ld-logo">LOBBY<span>.GG</span></div>
-  <div class="ld-bar"><div class="ld-fill"></div></div>
-</div>
-
+<div id="loading"><div class="ld-logo">LOBBY<span>.GG</span></div><div class="ld-bar"><div class="ld-fill"></div></div></div>
 <nav class="nav">
   <a href="/lobbygg/index.html" class="nav-logo">LOBBY<span>.GG</span></a>
-  <div style="display:flex;gap:8px;">
-    <a href="/lobbygg/panel.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-gauge-high"></i> Panel</a>
-  </div>
+  <a href="/lobbygg/panel.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-gauge-high"></i> Panel</a>
 </nav>
-
 <div class="wrap">
   <div class="page-title">Klan Sistemi</div>
-  <div class="page-sub">Klan kur, üye ol, tag al</div>
-
+  <div class="page-sub">Klan kur, üye ol, sıralamada yüksel</div>
+  <div id="benim-klan-wrap" style="display:none;">
+    <div class="benim-klan"><div style="font-size:10px;color:#39ff14;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Klanın</div><div id="benim-klan-icerik"></div></div>
+  </div>
   <div class="layout">
-    <!-- SOL: KLAN LİSTESİ -->
     <div>
-      <div class="benim-klan" id="benim-klan-wrap" style="display:none;">
-        <div style="font-size:10px;color:#39ff14;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Klanın</div>
-        <div id="benim-klan-icerik"></div>
-      </div>
-
       <div class="box">
-        <div class="sec-title">Tüm Klanlar</div>
-        <div id="klan-liste">
-          <div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div>
-        </div>
+        <div class="box-title">Tüm Klanlar</div>
+        <div id="klan-liste"><div style="text-align:center;padding:30px;color:#333;font-size:11px;">Yükleniyor...</div></div>
       </div>
     </div>
-
-    <!-- SAĞ: KLAN OLUŞTUR / KATIL -->
     <div>
       <div id="giris-gerekli-wrap" style="display:none;">
         <div class="box" style="text-align:center;padding:24px;">
@@ -99,145 +79,127 @@ body { background:#0a0a0a; color:#ccc; font-family:'Montserrat',sans-serif; min-
           <a href="/lobbygg/giris.html" class="mc-btn mc-btn-green" style="margin-top:8px;width:100%;justify-content:center;">Giriş Yap</a>
         </div>
       </div>
-
       <div id="klan-islemler" style="display:none;">
-        <!-- Klanı yoksa oluştur veya katıl -->
         <div id="klan-yok-wrap">
           <div class="box">
-            <div class="sec-title">Klan Kur</div>
-            <div id="kur-msg-s" class="msg-success"></div>
-            <div id="kur-msg-e" class="msg-error"></div>
-            <div class="f-group">
-              <label class="f-label">Klan Tag (Maks 5 karakter) *</label>
-              <input type="text" class="f-input" id="klan-tag" placeholder="ÖRN: HND" maxlength="5" style="text-transform:uppercase;">
+            <div class="box-title">Klan Kur</div>
+            <div id="kur-msg-s" class="msg-s"></div>
+            <div id="kur-msg-e" class="msg-e"></div>
+            <div class="f-group"><label class="f-label">Klan Tag (Maks 5 karakter) *</label><input type="text" class="f-input" id="klan-tag" placeholder="ÖRN: HND" maxlength="5" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"></div>
+            <div class="f-group"><label class="f-label">Tag Rengi</label>
+              <div class="renk-grid" id="renk-grid"></div>
+              <input type="hidden" id="klan-renk" value="#FFD700">
             </div>
-            <div class="f-group">
-              <label class="f-label">Klan İsmi *</label>
-              <input type="text" class="f-input" id="klan-isim" placeholder="Klanının ismi">
-            </div>
-            <div class="f-group">
-              <label class="f-label">Açıklama</label>
-              <input type="text" class="f-input" id="klan-aciklama" placeholder="Klanınız hakkında kısa açıklama">
-            </div>
+            <div class="f-group"><label class="f-label">Klan İsmi *</label><input type="text" class="f-input" id="klan-isim" placeholder="Klanının ismi"></div>
+            <div class="f-group"><label class="f-label">Açıklama</label><input type="text" class="f-input" id="klan-aciklama" placeholder="Klanınız hakkında kısa açıklama"></div>
             <button class="mc-btn mc-btn-green" onclick="klanKur()" style="width:100%;justify-content:center;"><i class="fa-solid fa-flag"></i> Klan Kur</button>
-            <div style="font-size:9px;color:#333;margin-top:8px;text-transform:uppercase;letter-spacing:0.5px;">Klan kurduğunda başka bir klana üye olamazsın.</div>
           </div>
-
           <div class="box">
-            <div class="sec-title">Klana Katıl</div>
-            <div id="katil-msg-s" class="msg-success"></div>
-            <div id="katil-msg-e" class="msg-error"></div>
-            <div class="f-group">
-              <label class="f-label">Klan Tag *</label>
-              <input type="text" class="f-input" id="katil-tag" placeholder="ÖRN: HND" maxlength="5" style="text-transform:uppercase;">
-            </div>
+            <div class="box-title">Klana Katıl</div>
+            <div id="katil-msg-s" class="msg-s"></div>
+            <div id="katil-msg-e" class="msg-e"></div>
+            <div class="f-group"><label class="f-label">Klan Tag *</label><input type="text" class="f-input" id="katil-tag" placeholder="ÖRN: HND" maxlength="5" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"></div>
             <button class="mc-btn mc-btn-green" onclick="klanaKatil()" style="width:100%;justify-content:center;"><i class="fa-solid fa-right-to-bracket"></i> Klana Katıl</button>
           </div>
         </div>
-
-        <!-- Klanı varsa göster -->
         <div id="klan-var-wrap" style="display:none;">
-          <div class="box">
-            <div class="sec-title">Klan Yönetimi</div>
-            <div id="klan-var-icerik"></div>
-          </div>
+          <div class="box"><div class="box-title">Klan Yönetimi</div><div id="klan-var-icerik"></div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
 <script>
-const SB_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
 let kul=null;
 
+const RENKLER=['#FFD700','#39ff14','#00d4ff','#b933ff','#ff1a3c','#ff6600','#ff1493','#00ffcc','#aaa','#fff'];
+
 async function init(){
-  const{data:{session}}=await sb.auth.getSession();
+  const{data:{session}}=await SB.auth.getSession();
   if(session){
-    const{data}=await sb.from('kullanicilar').select('*').eq('email',session.user.email);
-    if(data&&data.length>0){
-      kul=data[0];
-      document.getElementById('klan-islemler').style.display='block';
-      await kullaniciklanKontrol();
-    }
-  }else{
-    document.getElementById('giris-gerekli-wrap').style.display='block';
-  }
+    const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);
+    if(data&&data.length>0){kul=data[0];document.getElementById('klan-islemler').style.display='block';await kullaniciklanKontrol();}
+  }else{document.getElementById('giris-gerekli-wrap').style.display='block';}
+  renkGridRender();
   await klanlariYukle();
   document.getElementById('loading').style.display='none';
 }
 
+function renkGridRender(){
+  const grid=document.getElementById('renk-grid');
+  let secili=document.getElementById('klan-renk').value;
+  grid.innerHTML=RENKLER.map(r=>`
+    <div class="renk-opt ${r===secili?'active':''}" style="background:${r};box-shadow:${r==='#fff'?'inset 0 0 0 1px #333':'none'};" onclick="renkSec('${r}')"></div>
+  `).join('');
+}
+
+function renkSec(renk){
+  document.getElementById('klan-renk').value=renk;
+  renkGridRender();
+}
+
 async function kullaniciklanKontrol(){
-  if(!kul)return;
-  if(kul.klan_tag){
-    // Klanı var
-    document.getElementById('klan-yok-wrap').style.display='none';
-    document.getElementById('klan-var-wrap').style.display='block';
-    document.getElementById('benim-klan-wrap').style.display='block';
-    const{data:klan}=await sb.from('klanlar').select('*').eq('tag',kul.klan_tag).single();
-    if(klan){
-      const kurucuMu=klan.kurucu_id===kul.id;
-      document.getElementById('benim-klan-icerik').innerHTML=`
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:16px;font-weight:900;color:#FFD700;background:#251a00;border:1px solid #4a3500;padding:4px 10px;border-radius:2px;">[${klan.tag}]</span>
-          <div>
-            <div style="font-size:14px;font-weight:900;color:#fff;">${klan.isim}</div>
-            <div style="font-size:10px;color:#444;">${klan.uye_sayisi||1} üye ${kurucuMu?'· Kurucu':''}</div>
-          </div>
-        </div>`;
-      document.getElementById('klan-var-icerik').innerHTML=`
-        <div class="ibox" style="text-align:center;padding:20px;">
-          <div style="font-size:24px;font-weight:900;color:#FFD700;margin-bottom:4px;">[${klan.tag}]</div>
-          <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:4px;">${klan.isim}</div>
-          <div style="font-size:10px;color:#444;margin-bottom:16px;">${klan.aciklama||'Açıklama yok'} · ${klan.uye_sayisi||1} üye</div>
-          ${kurucuMu
-            ?`<button class="mc-btn mc-btn-red" onclick="klanDagsit()" style="width:100%;justify-content:center;"><i class="fa-solid fa-flag"></i> Klanı Dağıt</button>`
-            :`<button class="mc-btn mc-btn-red" onclick="klandanCik()" style="width:100%;justify-content:center;"><i class="fa-solid fa-right-from-bracket"></i> Klandan Çık</button>`
-          }
-        </div>`;
-    }
-  }
+  if(!kul||!kul.klan_tag)return;
+  document.getElementById('klan-yok-wrap').style.display='none';
+  document.getElementById('klan-var-wrap').style.display='block';
+  document.getElementById('benim-klan-wrap').style.display='block';
+  const{data:klan}=await SB.from('klanlar').select('*').eq('tag',kul.klan_tag).single();
+  if(!klan)return;
+  const kurucuMu=klan.kurucu_id===kul.id;
+  const renk=klan.renk||'#FFD700';
+  document.getElementById('benim-klan-icerik').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:16px;font-weight:900;background:${renk}22;border:2px solid ${renk};color:${renk};padding:4px 10px;border-radius:2px;">${klan.tag}</span>
+      <div><div style="font-size:14px;font-weight:900;color:#fff;">${klan.isim}</div><div style="font-size:10px;color:#444;">${klan.uye_sayisi||1} üye ${kurucuMu?'· Kurucu':''}</div></div>
+    </div>`;
+  document.getElementById('klan-var-icerik').innerHTML=`
+    <div class="ibox" style="text-align:center;padding:20px;">
+      <div style="font-size:22px;font-weight:900;margin-bottom:4px;color:${renk};">${klan.tag}</div>
+      <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:4px;">${klan.isim}</div>
+      <div style="font-size:10px;color:#444;margin-bottom:16px;">${klan.aciklama||'-'} · ${klan.uye_sayisi||1} üye</div>
+      ${kurucuMu
+        ?`<button class="mc-btn mc-btn-red" onclick="klanDagsit()" style="width:100%;justify-content:center;"><i class="fa-solid fa-flag"></i> Klanı Dağıt</button>`
+        :`<button class="mc-btn mc-btn-red" onclick="klandanCik()" style="width:100%;justify-content:center;"><i class="fa-solid fa-right-from-bracket"></i> Klandan Çık</button>`}
+    </div>`;
 }
 
 async function klanlariYukle(){
-  const{data}=await sb.from('klanlar').select('*').order('uye_sayisi',{ascending:false}).limit(30);
+  const{data}=await SB.from('klanlar').select('*').order('uye_sayisi',{ascending:false}).limit(30);
   const el=document.getElementById('klan-liste');
   if(!data||!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:#333;font-size:11px;font-weight:800;text-transform:uppercase;">Henüz klan yok</div>';return;}
-  el.innerHTML=data.map(k=>`
-    <div class="klan-kart">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span class="klan-tag">[${k.tag}]</span>
-        <div style="flex:1;">
-          <div class="klan-isim">${k.isim}</div>
-          <div class="klan-meta">${k.aciklama||'-'} · ${k.uye_sayisi||1} üye</div>
-        </div>
+  const renkler=['#FFD700','#aaa','#cd7f32'];
+  el.innerHTML=data.map((k,i)=>{
+    const renk=k.renk||renkler[i]||'#555';
+    return`<div class="klan-kart" style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:12px;font-weight:900;color:#444;width:24px;text-align:center;">${i+1}.</div>
+      <span style="font-size:13px;font-weight:900;background:${renk}22;border:2px solid ${renk};color:${renk};padding:3px 8px;border-radius:2px;flex-shrink:0;">${k.tag}</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:900;color:#fff;">${k.isim}</div>
+        <div style="font-size:10px;color:#444;">${k.aciklama||'-'} · ${k.uye_sayisi||1} üye</div>
       </div>
-    </div>`).join('');
+      <div style="font-size:13px;font-weight:900;color:#39ff14;">${((k.uye_sayisi||1)*10).toLocaleString('tr-TR')}</div>
+    </div>`;
+  }).join('');
 }
 
 async function klanKur(){
   if(!kul)return;
-  if(kul.klan_tag){return;}
   const tag=document.getElementById('klan-tag').value.trim().toUpperCase();
   const isim=document.getElementById('klan-isim').value.trim();
   const aciklama=document.getElementById('klan-aciklama').value.trim();
+  const renk=document.getElementById('klan-renk').value;
   const msgS=document.getElementById('kur-msg-s');
   const msgE=document.getElementById('kur-msg-e');
   msgS.style.display='none';msgE.style.display='none';
-  if(!tag||!isim)return;
-  if(tag.length<2)return;
-  if(!/^[A-Z0-9]+$/.test(tag)){msgE.style.display='block';msgE.textContent='Tag sadece harf ve rakamdan oluşmalı!';return;}
-
-  // Tag alınmış mı
-  const{data:varMi}=await sb.from('klanlar').select('id').eq('tag',tag);
-  if(varMi&&varMi.length>0){msgE.style.display='block';msgE.textContent='Bu klan tagi zaten alınmış!';return;}
-
-  const{error}=await sb.from('klanlar').insert({tag,isim,aciklama,kurucu_id:kul.id,uye_sayisi:1});
+  if(!tag||tag.length<2){msgE.style.display='block';msgE.textContent='Tag en az 2 karakter olmalı!';return;}
+  if(!/^[A-Z0-9]+$/.test(tag)){msgE.style.display='block';msgE.textContent='Tag sadece harf ve rakam içerebilir!';return;}
+  if(!isim){msgE.style.display='block';msgE.textContent='Klan ismini gir!';return;}
+  const{data:varmi}=await SB.from('klanlar').select('id').eq('tag',tag);
+  if(varmi&&varmi.length>0){msgE.style.display='block';msgE.textContent='Bu klan tagi zaten alınmış!';return;}
+  const{error}=await SB.from('klanlar').insert({tag,isim,aciklama,renk,kurucu_id:kul.id,uye_sayisi:1});
   if(error){msgE.style.display='block';msgE.textContent='Hata: '+error.message;return;}
-
-  await sb.from('kullanicilar').update({klan_tag:tag}).eq('id',kul.id);
+  await SB.from('kullanicilar').update({klan_tag:tag}).eq('id',kul.id);
   kul.klan_tag=tag;
   msgS.style.display='block';msgS.textContent='✓ Klan kuruldu!';
   setTimeout(()=>location.reload(),1500);
@@ -245,18 +207,15 @@ async function klanKur(){
 
 async function klanaKatil(){
   if(!kul)return;
-  if(kul.klan_tag)return;
   const tag=document.getElementById('katil-tag').value.trim().toUpperCase();
   const msgS=document.getElementById('katil-msg-s');
   const msgE=document.getElementById('katil-msg-e');
   msgS.style.display='none';msgE.style.display='none';
   if(!tag)return;
-
-  const{data:klan}=await sb.from('klanlar').select('*').eq('tag',tag).single();
+  const{data:klan}=await SB.from('klanlar').select('*').eq('tag',tag).single();
   if(!klan){msgE.style.display='block';msgE.textContent='Bu tag ile klan bulunamadı!';return;}
-
-  await sb.from('klanlar').update({uye_sayisi:(klan.uye_sayisi||1)+1}).eq('id',klan.id);
-  await sb.from('kullanicilar').update({klan_tag:tag}).eq('id',kul.id);
+  await SB.from('klanlar').update({uye_sayisi:(klan.uye_sayisi||1)+1}).eq('id',klan.id);
+  await SB.from('kullanicilar').update({klan_tag:tag}).eq('id',kul.id);
   kul.klan_tag=tag;
   msgS.style.display='block';msgS.textContent=`✓ [${tag}] klanına katıldın!`;
   setTimeout(()=>location.reload(),1500);
@@ -265,17 +224,18 @@ async function klanaKatil(){
 async function klandanCik(){
   if(!kul||!kul.klan_tag)return;
   if(!confirm('Klandan çıkmak istediğine emin misin?'))return;
-  const{data:klan}=await sb.from('klanlar').select('*').eq('tag',kul.klan_tag).single();
-  if(klan)await sb.from('klanlar').update({uye_sayisi:Math.max(1,(klan.uye_sayisi||1)-1)}).eq('id',klan.id);
-  await sb.from('kullanicilar').update({klan_tag:null}).eq('id',kul.id);
+  const{data:klan}=await SB.from('klanlar').select('*').eq('tag',kul.klan_tag).single();
+  if(klan)await SB.from('klanlar').update({uye_sayisi:Math.max(1,(klan.uye_sayisi||1)-1)}).eq('id',klan.id);
+  await SB.from('kullanicilar').update({klan_tag:null}).eq('id',kul.id);
   location.reload();
 }
 
 async function klanDagsit(){
   if(!kul)return;
   if(!confirm('Klanı dağıtmak istediğine emin misin? Bu işlem geri alınamaz!'))return;
-  await sb.from('klanlar').delete().eq('kurucu_id',kul.id);
-  await sb.from('kullanicilar').update({klan_tag:null}).eq('klan_tag',kul.klan_tag);
+  const tag=kul.klan_tag;
+  await SB.from('klanlar').delete().eq('kurucu_id',kul.id);
+  await SB.from('kullanicilar').update({klan_tag:null}).eq('klan_tag',tag);
   location.reload();
 }
 
