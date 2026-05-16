@@ -744,7 +744,6 @@ async function ilanlariYukle(){
   const tagRenk={is:'#39ff14',yetkili:'#6bb3ff',medya:'#d966ff',reklam:'var(--gold)'};
   const tagAd={is:'İş',yetkili:'Yetkili',medya:'Medya',reklam:'Reklam'};
   function panelKart(i){
-    const nick=i.alt_kategori||'Oyuncu';
     return`<div class="vitrin-panel-item" onclick="ilanAc(${i.id})">
       <img src="https://minotar.net/helm/${nick}/34.png" onerror="this.src='https://minotar.net/helm/Steve/34.png'" alt="">
       <div>
@@ -797,7 +796,6 @@ function ilanAc(id){
   const i=tumIlanlar.find(x=>x.id===id);
   if(!i)return;
   const tagAd={is:'İş İlanı',yetkili:'Yetkili İlanı',medya:'Medya İlanı',reklam:'Reklam İlanı'};
-  const nick=i.alt_kategori||'Oyuncu';
   const iletisim=oturumKul?`
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
       ${i.discord?`<a href="https://discord.com/users/${i.discord}" target="_blank" class="mc-btn" style="background:#5865F2;color:#fff;border-top-color:#7289da;"><i class="fa-brands fa-discord"></i> Discord</a>`:''}
