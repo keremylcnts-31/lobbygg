@@ -171,11 +171,16 @@ body{background:var(--bg);color:#ccc;font-family:'Montserrat',sans-serif;min-hei
     <div class="nav-right">
       <div id="nav-giris" style="display:none;align-items:center;gap:8px;">
         <div class="coin-w"><div class="coin-amt"><div class="coin-ico">L</div><span id="nav-lcoin">0</span></div><a href="/lobbygg/panel.html" class="coin-add">+</a></div>
+        <a href="/lobbygg/kesfet.html" class="mc-btn" style="height:34px;padding:0 12px;background:#1a0d2a;color:#b933ff;border-top-color:#4a1e7d;border-left-color:#3a1a6a;border-right-color:#050505;border-bottom-color:#050505;"><i class="fa-solid fa-compass"></i> Keşfet</a>
         <a href="/lobbygg/panel.html" class="nav-user" id="nav-user-link">
           <div class="nav-user-pp"><img src="" id="nav-pp" alt=""></div>
-          <span class="nav-user-name" id="nav-nick">...</span>
+          <div>
+            <span class="nav-user-name" id="nav-nick">...</span>
+            <span class="nav-user-name" id="nav-klan" style="color:#FFD700;display:none;font-size:9px;margin-left:4px;"></span>
+          </div>
         </a>
         <a href="/lobbygg/ilan-ver.html" class="mc-btn mc-btn-green" style="height:34px;padding:0 12px;font-size:10px;"><i class="fa-solid fa-plus"></i> İlan Ver</a>
+        <button class="mc-btn mc-btn-red" style="height:34px;padding:0 10px;" onclick="cikisYap()" title="Çıkış Yap"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
       <div id="nav-cikis" style="display:none;align-items:center;gap:8px;">
         <a href="/lobbygg/giris.html" style="color:#fff;text-decoration:none;font-size:11px;font-weight:800;text-transform:uppercase;">Giriş Yap</a>
@@ -320,6 +325,7 @@ async function init(){
         document.getElementById('nav-cikis').style.display='none';
         document.getElementById('nav-lcoin').textContent=oKul.lcoin||0;
         document.getElementById('nav-nick').textContent=nick;
+        if(oKul.klan_tag){const kl=document.getElementById('nav-klan');kl.style.display='inline';kl.textContent='['+oKul.klan_tag+']';}
         const pp=document.getElementById('nav-pp');
         pp.src=oKul.avatar_url||`https://minotar.net/helm/${nick}/30.png`;
         pp.onerror=()=>{pp.src='https://minotar.net/helm/Steve/30.png';};
@@ -476,6 +482,8 @@ function klanSayac(){
   }
   guncelle();setInterval(guncelle,1000);
 }
+
+async function cikisYap(){await SB.auth.signOut();window.location.href='/lobbygg/giris.html';}
 
 init();
 </script>
