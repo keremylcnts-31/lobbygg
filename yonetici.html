@@ -343,19 +343,19 @@ async function ilanDetay(id){
 }
 
 async function ilanOnayla(id){
-  if(!confirm('Bu ilanı onaylamak istediğine emin misin?'))return;
+  
   await SB.from('ilanlar').update({durum:'aktif'}).eq('id',id);
   genelYukle();ilanlariYukle();
 }
 
 async function ilanReddet(id){
-  if(!confirm('Bu ilanı reddetmek istediğine emin misin?'))return;
+  
   await SB.from('ilanlar').update({durum:'reddedildi'}).eq('id',id);
   genelYukle();ilanlariYukle();
 }
 
 async function ilanSil(id){
-  if(!confirm('Bu ilanı kalıcı silmek istediğine emin misin?'))return;
+  
   await SB.from('ilanlar').delete().eq('id',id);
   genelYukle();ilanlariYukle();
 }
@@ -379,18 +379,26 @@ async function kullanicilariYukle(){
       <td style="font-size:11px;font-weight:900;color:#FFD700;padding:10px;border-bottom:1px solid #0d0d0d;">${k.lcoin||0}</td>
       <td style="font-size:9px;font-weight:900;color:#888;padding:10px;border-bottom:1px solid #0d0d0d;text-transform:uppercase;">${k.abonelik||'uye'}</td>
       <td style="padding:10px;border-bottom:1px solid #0d0d0d;text-align:right;">
-        <button class="mc-btn" style="padding:4px 8px;font-size:9px;" onclick="lcoinDuzenle(${k.id},'${k.kullanici_adi}',${k.lcoin||0})">LC Düzenle</button>
-        <button class="mc-btn mc-btn-red" style="padding:4px 8px;font-size:9px;margin-left:4px;" onclick="kullaniciBan(${k.id})">Ban</button>
+        <a href="/lobbygg/profil.html?id=${k.id}" target="_blank" class="mc-btn" style="padding:4px 8px;font-size:9px;" title="Profili Gör"><i class="fa-solid fa-eye"></i></a>
+        <button class="mc-btn" style="padding:4px 8px;font-size:9px;margin-left:4px;" onclick="lcoinDuzenle(${k.id},'${k.kullanici_adi}',${k.lcoin||0})">LC</button>
+        ${k.id!==benKim?.id?`<button class="mc-btn mc-btn-red" style="padding:4px 8px;font-size:9px;margin-left:4px;" onclick="kullaniciBan(${k.id})">Ban</button>`:'<span style="font-size:8px;color:#333;margin-left:4px;">BEN</span>'}
       </td>
     </tr>`).join('')}
   </table></div>`;
 }
 
 async function lcoinDuzenle(id,nick,mevcut){
-  const yeni=prompt(`${nick} kullanıcısının LCoin bakiyesini düzenle.\nMevcut: ${mevcut} LCoin\n\nYeni bakiye:`);
-  if(!yeni||isNaN(yeni))return;
-  await SB.from('kullanicilar').update({lcoin:parseInt(yeni)}).eq('id',id);
-  kullanicilariYukle();
+  // LCoin düzenle - in-page modal
+  const modal=document.getElementById('modal');
+  document.getElementById('modal-title').textContent=nick+' · LCoin Düzenle';
+  document.getElementById('modal-body').innerHTML=`
+    <div style="font-size:12px;color:#444;margin-bottom:14px;">Mevcut bakiye: <strong style="color:#FFD700;">${mevcut} LCoin</strong></div>
+    <input type="number" id="lc-yeni" value="${mevcut}" style="width:100%;background:#0d0d0d;border:2px solid #2a2a2a;color:#ccc;padding:12px;border-radius:2px;font-family:Montserrat,sans-serif;font-size:14px;outline:none;margin-bottom:12px;">
+    <div style="display:flex;gap:8px;">
+      <button class="mc-btn mc-btn-green" style="flex:1;justify-content:center;" onclick="(async()=>{const v=parseInt(document.getElementById('lc-yeni').value)||0;await SB.from('kullanicilar').update({lcoin:v}).eq('id',${id});document.getElementById('modal').classList.remove('active');kullanicilariYukle();})()">Kaydet</button>
+      <button class="mc-btn" onclick="document.getElementById('modal').classList.remove('active')">İptal</button>
+    </div>`;
+  modal.classList.add('active');
 }
 
 async function kullaniciBan(id){
@@ -427,7 +435,7 @@ async function adminAta(){
 }
 
 async function adminKaldir(id){
-  if(!confirm('Bu adminin yetkisini kaldırmak istediğine emin misin?'))return;
+  
   await SB.from('kullanicilar').update({abonelik:'uye'}).eq('id',id);
   adminleriYukle();
 }

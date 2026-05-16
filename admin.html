@@ -230,13 +230,11 @@ function ilanKartHTML(i,mini){
 }
 
 async function ilanOnayla(id){
-  if(!confirm('Bu ilanı onaylamak istediğine emin misin?'))return;
   await SB.from('ilanlar').update({durum:'aktif'}).eq('id',id);
   await Promise.all([ozetYukle(),bekleyenIlanlariYukle(),aktifIlanlariYukle()]);
 }
 
 async function ilanReddet(id){
-  if(!confirm('Bu ilanı reddetmek istediğine emin misin?'))return;
   await SB.from('ilanlar').update({durum:'reddedildi'}).eq('id',id);
   await Promise.all([ozetYukle(),bekleyenIlanlariYukle(),aktifIlanlariYukle()]);
 }
