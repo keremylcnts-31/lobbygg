@@ -740,11 +740,12 @@ async function ilanlariYukle(){
   const tagRenk={is:'#39ff14',yetkili:'#6bb3ff',medya:'#d966ff',reklam:'var(--gold)'};
   const tagAd={is:'İş',yetkili:'Yetkili',medya:'Medya',reklam:'Reklam'};
   function panelKart(i){
+    const pNick=i.kullanici_nick||i.alt_kategori||'Oyuncu';
     return`<div class="vitrin-panel-item" onclick="ilanAc(${i.id})">
-      <img src="https://minotar.net/helm/${nick}/34.png" onerror="this.src='https://minotar.net/helm/Steve/34.png'" alt="">
+      <img src="https://minotar.net/helm/${pNick}/34.png" onerror="this.src='https://minotar.net/helm/Steve/34.png'" alt="">
       <div>
         <div class="vitrin-panel-cat" style="color:${tagRenk[i.kategori]||'#aaa'}">${tagAd[i.kategori]||i.kategori}</div>
-        <div class="vitrin-panel-name">${nick}</div>
+        <div class="vitrin-panel-name">${pNick}</div>
         <div style="font-size:9px;color:var(--muted2);">${i.aciklama?i.aciklama.substring(0,25)+'...':''}</div>
       </div>
       <div class="vitrin-panel-price">${i.fiyat&&i.fiyat>0?i.fiyat+' TL':'Ücretsiz'}</div>
