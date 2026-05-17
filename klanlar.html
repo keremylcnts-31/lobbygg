@@ -586,7 +586,13 @@ function kurGit(adim){
 
 async function klanKur(){
   if(!kul){window.location.href='/lobbygg/giris.html';return;}
-  if(kul.klan_tag){document.getElementById('kur-msg').innerHTML='<div class="msg-e">Zaten bir klandasın! Önce klandan çık.</div>';return;}
+  if(kul.klan_tag){
+    document.getElementById('kur-msg').innerHTML='<div class="msg-e">Zaten <strong>['+kul.klan_tag+']</strong> klanındasın! Klan kurmak için önce mevcut klandan çık.</div>';
+    // Adım 1'e geri dön
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('ks1').classList.add('active');
+    return;
+  }
   const btn=document.getElementById('kur-btn');
   btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Kuruluyor...';
   // Tag kontrol
@@ -610,6 +616,15 @@ function sekmeGit(id){
     const el=document.getElementById('sec-'+s);if(el)el.style.display='none';
     const tab=document.getElementById('stab-'+s);if(tab)tab.classList.remove('active');
   });
+  // Klan kur sekmesi: giriş ve klan kontrolü
+  if(id==='klan-kur'){
+    if(!kul){window.location.href='/lobbygg/giris.html';return;}
+    if(kul.klan_tag){
+      // Zaten klana sahip - klanım sekmesine yönlendir
+      alert('Zaten bir klandasın! ['+kul.klan_tag+']. Önce mevcut klandan çık.');
+      id='klanim';
+    }
+  }
   const el=document.getElementById('sec-'+id);if(el)el.style.display='block';
   const tab=document.getElementById('stab-'+id);if(tab)tab.classList.add('active');
   if(id==='klanim')klanımYukle();

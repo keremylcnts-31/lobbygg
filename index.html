@@ -247,7 +247,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     <div class="nav-links">
       <a href="/lobbygg/index.html" class="nav-link"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
       <a href="/lobbygg/ilanlar.html" class="nav-link"><i class="fa-solid fa-bullhorn"></i> İlanlar</a>
-      <a href="/lobbygg/kesfet.html" class="nav-link kesfet"><i class="fa-solid fa-compass"></i> Keşfet</a>
+      <a href="/lobbygg/lobbyx.html" class="nav-link kesfet"><i class="fa-solid fa-fire-flame-curved"></i> LobbyX</a>
       <a href="/lobbygg/klanlar.html" class="nav-link"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>
       <a href="/lobbygg/destek.html" class="nav-link"><i class="fa-solid fa-headset"></i> Destek</a>
     </div>
@@ -277,7 +277,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
   <div class="mob-menu" id="mob-menu">
     <a href="/lobbygg/index.html">Ana Sayfa</a>
     <a href="/lobbygg/ilanlar.html">İlanlar</a>
-    <a href="/lobbygg/kesfet.html">Keşfet</a>
+    <a href="/lobbygg/lobbyx.html">LobbyX</a>
     <a href="/lobbygg/klanlar.html">Klanlar</a>
     <a href="/lobbygg/destek.html">Destek</a>
     <a href="/lobbygg/giris.html">Giriş Yap / Kayıt Ol</a>
@@ -285,7 +285,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="position:relative;z-index:1;">
+<section class="hero" style="position:relative;z-index:2;">
   <div class="hero-tag"><i class="fa-solid fa-fire"></i> Türkiye'nin Minecraft Topluluğu</div>
   <h1 class="hero-h1">Bir Topluluk.<br><span>Sonsuz Rekabet.</span></h1>
   <p class="hero-p">İlan ver, klan kur, yayıncıları keşfet, sunucunu tanıt. LOBBY.GG'de her şey döner.</p>
@@ -377,7 +377,7 @@ svg.icon{display:inline;width:1em;height:1em;vertical-align:middle;}
     </div>
     <div>
       <div class="footer-title">Platform</div>
-      <ul class="footer-links"><li><a href="/lobbygg/index.html">Ana Sayfa</a></li><li><a href="/lobbygg/ilanlar.html">İlanlar</a></li><li><a href="/lobbygg/kesfet.html">Keşfet</a></li><li><a href="/lobbygg/klanlar.html">Klanlar</a></li></ul>
+      <ul class="footer-links"><li><a href="/lobbygg/index.html">Ana Sayfa</a></li><li><a href="/lobbygg/ilanlar.html">İlanlar</a></li><li><a href="/lobbygg/lobbyx.html">LobbyX</a></li><li><a href="/lobbygg/klanlar.html">Klanlar</a></li></ul>
     </div>
     <div>
       <div class="footer-title">Hesap</div>
@@ -465,7 +465,8 @@ async function vitrinYukle(){
   // Sol panel: premium (is, paket, developer)
   const{data:sol}=await SB.from('ilanlar').select('*').eq('durum','aktif').in('kategori',['is']).order('created_at',{ascending:false}).limit(5);
   // Sağ panel: onaylı (yetkili, medya)
-  const{data:sag}=await SB.from('ilanlar').select('id,kullanici_id,kullanici_nick,kategori,alt_kategori,aciklama,fiyat,one_cikan').eq('durum','aktif').in('kategori',['yetkili','medya']).order('created_at',{ascending:false}).limit(5).then(r=>r).catch(()=>({data:[]}));
+  let sag=[];
+  try{const{data:_sag}=await SB.from('ilanlar').select('id,kullanici_id,kullanici_nick,kategori,alt_kategori,aciklama,fiyat,one_cikan').eq('durum','aktif').in('kategori',['yetkili','medya']).order('created_at',{ascending:false}).limit(5);sag=_sag||[];}catch(e){sag=[];}
 
   // Sol panel
   const solEl=document.getElementById('vtr-sol-panel');
@@ -485,7 +486,7 @@ async function vitrinYukle(){
 
   // Sağ panel
   const sagEl=document.getElementById('vtr-sag-panel');
-  if(sag&&sag.length){
+  if(sag.length>0){
     const katRenk={is:'#39ff14',yetkili:'#FFD700',medya:'#d966ff'};
     sagEl.innerHTML=sag.map(i=>`
       <div class="vtr-item" onclick="window.location.href='/lobbygg/profil.html?id=${i.kullanici_id}'">
@@ -598,8 +599,8 @@ async function tickerYukle(){
 async function marketYukle(){
   const cols='id,kullanici_id,kullanici_nick,kategori,alt_kategori,aciklama,fiyat,one_cikan,seviye';
   const[{data:isIlan},{data:yetIlan},{data:medIlan}]=await Promise.all([
-    SB.from('ilanlar').select(cols).eq('kategori','is').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
-    SB.from('ilanlar').select(cols).eq('kategori','yetkili').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
+    SB.from('ilanlar').select(cols).eq('kategori','is').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(10),
+    SB.from('ilanlar').select(cols).eq('kategori','yetkili').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(10),
     SB.from('ilanlar').select(cols).eq('kategori','medya').eq('durum','aktif').order('one_cikan',{ascending:false}).order('created_at',{ascending:false}).limit(8),
   ]);
   const render=(el,ilanlar,btnCls)=>{
@@ -663,8 +664,8 @@ async function klanSeritYukle(){
     return`<div class="klan-card ${vip?'vip':''}" onclick="window.location.href='/lobbygg/klanlar.html'">
       <img src="https://minotar.net/helm/${k.tag||'Steve'}/52.png" class="klan-av" onerror="this.src='https://minotar.net/helm/Steve/52.png'">
       <div class="klan-info">
-        <div class="klan-tag-lbl" style="color:${renk};">${vip?'ÖNE ÇIKAN KLAN':'KLAN'} [${k.tag}]</div>
-        <h3 class="klan-name">${k.isim}</h3>
+        <div class="klan-tag-lbl" style="color:${renk};">${vip?'⭐ ÖNE ÇIKAN KLAN':'KLAN'}</div>
+        <h3 class="klan-name"><span style="color:${renk};font-size:14px;">${k.tag}</span> — ${k.isim}</h3>
         <div class="klan-meta">Üye: <span>${k.uye_sayisi||1}</span> | Vote: <span>${k.vote_sayisi||0}</span></div>
       </div>
       <a href="/lobbygg/klanlar.html" class="klan-join-btn" onclick="event.stopPropagation()">İNCELE</a>
@@ -674,6 +675,8 @@ async function klanSeritYukle(){
 }
 
 async function cikisYap(){await SB.auth.signOut();window.location.href='/lobbygg/giris.html';}
+
+init();
 </script>
 <style>@keyframes vtrFade{from{opacity:0;transform:scale(1.01);}to{opacity:1;transform:scale(1);}}</style>
 </body>
