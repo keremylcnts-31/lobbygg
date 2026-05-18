@@ -152,7 +152,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:'Montserrat',sans-serif;min-he
 </style>
 </head>
 <body>
-<div id="loading"><div class="ld-logo">LOBBY<span>.GG</span></div><div class="ld-bar"><div class="ld-fill"></div></div></div>
+<div id="loading"><div class="ld-logo"><img src="https://i.imgur.com/6l08Y4k.png" style="height:48px;object-fit:contain;vertical-align:middle;" alt="LOBBY.GG"></div><div class="ld-bar"><div class="ld-fill"></div></div></div>
 
 <!-- PP ZOOM -->
 <div class="pp-zoom-modal" id="pp-zoom" onclick="this.classList.remove('active')">
@@ -168,7 +168,7 @@ body{background:#0d1117;color:#c9d1d9;font-family:'Montserrat',sans-serif;min-he
 </div>
 
 <nav class="nav">
-  <a href="/lobbygg/index.html" class="nav-logo">LOBBY<span>.GG</span></a>
+  <a href="/lobbygg/index.html" class="nav-logo"><img src="https://i.imgur.com/6l08Y4k.png" style="height:48px;object-fit:contain;vertical-align:middle;" alt="LOBBY.GG"></a>
   <div style="display:flex;gap:8px;">
     <a href="/lobbygg/ilanlar.html" class="mc-btn"><i class="fa-solid fa-bullhorn"></i> İlanlar</a>
     <a href="/lobbygg/panel.html" class="mc-btn mc-btn-green"><i class="fa-solid fa-gauge-high"></i> Panel</a>
@@ -187,6 +187,29 @@ const BADGEMAP={uye:'badge-uye',abone:'badge-abone',klasik:'badge-abone',premium
 const BADGEAD={uye:'ÜYE',abone:'ABONE',klasik:'KLASİK',premium:'PREMİUM',ultravip:'UltraVIP',yonetici:'YÖNETİCİ',admin:'ADMİN'};
 
 // Altın tırtıklı rozet SVG
+
+// Sunucu IP haritası (logo için)
+const SUNUCU_IPS={
+  'HanedanMC':'play.hanedanmc.com','ChickenNW':'oyna.chickennw.com',
+  'BLOKYA':'oyna.blokya.com','DugeCraft':'play.dugecraft.com.tr',
+  'ZENITMC':'play.zenitmc.com','SENTORCRAFT':'sentorcraft.com',
+  'SOULCRAFT':'soulcraft.tc','AtlasOyuncu':'play.atlasoyuncu.com',
+  'AtlantikMC':'atlantikmc.com','NAVELYA':'navelya.net',
+  'CRAFTLUNA':'play.craftluna.net','Melonya':'melonya.net',
+  'Rush Craft':'play.rushcraft.com.tr','RebornCraft':'play.reborncraft.pw',
+  'LuneCraft':'mc.lunecraft.net','SimitSMP':'simitsmp.net',
+  'MC4FUN':'play.mc4fun.net','İmibiyum':'play.imibiyum.com',
+  'Knight Network':'play.knightnetwork.com.tr','Cape Network':'play.capenetwork.com.tr',
+  'Soya Network':'play.soyanetwork.com','Son Kral':'play.sonkral.com',
+  'MUZCRAFT':'mc.muzcraft.com','LORAMC':'play.loramc.com',
+};
+
+function sunucuLogoHTML(isim, boyut=28){
+  const ip = SUNUCU_IPS[isim];
+  if(!ip) return `<div style="width:${boyut}px;height:${boyut}px;border-radius:6px;background:#21262d;display:flex;align-items:center;justify-content:center;font-size:${Math.round(boyut*.5)}px;">🖥️</div>`;
+  return `<img src="https://api.mcsrvstat.us/icon/${ip}" style="width:${boyut}px;height:${boyut}px;border-radius:6px;object-fit:cover;image-rendering:pixelated;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:${boyut}px;height:${boyut}px;border-radius:6px;background:#21262d;align-items:center;justify-content:center;font-size:${Math.round(boyut*.5)}px;flex-shrink:0;">🖥️</div>`;
+}
+
 function verifiedSVG(){
   return`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" title="Doğrulanmış Hesap">
     <polygon points="20,2 24,10 33,10 27,16 29,25 20,20 11,25 13,16 7,10 16,10" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
@@ -385,6 +408,7 @@ function render(ilanlar,droplar,klan){
             profilKul.cinsiyet?['<i class="fa-solid fa-person"></i>',profilKul.cinsiyet]:null,
             profilKul.discord?['<i class="fa-brands fa-discord" style="color:#5865F2;"></i>',profilKul.discord]:null,
             klan?['<i class="fa-solid fa-shield-halved"></i>',klan.tag+' — '+klan.isim]:null,
+            profilKul.desteklenen_sunucu&&profilKul.desteklenen_sunucu!=='Belirtmek İstemiyorum'?['<i class="fa-solid fa-gamepad"></i>','🎮 '+profilKul.desteklenen_sunucu]:null,
             ['<i class="fa-solid fa-badge-check"></i>',profilKul.dogrulama_rozeti?'✓ Doğrulanmış Hesap':'Doğrulanmamış'],
           ].filter(Boolean).map(([ic,txt])=>`
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #21262d;font-size:12px;">
@@ -411,6 +435,7 @@ function render(ilanlar,droplar,klan){
             </div>
           </div>
         </div>
+        ${sunucuKutusu(profilKul)}
       </div>
     </div>`;
 
@@ -646,6 +671,47 @@ function zaman(ts){
   if(d<86400000)return Math.floor(d/3600000)+'sa önce';
   return Math.floor(d/86400000)+'g önce';
 }
+function sunucuKutusu(kul){
+  const aktif = kul.desteklenen_sunucu;
+  let favList = [];
+  try{ favList = JSON.parse(kul.favori_sunucular||'[]'); }catch(e){}
+  if(!aktif && !favList.length) return '';
+
+  let html = '<div class="box"><div class="box-title">Sunucular</div>';
+
+  // Aktif sunucu
+  if(aktif && aktif !== 'Belirtmek İstemiyorum'){
+    html += `<div style="margin-bottom:12px;">
+      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:8px;">🎮 Şu An Oynuyor</div>
+      <div style="display:flex;align-items:center;gap:10px;background:#0d1117;border:1px solid #39ff1422;border-radius:8px;padding:10px 12px;">
+        <div style="display:flex;">${sunucuLogoHTML(aktif, 36)}</div>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:#39ff14;">${aktif}</div>
+          <div style="font-size:9px;color:#8b949e;margin-top:2px;">Aktif Sunucu</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Favori sunucular (aktif olan hariç)
+  const favGoster = favList.filter(f => f !== aktif && f !== 'Belirtmek İstemiyorum');
+  if(favGoster.length){
+    html += `<div>
+      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:8px;">⭐ Desteklenen Sunucular</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${favGoster.map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:8px 10px;">
+          <div style="display:flex;">${sunucuLogoHTML(s, 28)}</div>
+          <div style="font-size:12px;font-weight:800;color:#c9d1d9;">${s}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
 
 init();
