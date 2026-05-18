@@ -913,13 +913,27 @@ async function kayitTamamla(){
   const discord=document.getElementById('k-discord').value.trim();
 
   try{
-    const{data:nv}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
-    if(nv&&nv.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bu nick zaten alınmış!');}
-    const{data:ev}=await SB.from('kullanicilar').select('id').eq('email',email);
-    if(ev&&ev.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bu email zaten kayıtlı!');}
+    // Nick kontrolü
+    const nickSorgu = await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
+    if(nickSorgu.error){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bağlantı hatası, tekrar dene!');}
+    if(nickSorgu.data && nickSorgu.data.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('❌ Bu kullanıcı adı zaten alınmış!');}
+    
+    // Email kontrolü
+    const emailSorgu = await SB.from('kullanicilar').select('id').eq('email',email);
+    if(emailSorgu.error){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bağlantı hatası, tekrar dene!');}
+    if(emailSorgu.data && emailSorgu.data.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('❌ Bu email ile zaten kayıt olunmuş!');}
 
     const{error:ae}=await SB.auth.signUp({email,password:sifre,options:{emailRedirectTo:'https://keremylcnts-31.github.io/lobbygg/giris.html'}});
-    if(ae){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata(ae.message);}
+    if(ae){
+      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+      if(ae.message.includes('rate limit') || ae.message.includes('Rate limit')){
+        return hata('📧 Çok fazla deneme yapıldı! Lütfen 1 saat bekleyip tekrar dene.');
+      }
+      if(ae.message.includes('already registered') || ae.message.includes('already been registered')){
+        return hata('❌ Bu email zaten kayıtlı! Giriş yapmayı dene.');
+      }
+      return hata('Hata: '+ae.message);
+    }
 
     await SB.from('kullanicilar').insert({
       kullanici_adi:nick,email,
