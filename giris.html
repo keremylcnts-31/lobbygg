@@ -377,7 +377,7 @@ body{
       <div class="claim-wrap">
         <div class="claim-prefix">lobby.gg/<b>lobbygg/</b></div>
         <input class="claim-in" id="k-nick" placeholder="nickiniyaz" maxlength="16"
-          oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'');nickOnizle(this.value)"
+          oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'');nickOnizle(this.value)"
           onkeydown="if(event.key==='Enter')git(1)">
       </div>
       <button class="btn btn-green" onclick="git(1)" style="margin-top:4px;">Devam Et →</button>
@@ -771,7 +771,7 @@ function git(hedef){
     if(adim === 0){
       const nick = document.getElementById('k-nick').value.trim();
       if(!nick||nick.length<3) return hata('Nick en az 3 karakter olmalı!');
-      if(!/^[a-zA-Z0-9_]+$/.test(nick)) return hata('Nick sadece harf, rakam ve _ içerebilir!');
+      if(!/^[a-z0-9_]+$/.test(nick)) return hata('Nick sadece küçük harf, rakam ve _ içerebilir!');
       document.getElementById('s1-nick').textContent = nick;
     }
     if(adim === 1){
@@ -903,7 +903,7 @@ async function kayitTamamla(){
   const btn=document.getElementById('kayit-btn');
   btn.disabled=true;btn.textContent='⏳ Kayıt yapılıyor...';
 
-  const nick=document.getElementById('k-nick').value.trim();
+  const nick=document.getElementById('k-nick').value.trim().toLowerCase();
   const email=document.getElementById('k-email').value.trim();
   const sifre=document.getElementById('k-sifre').value;
   const ad=document.getElementById('k-ad').value.trim();
@@ -913,7 +913,7 @@ async function kayitTamamla(){
   const discord=document.getElementById('k-discord').value.trim();
 
   try{
-    const{data:nv}=await SB.from('kullanicilar').select('id').eq('kullanici_adi',nick);
+    const{data:nv}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
     if(nv&&nv.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bu nick zaten alınmış!');}
     const{data:ev}=await SB.from('kullanicilar').select('id').eq('email',email);
     if(ev&&ev.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('Bu email zaten kayıtlı!');}
