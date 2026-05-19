@@ -602,12 +602,18 @@ async function kayitTamamla(){
   const cinsiyet=document.getElementById('k-cinsiyet').value;
   const discord=document.getElementById('k-discord').value.trim();
   try{
-    // Nick unique kontrol (DB'de unique index var ama JS'de de kontrol edelim)
-    const nickSorgu=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
-    if(nickSorgu.error)throw new Error('Bağlantı hatası, tekrar dene!');
-    if(nickSorgu.data?.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('❌ Bu kullanıcı adı zaten alınmış!');}
-    const emailSorgu=await SB.from('kullanicilar').select('id').eq('email',email);
-    if(emailSorgu.data?.length>0){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';return hata('❌ Bu email ile zaten kayıt olunmuş!');}
+    // Nick unique kontrol - hem JS hem DB seviyesinde
+    const {data:nickData, error:nickErr} = await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
+    // RLS yoksa data gelir, varsa hata alırız - her iki durumda da DB'ye güveniriz
+    if(!nickErr && nickData && nickData.length>0){
+      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+      return hata('❌ Bu kullanıcı adı zaten alınmış!');
+    }
+    const {data:emailData} = await SB.from('kullanicilar').select('id').eq('email',email);
+    if(!emailData?.length===false && emailData?.length>0){
+      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+      return hata('❌ Bu email ile zaten kayıt olunmuş!');
+    }
     const{error:ae}=await SB.auth.signUp({email,password:sifre,options:{emailRedirectTo:'https://keremylcnts-31.github.io/lobbygg/giris.html'}});
     if(ae){
       btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
@@ -615,7 +621,7 @@ async function kayitTamamla(){
       if(ae.message.includes('already registered'))return hata('❌ Bu email zaten kayıtlı!');
       return hata(ae.message);
     }
-    await SB.from('kullanicilar').insert({
+    const{error:insertErr}=await SB.from('kullanicilar').insert({
       kullanici_adi:nick,email,discord:discord||null,yas,cinsiyet,
       gercek_ad:ad+' '+soyad,
       kategori:seciliKat||null,
@@ -625,6 +631,16 @@ async function kayitTamamla(){
       lcoin:0,abonelik:'uye',takipci_sayisi:0,takip_sayisi:0,
       kayit_tarihi:new Date().toISOString()
     });
+    // DB unique index hatası yakala
+    if(insertErr){
+      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+      const msg=insertErr.message.toLowerCase();
+      if(msg.includes('unique')||msg.includes('duplicate')||msg.includes('kullanici_adi'))
+        return hata('❌ Bu kullanıcı adı zaten alınmış!');
+      if(msg.includes('email'))
+        return hata('❌ Bu email zaten kayıtlı!');
+      return hata('Kayıt hatası: '+insertErr.message);
+    }
     document.getElementById('son-nick').textContent='Hoş geldin, '+nick+'! 🎮';
     document.getElementById('son-email').textContent=email;
     git(6);
