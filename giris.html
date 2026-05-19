@@ -602,16 +602,23 @@ async function kayitTamamla(){
   const cinsiyet=document.getElementById('k-cinsiyet').value;
   const discord=document.getElementById('k-discord').value.trim();
   try{
-    // Nick unique kontrol - hem JS hem DB seviyesinde
-    const {data:nickData, error:nickErr} = await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
-    // RLS yoksa data gelir, varsa hata alırız - her iki durumda da DB'ye güveniriz
-    if(!nickErr && nickData && nickData.length>0){
-      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+    // Nick kontrol - DB'deki RPC fonksiyonu ile (en güvenilir yöntem)
+    const {data:nickVar, error:nickRpcErr} = await SB.rpc('nick_kontrol', {p_nick: nick});
+    if(nickRpcErr){
+      // RPC yoksa fallback: direkt sorgu
+      const {data:nickData} = await SB.from('kullanicilar').select('id').ilike('kullanici_adi', nick);
+      if(nickData && nickData.length > 0){
+        btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
+        return hata('❌ Bu kullanıcı adı zaten alınmış!');
+      }
+    } else if(nickVar === true){
+      btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
       return hata('❌ Bu kullanıcı adı zaten alınmış!');
     }
-    const {data:emailData} = await SB.from('kullanicilar').select('id').eq('email',email);
-    if(!emailData?.length===false && emailData?.length>0){
-      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
+    // Email kontrol
+    const {data:emailData} = await SB.from('kullanicilar').select('id').eq('email', email);
+    if(emailData && emailData.length > 0){
+      btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
       return hata('❌ Bu email ile zaten kayıt olunmuş!');
     }
     const{error:ae}=await SB.auth.signUp({email,password:sifre,options:{emailRedirectTo:'https://keremylcnts-31.github.io/lobbygg/giris.html'}});
