@@ -948,11 +948,11 @@ async function yorumToggle(id){
   const ids=(yorumlar||[]).map(y=>y.kullanici_id);
   let km={};
   if(ids.length){const{data:kl}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,dogrulama_rozeti').in('id',ids);(kl||[]).forEach(k=>km[k.id]=k);}
-  // Beğenilen yorumları kontrol et
+  // Beğenilen yorumları DB'den çek
   let benilenYorumIds=new Set();
   if(benKim&&yorumlar?.length){
-    const{data:by}=await SB.from('drop_yorumlar').select('id').eq('kullanici_id',benKim.id);
-    // Beğeni tablosu ayrı yoksa skip
+    const{data:by}=await SB.from('yorum_begenileri').select('yorum_id').eq('kullanici_id',Number(benKim.id)).in('yorum_id',yorumlar.map(y=>y.id));
+    (by||[]).forEach(b=>benilenYorumIds.add(b.yorum_id));
   }
 
   w.innerHTML=`<div id="yl-${id}">${(yorumlar||[]).length
@@ -965,8 +965,8 @@ async function yorumToggle(id){
           <div style="font-size:12px;color:#aaa;">${esc(y.yorum)}</div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
-          <button onclick="yorumBegen(${y.id},this)" style="background:none;border:none;font-size:10px;color:#444;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;display:flex;align-items:center;gap:3px;">
-            <i class="fa-regular fa-heart"></i> <span id="yb-${y.id}">${y.begeni||0}</span>
+          <button onclick="yorumBegen(${y.id},this)" class="${benilenYorumIds.has(y.id)?'begendi':''}" style="background:none;border:none;font-size:10px;color:${benilenYorumIds.has(y.id)?'#ff1493':'#444'};cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;display:flex;align-items:center;gap:3px;">
+            <i class="${benilenYorumIds.has(y.id)?'fa-solid':'fa-regular'} fa-heart"></i> <span id="yb-${y.id}">${y.begeni_sayisi||0}</span>
           </button>
           ${benKim?`<button onclick="yorumCevapAc(${id},${y.id},'${(k.kullanici_adi||'').replace(/'/g,"\'")}',this)" style="background:none;border:none;font-size:10px;color:#444;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Cevapla</button>`:''}
           ${benKim&&(benKim.id===y.kullanici_id||benKim.id===profil.id)?`<button onclick="yorumSil(${y.id},${id})" style="background:none;border:none;font-size:10px;color:#f85149;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Sil</button>`:''}
@@ -987,12 +987,25 @@ async function yorumBegen(yorumId, btn){
   if(!benKim){location.href='/lobbygg/giris.html';return;}
   const sEl=document.getElementById('yb-'+yorumId);
   const s=parseInt(sEl?.textContent)||0;
-  // Basit toggle - beğeni sayısını artır/azalt
-  if(btn.classList.contains('begendi')){
-    btn.classList.remove('begendi');btn.querySelector('i').className='fa-regular fa-heart';
+
+  // DB'den kontrol et
+  const{data:m}=await SB.from('yorum_begenileri').select('id').eq('yorum_id',yorumId).eq('kullanici_id',Number(benKim.id));
+  
+  if(m?.length){
+    // Beğeniyi geri al
+    await SB.from('yorum_begenileri').delete().eq('yorum_id',yorumId).eq('kullanici_id',Number(benKim.id));
+    await SB.from('drop_yorumlar').update({begeni_sayisi:Math.max(0,s-1)}).eq('id',yorumId);
+    btn.classList.remove('begendi');
+    btn.style.color='#444';
+    btn.querySelector('i').className='fa-regular fa-heart';
     if(sEl)sEl.textContent=Math.max(0,s-1);
   }else{
-    btn.classList.add('begendi');btn.style.color='#ff1493';btn.querySelector('i').className='fa-solid fa-heart';
+    // Beğen
+    await SB.from('yorum_begenileri').insert({yorum_id:yorumId,kullanici_id:Number(benKim.id)});
+    await SB.from('drop_yorumlar').update({begeni_sayisi:s+1}).eq('id',yorumId);
+    btn.classList.add('begendi');
+    btn.style.color='#ff1493';
+    btn.querySelector('i').className='fa-solid fa-heart';
     if(sEl)sEl.textContent=s+1;
   }
 }

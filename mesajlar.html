@@ -335,9 +335,8 @@ async function mesajlariYukle(scrollDown=false){
     return;
   }
 
-  // Son mesaj değişmediyse güncelleme
   const yeniSonId=data[data.length-1]?.id;
-  if(!scrollDown&&yeniSonId===sonMesajId)return;
+  if(!scrollDown&&yeniSonId===sonMesajId)return; // Değişiklik yoksa render etme
   sonMesajId=yeniSonId;
 
   let sonTarih='';
@@ -386,15 +385,34 @@ async function okunduIsaretle(){
 // REALTIME
 function realtimeBaslat(){
   if(rtSub)SB.removeChannel(rtSub);
-  rtSub=SB.channel('dm-'+Date.now())
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'mesajlar'},{filter:`alici_id=eq.${Number(ben.id)}`},(payload)=>{
-      const m=payload.new;
-      if(aktifKisi&&m.gonderen_id===Number(aktifKisi.id)){
-        mesajlariYukle(true);okunduIsaretle();
+  // Hem gelen hem giden mesajlar için iki kanal
+  rtSub=SB.channel('dm-kanal-'+Date.now())
+    .on('postgres_changes',
+      {event:'INSERT',schema:'public',table:'mesajlar',filter:`alici_id=eq.${Number(ben.id)}`},
+      async(payload)=>{
+        const m=payload.new;
+        if(aktifKisi&&Number(m.gonderen_id)===Number(aktifKisi.id)){
+          await mesajlariYukle(true);
+          await okunduIsaretle();
+        }
+        await listeYukle();
       }
-      listeYukle();
-    })
-    .subscribe();
+    )
+    .on('postgres_changes',
+      {event:'INSERT',schema:'public',table:'mesajlar',filter:`gonderen_id=eq.${Number(ben.id)}`},
+      async(payload)=>{
+        const m=payload.new;
+        if(aktifKisi&&Number(m.alici_id)===Number(aktifKisi.id)){
+          await mesajlariYukle(true);
+        }
+        await listeYukle();
+      }
+    )
+    .subscribe((status)=>{
+      if(status==='SUBSCRIBED'){
+        console.log('Realtime bağlandı ✓');
+      }
+    });
 }
 
 // GÖRSEL
