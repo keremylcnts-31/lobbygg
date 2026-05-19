@@ -85,8 +85,8 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .sekme.gold{color:#FFD700 !important;border-bottom-color:#FFD700 !important;}
 
 /* BODY */
-.profil-body{max-width:1400px;margin:0 auto 40px;padding:0 8px;display:grid;grid-template-columns:140px 1fr 280px 140px;gap:8px;align-items:start;}
-.reklam-panel{display:flex;flex-direction:column;gap:10px;}
+.profil-body{width:100%;margin:0 auto 40px;padding:0;display:grid;grid-template-columns:150px 1fr 280px 150px;gap:0;align-items:start;}
+.reklam-panel{display:flex;flex-direction:column;gap:10px;padding:0 6px;}
 .reklam-kart{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;}
 .reklam-kart:hover{border-color:#2a2a2a;}
 .reklam-kart img{width:100%;display:block;}
@@ -196,9 +196,10 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .alt-btn.on{border-color:rgba(57,255,20,.4);color:#39ff14;background:rgba(57,255,20,.05);}
 
 /* PP ZOOM */
-.zoom-modal{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:999;cursor:pointer;}
+.zoom-modal{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out;}
 .zoom-modal.active{display:flex;}
-.zoom-modal img{max-width:88vw;max-height:88vh;border-radius:50%;border:3px solid #FFD700;}
+.zoom-modal img{max-width:100vw;max-height:100vh;object-fit:contain;border-radius:0;display:block;}
+.zoom-kapat{position:fixed;top:16px;right:20px;background:rgba(0,0,0,.6);border:1px solid #333;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#fff;z-index:10000;}
 
 /* DM MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:500;padding:20px;}
@@ -252,6 +253,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 
 .abone-gerek{background:#1a1200;border:1px solid #4a3500;border-radius:6px;padding:10px 14px;font-size:10px;color:#FFD700;font-weight:700;text-align:center;margin-bottom:8px;}
 
+.profil-body>div:nth-child(2){padding:0 8px;}.profil-body>div:nth-child(3){padding:0 8px;}
 @media(max-width:1100px){.profil-body{grid-template-columns:1fr 280px;}.reklam-panel{display:none;}}
 @media(max-width:768px){.profil-body{grid-template-columns:1fr;}.pp-img{width:100px;height:100px;}.profil-nick{font-size:24px;}}
 </style>
@@ -259,7 +261,8 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 <body>
 <div id="loading"><img src="https://i.imgur.com/6l08Y4k.png" style="height:48px;"><div class="ld-bar"><div class="ld-fill"></div></div></div>
 
-<div class="zoom-modal" id="zoom-modal" onclick="this.classList.remove('active')">
+<div class="zoom-modal" id="zoom-modal" onclick="if(event.target===this||event.target===document.getElementById('zoom-img'))this.classList.remove('active')">
+  <div class="zoom-kapat" onclick="document.getElementById('zoom-modal').classList.remove('active')">✕</div>
   <img id="zoom-img" src="" alt="">
 </div>
 <div class="modal-bg" id="dm-modal" onclick="if(event.target===this)this.classList.remove('active')">
@@ -936,20 +939,85 @@ async function yorumToggle(id){
   const ids=(yorumlar||[]).map(y=>y.kullanici_id);
   let km={};
   if(ids.length){const{data:kl}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url').in('id',ids);(kl||[]).forEach(k=>km[k.id]=k);}
+  // Beğenilen yorumları kontrol et
+  let benilenYorumIds=new Set();
+  if(benKim&&yorumlar?.length){
+    const{data:by}=await SB.from('drop_yorumlar').select('id').eq('kullanici_id',benKim.id);
+    // Beğeni tablosu ayrı yoksa skip
+  }
+
   w.innerHTML=`<div id="yl-${id}">${(yorumlar||[]).length
-    ?(yorumlar||[]).map(y=>{const k=km[y.kullanici_id]||{};return`<div style="display:flex;gap:8px;margin-bottom:8px;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">
-      <img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;" onerror="this.src='https://minotar.net/helm/Steve/26.png'">
-      <div style="background:#111;border:1px solid #1a1a1a;padding:6px 10px;border-radius:4px;flex:1;">
-        <div style="font-size:10px;font-weight:900;color:#fff;margin-bottom:2px;">${k.kullanici_adi||'?'}</div>
-        <div style="font-size:11px;color:#777;">${esc(y.yorum)}</div>
+    ?(yorumlar||[]).map(y=>{const k=km[y.kullanici_id]||{};return`
+    <div style="display:flex;gap:8px;margin-bottom:10px;" id="yorum-${y.id}">
+      <img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'" onerror="this.src='https://minotar.net/helm/Steve/26.png'">
+      <div style="flex:1;">
+        <div style="background:#111;border:1px solid #1a1a1a;padding:7px 10px;border-radius:4px;margin-bottom:4px;">
+          <div style="font-size:10px;font-weight:900;color:#fff;margin-bottom:3px;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">${k.kullanici_adi||'?'}</div>
+          <div style="font-size:12px;color:#aaa;">${esc(y.yorum)}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button onclick="yorumBegen(${y.id},this)" style="background:none;border:none;font-size:10px;color:#444;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;display:flex;align-items:center;gap:3px;">
+            <i class="fa-regular fa-heart"></i> <span id="yb-${y.id}">${y.begeni||0}</span>
+          </button>
+          ${benKim?`<button onclick="yorumCevapAc(${id},${y.id},'${(k.kullanici_adi||'').replace(/'/g,"\'")}',this)" style="background:none;border:none;font-size:10px;color:#444;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Cevapla</button>`:''}
+          ${benKim&&(benKim.id===y.kullanici_id||benKim.id===profil.id)?`<button onclick="yorumSil(${y.id},${id})" style="background:none;border:none;font-size:10px;color:#f85149;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Sil</button>`:''}
+        </div>
+        <div id="cevap-wrap-${y.id}" style="display:none;margin-top:6px;"></div>
       </div>
     </div>`;}).join('')
-    :'<div style="font-size:10px;color:#444;text-align:center;padding:8px;">Yorum yok</div>'}
+    :'<div style="font-size:10px;color:#444;text-align:center;padding:8px;">Yorum yok. İlk yorumu yap!</div>'}
   </div>
-  ${benKim?`<div style="display:flex;gap:6px;margin-top:8px;">
-    <input type="text" class="yorum-in" id="yi-${id}" placeholder="Yorumunu yaz..." onkeydown="if(event.key==='Enter')yorumGonder(${id})">
+  ${benKim?`<div style="display:flex;gap:6px;margin-top:10px;">
+    <img src="${benKim.avatar_url||`https://minotar.net/helm/${benKim.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;">
+    <input type="text" class="yorum-in" id="yi-${id}" placeholder="Yorum yaz..." style="flex:1;" onkeydown="if(event.key==='Enter')yorumGonder(${id})">
     <button class="mc-btn mc-green" onclick="yorumGonder(${id})" style="padding:7px 12px;font-size:9px;white-space:nowrap;"><i class="fa-solid fa-paper-plane"></i></button>
   </div>`:''}`;
+}
+
+async function yorumBegen(yorumId, btn){
+  if(!benKim){location.href='/lobbygg/giris.html';return;}
+  const sEl=document.getElementById('yb-'+yorumId);
+  const s=parseInt(sEl?.textContent)||0;
+  // Basit toggle - beğeni sayısını artır/azalt
+  if(btn.classList.contains('begendi')){
+    btn.classList.remove('begendi');btn.querySelector('i').className='fa-regular fa-heart';
+    if(sEl)sEl.textContent=Math.max(0,s-1);
+  }else{
+    btn.classList.add('begendi');btn.style.color='#ff1493';btn.querySelector('i').className='fa-solid fa-heart';
+    if(sEl)sEl.textContent=s+1;
+  }
+}
+
+function yorumCevapAc(dropId, yorumId, hedefNick, btn){
+  if(!benKim)return;
+  const wrap=document.getElementById('cevap-wrap-'+yorumId);
+  if(!wrap)return;
+  if(wrap.style.display==='flex'){wrap.style.display='none';return;}
+  wrap.style.display='flex';
+  wrap.style.gap='6px';
+  wrap.innerHTML=`
+    <img src="${benKim.avatar_url||`https://minotar.net/helm/${benKim.kullanici_adi||'Steve'}/22.png`}" style="width:22px;height:22px;border-radius:50%;flex-shrink:0;">
+    <input type="text" class="yorum-in" id="cevap-in-${yorumId}" placeholder="@${hedefNick}'e cevap ver..." value="@${hedefNick} " style="flex:1;font-size:11px;" onkeydown="if(event.key==='Enter')cevapGonder(${dropId},${yorumId})">
+    <button class="mc-btn mc-green" onclick="cevapGonder(${dropId},${yorumId})" style="padding:6px 10px;font-size:9px;"><i class="fa-solid fa-paper-plane"></i></button>`;
+  document.getElementById('cevap-in-'+yorumId)?.focus();
+}
+
+async function cevapGonder(dropId, yorumId){
+  const inp=document.getElementById('cevap-in-'+yorumId);
+  const metin=inp?.value?.trim();if(!metin)return;
+  await SB.from('drop_yorumlar').insert({drop_id:dropId,kullanici_id:parseInt(benKim.id),yorum:metin});
+  const{data:d}=await SB.from('droplar').select('yorum_sayisi').eq('id',dropId).single();
+  await SB.from('droplar').update({yorum_sayisi:(d?.yorum_sayisi||0)+1}).eq('id',dropId);
+  const w=document.getElementById('yw-'+dropId);if(w){delete w.dataset.loaded;w.style.display='none';}
+  yorumToggle(dropId);
+}
+
+async function yorumSil(yorumId, dropId){
+  if(!confirm('Bu yorumu silmek istediğine emin misin?'))return;
+  await SB.from('drop_yorumlar').delete().eq('id',yorumId);
+  const{data:d}=await SB.from('droplar').select('yorum_sayisi').eq('id',dropId).single();
+  await SB.from('droplar').update({yorum_sayisi:Math.max(0,(d?.yorum_sayisi||1)-1)}).eq('id',dropId);
+  document.getElementById('yorum-'+yorumId)?.remove();
 }
 
 async function yorumGonder(id){
