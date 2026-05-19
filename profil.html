@@ -39,11 +39,11 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 /* ── PROFİL HEADER ── */
 .profil-wrap{max-width:960px;margin:0 auto;padding:0 16px;}
 .profil-header{background:#0d0d0d;border:1px solid #1a1a1a;border-top:none;border-radius:0 0 8px 8px;margin-bottom:14px;}
-.profil-av-row{display:flex;align-items:flex-end;gap:14px;padding:0 20px 14px;margin-top:-38px;position:relative;z-index:10;}
+.profil-av-row{display:flex;align-items:flex-end;gap:14px;padding:0 20px 14px;margin-top:5px;position:relative;z-index:10;}
 
 /* PP ŞEKİLLERİ */
 .pp-wrap{position:relative;cursor:pointer;flex-shrink:0;}
-.pp-img{width:96px;height:96px;object-fit:cover;border:3px solid #0d0d0d;}
+.pp-img{width:200px;height:200px;object-fit:cover;border:8px solid #0d0d0d;}
 .pp-circle{border-radius:50%;}
 .pp-rounded{border-radius:14px;}
 .pp-wrap:hover .pp-img{filter:brightness(.85);}
@@ -51,9 +51,9 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 /* ROZETİ */
 .verified-badge svg{width:20px;height:20px;vertical-align:middle;}
 
-.profil-info{flex:1;min-width:0;padding-bottom:4px;}
-.nick-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-.profil-nick{font-size:20px;font-weight:900;color:#fff;}
+.profil-info{flex:1;min-width:0;padding-bottom:30px;}
+.nick-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:70px;}
+.profil-nick{font-size:40px;font-weight:900;color:#fff;}
 .profil-badge{font-size:9px;font-weight:900;text-transform:uppercase;padding:2px 8px;border-radius:3px;white-space:nowrap;}
 .b-uye{background:#1a1a1a;color:#666;border:1px solid #2a2a2a;}
 .b-abone{background:#0d1f00;color:#39ff14;border:1px solid #2a5000;}
@@ -74,12 +74,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .kat-builder{background:#0d1a00;color:#39ff14;border:1px solid #2a5000;}
 
 /* STATS */
-.stats-row{display:flex;border-top:1px solid #1a1a1a;}
-.stat-item{flex:1;padding:10px;text-align:center;cursor:pointer;transition:.15s;border-right:1px solid #1a1a1a;}
-.stat-item:last-child{border-right:none;}
-.stat-item:hover{background:#111;}
-.stat-val{font-size:16px;font-weight:900;color:#39ff14;}
-.stat-lbl{font-size:8px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
 
 /* SEKMELER */
 .sekmeler{display:flex;border-top:1px solid #1a1a1a;overflow-x:auto;}
@@ -219,24 +214,25 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .pp-frame-wrap{position:relative;display:inline-block;}
 .pp-frame-wrap .pp-img{border:3px solid transparent;}
 
-/* Renk çerçeveleri */
-.frame-none .pp-img{border-color:#1a1a1a;}
-.frame-green .pp-img{border-color:#39ff14;box-shadow:0 0 0 1px #39ff1444;}
-.frame-red .pp-img{border-color:#ff1a3c;box-shadow:0 0 0 1px #ff1a3c44;}
-.frame-blue .pp-img{border-color:#00d4ff;box-shadow:0 0 0 1px #00d4ff44;}
-.frame-gold .pp-img{border-color:#FFD700;box-shadow:0 0 0 1px #FFD70044;}
-.frame-purple .pp-img{border-color:#b933ff;box-shadow:0 0 0 1px #b933ff44;}
-.frame-white .pp-img{border-color:#ffffff;box-shadow:0 0 0 1px #ffffff44;}
-.frame-dark .pp-img{border-color:#444;}
-.frame-cyan .pp-img{border-color:#00ffcc;box-shadow:0 0 0 1px #00ffcc44;}
+/* Renk çerçeveleri - border shorthand ile kesin override */
+.frame-none .pp-img{border:8px solid #1a1a1a !important;}
+.frame-green .pp-img{border:8px solid #39ff14 !important;}
+.frame-red .pp-img{border:8px solid #ff1a3c !important;}
+.frame-blue .pp-img{border:8px solid #00d4ff !important;}
+.frame-gold .pp-img{border:8px solid #FFD700 !important;}
+.frame-purple .pp-img{border:8px solid #b933ff !important;}
+.frame-white .pp-img{border:8px solid #ffffff !important;}
+.frame-dark .pp-img{border:8px solid #444 !important;}
+.frame-cyan .pp-img{border:8px solid #00ffcc !important;}
 
 /* Animasyonlu çerçeveler (abone) */
-.frame-neon-green .pp-img{border-color:#39ff14;--fc:#39ff14;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-red .pp-img{border-color:#ff1a3c;--fc:#ff1a3c;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-blue .pp-img{border-color:#00d4ff;--fc:#00d4ff;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-gold .pp-img{border-color:#FFD700;--fc:#FFD700;animation:neonPulse 2s ease-in-out infinite;}
-.frame-rainbow .pp-img{animation:rainbowRot 3s linear infinite;border-width:3px;}
-.frame-glass .pp-img{border-color:rgba(255,255,255,.3);}
+.frame-neon-green .pp-img{border:8px solid #39ff14 !important;--fc:#39ff14;animation:neonPulse 2s ease-in-out infinite;}
+.frame-neon-red .pp-img{border:8px solid #ff1a3c !important;--fc:#ff1a3c;animation:neonPulse 2s ease-in-out infinite;}
+.frame-neon-blue .pp-img{border:8px solid #00d4ff !important;--fc:#00d4ff;animation:neonPulse 2s ease-in-out infinite;}
+.frame-neon-gold .pp-img{border:8px solid #FFD700 !important;--fc:#FFD700;animation:neonPulse 2s ease-in-out infinite;}
+.frame-rainbow .pp-img{border:8px solid #ff0000 !important;animation:rainbowRot 3s linear infinite;}
+.frame-glass .pp-img{border:8px solid rgba(255,255,255,.3) !important;}
+.frame-glass{overflow:hidden;}
 .frame-glass::after{content:'';position:absolute;top:-10%;left:-100%;width:50%;height:120%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:glassSweep 3s ease-in-out infinite;border-radius:inherit;pointer-events:none;}
 
 /* ÇERÇEVE SEÇİCİ */
@@ -444,12 +440,7 @@ function render(ilanlar,droplar,klan){
             <div class="profil-actions">${aksiyonlar}</div>
           </div>
         </div>
-        <div class="stats-row">
-          <div class="stat-item"><div class="stat-val">${droplar.length}</div><div class="stat-lbl">Drop</div></div>
-          <div class="stat-item"><div class="stat-val">${ilanlar.length}</div><div class="stat-lbl">İlan</div></div>
-          <div class="stat-item" onclick="sekmeAc('takipciler',2)"><div class="stat-val">${profil.takipci_sayisi||0}</div><div class="stat-lbl">Takipçi</div></div>
-          <div class="stat-item" onclick="sekmeAc('takip',3)"><div class="stat-val">${profil.takip_sayisi||0}</div><div class="stat-lbl">Takip</div></div>
-        </div>
+
         <div class="sekmeler" id="sekmeler">
           <div class="sekme active" onclick="sekmeAc('droplar',0)">💬 Droplar</div>
           <div class="sekme" onclick="sekmeAc('ilanlar',1)">📣 İlanlar</div>
@@ -558,7 +549,7 @@ function render(ilanlar,droplar,klan){
     </div>`;
 
   renderDroplar(droplar,av,nick);
-  takipcileriYukle();takipEttikleriniYukle();
+  // Takipçi/takip ilk sekme tıklanınca yüklenir
   const dy=document.getElementById('drop-yazi');
   if(dy)dy.addEventListener('input',e=>{document.getElementById('drop-sayac').textContent=e.target.value.length+'/280';});
 }
@@ -704,7 +695,19 @@ function ppYukle(inp){
 function bannerYukle(inp){
   const f=inp.files[0];if(!f)return;
   if(f.size>5*1024*1024){alert('Maks 5MB!');return;}
-  const r=new FileReader();r.onload=e=>{bannerBase64=e.target.result;};r.readAsDataURL(f);
+  const r=new FileReader();
+  r.onload=e=>{
+    bannerBase64=e.target.result;
+    // Önizleme
+    let oniz=document.getElementById('banner-oniz');
+    if(!oniz){
+      oniz=document.createElement('div');oniz.id='banner-oniz';
+      oniz.style.cssText='margin-top:8px;border-radius:4px;overflow:hidden;border:1px solid #2a2a2a;aspect-ratio:851/315;';
+      inp.parentElement.appendChild(oniz);
+    }
+    oniz.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+  };
+  r.readAsDataURL(f);
 }
 
 let secilenBannerRenk=null;
@@ -828,8 +831,11 @@ async function dropPaylas(){
   if(!benKim)return;
   const icerik=document.getElementById('drop-yazi')?.value?.trim()||'';
   if(!icerik&&!dropGorselBase64){alert('Bir şeyler yaz veya görsel ekle!');return;}
-  await SB.from('droplar').insert({kullanici_id:benKim.id,icerik,gorsel_url:dropGorselBase64||null,begeni_sayisi:0,yorum_sayisi:0});
-  document.getElementById('drop-yazi').value='';dropGorselTemizle();location.reload();
+  await SB.from('droplar').insert({kullanici_id:parseInt(benKim.id),icerik,gorsel_url:dropGorselBase64||null,begeni_sayisi:0,yorum_sayisi:0});
+  document.getElementById('drop-yazi').value='';dropGorselTemizle();
+  // Profil sayfasına geri dön
+  const pid=new URLSearchParams(location.search).get('id');
+  location.href='/lobbygg/profil.html?id='+(pid||parseInt(benKim.id));
 }
 
 function renderDroplar(droplar,av,nick){
@@ -913,22 +919,30 @@ async function dropSil(id){
 // ── TAKİP ──
 async function takipcileriYukle(){
   const el=document.getElementById('takipciler-liste');if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yükleniyor...</div>';
   try{
-    const{data:t}=await SB.from('takipler').select('takip_eden_id').eq('takip_edilen_id',parseInt(profil.id)).limit(30);
-    if(!t?.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Takipçi yok</div>';return;}
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',t.map(x=>x.takip_eden_id));
+    const pid=parseInt(profil.id);
+    const{data:t,error:te}=await SB.from('takipler').select('takip_eden_id').eq('takip_edilen_id',pid);
+    if(te)throw te;
+    if(!t||t.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Henüz takipçi yok</div>';return;}
+    const ids=t.map(x=>parseInt(x.takip_eden_id));
+    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
     el.innerHTML=(kullar||[]).map(k=>kulKartHTML(k)).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yüklenemedi</div>';}
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Hata: '+e.message+'</div>';}
 }
 
 async function takipEttikleriniYukle(){
   const el=document.getElementById('takip-liste');if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yükleniyor...</div>';
   try{
-    const{data:t}=await SB.from('takipler').select('takip_edilen_id').eq('takip_eden_id',parseInt(profil.id)).limit(30);
-    if(!t?.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kimseyi takip etmiyor</div>';return;}
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',t.map(x=>x.takip_edilen_id));
+    const pid=parseInt(profil.id);
+    const{data:t,error:te}=await SB.from('takipler').select('takip_edilen_id').eq('takip_eden_id',pid);
+    if(te)throw te;
+    if(!t||t.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kimseyi takip etmiyor</div>';return;}
+    const ids=t.map(x=>parseInt(x.takip_edilen_id));
+    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
     el.innerHTML=(kullar||[]).map(k=>kulKartHTML(k)).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yüklenemedi</div>';}
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Hata: '+e.message+'</div>';}
 }
 
 function kulKartHTML(k){
@@ -1004,6 +1018,8 @@ function sekmeAc(id,idx){
   document.querySelectorAll('.sekme').forEach((s,i)=>s.classList.toggle('active',i===idx));
   document.querySelectorAll('.sekme-icerik').forEach(s=>s.classList.remove('active'));
   document.getElementById('sekme-'+id)?.classList.add('active');
+  if(id==='takipciler')takipcileriYukle();
+  if(id==='takip')takipEttikleriniYukle();
 }
 
 // ── YARDIMCI ──
