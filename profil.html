@@ -85,8 +85,8 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .sekme.gold{color:#FFD700 !important;border-bottom-color:#FFD700 !important;}
 
 /* BODY */
-.profil-body{width:100%;margin:0 auto 40px;padding:0;display:grid;grid-template-columns:150px 1fr 280px 150px;gap:0;align-items:start;}
-.reklam-panel{display:flex;flex-direction:column;gap:10px;padding:0 6px;}
+.profil-body{width:100%;max-width:1360px;margin:0 auto 40px;padding:0 16px;display:grid;grid-template-columns:130px 1fr 280px 130px;gap:0;align-items:start;}
+.reklam-panel{display:flex;flex-direction:column;gap:10px;padding:0 12px;}
 .reklam-kart{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;}
 .reklam-kart:hover{border-color:#2a2a2a;}
 .reklam-kart img{width:100%;display:block;}
@@ -938,7 +938,7 @@ async function yorumToggle(id){
   const{data:yorumlar}=await SB.from('drop_yorumlar').select('*').eq('drop_id',id).order('created_at',{ascending:true}).limit(20);
   const ids=(yorumlar||[]).map(y=>y.kullanici_id);
   let km={};
-  if(ids.length){const{data:kl}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url').in('id',ids);(kl||[]).forEach(k=>km[k.id]=k);}
+  if(ids.length){const{data:kl}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,dogrulama_rozeti').in('id',ids);(kl||[]).forEach(k=>km[k.id]=k);}
   // Beğenilen yorumları kontrol et
   let benilenYorumIds=new Set();
   if(benKim&&yorumlar?.length){
@@ -952,7 +952,7 @@ async function yorumToggle(id){
       <img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'" onerror="this.src='https://minotar.net/helm/Steve/26.png'">
       <div style="flex:1;">
         <div style="background:#111;border:1px solid #1a1a1a;padding:7px 10px;border-radius:4px;margin-bottom:4px;">
-          <div style="font-size:10px;font-weight:900;color:#fff;margin-bottom:3px;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">${k.kullanici_adi||'?'}</div>
+          <div style="font-size:10px;font-weight:900;color:#fff;margin-bottom:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">${k.kullanici_adi||'?'} ${k.dogrulama_rozeti?`<img src="https://i.imgur.com/VDpHaPy.png" style="width:14px;height:14px;">`:''}</div>
           <div style="font-size:12px;color:#aaa;">${esc(y.yorum)}</div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
