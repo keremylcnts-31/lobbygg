@@ -214,26 +214,24 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .pp-frame-wrap{position:relative;display:inline-block;}
 .pp-frame-wrap .pp-img{border:3px solid transparent;}
 
-/* Renk çerçeveleri - border shorthand ile kesin override */
-.frame-none .pp-img{border:8px solid #1a1a1a !important;}
-.frame-green .pp-img{border:8px solid #39ff14 !important;}
-.frame-red .pp-img{border:8px solid #ff1a3c !important;}
-.frame-blue .pp-img{border:8px solid #00d4ff !important;}
-.frame-gold .pp-img{border:8px solid #FFD700 !important;}
-.frame-purple .pp-img{border:8px solid #b933ff !important;}
-.frame-white .pp-img{border:8px solid #ffffff !important;}
-.frame-dark .pp-img{border:8px solid #444 !important;}
-.frame-cyan .pp-img{border:8px solid #00ffcc !important;}
-
-/* Animasyonlu çerçeveler (abone) */
-.frame-neon-green .pp-img{border:8px solid #39ff14 !important;--fc:#39ff14;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-red .pp-img{border:8px solid #ff1a3c !important;--fc:#ff1a3c;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-blue .pp-img{border:8px solid #00d4ff !important;--fc:#00d4ff;animation:neonPulse 2s ease-in-out infinite;}
-.frame-neon-gold .pp-img{border:8px solid #FFD700 !important;--fc:#FFD700;animation:neonPulse 2s ease-in-out infinite;}
-.frame-rainbow .pp-img{border:8px solid #ff0000 !important;animation:rainbowRot 3s linear infinite;}
-.frame-glass .pp-img{border:8px solid rgba(255,255,255,.3) !important;}
-.frame-glass{overflow:hidden;}
-.frame-glass::after{content:'';position:absolute;top:-10%;left:-100%;width:50%;height:120%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:glassSweep 3s ease-in-out infinite;border-radius:inherit;pointer-events:none;}
+/* Çerçeve renkleri - data-frame attribute ile */
+[data-frame="none"]{border:8px solid #1a1a1a !important;}
+[data-frame="green"]{border:8px solid #39ff14 !important;}
+[data-frame="red"]{border:8px solid #ff1a3c !important;}
+[data-frame="blue"]{border:8px solid #00d4ff !important;}
+[data-frame="gold"]{border:8px solid #FFD700 !important;}
+[data-frame="purple"]{border:8px solid #b933ff !important;}
+[data-frame="white"]{border:8px solid #ffffff !important;}
+[data-frame="dark"]{border:8px solid #444444 !important;}
+[data-frame="cyan"]{border:8px solid #00ffcc !important;}
+[data-frame="neon-green"]{border:8px solid #39ff14 !important;box-shadow:0 0 0 0 #39ff14;animation:neonPulse 2s ease-in-out infinite;--fc:#39ff14;}
+[data-frame="neon-red"]{border:8px solid #ff1a3c !important;animation:neonPulse 2s ease-in-out infinite;--fc:#ff1a3c;}
+[data-frame="neon-blue"]{border:8px solid #00d4ff !important;animation:neonPulse 2s ease-in-out infinite;--fc:#00d4ff;}
+[data-frame="neon-gold"]{border:8px solid #FFD700 !important;animation:neonPulse 2s ease-in-out infinite;--fc:#FFD700;}
+[data-frame="rainbow"]{animation:rainbowRot 3s linear infinite;}
+[data-frame="glass"]{border:8px solid rgba(255,255,255,.2) !important;}
+.frame-glass-anim{overflow:hidden;position:relative;}
+.frame-glass-anim::after{content:'';position:absolute;top:-10%;left:-100%;width:40%;height:120%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:glassSweep 3s ease-in-out infinite;pointer-events:none;}
 
 /* ÇERÇEVE SEÇİCİ */
 .cerceve-sec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
@@ -420,14 +418,14 @@ function render(ilanlar,droplar,klan){
       <div class="profil-header">
         <div class="profil-av-row">
           <div class="pp-wrap" onclick="ppZoom('${av}')">
-            <img src="${av}" class="pp-img ${ppSekil==='rounded'?'pp-rounded':'pp-circle'}" onerror="this.src='https://minotar.net/helm/Steve/96.png'">
+            <img src="${av}" class="pp-img ${ppSekil==='rounded'?'pp-rounded':'pp-circle'}" data-frame="${profil.aktif_cerceve||'none'}" id="main-pp-img" onerror="this.src='https://minotar.net/helm/Steve/96.png'">
           </div>
           <div class="profil-info">
             <div class="nick-row">
               <span class="profil-nick">${nick}</span>
               ${profil.dogrulama_rozeti?`<span>${verifiedSVG()}</span>`:''}
               <span class="profil-badge ${abBadge}">${abAd}</span>
-              ${profil.kategori?`<span class="kat-tag ${KAT_RENK[profil.kategori]||''}">${KAT_IKON[profil.kategori]||''} ${profil.alt_kategori||profil.kategori}</span>`:''}
+              ${profil.kategori?`<span class="kat-tag ${KAT_RENK[profil.kategori]||''}">${KAT_IKON[profil.kategori]||''} ${profil.alt_kategori||profil.kategori}${ben?` <button onclick="kategoriKaldir()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:10px;margin-left:3px;opacity:.7;" title="Kaldır">✕</button>`:''}</span>`:''}
               ${klan?`<span class="klan-badge" style="background:${klan.renk||'#FFD700'}18;border-color:${klan.renk||'#FFD700'};color:${klan.renk||'#FFD700'};">${klan.tag}</span>`:''}
             </div>
             <div class="profil-meta">
@@ -535,14 +533,16 @@ function render(ilanlar,droplar,klan){
           <div style="font-size:8px;font-weight:900;text-transform:uppercase;color:#39ff14;letter-spacing:1px;margin-bottom:6px;">🎮 Şu An Oynuyor</div>
           <div class="sunucu-kart" style="border-color:rgba(57,255,20,.2);margin-bottom:10px;">
             ${sunucuLogoHTML(profil.desteklenen_sunucu)}
-            <div><div style="font-size:12px;font-weight:900;color:#39ff14;">${profil.desteklenen_sunucu}</div><div style="font-size:9px;color:#444;">Aktif Sunucu</div></div>
+            <div style="flex:1;"><div style="font-size:12px;font-weight:900;color:#39ff14;">${profil.desteklenen_sunucu}</div><div style="font-size:9px;color:#444;">Aktif Sunucu</div></div>
+            ${ben?`<button onclick="aktifSunucuKaldir()" style="background:none;border:none;color:#555;cursor:pointer;font-size:14px;" title="Kaldır">✕</button>`:''}
           </div>`:''}
           ${favSunucular.filter(s=>s!=='Belirtmek İstemiyorum').length?`
           <div style="font-size:8px;font-weight:900;text-transform:uppercase;color:#444;letter-spacing:1px;margin-bottom:6px;">⭐ Desteklenen Sunucular</div>
           ${favSunucular.filter(s=>s!=='Belirtmek İstemiyorum').map(s=>`
           <div class="sunucu-kart">
             ${sunucuLogoHTML(s,26)}
-            <div style="font-size:11px;font-weight:800;color:#bbb;">${s}</div>
+            <div style="font-size:11px;font-weight:800;color:#bbb;flex:1;">${s}</div>
+            ${ben?`<button onclick="favSunucuKaldir('${s}')" style="background:none;border:none;color:#555;cursor:pointer;font-size:12px;" title="Kaldır">✕</button>`:''}
           </div>`).join('')}`:''}
         </div>`:''}
       </div>
@@ -584,7 +584,7 @@ function ayarlarHTML(kul,av,favSunucular){
     <div class="ayar-bolum">
       <div class="ayar-baslik">Profil Fotoğrafı</div>
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-        <img src="${av}" class="pp-img ${ppSekil==='rounded'?'pp-rounded':'pp-circle'}" style="width:64px;height:64px;" id="ayar-pp-oniz">
+        <img src="${av}" class="pp-img ${ppSekil==='rounded'?'pp-rounded':'pp-circle'}" data-frame="${kul.aktif_cerceve||'none'}" style="width:64px;height:64px;border:3px solid;" id="ayar-pp-oniz">
         <div>
           <input type="file" id="pp-file" accept="image/*${isAbone?',image/gif':''}" style="display:none;" onchange="ppYukle(this)">
           <button class="mc-btn mc-green" onclick="document.getElementById('pp-file').click()" style="padding:8px 14px;display:block;margin-bottom:6px;"><i class="fa-solid fa-upload"></i> ${isAbone?'Fotoğraf/GIF Yükle':'Fotoğraf Yükle'}</button>
@@ -728,6 +728,11 @@ let secilenCerceve=null;
 function ayarCerceveSec(id,btn){
   document.querySelectorAll('.cerceve-sec-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');secilenCerceve=id;
+  // Canlı önizleme
+  const oniz=document.getElementById('ayar-pp-oniz');
+  if(oniz) oniz.setAttribute('data-frame',id);
+  const mainPP=document.getElementById('main-pp-img');
+  if(mainPP) mainPP.setAttribute('data-frame',id);
 }
 
 function showAboneGerek(el){
@@ -807,6 +812,12 @@ async function ayarKaydet(){
 }
 
 // ── DROPLAR ──
+async function kategoriKaldir(){
+  if(!confirm('Kategorini kaldırmak istediğine emin misin?'))return;
+  await SB.from('kullanicilar').update({kategori:null,alt_kategori:null}).eq('id',parseInt(profil.id));
+  location.reload();
+}
+
 function ppKaldir(){
   ppBase64='__kaldir__';
   const oniz=document.getElementById('ayar-pp-oniz');
@@ -818,6 +829,19 @@ function bannerKaldir(){
   const msg=document.getElementById('ayar-msg');
   msg.style.display='block';msg.style.background='rgba(57,255,20,.06)';msg.style.border='1px solid rgba(57,255,20,.2)';msg.style.color='#39ff14';
   msg.textContent='✅ Banner kaldırılacak — Kaydet butonuna bas.';
+}
+
+async function aktifSunucuKaldir(){
+  await SB.from('kullanicilar').update({desteklenen_sunucu:null}).eq('id',parseInt(profil.id));
+  location.reload();
+}
+
+async function favSunucuKaldir(sunucu){
+  let favList=[];
+  try{favList=JSON.parse(profil.favori_sunucular||'[]');}catch(e){}
+  favList=favList.filter(s=>s!==sunucu);
+  await SB.from('kullanicilar').update({favori_sunucular:JSON.stringify(favList)}).eq('id',parseInt(profil.id));
+  location.reload();
 }
 
 let dropGorselBase64=null;
