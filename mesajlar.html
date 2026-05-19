@@ -75,8 +75,8 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;height:10
 .msg-bubble.ben{background:#1a4a0a;border:1px solid #2a7010;border-radius:14px 14px 2px 14px;}
 .msg-bubble.karsi{background:#111;border:1px solid #1a1a1a;border-radius:14px 14px 14px 2px;}
 .msg-metin{font-size:13px;color:#ddd;line-height:1.5;word-break:break-word;}
-.msg-zaman{font-size:8px;color:#444;margin-top:3px;text-align:right;}
-.msg-wrap.karsi .msg-zaman{text-align:left;}
+.msg-zaman{font-size:8px;color:rgba(255,255,255,.5);margin-top:3px;text-align:right;}
+.msg-wrap.karsi .msg-zaman{text-align:left;color:#666;}
 .msg-gorsel{max-width:220px;border-radius:8px;cursor:pointer;display:block;margin-bottom:4px;}
 
 /* TARIHE GÖRE AYIRAÇ */
@@ -117,6 +117,11 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;height:10
 /* GİRİŞ YOKSA */
 .giris-yok{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;}
 
+.ctx-menu{position:fixed;background:#111;border:1px solid #222;border-radius:6px;padding:4px 0;z-index:9000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.8);}
+.ctx-item{padding:9px 14px;font-size:11px;font-weight:700;color:#ccc;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;}
+.ctx-item:hover{background:#1a1a1a;color:#fff;}
+.ctx-item.red{color:#f85149;}
+.ctx-item.red:hover{background:#2a0a0a;}
 @media(max-width:700px){.sohbet-liste{width:100%;border-right:none;}.mesaj-alan{display:none;}.sohbet-liste.gizle{display:none;}.mesaj-alan.goster{display:flex;}}
 </style>
 </head>
@@ -239,7 +244,8 @@ function sohbetKartHTML(s){
   const aktif=aktifSohbet?.id===k.id;
   const ben=m.gonderen_id===Number(benKim.id);
   const okunmamis=!m.okundu&&m.alici_id===Number(benKim.id);
-  return`<div class="sohbet-item${aktif?' active':''}" id="si-${k.id}" onclick="sohbetAc(${JSON.stringify(k).replace(/"/g,'&quot;')})">
+  const kJson=JSON.stringify(k).replace(/"/g,'&quot;');
+  return`<div class="sohbet-item${aktif?' active':''}" id="si-${k.id}" onclick="sohbetAc(${kJson})" oncontextmenu="sohbetMenu(event,${k.id},'${(k.kullanici_adi||'').replace(/'/g,"\'")}');return false;">
     <div class="sohbet-av">
       <img src="${av}" onerror="this.src='https://minotar.net/helm/Steve/44.png'" alt="">
     </div>
@@ -255,6 +261,12 @@ function sohbetKartHTML(s){
 }
 
 async function sohbetAc(kisi){
+  // Engelleme kontrolü
+  const{data:engel}=await SB.from('engellemeler').select('id')
+    .or(`and(engelleyen_id.eq.${Number(benKim.id)},engellened_id.eq.${Number(kisi.id)}),and(engelleyen_id.eq.${Number(kisi.id)},engellened_id.eq.${Number(benKim.id)})`);
+  if(engel?.length){
+    alert('Bu kullanıcıyla mesajlaşamazsınız (engelleme).');return;
+  }
   aktifSohbet=kisi;
   // Sol panelde aktif işaretle
   document.querySelectorAll('.sohbet-item').forEach(el=>el.classList.remove('active'));
@@ -359,20 +371,21 @@ async function okunduIsaretle(){
 // REALTIME
 function realtimeBaslat(){
   if(realtimeSub)SB.removeChannel(realtimeSub);
-  realtimeSub=SB.channel('mesajlar-realtime')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'mesajlar'},(payload)=>{
+  realtimeSub=SB.channel('mesajlar-rt-'+Date.now())
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'mesajlar',filter:`alici_id=eq.${Number(benKim.id)}`},(payload)=>{
       const m=payload.new;
-      // Benim aldığım veya gönderdiğim mesaj mı?
-      if(m.alici_id===Number(benKim.id)||m.gonderen_id===Number(benKim.id)){
-        // Aktif sohbette mi?
-        if(aktifSohbet&&(m.gonderen_id===Number(aktifSohbet.id)||m.alici_id===Number(aktifSohbet.id))){
-          mesajlariYukle();
-          okunduIsaretle();
-        }
-        sohbetleriYukle();
+      if(aktifSohbet&&m.gonderen_id===Number(aktifSohbet.id)){
+        mesajlariYukle();okunduIsaretle();
       }
+      sohbetleriYukle();
     })
     .subscribe();
+  // Polling yedek (3sn) - realtime bazen gecikmeli
+  setInterval(async()=>{
+    if(!aktifSohbet)return;
+    await mesajlariYukle();
+    await sohbetleriYukle();
+  },3000);
 }
 
 // GORSEL
@@ -423,6 +436,65 @@ function sohbetAra(q){
     const nick=el.querySelector('.sohbet-nick')?.textContent?.toLowerCase()||'';
     el.style.display=nick.includes(q.toLowerCase())?'flex':'none';
   });
+}
+
+// SAĞ TIK MENÜSÜ
+let aktifMenuKisiId=null;
+function sohbetMenu(e,kisiId,nick){
+  e.preventDefault();
+  aktifMenuKisiId=kisiId;
+  document.querySelectorAll('.ctx-menu').forEach(m=>m.remove());
+  const menu=document.createElement('div');
+  menu.className='ctx-menu';
+  menu.innerHTML=`
+    <div class="ctx-item" onclick="sohbetSabitle(${kisiId})"><i class="fa-solid fa-thumbtack"></i> Sohbeti Sabitle</div>
+    <div class="ctx-item" onclick="sohbetArsivle(${kisiId})"><i class="fa-solid fa-box-archive"></i> Arşivle</div>
+    <div class="ctx-item red" onclick="sohbetSil(${kisiId})"><i class="fa-solid fa-trash"></i> Sohbeti Sil</div>
+    <div class="ctx-item red" onclick="kullaniciyiEngelle(${kisiId},'${nick}')"><i class="fa-solid fa-ban"></i> ${nick}'i Engelle</div>`;
+  menu.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
+  menu.style.top=Math.min(e.clientY,window.innerHeight-180)+'px';
+  document.body.appendChild(menu);
+  setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);
+}
+
+async function sohbetSabitle(kisiId){
+  // Local storage ile sabitleme
+  const sabit=JSON.parse(localStorage.getItem('sabit_sohbetler')||'[]');
+  const idx=sabit.indexOf(kisiId);
+  if(idx>=0)sabit.splice(idx,1);else sabit.push(kisiId);
+  localStorage.setItem('sabit_sohbetler',JSON.stringify(sabit));
+  await sohbetleriYukle();
+}
+
+async function sohbetArsivle(kisiId){
+  const arsiv=JSON.parse(localStorage.getItem('arsiv_sohbetler')||'[]');
+  if(!arsiv.includes(kisiId)){arsiv.push(kisiId);}
+  localStorage.setItem('arsiv_sohbetler',JSON.stringify(arsiv));
+  if(aktifSohbet?.id===kisiId){
+    aktifSohbet=null;
+    document.getElementById('sag-panel').innerHTML='<div class="mesaj-bos-ekran"><i class="fa-solid fa-comments"></i><p>Bir sohbet seç</p></div>';
+  }
+  await sohbetleriYukle();
+}
+
+async function sohbetSil(kisiId){
+  if(!confirm('Bu sohbeti silmek istediğine emin misin?\nSildiğinde karşı tarafın mesajları silinmez.'))return;
+  // Sadece kendi gönderdiğin mesajları sil
+  await SB.from('mesajlar').delete()
+    .eq('gonderen_id',Number(benKim.id))
+    .eq('alici_id',kisiId);
+  if(aktifSohbet?.id===kisiId){
+    aktifSohbet=null;
+    document.getElementById('sag-panel').innerHTML='<div class="mesaj-bos-ekran"><i class="fa-solid fa-comments"></i><p>Bir sohbet seç</p></div>';
+  }
+  await sohbetleriYukle();
+}
+
+async function kullaniciyiEngelle(kisiId,nick){
+  if(!confirm(nick+' kullanıcısını engellemek istediğine emin misin?'))return;
+  await SB.from('engellemeler').insert({engelleyen_id:Number(benKim.id),engellenen_id:kisiId});
+  alert(nick+' engellendi.');
+  await sohbetleriYukle();
 }
 
 // YARDIMCI
