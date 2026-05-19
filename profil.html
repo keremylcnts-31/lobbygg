@@ -31,7 +31,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .mc-discord{background:#5865F2;color:#fff;border-top:2px solid #7289da;border-left:2px solid #6070d0;border-right:2px solid #2c2e5a;border-bottom:3px solid #2c2e5a;}
 
 /* ── BANNER ── */
-.banner-wrap{width:100%;position:relative;overflow:hidden;aspect-ratio:851/315;max-height:315px;}
+.banner-wrap{width:100%;position:relative;overflow:hidden;aspect-ratio:851/315;max-height:315px;background:#050505;}
 .banner-img{width:100%;height:100%;object-fit:cover;display:block;}
 .banner-gradient{width:100%;height:100%;display:block;}
 .banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(5,5,5,.7) 100%);pointer-events:none;}
@@ -85,7 +85,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .sekme.gold{color:#FFD700 !important;border-bottom-color:#FFD700 !important;}
 
 /* BODY */
-.profil-body{max-width:1280px;margin:0 auto 40px;padding:0 16px;display:grid;grid-template-columns:160px 1fr 280px 160px;gap:14px;align-items:start;}
+.profil-body{max-width:1400px;margin:0 auto 40px;padding:0 8px;display:grid;grid-template-columns:140px 1fr 280px 140px;gap:8px;align-items:start;}
 .reklam-panel{display:flex;flex-direction:column;gap:10px;}
 .reklam-kart{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;}
 .reklam-kart:hover{border-color:#2a2a2a;}
@@ -332,7 +332,7 @@ function sunucuLogoHTML(isim,sz=32){
   return`<div class="sunucu-logo-ico" style="width:${sz}px;height:${sz}px;">🖥️</div>`;
 }
 
-function verifiedSVG(){return`<img src="https://i.imgur.com/VDpHaPy.png" style="width:22px;height:22px;vertical-align:middle;" title="Doğrulanmış Hesap">`;}
+function verifiedSVG(){return`<img src="https://i.imgur.com/VDpHaPy.png" style="width:40px;height:40px;vertical-align:middle;" title="Doğrulanmış Hesap">`;}
 
 function bannerCSS(kul){
   if(kul.banner_url)return null;
@@ -418,7 +418,7 @@ function render(ilanlar,droplar,klan){
       ${profil.banner_url
         ?`<img src="${profil.banner_url}" class="banner-img" alt="">`
         :bgCSS==='canvas'
-          ?`<canvas id="banner-canvas" style="width:100%;height:100%;position:absolute;inset:0;"></canvas>`
+          ?`<canvas id="banner-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>`
           :`<div class="banner-gradient" style="background:${bgCSS};"></div>`}
       <div class="banner-overlay"></div>
     </div>
@@ -563,7 +563,9 @@ function render(ilanlar,droplar,klan){
     </div>`;
 
   renderDroplar(droplar,av,nick);
-  // Takipçi/takip ilk sekme tıklanınca yüklenir
+  // Canvas banner başlat
+  requestAnimationFrame(()=>initBannerCanvas());
+  // Reklamlar
   reklamlariYukle();
   const dy=document.getElementById('drop-yazi');
   if(dy)dy.addEventListener('input',e=>{document.getElementById('drop-sayac').textContent=e.target.value.length+'/280';});
@@ -1112,8 +1114,11 @@ function initBannerCanvas(){
   const canvas=document.getElementById('banner-canvas');
   if(!canvas)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width=canvas.offsetWidth||851;
-  const H=canvas.height=canvas.offsetHeight||315;
+  // Banner wrap boyutunu al
+  const wrap=canvas.closest('.banner-wrap')||canvas.parentElement;
+  const W=canvas.width=wrap?wrap.offsetWidth:window.innerWidth;
+  const H=canvas.height=wrap?wrap.offsetHeight:315;
+  if(W===0||H===0){setTimeout(initBannerCanvas,200);return;}
   const logo=new Image();logo.crossOrigin='anonymous';logo.src='https://i.imgur.com/6l08Y4k.png';
   const LOGOLAR=Array.from({length:6},()=>({x:Math.random()*W,y:Math.random()*H,size:Math.random()*60+30,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,alpha:Math.random()*.12+.06,rot:Math.random()*Math.PI*2,vrot:(Math.random()-.5)*.005}));
   const HUZMELER=Array.from({length:3},()=>({x:Math.random()*W,angle:(Math.random()-.5)*.5,w:Math.random()*80+40,alpha:Math.random()*.04+.02,speed:Math.random()*.3+.1,dir:Math.random()>.5?1:-1}));
@@ -1125,8 +1130,6 @@ function initBannerCanvas(){
   }
   draw();
 }
-setTimeout(initBannerCanvas,100);
-
 init().then(()=>{
   let fav=[];try{fav=JSON.parse(profil?.favori_sunucular||'[]');}catch(e){}
   ayarFavleriBaşlat(fav);
