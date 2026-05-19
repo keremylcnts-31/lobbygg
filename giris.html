@@ -198,13 +198,14 @@ body{background:#050505;color:#fff;font-family:'Montserrat',sans-serif;min-heigh
         <img id="nick-av" src="" alt="">
         <span id="nick-txt"></span>
       </div>
+      <div id="nick-durum" style="display:none;font-size:11px;font-weight:800;padding:8px 12px;border-radius:6px;margin-bottom:8px;text-align:center;"></div>
       <div class="claim-wrap">
         <div class="claim-prefix">lobby.gg/<b>lobbygg/</b></div>
         <input class="claim-in" id="k-nick" placeholder="nickiniyaz" maxlength="16"
           oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();nickOnizle(this.value)"
           onkeydown="if(event.key==='Enter')git(1)">
       </div>
-      <button class="btn btn-green" onclick="git(1)" style="margin-top:4px;">Devam Et →</button>
+      <button class="btn btn-green" id="devam-btn" onclick="nickKontrolVeDevam()" style="margin-top:4px;">Devam Et →</button>
       <div class="link-alt"><a href="#" onclick="girisAc();return false;">Zaten üye misin? Giriş yap</a></div>
     </div>
 
@@ -535,14 +536,72 @@ function hata(m){const el=document.getElementById('msg');el.className='msg error
 let nickT;
 function nickOnizle(v){
   clearTimeout(nickT);
-  const el=document.getElementById('nick-prev');
-  if(!v||v.length<2){el.style.display='none';return;}
-  nickT=setTimeout(()=>{
-    const img=document.getElementById('nick-av');
-    img.src=`https://minotar.net/helm/${v}/36.png`;
-    img.onload=()=>{document.getElementById('nick-txt').textContent=v+' ✓';el.style.display='flex';};
-    img.onerror=()=>el.style.display='none';
-  },600);
+  const prev=document.getElementById('nick-prev');
+  const durum=document.getElementById('nick-durum');
+  if(!v||v.length<2){prev.style.display='none';durum.style.display='none';return;}
+  durum.style.display='block';
+  durum.style.background='rgba(255,255,255,.03)';
+  durum.style.border='1px solid #333';
+  durum.style.color='#555';
+  durum.textContent='⏳ Kontrol ediliyor...';
+  // Minecraft avatar
+  const img=document.getElementById('nick-av');
+  img.src=`https://minotar.net/helm/${v}/36.png`;
+  img.onload=()=>{document.getElementById('nick-txt').textContent=v;prev.style.display='flex';};
+  img.onerror=()=>prev.style.display='none';
+  // DB kontrol (debounce)
+  nickT=setTimeout(async()=>{
+    if(v.length<3)return;
+    try{
+      const {data,error}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',v);
+      if(error){durum.textContent='⚠️ Kontrol edilemedi';return;}
+      if(data&&data.length>0){
+        durum.style.background='rgba(255,50,50,.08)';
+        durum.style.border='1px solid rgba(255,50,50,.3)';
+        durum.style.color='#ff6b6b';
+        durum.textContent='❌ Bu kullanıcı adı zaten alınmış!';
+      }else{
+        durum.style.background='rgba(57,255,20,.06)';
+        durum.style.border='1px solid rgba(57,255,20,.2)';
+        durum.style.color='#39ff14';
+        durum.textContent='✅ '+v+' kullanılabilir!';
+      }
+    }catch(e){durum.textContent='⚠️ Kontrol edilemedi';}
+  },700);
+}
+
+async function nickKontrolVeDevam(){
+  const nick=document.getElementById('k-nick').value.trim();
+  const durum=document.getElementById('nick-durum');
+  const btn=document.getElementById('devam-btn');
+  if(!nick||nick.length<3)return hata('Nick en az 3 karakter olmalı!');
+  if(!/^[a-z0-9_]+$/.test(nick))return hata('Nick sadece küçük harf, rakam ve _ içerebilir!');
+  btn.disabled=true;btn.textContent='⏳ Kontrol ediliyor...';
+  try{
+    const {data,error}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
+    if(error)throw error;
+    if(data&&data.length>0){
+      btn.disabled=false;btn.textContent='Devam Et →';
+      durum.style.display='block';
+      durum.style.background='rgba(255,50,50,.08)';
+      durum.style.border='1px solid rgba(255,50,50,.3)';
+      durum.style.color='#ff6b6b';
+      durum.textContent='❌ Bu kullanıcı adı zaten alınmış!';
+      return hata('❌ Bu kullanıcı adı zaten alınmış!');
+    }
+    btn.disabled=false;btn.textContent='Devam Et →';
+    document.getElementById('s1-nick').textContent=nick;
+    // git(1) mantığını direkt uygula
+    document.getElementById('s0').classList.remove('active');
+    adim=1;
+    document.getElementById('s1').classList.add('active');
+    document.getElementById('prog').style.display='flex';
+    for(let i=1;i<=6;i++){const ps=document.getElementById('ps'+i);if(!ps)continue;if(i<1)ps.className='prog-step done';else if(i===1)ps.className='prog-step active';else ps.className='prog-step';}
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){
+    btn.disabled=false;btn.textContent='Devam Et →';
+    hata('Bağlantı hatası, tekrar dene!');
+  }
 }
 
 // Şifre güç
