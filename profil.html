@@ -52,7 +52,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .verified-badge svg{width:20px;height:20px;vertical-align:middle;}
 
 .profil-info{flex:1;min-width:0;padding-bottom:30px;}
-.nick-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:70px;}
+.nick-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
 .profil-nick{font-size:40px;font-weight:900;color:#fff;}
 .profil-badge{font-size:9px;font-weight:900;text-transform:uppercase;padding:2px 8px;border-radius:3px;white-space:nowrap;}
 .b-uye{background:#1a1a1a;color:#666;border:1px solid #2a2a2a;}
@@ -85,7 +85,14 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .sekme.gold{color:#FFD700 !important;border-bottom-color:#FFD700 !important;}
 
 /* BODY */
-.profil-body{max-width:960px;margin:0 auto 40px;padding:0 16px;display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start;}
+.profil-body{max-width:1280px;margin:0 auto 40px;padding:0 16px;display:grid;grid-template-columns:160px 1fr 280px 160px;gap:14px;align-items:start;}
+.reklam-panel{display:flex;flex-direction:column;gap:10px;}
+.reklam-kart{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden;cursor:pointer;transition:.15s;}
+.reklam-kart:hover{border-color:#2a2a2a;}
+.reklam-kart img{width:100%;display:block;}
+.reklam-kart-icerik{padding:8px;}
+.reklam-kart-isim{font-size:9px;font-weight:900;color:#ccc;text-transform:uppercase;letter-spacing:.3px;}
+.reklam-kart-tip{font-size:8px;color:#444;margin-top:2px;}
 .sekme-icerik{display:none;}
 .sekme-icerik.active{display:block;}
 
@@ -245,7 +252,8 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 
 .abone-gerek{background:#1a1200;border:1px solid #4a3500;border-radius:6px;padding:10px 14px;font-size:10px;color:#FFD700;font-weight:700;text-align:center;margin-bottom:8px;}
 
-@media(max-width:768px){.profil-body{grid-template-columns:1fr;}.pp-img{width:72px;height:72px;}.profil-nick{font-size:16px;}.profil-av-row{margin-top:-32px;}}
+@media(max-width:1100px){.profil-body{grid-template-columns:1fr 280px;}.reklam-panel{display:none;}}
+@media(max-width:768px){.profil-body{grid-template-columns:1fr;}.pp-img{width:100px;height:100px;}.profil-nick{font-size:24px;}}
 </style>
 </head>
 <body>
@@ -329,7 +337,9 @@ function verifiedSVG(){return`<img src="https://i.imgur.com/VDpHaPy.png" style="
 function bannerCSS(kul){
   if(kul.banner_url)return null;
   if(kul.banner_renk==='canvas')return 'canvas'; // özel durum
-  const renk=BANNER_RENKLER.find(r=>r.id===(kul.banner_renk||'default'));
+  if(!kul.banner_renk||kul.banner_renk==='default')return 'canvas';
+  if(kul.banner_renk==='canvas')return 'canvas';
+  const renk=BANNER_RENKLER.find(r=>r.id===kul.banner_renk);
   return renk?renk.css:BANNER_RENKLER[0].css;
 }
 
@@ -451,6 +461,8 @@ function render(ilanlar,droplar,klan){
 
     <!-- BODY -->
     <div class="profil-body">
+      <!-- SOL REKLAM -->
+      <div class="reklam-panel" id="sol-reklam"></div>
       <div>
         <!-- DROPLAR -->
         <div class="sekme-icerik active" id="sekme-droplar">
@@ -546,10 +558,13 @@ function render(ilanlar,droplar,klan){
           </div>`).join('')}`:''}
         </div>`:''}
       </div>
+      <!-- SAĞ REKLAM -->
+      <div class="reklam-panel" id="sag-reklam"></div>
     </div>`;
 
   renderDroplar(droplar,av,nick);
   // Takipçi/takip ilk sekme tıklanınca yüklenir
+  reklamlariYukle();
   const dy=document.getElementById('drop-yazi');
   if(dy)dy.addEventListener('input',e=>{document.getElementById('drop-sayac').textContent=e.target.value.length+'/280';});
 }
@@ -852,12 +867,23 @@ function dropGorselSec(inp){
 function dropGorselTemizle(){dropGorselBase64=null;document.getElementById('drop-oniz').style.display='none';}
 
 async function dropPaylas(){
-  if(!benKim)return;
+  if(!benKim){alert('Giriş yapman gerekiyor!');return;}
   const icerik=document.getElementById('drop-yazi')?.value?.trim()||'';
   if(!icerik&&!dropGorselBase64){alert('Bir şeyler yaz veya görsel ekle!');return;}
-  await SB.from('droplar').insert({kullanici_id:parseInt(benKim.id),icerik,gorsel_url:dropGorselBase64||null,begeni_sayisi:0,yorum_sayisi:0});
-  document.getElementById('drop-yazi').value='';dropGorselTemizle();
-  // Profil sayfasına geri dön
+  const btn=document.querySelector('.drop-yaz-box .mc-green');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Paylaşılıyor...';}
+  const{error}=await SB.from('droplar').insert({
+    kullanici_id:parseInt(benKim.id),
+    icerik:icerik||null,
+    gorsel_url:dropGorselBase64||null,
+    begeni_sayisi:0,
+    yorum_sayisi:0
+  });
+  if(error){
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Paylaş';}
+    alert('Drop paylaşılamadı: '+error.message);
+    return;
+  }
   const pid=new URLSearchParams(location.search).get('id');
   location.href='/lobbygg/profil.html?id='+(pid||parseInt(benKim.id));
 }
@@ -943,30 +969,28 @@ async function dropSil(id){
 // ── TAKİP ──
 async function takipcileriYukle(){
   const el=document.getElementById('takipciler-liste');if(!el)return;
+  if(!profil?.id)return;
   el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yükleniyor...</div>';
-  try{
-    const pid=parseInt(profil.id);
-    const{data:t,error:te}=await SB.from('takipler').select('takip_eden_id').eq('takip_edilen_id',pid);
-    if(te)throw te;
-    if(!t||t.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Henüz takipçi yok</div>';return;}
-    const ids=t.map(x=>parseInt(x.takip_eden_id));
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
-    el.innerHTML=(kullar||[]).map(k=>kulKartHTML(k)).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Hata: '+e.message+'</div>';}
+  const pid=Number(profil.id);
+  const{data:t,error:te}=await SB.from('takipler').select('takip_eden_id').eq('takip_edilen_id',pid).limit(50);
+  if(te){el.innerHTML='<div style="text-align:center;padding:20px;color:#f85149;font-size:11px;">Hata: '+te.message+'</div>';return;}
+  if(!t||!t.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Henüz takipçi yok</div>';return;}
+  const ids=t.map(x=>Number(x.takip_eden_id));
+  const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
+  el.innerHTML=(kullar||[]).length?kullar.map(k=>kulKartHTML(k)).join(''):'<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kullanıcı bulunamadı</div>';
 }
 
 async function takipEttikleriniYukle(){
   const el=document.getElementById('takip-liste');if(!el)return;
+  if(!profil?.id)return;
   el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Yükleniyor...</div>';
-  try{
-    const pid=parseInt(profil.id);
-    const{data:t,error:te}=await SB.from('takipler').select('takip_edilen_id').eq('takip_eden_id',pid);
-    if(te)throw te;
-    if(!t||t.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kimseyi takip etmiyor</div>';return;}
-    const ids=t.map(x=>parseInt(x.takip_edilen_id));
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
-    el.innerHTML=(kullar||[]).map(k=>kulKartHTML(k)).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Hata: '+e.message+'</div>';}
+  const pid=Number(profil.id);
+  const{data:t,error:te}=await SB.from('takipler').select('takip_edilen_id').eq('takip_eden_id',pid).limit(50);
+  if(te){el.innerHTML='<div style="text-align:center;padding:20px;color:#f85149;font-size:11px;">Hata: '+te.message+'</div>';return;}
+  if(!t||!t.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kimseyi takip etmiyor</div>';return;}
+  const ids=t.map(x=>Number(x.takip_edilen_id));
+  const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik').in('id',ids);
+  el.innerHTML=(kullar||[]).length?kullar.map(k=>kulKartHTML(k)).join(''):'<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kullanıcı bulunamadı</div>';
 }
 
 function kulKartHTML(k){
@@ -1047,6 +1071,31 @@ function sekmeAc(id,idx){
 }
 
 // ── YARDIMCI ──
+async function reklamlariYukle(){
+  // Aktif reklam ilanlarını getir (kategori=reklam, durum=aktif)
+  const{data}=await SB.from('ilanlar').select('id,kullanici_nick,baslik,banner_url,alt_kategori,aciklama').eq('kategori','reklam').eq('durum','aktif').limit(6);
+  if(!data||!data.length)return; // Reklam yoksa hiçbir şey gösterme
+  const solEl=document.getElementById('sol-reklam');
+  const sagEl=document.getElementById('sag-reklam');
+  if(!solEl||!sagEl)return;
+
+  const yarisi=Math.ceil(data.length/2);
+  const solReklamlar=data.slice(0,yarisi);
+  const sagReklamlar=data.slice(yarisi);
+
+  const reklamHTML=r=>`<div class="reklam-kart" onclick="location.href='/lobbygg/ilanlar.html'" title="${r.baslik||r.kullanici_nick||''}">
+    ${r.banner_url?`<img src="${r.banner_url}" alt="" style="height:120px;object-fit:cover;">`
+    :`<div style="height:80px;background:linear-gradient(135deg,#111,#1a1a1a);display:flex;align-items:center;justify-content:center;font-size:24px;">📣</div>`}
+    <div class="reklam-kart-icerik">
+      <div class="reklam-kart-isim">${r.baslik||r.kullanici_nick||'Reklam'}</div>
+      <div class="reklam-kart-tip">${r.alt_kategori||'Sponsorlu'}</div>
+    </div>
+  </div>`;
+
+  solEl.innerHTML=solReklamlar.map(reklamHTML).join('');
+  sagEl.innerHTML=sagReklamlar.map(reklamHTML).join('');
+}
+
 function zaman(ts){if(!ts)return'';const d=Date.now()-new Date(ts).getTime();if(d<60000)return'Az önce';if(d<3600000)return Math.floor(d/60000)+'dk';if(d<86400000)return Math.floor(d/3600000)+'sa';return Math.floor(d/86400000)+'g';}
 function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
 
