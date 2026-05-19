@@ -406,10 +406,11 @@ function render(ilanlar,droplar,klan){
   let aksiyonlar='';
   if(ben){
     aksiyonlar=`<a href="/lobbygg/ilan-ver.html" class="mc-btn mc-green"><i class="fa-solid fa-plus"></i> İlan Ver</a>
+    <a href="/lobbygg/mesajlar.html" class="mc-btn mc-blue"><i class="fa-solid fa-envelope"></i> Mesajlarım</a>
     <a href="/lobbygg/klanlar.html" class="mc-btn mc-gray"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>`;
   }else if(benKim){
     aksiyonlar=`<button class="mc-btn ${takipEdiyorMu?'mc-red':'mc-green'}" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-${takipEdiyorMu?'minus':'plus'}"></i> ${takipEdiyorMu?'Takibi Bırak':'Takip Et'}</button>
-    <button class="mc-btn mc-blue" onclick="dmAc()"><i class="fa-solid fa-envelope"></i> Mesaj</button>
+    <a href="/lobbygg/mesajlar.html?hedef=${profil.id}" class="mc-btn mc-blue"><i class="fa-solid fa-envelope"></i> Mesaj</a>
     ${profil.discord?`<button class="mc-btn mc-discord" onclick="navigator.clipboard.writeText('${profil.discord}');this.innerHTML='✓ Kopyalandı!'"><i class="fa-brands fa-discord"></i> Discord</button>`:''}`;
   }else{
     aksiyonlar=`<a href="/lobbygg/giris.html" class="mc-btn mc-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>`;
@@ -893,10 +894,18 @@ async function dropPaylas(){
   location.href='/lobbygg/profil.html?id='+(pid||parseInt(benKim.id));
 }
 
-function renderDroplar(droplar,av,nick){
+async function renderDroplar(droplar,av,nick){
   const el=document.getElementById('droplar-liste');if(!el)return;
   if(!droplar?.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#333;"><div style="font-size:28px;margin-bottom:8px;">💬</div>Henüz drop yok</div>';return;}
-  el.innerHTML=droplar.map(d=>`
+  
+  // Beğenilen dropları önceden çek
+  let benilenler=new Set();
+  if(benKim&&droplar.length){
+    const{data:beg}=await SB.from('drop_begeniler').select('drop_id').eq('kullanici_id',Number(benKim.id)).in('drop_id',droplar.map(d=>d.id));
+    (beg||[]).forEach(b=>benilenler.add(b.drop_id));
+  }
+  
+  el.innerHTML=droplar.map(d=>{const begen=benilenler.has(d.id);return`
     <div class="drop-kart" id="drop-${d.id}">
       <div class="drop-head">
         <div class="drop-av"><img src="${profil.avatar_url||`https://minotar.net/helm/${profil.kullanici_adi||'Steve'}/34.png`}" onerror="this.src='https://minotar.net/helm/Steve/34.png'"></div>
@@ -905,12 +914,12 @@ function renderDroplar(droplar,av,nick){
       ${d.icerik?`<div class="drop-icerik">${esc(d.icerik)}</div>`:''}
       ${d.gorsel_url?`<img src="${d.gorsel_url}" class="drop-gorsel" onclick="ppZoom('${d.gorsel_url.replace(/'/g,"\\'")}')">`:''}
       <div class="drop-aksiyon">
-        <button class="drop-btn" id="beg-${d.id}" onclick="dropBegen(${d.id})"><i class="fa-regular fa-heart"></i>&nbsp;<span id="bs-${d.id}">${d.begeni_sayisi||0}</span></button>
+        <button class="drop-btn${begen?' begendi':''}" id="beg-${d.id}" onclick="dropBegen(${d.id})"><i class="${begen?'fa-solid':'fa-regular'} fa-heart"></i>&nbsp;<span id="bs-${d.id}">${d.begeni_sayisi||0}</span></button>
         <button class="drop-btn" onclick="yorumToggle(${d.id})"><i class="fa-regular fa-comment"></i>&nbsp;${d.yorum_sayisi||0}</button>
         ${benKim?.id===profil.id?`<button class="drop-btn" onclick="dropSil(${d.id})" style="margin-left:auto;color:#f85149;"><i class="fa-solid fa-trash"></i></button>`:''}
       </div>
       <div class="yorum-wrap" id="yw-${d.id}"></div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 async function dropBegen(id){
