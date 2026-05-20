@@ -415,9 +415,11 @@ async function init(){
   const droplar=dropR.value?.data||[];
   const klan=klanR.value?.data?.[0]||null;
 
-  try{render(ilanlar,droplar,klan,gizliVeTakipciDegil);}catch(e){console.error('Render hatası:',e);document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:60px;color:#f85149;">Sayfa yüklenirken hata oluştu: '+e.message+'</div>';}
+  try{render(ilanlar,droplar,klan,gizliVeTakipciDegil);}catch(e){
+    console.error('Render hatası:',e);
+    document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:60px;"><div style="color:#f85149;font-size:14px;font-weight:900;margin-bottom:10px;">⚠️ '+e.message+'</div><div style="color:#444;font-size:11px;">'+e.stack+'</div></div>';
+  }
   document.getElementById('loading').style.display='none';
-  navYukle();
 }
 
 function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
@@ -1260,6 +1262,7 @@ async function navYukle(){
 }
 
 init().then(()=>{
+  navYukle();
   let fav=[];try{fav=JSON.parse(profil?.favori_sunucular||'[]');}catch(e){}
   ayarFavleriBaşlat(fav);
   // Ayar kategorisini başlat
