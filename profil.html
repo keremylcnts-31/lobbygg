@@ -423,1037 +423,203 @@ async function init(){
 function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   const ben=benKim?.id===profil.id;
   const nick=profil.kullanici_adi||'Oyuncu';
-  const av=profil.avatar_url||'https://minotar.net/helm/'+nick+'/96.png';
+  const av=profil.avatar_url||'https://minotar.net/helm/'+nick+'/200.png';
   const ppSekil=profil.pp_sekil||'circle';
+  const cerceve=profil.aktif_cerceve||'none';
   const abBadge=BADGEMAP[profil.abonelik]||'b-uye';
   const abAd=BADGEAD[profil.abonelik]||'ÜYE';
   const katilim=profil.kayit_tarihi?new Date(profil.kayit_tarihi).toLocaleDateString('tr-TR',{month:'long',year:'numeric'}):'';
-  const bgCSS=bannerCSS(profil);
+  let favSunucular=[];try{favSunucular=JSON.parse(profil.favori_sunucular||'[]');}catch(e){}
   document.title=nick+' — LOBBY.GG';
   window.__profilAv=av;
-  let favSunucular=[];try{favSunucular=JSON.parse(profil.favori_sunucular||'[]');}catch(e){}
 
-  // Aksiyonlar
-  let aksiyonlar='';
-  if(ben){
-    aksiyonlar='<a href="/lobbygg/ilan-ver.html" class="mc-btn mc-green"><i class="fa-solid fa-plus"></i> İlan Ver</a>'
-      +'<a href="/lobbygg/mesajlar.html" class="mc-btn mc-blue"><i class="fa-solid fa-envelope"></i> Mesajlarım</a>'
-      +'<a href="/lobbygg/klanlar.html" class="mc-btn mc-gray"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>';
-  }else if(benKim){
-    let takipBtn='';
-    if(takipEdiyorMu){
-      takipBtn='<button class="mc-btn mc-red" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-minus"></i> Takibi Bırak</button>';
+  // Banner
+  const bgCSS=bannerCSS(profil);
+  let bannerHTML='';
+  if(profil.banner_url) bannerHTML='<img src="'+profil.banner_url+'" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">';
+  else if(bgCSS==='canvas') bannerHTML='<canvas id="banner-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>';
+  else bannerHTML='<div style="width:100%;height:100%;background:'+bgCSS+';"></div>';
+
+  // Takip butonu - Instagram mantığı
+  let takipBtn='';
+  if(!ben&&benKim){
+    // Karşı taraf BENİ takip isteği gönderdi mi?
+    const beniTakipEtmekIstiyor=window.__beniTakipEtmekIstiyor||false;
+    if(beniTakipEtmekIstiyor){
+      takipBtn='<button class="mc-btn mc-green" onclick="gelerekIstekKabul()" style="font-size:9px;"><i class="fa-solid fa-check"></i> Onayla</button>'
+             +'<button class="mc-btn mc-red" onclick="gelerekIstekReddet()" style="font-size:9px;"><i class="fa-solid fa-xmark"></i> Reddet</button>';
+    }else if(takipEdiyorMu){
+      takipBtn='<button class="mc-btn mc-red" id="takip-btn" onclick="takipToggle()" style="font-size:9px;"><i class="fa-solid fa-user-minus"></i> Takibi Bırak</button>';
     }else if(takipIstegiVar){
-      takipBtn='<button class="mc-btn mc-gray" id="takip-btn" onclick="takipIstegiGeriAl()"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>';
+      takipBtn='<button class="mc-btn mc-gray" id="takip-btn" onclick="takipIstegiGeriAl()" style="font-size:9px;"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>';
     }else if(profil.profil_gizli){
-      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipIstegiGonder()"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>';
+      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipIstegiGonder()" style="font-size:9px;"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>';
     }else{
-      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-plus"></i> Takip Et</button>';
+      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipToggle()" style="font-size:9px;"><i class="fa-solid fa-user-plus"></i> Takip Et</button>';
     }
-    // Profil sahibi beni takip ediyorsa "Sen de onu takip et" göster
-    if(!takipEdiyorMu&&!takipIstegiVar&&profilBenTakipEdiyorMu){
-      takipBtn+=' <span style="font-size:9px;color:#FFD700;font-weight:700;">● Seni takip ediyor</span>';
-    }
-    let mesajBtn='';
+    // Mesaj butonu
     const ma=profil.mesaj_ayar||'herkes';
-    if(ma==='hic') mesajBtn='<span style="font-size:9px;color:#444;font-weight:700;padding:8px;">🚫 Mesaj almıyor</span>';
-    else if(ma==='takipciler'&&!takipEdiyorMu) mesajBtn='<span class="mc-btn mc-gray" style="opacity:.5;cursor:not-allowed;"><i class="fa-solid fa-lock"></i> Mesaj</span>';
-    else mesajBtn='<a href="/lobbygg/mesajlar.html?hedef='+profil.id+'" class="mc-btn mc-blue"><i class="fa-solid fa-envelope"></i> Mesaj</a>';
-    if(profil.discord){ discordBtn='<button class="mc-btn mc-discord" onclick="kopyala(this,this.getAttribute(\"data-d\"))" data-d="'+profil.discord.replace(/"/g,'')+'"><i class="fa-brands fa-discord"></i> Discord</button>'; }
-    if(profil.discord){
-    if(profil.discord){ discordBtn='<button class="mc-btn mc-discord" onclick="kopyala(this,this.getAttribute(\"data-d\"))" data-d="'+profil.discord.replace(/"/g,'')+'"><i class="fa-brands fa-discord"></i> Discord</button>'; }
-    }
-    aksiyonlar=takipBtn+mesajBtn+discordBtn;
+    if(ma==='hic') takipBtn+='<span style="font-size:9px;color:#444;font-weight:700;padding:8px;">🚫 Mesaj almıyor</span>';
+    else if(ma==='takipciler'&&!takipEdiyorMu) takipBtn+='<span class="mc-btn mc-gray" style="opacity:.5;cursor:not-allowed;font-size:9px;"><i class="fa-solid fa-lock"></i> Mesaj</span>';
+    else takipBtn+='<a href="/lobbygg/mesajlar.html?hedef='+profil.id+'" class="mc-btn mc-blue" style="font-size:9px;"><i class="fa-solid fa-envelope"></i> Mesaj</a>';
+    if(profil.discord) takipBtn+='<button class="mc-btn mc-discord" onclick="kopyala(this,this.getAttribute(\'data-d\'))" data-d="'+profil.discord+'" style="font-size:9px;"><i class="fa-brands fa-discord"></i> Discord</button>';
+  }else if(ben){
+    takipBtn='<a href="/lobbygg/ilan-ver.html" class="mc-btn mc-green" style="font-size:9px;"><i class="fa-solid fa-plus"></i> İlan Ver</a>'
+      +'<a href="/lobbygg/mesajlar.html" class="mc-btn mc-blue" style="font-size:9px;"><i class="fa-solid fa-envelope"></i> Mesajlarım</a>'
+      +'<a href="/lobbygg/klanlar.html" class="mc-btn mc-gray" style="font-size:9px;"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>';
   }else{
-    aksiyonlar='<a href="/lobbygg/giris.html" class="mc-btn mc-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>';
+    takipBtn='<a href="/lobbygg/giris.html" class="mc-btn mc-green" style="font-size:9px;"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>';
   }
 
-  // Banner HTML
-  let bannerHTML='';
-  if(profil.banner_url) bannerHTML='<img src="'+profil.banner_url+'" class="banner-img" alt="">';
-  else if(bgCSS==='canvas') bannerHTML='<canvas id="banner-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;"></canvas>';
-  else bannerHTML='<div class="banner-gradient" style="background:'+bgCSS+';"></div>';
-
   // Sekmeler
-  let sekmeHTML='';
+  let sekmelerHTML='';
   if(gizliVeTakipciDegil){
-    sekmeHTML='<div class="sekme active">🔒 Gizli Hesap</div>';
+    sekmelerHTML='<div class="sekme active">🔒 Gizli Hesap</div>';
   }else{
-    sekmeHTML='<div class="sekme active" onclick="sekmeAc(0)">💬 Droplar</div>'
-      +'<div class="sekme" onclick="sekmeAc(1)">📣 İlanlar</div>'
-      +'<div class="sekme" onclick="sekmeAc(2)">👥 Takipçiler</div>'
-      +'<div class="sekme" onclick="sekmeAc(3)">👤 Takip</div>';
-    if(ben) sekmeHTML+='<div class="sekme" onclick="sekmeAc(4)" style="color:#FFD700;">🎨 Özelleştir</div>'
+    sekmelerHTML='<div class="sekme active" onclick="sekmeAc(0)">💬 Droplar ('+droplar.length+')</div>'
+      +'<div class="sekme" onclick="sekmeAc(1)">📣 İlanlar ('+ilanlar.length+')</div>'
+      +'<div class="sekme" onclick="sekmeAc(2)">👥 Takipçiler ('+(profil.takipci_sayisi||0)+')</div>'
+      +'<div class="sekme" onclick="sekmeAc(3)">👤 Takip ('+(profil.takip_sayisi||0)+')</div>';
+    if(ben) sekmelerHTML+='<div class="sekme" onclick="sekmeAc(4)" style="color:#FFD700;">🎨 Özelleştir</div>'
       +'<div class="sekme" onclick="sekmeAc(5)" style="color:#b933ff;">⚙️ Hesap</div>';
   }
 
-  // Gizli içerik
-  let gizliIcerik='';
-  if(gizliVeTakipciDegil){
-    let istekBtn=benKim&&!takipIstegiVar?'<button class="mc-btn mc-green" onclick="takipIstegiGonder()"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>':'';
-    if(takipIstegiVar) istekBtn='<button class="mc-btn mc-gray" onclick="takipIstegiGeriAl()"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>';
-    gizliIcerik='<div style="text-align:center;padding:48px 20px;">'
-      +'<i class="fa-solid fa-lock" style="font-size:48px;display:block;margin-bottom:14px;color:#444;"></i>'
-      +'<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:8px;">Bu Hesap Gizlidir</div>'
-      +'<div style="font-size:12px;color:#555;margin-bottom:20px;">Dropları görmek için takip et.</div>'
-      +istekBtn+'</div>';
-  }
-
-  // Klan HTML
-  let klanBadge='',klanBox='';
+  // Klan
+  let klanHTML='',klanBadge='';
   if(klan){
-    klanBadge='<span class="klan-badge" style="background:'+((klan.renk||'#FFD700'))+'18;border-color:'+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';">'+klan.tag+'</span>';
-    klanBox='<div class="box"><div class="box-title">Klan</div>'
-      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="git(this)" data-u="/lobbygg/klanlar.html">'
-      +'<div style="font-size:14px;font-weight:900;padding:5px 12px;border-radius:3px;background:'+(klan.renk||'#FFD700')+'18;border:2px solid '+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';">'+klan.tag+'</div>'
-      +'<div><div style="font-size:13px;font-weight:900;color:#fff;">'+klan.isim+'</div>'
-      +'<div style="font-size:9px;color:#444;">'+(klan.uye_sayisi||1)+' üye</div></div></div></div>';
+    klanBadge='<a href="/lobbygg/klanlar.html" style="font-size:10px;font-weight:900;padding:2px 10px;border-radius:3px;background:'+(klan.renk||'#FFD700')+'18;border:1px solid '+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';text-decoration:none;">'+klan.tag+' — '+klan.isim+'</a>';
+    klanHTML='<div class="box"><div class="box-title">Klan</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="location.href=\'/lobbygg/klanlar.html\'">'
+      +'<div style="font-size:14px;font-weight:900;padding:5px 14px;border-radius:3px;background:'+(klan.renk||'#FFD700')+'18;border:2px solid '+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';">'+klan.tag+'</div>'
+      +'<div><div style="font-size:13px;font-weight:900;color:#fff;">'+klan.isim+'</div><div style="font-size:9px;color:#444;">'+(klan.uye_sayisi||1)+' üye</div></div>'
+      +'</div></div>';
   }
 
-  // Kat tag
-  let katTag=profil.kategori?'<span class="kat-tag '+(KAT_RENK[profil.kategori]||'')+'">'+((KAT_IKON[profil.kategori]||'')+' '+(profil.alt_kategori||profil.kategori))
-    +(ben?'<button onclick="kategoriKaldir()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:10px;margin-left:3px;opacity:.7;">✕</button>':'')+'</span>':'';
-
-  // Meta
-  let metaHTML='';
-  if(katilim) metaHTML+='<span><i class="fa-solid fa-calendar-days"></i> '+katilim+'</span>';
-  if(profil.yas) metaHTML+='<span><i class="fa-solid fa-cake-candles"></i> '+profil.yas+'</span>';
-  if(profil.discord) metaHTML+='<span><i class="fa-brands fa-discord" style="color:#5865F2;"></i> '+profil.discord+'</span>';
-  if(profil.desteklenen_sunucu&&profil.desteklened_sunucu!=='Belirtmek İstemiyorum') metaHTML+='<span style="color:#39ff14;"><i class="fa-solid fa-gamepad"></i> '+profil.desteklenen_sunucu+'</span>';
-
-  // Hakkında kutusu içeriği
-  let hakkindaRows='';
-  const hakkindaItems=[
-    ['👤',nick],
-    katilim?['📅',katilim+"'dan beri üye"]:null,
-    profil.yas?['🎂',profil.yas+' yaşında']:null,
-    profil.cinsiyet&&profil.cinsiyet!=='Belirtmek İstemiyorum'?['🧍',profil.cinsiyet]:null,
-    profil.discord?['<i class="fa-brands fa-discord" style="color:#5865F2;"></i>',profil.discord]:null,
-    klan?['⚔️',klan.tag+' — '+klan.isim]:null,
-    profil.kategori?[KAT_IKON[profil.kategori]||'🎮',(profil.alt_kategori||profil.kategori).toUpperCase()]:null,
-  ].filter(Boolean);
-  hakkindaItems.forEach(([ic,txt])=>{
-    hakkindaRows+='<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #111;font-size:11px;">'
-      +'<span style="color:#444;flex-shrink:0;min-width:16px;text-align:center;">'+ic+'</span>'
-      +'<span style="color:#999;">'+txt+'</span></div>';
-  });
+  // Kategori tag
+  let katTag='';
+  if(profil.kategori) katTag='<span class="kat-tag '+(KAT_RENK[profil.kategori]||'')+'">'+KAT_IKON[profil.kategori]+' '+(profil.alt_kategori||profil.kategori)
+    +(ben?'<button onclick="kategoriKaldir()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:10px;margin-left:4px;opacity:.6;">✕</button>':'')+'</span>';
 
   // Sunucu kutusu
-  let sunucuKutu='';
-  const aktifS=profil.desteklenen_sunucu&&profil.desteklenen_sunucu!=='Belirtmek İstemiyorum';
-  const favS=favSunucular.filter(s=>s!=='Belirtmek İstemiyorum');
-  if(aktifS||favS.length){
-    sunucuKutu='<div class="box"><div class="box-title">Sunucular</div>';
-    if(aktifS){
-      sunucuKutu+='<div style="font-size:8px;font-weight:900;text-transform:uppercase;color:#39ff14;letter-spacing:1px;margin-bottom:6px;">🎮 Şu An Oynuyor</div>'
-        +'<div class="sunucu-kart" style="border-color:rgba(57,255,20,.2);margin-bottom:10px;">'
-        +sunucuLogoHTML(profil.desteklenen_sunucu)
+  let sunucuHTML='';
+  if(profil.desteklenen_sunucu&&profil.desteklened_sunucu!=='Belirtmek İstemiyorum'||favSunucular.filter(s=>s!=='Belirtmek İstemiyorum').length){
+    sunucuHTML='<div class="box"><div class="box-title">Sunucular</div>';
+    if(profil.desteklenen_sunucu&&profil.desteklenen_sunucu!=='Belirtmek İstemiyorum'){
+      sunucuHTML+='<div style="font-size:8px;color:#39ff14;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🎮 Şu An Oynuyor</div>'
+        +'<div class="sunucu-kart" style="border-color:rgba(57,255,20,.2);margin-bottom:8px;">'+sunucuLogoHTML(profil.desteklenen_sunucu)
         +'<div style="flex:1;"><div style="font-size:12px;font-weight:900;color:#39ff14;">'+profil.desteklenen_sunucu+'</div>'
-        +'<div style="font-size:9px;color:#444;">Aktif Sunucu</div></div>'
-        +(ben?'<button onclick="aktifSunucuKaldir()" style="background:none;border:none;color:#555;cursor:pointer;font-size:14px;">✕</button>':'')
-        +'</div>';
+        +'<div style="font-size:9px;color:#444;">Aktif</div></div>'
+        +(ben?'<button onclick="aktifSunucuKaldir()" style="background:none;border:none;color:#555;cursor:pointer;">✕</button>':'')+'</div>';
     }
-    if(favS.length){
-      sunucuKutu+='<div style="font-size:8px;font-weight:900;text-transform:uppercase;color:#444;letter-spacing:1px;margin-bottom:6px;">⭐ Desteklenen</div>';
-      favS.forEach(s=>{
-        sunucuKutu+='<div class="sunucu-kart">'+sunucuLogoHTML(s,26)
-          +'<div style="font-size:11px;font-weight:800;color:#bbb;flex:1;">'+s+'</div>'
-          +(ben?'<button onclick="favSunucuKaldir(this.dataset.s)" data-s="'+s+'" style="background:none;border:none;color:#555;cursor:pointer;font-size:12px;">✕</button>':'')
-          +'</div>';
+    const favList=favSunucular.filter(s=>s!=='Belirtmek İstemiyorum'&&s!==profil.desteklened_sunucu);
+    if(favList.length){
+      sunucuHTML+='<div style="font-size:8px;color:#444;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">⭐ Desteklenen</div>';
+      favList.forEach(s=>{
+        sunucuHTML+='<div class="sunucu-kart">'+sunucuLogoHTML(s,26)+'<div style="font-size:11px;font-weight:800;color:#bbb;flex:1;">'+s+'</div>'
+          +(ben?'<button onclick="favSunucuKaldir(this.dataset.s)" data-s="'+s+'" style="background:none;border:none;color:#555;cursor:pointer;font-size:12px;">✕</button>':'')+'</div>';
       });
     }
-    sunucuKutu+='</div>';
+    sunucuHTML+='</div>';
   }
 
-  // İlanlar HTML
-  let ilanHTML='';
-  if(ilanlar.length){
-    ilanlar.forEach(il=>{
-      ilanHTML+='<div class="ilan-kart">'
-        +(il.banner_url?'<img src="'+il.banner_url+'" style="width:100%;height:70px;object-fit:cover;border-radius:4px;margin-bottom:8px;">':'')
-        +'<span class="ilan-tag" style="background:#0d1f00;color:#39ff14;">'+(il.alt_kategori||il.kategori)+'</span>'
-        +'<div style="font-size:13px;font-weight:900;color:#fff;margin-top:4px;">'+(il.baslik||nick)+'</div>'
-        +(il.fiyat>0?'<div style="font-size:11px;color:#39ff14;margin-top:3px;">'+il.fiyat+' TL</div>':'')
-        +'</div>';
-    });
-  }else{
-    ilanHTML='<div style="text-align:center;padding:40px;color:#333;"><i class="fa-solid fa-bullhorn" style="font-size:36px;display:block;margin-bottom:10px;"></i>Aktif ilan yok</div>';
+  // İlanlar
+  let ilanHTML=ilanlar.length?ilanlar.map(il=>
+    '<div class="ilan-kart">'+(il.banner_url?'<img src="'+il.banner_url+'" style="width:100%;height:70px;object-fit:cover;border-radius:4px;margin-bottom:8px;">':'')
+    +'<span class="ilan-tag" style="background:#0d1f00;color:#39ff14;">'+(il.alt_kategori||il.kategori)+'</span>'
+    +'<div style="font-size:13px;font-weight:900;color:#fff;margin-top:4px;">'+(il.baslik||nick)+'</div>'
+    +(il.fiyat>0?'<div style="font-size:11px;color:#39ff14;margin-top:3px;">'+il.fiyat+' TL</div>':'')+'</div>'
+  ).join(''):'<div style="text-align:center;padding:40px;color:#333;"><i class="fa-solid fa-bullhorn" style="font-size:36px;display:block;margin-bottom:10px;"></i>Aktif ilan yok</div>';
+
+  // Gizli icerik
+  let gizliHTML='';
+  if(gizliVeTakipciDegil){
+    const istekBtns=window.__beniTakipEtmekIstiyor?''
+      :(benKim&&!takipIstegiVar?'<button class="mc-btn mc-green" onclick="takipIstegiGonder()" style="margin-top:10px;"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>':'')
+      +(takipIstegiVar?'<button class="mc-btn mc-gray" onclick="takipIstegiGeriAl()" style="margin-top:10px;"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>':'');
+    gizliHTML='<div style="text-align:center;padding:60px 20px;">'
+      +'<i class="fa-solid fa-lock" style="font-size:56px;display:block;margin-bottom:16px;color:#2a2a2a;"></i>'
+      +'<div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:8px;">Bu Hesap Gizlidir</div>'
+      +'<div style="font-size:12px;color:#555;">Dropları ve ilanları görmek için takip et.</div>'
+      +istekBtns+'</div>';
   }
 
-  // Ayarlar HTML
-  let ayarlarHTML2='';
-  let hesapAyarHTML2='';
-  if(ben){
-    ayarlarHTML2=profilOzellestirHTML(profil,av,favSunucular);
-    hesapAyarHTML2=hesapAyarlarHTML(profil);
-  }
+  // Ayarlar
+  const ayarlarHTML2=ben?profilOzellestirHTML(profil,av,favSunucular):'';
+  const hesapAyarHTML2=ben?hesapAyarlarHTML(profil):'';
 
-  const ppClass='pp-img '+(ppSekil==='rounded'?'pp-rounded':'pp-circle');
-
+  // ── HTML ──
   document.getElementById('profil-wrap').innerHTML=
-    // BANNER
-    '<div class="banner-wrap">'+bannerHTML+'<div class="banner-overlay"></div></div>'
-    // HEADER
-    +'<div class="profil-wrap"><div class="profil-header">'
-    +'<div class="profil-av-row">'
-    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom()">'
-    +'<img src="'+av+'" class="'+ppClass+'" data-frame="'+(profil.aktif_cerceve||'none')+'" id="main-pp-img" onerror="this.src=\'https://minotar.net/helm/Steve/96.png\'"></div>'
-    +'<div class="profil-info">'
-    +'<div class="nick-row">'
-    +'<span class="profil-nick">'+nick+'</span>'
-    +(profil.dogrulama_rozeti?verifiedSVG():'')
-    +'<span class="profil-badge '+abBadge+'">'+abAd+'</span>'
-    +katTag+klanBadge+'</div>'
-    +'<div class="profil-meta">'+metaHTML+'</div>'
-    +(profil.bio?'<div class="profil-bio">'+esc(profil.bio)+'</div>':'')
-    +'<div class="profil-actions">'+aksiyonlar+'</div>'
-    +'</div></div>'
-    // SEKMELER
-    +'<div class="sekmeler" id="sekmeler">'+sekmeHTML+'</div>'
-    +'</div></div>'
-    // BODY
-    +'<div class="profil-body">'
-    +'<div class="reklam-panel" id="sol-reklam"></div>'
-    +'<div>'
-    +'<div class="sekme-icerik active" id="sekme-droplar">'+gizliIcerik+'<div id="droplar-liste"></div></div>'
-    +'<div class="sekme-icerik" id="sekme-ilanlar">'+ilanHTML+'</div>'
-    +'<div class="sekme-icerik" id="sekme-takipciler"><div id="takipciler-liste"><div style="text-align:center;padding:20px;color:#444;font-size:11px;">Sekmeye tıkla</div></div></div>'
-    +'<div class="sekme-icerik" id="sekme-takip"><div id="takip-liste"><div style="text-align:center;padding:20px;color:#444;font-size:11px;">Sekmeye tıkla</div></div></div>'
-    +(ben?'<div class="sekme-icerik" id="sekme-ozellestir">'+ayarlarHTML2+'</div>'
-         +'<div class="sekme-icerik" id="sekme-hesapayar">'+hesapAyarHTML2+'</div>':'')
-    +'</div>'
-    // SAĞ PANEL
-    +'<div>'
-    +'<div class="box"><div class="box-title">Hakkında</div>'+hakkindaRows+'</div>'
-    +klanBox+sunucuKutu
-    +'<div class="box"><div class="box-title">Profil Fotoğrafı</div>'
-    +'<div style="display:flex;justify-content:center;padding:8px;">'
-    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom()">'
-    +'<img src="'+av+'" class="pp-img '+(ppSekil==='rounded'?'pp-rounded':'pp-circle')+'" data-frame="'+(profil.aktif_cerceve||'none')+'" style="width:64px;height:64px;" onerror="this.src=\'https://minotar.net/helm/Steve/64.png\'">'
-    +'</div></div></div>'
-    +'</div>'
-    +'<div class="reklam-panel" id="sag-reklam"></div>'
-    +'</div>';
+  // BANNER - max-width ile sınırlı, 851:315 oranı
+  '<div style="background:#050505;padding:0;">'
+  +'<div style="max-width:940px;margin:0 auto;">'
+  +'<div style="position:relative;aspect-ratio:851/315;max-height:315px;overflow:hidden;background:#111;border-radius:0 0 0 0;">'
+  +bannerHTML
+  +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(5,5,5,.7) 100%);pointer-events:none;"></div>'
+  +'</div></div></div>'
 
-  if(!gizliVeTakipciDegil)renderDroplar(droplar,av,nick);
+  // PROFIL HEADER
+  +'<div style="max-width:940px;margin:0 auto;padding:0 16px;">'
+  +'<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-top:none;border-radius:0 0 8px 8px;margin-bottom:14px;">'
+  // PP + İNFO SATIRI
+  +'<div style="display:flex;align-items:flex-end;gap:16px;padding:0 20px 16px;margin-top:-50px;position:relative;z-index:10;">'
+  // PP
+  +'<div class="pp-frame-wrap frame-'+cerceve+'" onclick="ppZoom()" style="flex-shrink:0;">'
+  +'<img src="'+av+'" class="pp-img '+(ppSekil==='rounded'?'pp-rounded':'pp-circle')+'" data-frame="'+cerceve+'" id="main-pp-img" onerror="this.src=\'https://minotar.net/helm/Steve/200.png\'" style="background:#0d0d0d;">'
+  +'</div>'
+  // İNFO
+  +'<div style="flex:1;min-width:0;padding-bottom:4px;">'
+  // Nick satırı
+  +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'
+  +'<span style="font-size:22px;font-weight:900;color:#fff;">'+nick+'</span>'
+  +(profil.dogrulama_rozeti?verifiedSVG():'')
+  +'<span class="profil-badge '+abBadge+'">'+abAd+'</span>'
+  +katTag+klanBadge
+  +'</div>'
+  // Meta
+  +'<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:#555;margin-bottom:8px;">'
+  +(katilim?'<span><i class="fa-solid fa-calendar-days"></i> '+katilim+'</span>':'')
+  +(profil.yas?'<span><i class="fa-solid fa-cake-candles"></i> '+profil.yas+'</span>':'')
+  +(profil.discord?'<span><i class="fa-brands fa-discord" style="color:#5865F2;"></i> '+profil.discord+'</span>':'')
+  +(profil.desteklened_sunucu&&profil.desteklenen_sunucu!=='Belirtmek İstemiyorum'?'<span style="color:#39ff14;"><i class="fa-solid fa-gamepad"></i> '+profil.desteklenen_sunucu+'</span>':'')
+  +'</div>'
+  // Bio
+  +(profil.bio?'<div style="font-size:12px;color:#777;line-height:1.7;margin-bottom:10px;">'+esc(profil.bio)+'</div>':'')
+  // Aksiyonlar
+  +'<div style="display:flex;gap:7px;flex-wrap:wrap;">'+takipBtn+'</div>'
+  +'</div></div>'
+  // SEKMELER
+  +'<div class="sekmeler" id="sekmeler">'+sekmelerHTML+'</div>'
+  +'</div></div>'
+
+  // BODY
+  +'<div style="max-width:940px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start;">'
+  // SOL
+  +'<div>'
+  +'<div class="sekme-icerik active" id="sekme-droplar">'+gizliHTML+'<div id="droplar-liste"></div></div>'
+  +'<div class="sekme-icerik" id="sekme-ilanlar">'+ilanHTML+'</div>'
+  +'<div class="sekme-icerik" id="sekme-takipciler"><div id="takipciler-liste"><div style="text-align:center;padding:20px;color:#444;font-size:11px;">Sekmeye tıkla</div></div></div>'
+  +'<div class="sekme-icerik" id="sekme-takip"><div id="takip-liste"><div style="text-align:center;padding:20px;color:#444;font-size:11px;">Sekmeye tıkla</div></div></div>'
+  +(ben?'<div class="sekme-icerik" id="sekme-ozellestir">'+ayarlarHTML2+'</div>':'')
+  +(ben?'<div class="sekme-icerik" id="sekme-hesapayar">'+hesapAyarHTML2+'</div>':'')
+  +'</div>'
+  // SAĞ
+  +'<div>'
+  +'<div class="box"><div class="box-title">Hakkında</div>'
+  +(katilim?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #111;font-size:11px;"><span style="color:#444;">📅</span><span style="color:#999;">'+katilim+"'dan beri üye</span></div>":'')
+  +(profil.yas?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #111;font-size:11px;"><span style="color:#444;">🎂</span><span style="color:#999;">'+profil.yas+' yaşında</span></div>':'')
+  +(profil.discord?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #111;font-size:11px;"><span style="color:#5865F2;"><i class="fa-brands fa-discord"></i></span><span style="color:#999;">'+profil.discord+'</span></div>':'')
+  +(profil.kategori?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #111;font-size:11px;"><span style="color:#444;">'+(KAT_IKON[profil.kategori]||'🎮')+'</span><span style="color:#999;">'+(profil.alt_kategori||profil.kategori).toUpperCase()+'</span></div>':'')
+  +'</div>'
+  +klanHTML+sunucuHTML
+  +'</div>'
+  +'</div>';
+
+  if(!gizliVeTakipciDegil) renderDroplar(droplar,av,nick);
   requestAnimationFrame(()=>initBannerCanvas());
   reklamlariYukle();
+  navYukle();
 }
 
-
-function profilOzellestirHTML(kul,av,favSunucular){
-  const isAbone=abone(kul);
-  const ppSekil=kul.pp_sekil||'circle';
-  const bannerRenk=kul.banner_renk||'default';
-
-  const renkBtns=BANNER_RENKLER.map(r=>`<div class="renk-btn${r.id===bannerRenk?' on':''}" style="background:${r.css}" onclick="ayarBannerRenk('${r.id}',this)" title="${r.label}"></div>`).join('');
-
-  const allSunucuHTML=ALL_SUNUCULAR.map((s,i)=>{
-    const logo=s.ip?`<img src="https://api.mcsrvstat.us/icon/${s.ip}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;image-rendering:pixelated;" onerror="this.style.display='none'">`:`<div style="font-size:16px;">🖥️</div>`;
-    const isFav=favSunucular.includes(s.n);
-    return`<div class="s-item${isFav?' on':''}" id="ays-${i}" onclick="ayarSunucuSec('${s.n}',${i},this)">
-      <div style="display:flex;justify-content:center;">${logo}</div>
-      <div class="s-isim-sm">${s.n}</div>
-    </div>`;
-  }).join('');
-
-  const aktifSunucuHTML=[...ALL_SUNUCULAR,{n:'Belirtmek İstemiyorum',ip:null}].map((s,i)=>{
-    const logo=s.ip?`<img src="https://api.mcsrvstat.us/icon/${s.ip}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;image-rendering:pixelated;" onerror="this.style.display='none'">`:`<div style="font-size:14px;">🔒</div>`;
-    const isAktif=kul.desteklenen_sunucu===s.n;
-    return`<div class="s-item${isAktif?' on-tek':''}" id="ayas-${i}" onclick="ayarAktifSunucuSec('${s.n}',${i},this)">
-      <div style="display:flex;justify-content:center;">${logo}</div>
-      <div class="s-isim-sm">${s.n}</div>
-    </div>`;
-  }).join('');
-
-  return`<div class="box">
-    <!-- PP & BANNER -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Profil Fotoğrafı</div>
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
-        <img src="${av}" class="pp-img ${ppSekil==='rounded'?'pp-rounded':'pp-circle'}" data-frame="${kul.aktif_cerceve||'none'}" style="width:64px;height:64px;border:3px solid;" id="ayar-pp-oniz">
-        <div>
-          <input type="file" id="pp-file" accept="image/*${isAbone?',image/gif':''}" style="display:none;" onchange="ppYukle(this)">
-          <button class="mc-btn mc-green" onclick="document.getElementById('pp-file').click()" style="padding:8px 14px;display:block;margin-bottom:6px;"><i class="fa-solid fa-upload"></i> ${isAbone?'Fotoğraf/GIF Yükle':'Fotoğraf Yükle'}</button>
-          <button class="mc-btn mc-red" onclick="ppKaldir()" style="padding:8px 14px;display:block;margin-bottom:6px;"><i class="fa-solid fa-trash"></i> PP'yi Kaldır</button>
-          ${!isAbone?`<div style="font-size:9px;color:#FFD700;">GIF için abone ol 👑</div>`:''}
-        </div>
-      </div>
-      <div class="ayar-baslik">PP Şekli</div>
-      <div class="sekil-grid">
-        <div class="sekil-btn${ppSekil==='circle'?' on':''}" onclick="ayarPPSekil('circle',this)">
-          <div style="width:36px;height:36px;border-radius:50%;background:#39ff14;margin:0 auto 6px;"></div>
-          <div style="font-size:9px;font-weight:900;color:#666;text-transform:uppercase;">Yuvarlak</div>
-          <div style="font-size:8px;color:#444;">Ücretsiz</div>
-        </div>
-        <div class="sekil-btn${ppSekil==='rounded'?' on':''}${!isAbone?' opacity:.5':''}" onclick="${isAbone?`ayarPPSekil('rounded',this)`:`showAboneGerek(this)`}">
-          <div style="width:36px;height:36px;border-radius:10px;background:#FFD700;margin:0 auto 6px;"></div>
-          <div style="font-size:9px;font-weight:900;color:#666;text-transform:uppercase;">Oval Köşeli</div>
-          <div style="font-size:8px;color:#FFD700;">👑 Abone</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BANNER -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">PP Çerçeve Rengi</div>
-      <div class="cerceve-sec-grid" id="cerceve-grid">
-        ${[
-          {id:'none',lbl:'Yok',renk:'#1a1a1a',abone:false},
-          {id:'green',lbl:'Yeşil',renk:'#39ff14',abone:false},
-          {id:'red',lbl:'Kırmızı',renk:'#ff1a3c',abone:false},
-          {id:'blue',lbl:'Mavi',renk:'#00d4ff',abone:false},
-          {id:'gold',lbl:'Altın',renk:'#FFD700',abone:false},
-          {id:'purple',lbl:'Mor',renk:'#b933ff',abone:false},
-          {id:'white',lbl:'Beyaz',renk:'#fff',abone:false},
-          {id:'cyan',lbl:'Cyan',renk:'#00ffcc',abone:false},
-          {id:'neon-green',lbl:'✨ Neon Yeşil',renk:'#39ff14',abone:true},
-          {id:'neon-red',lbl:'✨ Neon Kırmızı',renk:'#ff1a3c',abone:true},
-          {id:'neon-blue',lbl:'✨ Neon Mavi',renk:'#00d4ff',abone:true},
-          {id:'neon-gold',lbl:'✨ Neon Altın',renk:'#FFD700',abone:true},
-          {id:'rainbow',lbl:'🌈 Rainbow',renk:'#ff0000',abone:true},
-          {id:'glass',lbl:'💎 Cam',renk:'rgba(255,255,255,.3)',abone:true},
-        ].map(c=>`<div class="cerceve-sec-btn${c.abone?' premium-frame':''}${(kul.aktif_cerceve||'none')===c.id?' on':''}" onclick="${c.abone&&!isAbone?`showAboneGerek(this)`:`ayarCerceveSec('${c.id}',this)`}">
-          <div class="cerceve-demo-img" style="border-color:${c.renk};${c.id.startsWith('neon')?`box-shadow:0 0 8px ${c.renk};`:''}"></div>
-          <div class="cerceve-lbl" style="${c.abone?'color:#FFD700;':''}">${c.lbl}</div>
-        </div>`).join('')}
-      </div>
-      <div class="ayar-baslik">Banner</div>
-      <div class="ayar-baslik" style="font-size:8px;color:#444;margin-bottom:8px;">Renk Seç (Ücretsiz)</div>
-      <div class="renk-grid">${renkBtns}</div>
-      <div class="ayar-baslik" style="font-size:8px;color:#FFD700;margin-bottom:8px;">👑 Görsel/GIF Yükle (Abone)</div>
-      ${isAbone?`<input type="file" id="banner-file" accept="image/*,image/gif" style="display:none;" onchange="bannerYukle(this)">
-      <button class="mc-btn mc-gold" onclick="document.getElementById('banner-file').click()" style="padding:8px 14px;width:100%;justify-content:center;margin-bottom:6px;"><i class="fa-solid fa-upload"></i> Banner Yükle (851×315)</button>`
-      :`<div class="abone-gerek">Görsel banner yüklemek için abone ol 👑</div>`}
-      <button class="mc-btn mc-red" onclick="bannerKaldir()" style="padding:8px 14px;width:100%;justify-content:center;margin-top:4px;"><i class="fa-solid fa-trash"></i> Banner'ı Kaldır (Canvas Arka Plan)</button>
-    </div>
-
-    <!-- BİO & DISCORD -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Bio & İletişim</div>
-      <textarea class="ayar-input" id="ayar-bio" placeholder="Hakkında bir şeyler yaz..." style="resize:vertical;min-height:70px;">${esc(kul.bio||'')}</textarea>
-      <input type="text" class="ayar-input" id="ayar-discord" placeholder="Discord kullanıcı adı" value="${kul.discord||''}">
-    </div>
-
-    <!-- KATEGORİ -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Kategori</div>
-      <div class="kat-sec-grid">
-        ${[['pvp','⚔️','PvP Oyuncusu'],['icerik','🎬','İçerik Üreticisi'],['developer','⚙️','Developer'],['builder','🔨','Builder']].map(([k,ico,lbl])=>`
-        <div class="kat-sec-btn${kul.kategori===k?' on':''}" id="akat-${k}" onclick="ayarKatSec('${k}',this)">
-          <div class="kat-ico">${ico}</div>
-          <div class="kat-lbl">${lbl}</div>
-        </div>`).join('')}
-      </div>
-      <div id="ayar-alt-kat-wrap" style="display:${kul.kategori&&kul.kategori!=='builder'?'block':'none'};">
-        <div class="ayar-baslik" style="font-size:8px;margin-bottom:8px;">Alt Kategori</div>
-        <div class="alt-sec-grid" id="ayar-alt-kat-grid"></div>
-      </div>
-    </div>
-
-    <!-- SUNUCULAR -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Favori Sunucular <span style="color:#444;font-size:8px;">(min 2)</span></div>
-      <div style="font-size:9px;color:#444;margin-bottom:8px;">Seçilen: <span id="ayar-fav-sayac" style="color:#39ff14;">${favSunucular.length}</span></div>
-      <div class="s-grid">${allSunucuHTML}</div>
-      <div class="ayar-baslik" style="margin-top:10px;">Aktif Sunucu</div>
-      <div class="s-grid">${aktifSunucuHTML}</div>
-    </div>
-
-    <!-- KAYDET -->
-    <button class="mc-btn mc-green" onclick="ayarKaydet()" style="width:100%;justify-content:center;padding:14px;font-size:12px;margin-top:4px;"><i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet</button>
-    <div id="ayar-msg" style="display:none;margin-top:10px;text-align:center;font-size:11px;font-weight:800;padding:10px;border-radius:4px;"></div>
-  </div>`;
-}
-
-// ── AYARLAR FONKSİYONLARI ──
-let ppBase64=null,bannerBase64=null;
-
-function ppZoom(src){document.getElementById('zoom-img').src=src||(window.__profilAv);document.getElementById('zoom-modal').classList.add('active');}
-
-function ppYukle(inp){
-  const f=inp.files[0];if(!f)return;
-  if(f.size>3*1024*1024){alert('Maks 3MB!');return;}
-  const r=new FileReader();
-  r.onload=e=>{ppBase64=e.target.result;document.getElementById('ayar-pp-oniz').src=e.target.result;};
-  r.readAsDataURL(f);
-}
-
-function bannerYukle(inp){
-  const f=inp.files[0];if(!f)return;
-  if(f.size>5*1024*1024){alert('Maks 5MB!');return;}
-  const r=new FileReader();
-  r.onload=e=>{
-    bannerBase64=e.target.result;
-    // Önizleme
-    let oniz=document.getElementById('banner-oniz');
-    if(!oniz){
-      oniz=document.createElement('div');oniz.id='banner-oniz';
-      oniz.style.cssText='margin-top:8px;border-radius:4px;overflow:hidden;border:1px solid #2a2a2a;aspect-ratio:851/315;';
-      inp.parentElement.appendChild(oniz);
-    }
-    oniz.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-  };
-  r.readAsDataURL(f);
-}
-
-let secilenBannerRenk=null;
-function ayarBannerRenk(id,btn){
-  document.querySelectorAll('.renk-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');secilenBannerRenk=id;
-}
-
-let secilenPPSekil=null;
-function ayarPPSekil(sekil,btn){
-  document.querySelectorAll('.sekil-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');secilenPPSekil=sekil;
-  const oniz=document.getElementById('ayar-pp-oniz');
-  if(oniz){oniz.className='pp-img '+(sekil==='rounded'?'pp-rounded':'pp-circle');oniz.style.width='64px';oniz.style.height='64px';}
-}
-
-let secilenCerceve=null;
-function ayarCerceveSec(id,btn){
-  document.querySelectorAll('.cerceve-sec-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');secilenCerceve=id;
-  // Canlı önizleme
-  const oniz=document.getElementById('ayar-pp-oniz');
-  if(oniz) oniz.setAttribute('data-frame',id);
-  const mainPP=document.getElementById('main-pp-img');
-  if(mainPP) mainPP.setAttribute('data-frame',id);
-}
-
-function showAboneGerek(el){
-  const msg=document.getElementById('ayar-msg');
-  msg.style.display='block';msg.style.background='rgba(255,215,0,.08)';msg.style.border='1px solid rgba(255,215,0,.3)';msg.style.color='#FFD700';
-  msg.textContent='👑 Bu özellik için abone olman gerekiyor!';
-  setTimeout(()=>msg.style.display='none',3000);
-}
-
-const ALT_KATEGORILER={
-  pvp:['T1','HT1','LT1','T2','HT2','LT2','T3','HT3','LT3','T4','T5','Başlangıç'],
-  icerik:['Kick','YouTube','Twitch','TikTok','Instagram'],
-  developer:['Plugin Dev','Skripter','Web Dev'],
-};
-
-function ayarKatSec(kat,btn){
-  document.querySelectorAll('.kat-sec-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');ayarKat=kat;
-  const wrap=document.getElementById('ayar-alt-kat-wrap');
-  const grid=document.getElementById('ayar-alt-kat-grid');
-  if(kat==='builder'){wrap.style.display='none';ayarAltKat='Builder';return;}
-  wrap.style.display='block';
-  const opts=ALT_KATEGORILER[kat]||[];
-  grid.innerHTML=opts.map(o=>`<div class="alt-btn" onclick="ayarAltKatSec('${o}',this)">${o}</div>`).join('');
-}
-
-function ayarAltKatSec(val,btn){
-  document.querySelectorAll('.alt-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');ayarAltKat=val;
-}
-
-const ayarFavSecSet=new Set();
-function ayarSunucuSec(n,idx,btn){
-  if(ayarFavSecSet.has(n)){ayarFavSecSet.delete(n);btn.classList.remove('on');}
-  else{ayarFavSecSet.add(n);btn.classList.add('on');}
-  document.getElementById('ayar-fav-sayac').textContent=ayarFavSecSet.size;
-}
-
-let ayarAktifSecVal=null;
-function ayarAktifSunucuSec(n,idx,btn){
-  document.querySelectorAll('[id^="ayas-"]').forEach(b=>b.classList.remove('on-tek'));
-  btn.classList.add('on-tek');ayarAktifSecVal=n;
-}
-
-function hesapAyarlarHTML(kul){
-  const isAbone=abone(kul);
-  const mesajAyar=kul.mesaj_ayar||'herkes';
-  const gizli=kul.profil_gizli||false;
-  return`<div class="box">
-    <!-- GİZLİLİK -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Hesap Gizliliği</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #111;">
-        <div>
-          <div style="font-size:12px;font-weight:800;color:#fff;margin-bottom:3px;">Gizli Hesap</div>
-          <div style="font-size:10px;color:#444;">Profilini sadece takipçilerin görebilir</div>
-        </div>
-        <label style="position:relative;display:inline-block;width:42px;height:22px;cursor:pointer;">
-          <input type="checkbox" id="ayar-gizli" ${gizli?'checked':''} style="opacity:0;width:0;height:0;">
-          <span id="gizli-toggle" onclick="toggleGizli()" style="position:absolute;inset:0;background:${gizli?'#39ff14':'#2a2a2a'};border-radius:22px;transition:.3s;"></span>
-          <span style="position:absolute;top:3px;left:${gizli?'23px':'3px'};width:16px;height:16px;background:#fff;border-radius:50%;transition:.3s;pointer-events:none;" id="gizli-knob"></span>
-        </label>
-      </div>
-    </div>
-
-    <!-- MESAJ AYARI -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Mesaj Gönderebilecekler</div>
-      ${[
-        {val:'herkes',lbl:'Herkes',ico:'🌍'},
-        {val:'takipciler',lbl:'Sadece Takipçilerim',ico:'👥'},
-        {val:'hic',lbl:'Hiç Kimse',ico:'🚫'},
-      ].map(o=>`<div onclick="mesajAyarSec('${o.val}',this)" data-val="${o.val}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;cursor:pointer;border:1px solid ${mesajAyar===o.val?'rgba(57,255,20,.4)':'#1a1a1a'};background:${mesajAyar===o.val?'rgba(57,255,20,.06)':'#111'};margin-bottom:6px;transition:.15s;">
-        <span style="font-size:18px;">${o.ico}</span>
-        <span style="font-size:12px;font-weight:800;color:${mesajAyar===o.val?'#39ff14':'#ccc'};">${o.lbl}</span>
-        ${mesajAyar===o.val?'<i class="fa-solid fa-check" style="margin-left:auto;color:#39ff14;font-size:10px;"></i>':''}
-      </div>`).join('')}
-    </div>
-
-    <!-- TAKİP İSTEKLERİ -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Takip İstekleri</div>
-      <div id="takip-istekleri-liste"><div style="text-align:center;font-size:11px;color:#444;padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
-    </div>
-    <!-- PROFİL ZİYARETÇİLERİ -->
-    <div class="ayar-bolum">
-      <div class="ayar-baslik">Profil Ziyaretçileri ${!isAbone?'<span style="color:#FFD700;font-size:8px;">👑 Abone</span>':''}</div>
-      <div id="ziyaretci-liste">
-        ${isAbone?'<div style="text-align:center;font-size:11px;color:#444;padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>':'<div class="abone-gerek">Profilini kimlerin ziyaret ettiğini görmek için abone ol 👑</div>'}
-      </div>
-    </div>
-
-    <button class="mc-btn mc-green" onclick="hesapAyarKaydet()" style="width:100%;justify-content:center;padding:13px;font-size:12px;"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
-    <div id="hesap-msg" style="display:none;margin-top:10px;text-align:center;font-size:11px;font-weight:800;padding:10px;border-radius:4px;"></div>
-  </div>`;
-}
-
-let seciliGizli=null,seciliMesajAyar=null;
-function toggleGizli(){
-  const cb=document.getElementById('ayar-gizli');
-  const toggle=document.getElementById('gizli-toggle');
-  const knob=document.getElementById('gizli-knob');
-  cb.checked=!cb.checked;
-  seciliGizli=cb.checked;
-  toggle.style.background=cb.checked?'#39ff14':'#2a2a2a';
-  knob.style.left=cb.checked?'23px':'3px';
-}
-function mesajAyarSec(val,el){
-  seciliMesajAyar=val;
-  document.querySelectorAll('[data-val]').forEach(e=>{
-    const isMe=e.dataset.val===val;
-    e.style.borderColor=isMe?'rgba(57,255,20,.4)':'#1a1a1a';
-    e.style.background=isMe?'rgba(57,255,20,.06)':'#111';
-    e.querySelector('span:last-child').style.color=isMe?'#39ff14':'#ccc';
-  });
-}
-async function hesapAyarKaydet(){
-  const msg=document.getElementById('hesap-msg');
-  msg.style.display='block';msg.style.color='#ccc';msg.style.background='rgba(255,255,255,.05)';msg.style.border='1px solid #2a2a2a';
-  msg.textContent='⏳ Kaydediliyor...';
-  const guncel={};
-  if(seciliGizli!==null)guncel.profil_gizli=seciliGizli;
-  if(seciliMesajAyar)guncel.mesaj_ayar=seciliMesajAyar;
-  if(!Object.keys(guncel).length){msg.textContent='⚠️ Değişiklik yok!';return;}
-  const{error}=await SB.from('kullanicilar').update(guncel).eq('id',Number(profil.id));
-  if(error){msg.style.color='#ff6b6b';msg.textContent='❌ Hata: '+error.message;return;}
-  msg.style.color='#39ff14';msg.textContent='✅ Kaydedildi!';
-  setTimeout(()=>location.reload(),1000);
-}
-
-async function takipIstekleriYukle(){
-  const el=document.getElementById('takip-istekleri-liste');if(!el)return;
-  const{data}=await SB.from('takip_istekleri').select('*').eq('alici_id',Number(profil.id)).eq('durum','beklemede').limit(20);
-  if(!data?.length){el.innerHTML='<div style="text-align:center;font-size:11px;color:#444;padding:10px;">Bekleyen istek yok</div>';return;}
-  const ids=data.map(d=>d.gonderen_id);
-  const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url').in('id',ids);
-  const km={};(kullar||[]).forEach(k=>km[k.id]=k);
-  el.innerHTML=data.map(istek=>{
-    const k=km[istek.gonderen_id]||{};
-    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #111;">
-      <img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/34.png`}" style="width:34px;height:34px;border-radius:50%;border:1px solid #1a1a1a;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'" onerror="this.src='https://minotar.net/helm/Steve/34.png'">
-      <div style="flex:1;font-size:12px;font-weight:900;color:#fff;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">${k.kullanici_adi||'?'}</div>
-      <button class="mc-btn mc-green" onclick="istekKabul(${istek.id},${istek.gonderen_id})" style="padding:6px 12px;font-size:9px;">✓ Kabul</button>
-      <button class="mc-btn mc-red" onclick="istekReddet(${istek.id})" style="padding:6px 12px;font-size:9px;">✕ Reddet</button>
-    </div>`;
-  }).join('');
-}
-
-async function istekKabul(istekId,gondId){
-  await SB.from('takip_istekleri').update({durum:'kabul'}).eq('id',istekId);
-  await SB.from('takipler').insert({takip_eden_id:gondId,takip_edilen_id:Number(profil.id)});
-  await SB.from('kullanicilar').update({takipci_sayisi:(profil.takipci_sayisi||0)+1}).eq('id',Number(profil.id));
-  // Kabul bildirimi gönder
-  bildirimGonder(gondId,Number(profil.id),'takip_kabul','Takip isteğini kabul etti.','/lobbygg/profil.html?id='+profil.id);
-  await takipIstekleriYukle();
-}
-
-async function istekReddet(istekId){
-  await SB.from('takip_istekleri').update({durum:'red'}).eq('id',istekId);
-  await takipIstekleriYukle();
-}
-
-async function ziyaretcileriYukle(){
-  const el=document.getElementById('ziyaretci-liste');if(!el)return;
-  const{data}=await SB.from('profil_ziyaretciler')
-    .select('ziyaretci_id,ziyaret_tarihi')
-    .eq('profil_id',Number(profil.id))
-    .order('ziyaret_tarihi',{ascending:false})
-    .limit(20);
-  if(!data?.length){el.innerHTML='<div style="text-align:center;font-size:11px;color:#444;padding:10px;">Henüz ziyaretçi yok</div>';return;}
-  const ids=[...new Set(data.map(d=>d.ziyaretci_id))];
-  const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url').in('id',ids);
-  const km={};(kullar||[]).forEach(k=>km[k.id]=k);
-  const tekil=ids.map(id=>({kul:km[id],tarih:data.find(d=>d.ziyaretci_id===id)?.ziyaret_tarihi})).filter(x=>x.kul);
-  el.innerHTML=tekil.map(x=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #111;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${x.kul.id}'">
-    <img src="${x.kul.avatar_url||`https://minotar.net/helm/${x.kul.kullanici_adi||'Steve'}/32.png`}" style="width:32px;height:32px;border-radius:50%;border:1px solid #1a1a1a;" onerror="this.src='https://minotar.net/helm/Steve/32.png'">
-    <div style="flex:1;"><div style="font-size:11px;font-weight:900;color:#fff;">${x.kul.kullanici_adi}</div></div>
-    <div style="font-size:9px;color:#444;">${zaman(x.tarih)}</div>
-  </div>`).join('');
-}
-
-async function ayarKaydet(){
-  const msg=document.getElementById('ayar-msg');
-  msg.style.display='block';msg.style.background='rgba(255,255,255,.05)';msg.style.border='1px solid #2a2a2a';msg.style.color='#ccc';
-  msg.textContent='⏳ Kaydediliyor...';
-
-  const guncel={};
-  const bio=document.getElementById('ayar-bio')?.value?.trim();
-  const discord=document.getElementById('ayar-discord')?.value?.trim();
-  if(bio!==undefined)guncel.bio=bio||null;
-  if(discord!==undefined)guncel.discord=discord||null;
-  if(ppBase64==='__kaldir__')guncel.avatar_url=null;
-  else if(ppBase64)guncel.avatar_url=ppBase64;
-  if(bannerBase64==='__kaldir__')guncel.banner_url=null;
-  else if(bannerBase64)guncel.banner_url=bannerBase64;
-  if(secilenBannerRenk)guncel.banner_renk=secilenBannerRenk;
-  if(secilenPPSekil)guncel.pp_sekil=secilenPPSekil;
-  if(secilenCerceve!==null)guncel.aktif_cerceve=secilenCerceve;
-  if(ayarKat)guncel.kategori=ayarKat;
-  if(ayarAltKat)guncel.alt_kategori=ayarAltKat;
-  if(ayarFavSecSet.size>=2)guncel.favori_sunucular=JSON.stringify([...ayarFavSecSet]);
-  if(ayarAktifSecVal)guncel.desteklenen_sunucu=ayarAktifSecVal!=='Belirtmek İstemiyorum'?ayarAktifSecVal:null;
-
-  if(!Object.keys(guncel).length){msg.textContent='⚠️ Değişiklik yok!';return;}
-
-  const{error}=await SB.from('kullanicilar').update(guncel).eq('id',profil.id);
-  if(error){
-    msg.style.background='rgba(255,50,50,.08)';msg.style.border='1px solid rgba(255,50,50,.3)';msg.style.color='#ff6b6b';
-    msg.textContent='❌ Hata: '+error.message;return;
-  }
-  msg.style.background='rgba(57,255,20,.08)';msg.style.border='1px solid rgba(57,255,20,.2)';msg.style.color='#39ff14';
-  msg.textContent='✅ Kaydedildi! Sayfa yenileniyor...';
-  setTimeout(()=>location.reload(),1200);
-}
-
-// ── DROPLAR ──
-async function kategoriKaldir(){
-  if(!confirm('Kategorini kaldırmak istediğine emin misin?'))return;
-  await SB.from('kullanicilar').update({kategori:null,alt_kategori:null}).eq('id',parseInt(profil.id));
-  location.reload();
-}
-
-function ppKaldir(){
-  ppBase64='__kaldir__';
-  const oniz=document.getElementById('ayar-pp-oniz');
-  if(oniz&&profil){oniz.src=`https://minotar.net/helm/${profil.kullanici_adi||'Steve'}/96.png`;}
-}
-
-function bannerKaldir(){
-  bannerBase64='__kaldir__';
-  const msg=document.getElementById('ayar-msg');
-  msg.style.display='block';msg.style.background='rgba(57,255,20,.06)';msg.style.border='1px solid rgba(57,255,20,.2)';msg.style.color='#39ff14';
-  msg.textContent='✅ Banner kaldırılacak — Kaydet butonuna bas.';
-}
-
-async function aktifSunucuKaldir(){
-  await SB.from('kullanicilar').update({desteklenen_sunucu:null}).eq('id',parseInt(profil.id));
-  location.reload();
-}
-
-async function favSunucuKaldir(sunucu){
-  let favList=[];
-  try{favList=JSON.parse(profil.favori_sunucular||'[]');}catch(e){}
-  favList=favList.filter(s=>s!==sunucu);
-  await SB.from('kullanicilar').update({favori_sunucular:JSON.stringify(favList)}).eq('id',parseInt(profil.id));
-  location.reload();
-}
-
-let dropGorselBase64=null;
-function dropGorselSec(inp){
-  const f=inp.files[0];if(!f||f.size>3145728){alert('Maks 3MB!');return;}
-  const r=new FileReader();r.onload=e=>{dropGorselBase64=e.target.result;document.getElementById('drop-oniz-img').src=e.target.result;document.getElementById('drop-oniz').style.display='block';};r.readAsDataURL(f);
-}
-function dropGorselTemizle(){dropGorselBase64=null;document.getElementById('drop-oniz').style.display='none';}
-
-async function dropPaylas(){
-  if(!benKim){alert('Giriş yapman gerekiyor!');return;}
-  const icerik=document.getElementById('drop-yazi')?.value?.trim()||'';
-  if(!icerik&&!dropGorselBase64){alert('Bir şeyler yaz veya görsel ekle!');return;}
-  const btn=document.querySelector('.drop-yaz-box .mc-green');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Paylaşılıyor...';}
-  const{error}=await SB.from('droplar').insert({
-    kullanici_id:parseInt(benKim.id),
-    icerik:icerik||null,
-    gorsel_url:dropGorselBase64||null,
-    begeni_sayisi:0,
-    yorum_sayisi:0
-  });
-  if(error){
-    if(btn){btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Paylaş';}
-    alert('Drop paylaşılamadı: '+error.message);
-    return;
-  }
-  const pid=new URLSearchParams(location.search).get('id');
-  location.href='/lobbygg/profil.html?id='+(pid||parseInt(benKim.id));
-}
-
-async function renderDroplar(droplar,av,nick){
-  const el=document.getElementById('droplar-liste');if(!el)return;
-  if(!droplar?.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#333;"><div style="font-size:28px;margin-bottom:8px;">💬</div>Henüz drop yok</div>';return;}
-  
-  // Beğenilen dropları önceden çek
-  let benilenler=new Set();
-  if(benKim&&droplar.length){
-    const{data:beg}=await SB.from('drop_begeniler').select('drop_id').eq('kullanici_id',Number(benKim.id)).in('drop_id',droplar.map(d=>d.id));
-    (beg||[]).forEach(b=>benilenler.add(b.drop_id));
-  }
-  
-  el.innerHTML=droplar.map(d=>{const begen=benilenler.has(d.id);return`
-    <div class="drop-kart" id="drop-${d.id}">
-      <div class="drop-head">
-        <div class="drop-av"><img src="${profil.avatar_url||`https://minotar.net/helm/${profil.kullanici_adi||'Steve'}/34.png`}" onerror="this.src='https://minotar.net/helm/Steve/34.png'"></div>
-        <div><div class="drop-nick">${profil.kullanici_adi||'?'}</div><div class="drop-zaman">${zaman(d.created_at)}</div></div>
-      </div>
-      ${d.icerik?`<div class="drop-icerik">${esc(d.icerik)}</div>`:''}
-      ${d.gorsel_url?`<img src="${d.gorsel_url}" class="drop-gorsel" onclick="ppZoom('${d.gorsel_url.replace(/'/g,"\\'")}')">`:''}
-      <div class="drop-aksiyon">
-        <button class="drop-btn${begen?' begendi':''}" id="beg-${d.id}" onclick="dropBegen(${d.id})"><i class="${begen?'fa-solid':'fa-regular'} fa-heart"></i>&nbsp;<span id="bs-${d.id}">${d.begeni_sayisi||0}</span></button>
-        <button class="drop-btn" onclick="yorumToggle(${d.id})"><i class="fa-regular fa-comment"></i>&nbsp;${d.yorum_sayisi||0}</button>
-        ${benKim?.id===profil.id?`<button class="drop-btn" onclick="dropSil(${d.id})" style="margin-left:auto;color:#f85149;"><i class="fa-solid fa-trash"></i></button>`:''}
-      </div>
-      <div class="yorum-wrap" id="yw-${d.id}"></div>
-    </div>`;}).join('');
-}
-
-async function dropBegen(id){
-  if(!benKim){location.href='/lobbygg/giris.html';return;}
-  const sEl=document.getElementById('bs-'+id);
-  const btn=document.getElementById('beg-'+id);
-  // Sadece bu kullanıcının kendi beğenisini kontrol et
-  const{data:m}=await SB.from('drop_begeniler').select('id')
-    .eq('drop_id',id)
-    .eq('kullanici_id',Number(benKim.id));
-  
-  if(m?.length){
-    // Sadece kendi beğenisini kaldırabilir
-    await SB.from('drop_begeniler').delete()
-      .eq('id',m[0].id)
-      .eq('kullanici_id',Number(benKim.id));
-    await SB.rpc('begeni_azalt',{p_id:id});
-    btn.className='drop-btn';
-    btn.style.color='';
-  }else{
-    // Beğen - daha önce beğenmediyse
-    await SB.from('drop_begeniler').insert({drop_id:id,kullanici_id:Number(benKim.id)});
-    await SB.rpc('begeni_artir',{p_id:id});
-    btn.className='drop-btn begendi';
-    btn.style.color='#ff1493';
-  }
-  // Gerçek sayıyı DB'den çek (her zaman doğru sayı)
-  const{data:gd}=await SB.from('droplar').select('begeni_sayisi').eq('id',id).single();
-  const yeniS=gd?.begeni_sayisi||0;
-  if(sEl)sEl.textContent=yeniS;
-  btn.innerHTML=`<i class="${m?.length?'fa-regular':'fa-solid'} fa-heart"></i>&nbsp;${yeniS}`;
-}
-
-async function yorumToggle(id){
-  const w=document.getElementById('yw-'+id);
-  if(w.style.display==='block'){w.style.display='none';return;}
-  w.style.display='block';if(w.dataset.loaded)return;w.dataset.loaded='1';
-  const{data:yorumlar}=await SB.from('drop_yorumlar').select('*').eq('drop_id',id).order('created_at',{ascending:true}).limit(20);
-  const ids=(yorumlar||[]).map(y=>y.kullanici_id);
-  let km={};
-  if(ids.length){const{data:kl}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,dogrulama_rozeti').in('id',ids);(kl||[]).forEach(k=>km[k.id]=k);}
-  // Beğenilen yorumları DB'den çek
-  let benilenYorumIds=new Set();
-  if(benKim&&yorumlar?.length){
-    const{data:by}=await SB.from('yorum_begenileri').select('yorum_id').eq('kullanici_id',Number(benKim.id)).in('yorum_id',yorumlar.map(y=>y.id));
-    (by||[]).forEach(b=>benilenYorumIds.add(b.yorum_id));
-  }
-
-  w.innerHTML=`<div id="yl-${id}">${(yorumlar||[]).length
-    ?(yorumlar||[]).map(y=>{const k=km[y.kullanici_id]||{};return`
-    <div style="display:flex;gap:8px;margin-bottom:10px;" id="yorum-${y.id}">
-      <img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'" onerror="this.src='https://minotar.net/helm/Steve/26.png'">
-      <div style="flex:1;">
-        <div style="background:#111;border:1px solid #1a1a1a;padding:7px 10px;border-radius:4px;margin-bottom:4px;">
-          <div style="font-size:10px;font-weight:900;color:#fff;margin-bottom:3px;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">${k.kullanici_adi||'?'} ${k.dogrulama_rozeti?`<img src="https://i.imgur.com/VDpHaPy.png" style="width:14px;height:14px;">`:''}</div>
-          <div style="font-size:12px;color:#aaa;">${esc(y.yorum)}</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <button onclick="yorumBegen(${y.id},this)" class="${benilenYorumIds.has(y.id)?'begendi':''}" style="background:none;border:none;font-size:10px;color:${benilenYorumIds.has(y.id)?'#ff1493':'#444'};cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;display:flex;align-items:center;gap:3px;">
-            <i class="${benilenYorumIds.has(y.id)?'fa-solid':'fa-regular'} fa-heart"></i> <span id="yb-${y.id}">${y.begeni_sayisi||0}</span>
-          </button>
-          ${benKim?`<button onclick="yorumCevapAc(${id},${y.id},'${(k.kullanici_adi||'').replace(/'/g,"\'")}',this)" style="background:none;border:none;font-size:10px;color:#444;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Cevapla</button>`:''}
-          ${benKim&&(benKim.id===y.kullanici_id||benKim.id===profil.id)?`<button onclick="yorumSil(${y.id},${id})" style="background:none;border:none;font-size:10px;color:#f85149;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:800;">Sil</button>`:''}
-        </div>
-        <div id="cevap-wrap-${y.id}" style="display:none;margin-top:6px;"></div>
-      </div>
-    </div>`;}).join('')
-    :'<div style="font-size:10px;color:#444;text-align:center;padding:8px;">Yorum yok. İlk yorumu yap!</div>'}
-  </div>
-  ${benKim?`<div style="display:flex;gap:6px;margin-top:10px;">
-    <img src="${benKim.avatar_url||`https://minotar.net/helm/${benKim.kullanici_adi||'Steve'}/26.png`}" style="width:26px;height:26px;border-radius:50%;flex-shrink:0;">
-    <input type="text" class="yorum-in" id="yi-${id}" placeholder="Yorum yaz..." style="flex:1;" onkeydown="if(event.key==='Enter')yorumGonder(${id})">
-    <button class="mc-btn mc-green" onclick="yorumGonder(${id})" style="padding:7px 12px;font-size:9px;white-space:nowrap;"><i class="fa-solid fa-paper-plane"></i></button>
-  </div>`:''}`;
-}
-
-async function yorumBegen(yorumId, btn){
-  if(!benKim){location.href='/lobbygg/giris.html';return;}
-  const sEl=document.getElementById('yb-'+yorumId);
-  const s=parseInt(sEl?.textContent)||0;
-
-  // DB'den kontrol et
-  const{data:m}=await SB.from('yorum_begenileri').select('id').eq('yorum_id',yorumId).eq('kullanici_id',Number(benKim.id));
-  
-  if(m?.length){
-    // Beğeniyi geri al
-    await SB.from('yorum_begenileri').delete().eq('yorum_id',yorumId).eq('kullanici_id',Number(benKim.id));
-    await SB.from('drop_yorumlar').update({begeni_sayisi:Math.max(0,s-1)}).eq('id',yorumId);
-    btn.classList.remove('begendi');
-    btn.style.color='#444';
-    btn.querySelector('i').className='fa-regular fa-heart';
-    if(sEl)sEl.textContent=Math.max(0,s-1);
-  }else{
-    // Beğen
-    await SB.from('yorum_begenileri').insert({yorum_id:yorumId,kullanici_id:Number(benKim.id)});
-    await SB.from('drop_yorumlar').update({begeni_sayisi:s+1}).eq('id',yorumId);
-    btn.classList.add('begendi');
-    btn.style.color='#ff1493';
-    btn.querySelector('i').className='fa-solid fa-heart';
-    if(sEl)sEl.textContent=s+1;
-  }
-}
-
-function yorumCevapAc(dropId, yorumId, hedefNick, btn){
-  if(!benKim)return;
-  const wrap=document.getElementById('cevap-wrap-'+yorumId);
-  if(!wrap)return;
-  if(wrap.style.display==='flex'){wrap.style.display='none';return;}
-  wrap.style.display='flex';
-  wrap.style.gap='6px';
-  wrap.innerHTML=`
-    <img src="${benKim.avatar_url||`https://minotar.net/helm/${benKim.kullanici_adi||'Steve'}/22.png`}" style="width:22px;height:22px;border-radius:50%;flex-shrink:0;">
-    <input type="text" class="yorum-in" id="cevap-in-${yorumId}" placeholder="@${hedefNick}'e cevap ver..." value="@${hedefNick} " style="flex:1;font-size:11px;" onkeydown="if(event.key==='Enter')cevapGonder(${dropId},${yorumId})">
-    <button class="mc-btn mc-green" onclick="cevapGonder(${dropId},${yorumId})" style="padding:6px 10px;font-size:9px;"><i class="fa-solid fa-paper-plane"></i></button>`;
-  document.getElementById('cevap-in-'+yorumId)?.focus();
-}
-
-async function cevapGonder(dropId, yorumId){
-  const inp=document.getElementById('cevap-in-'+yorumId);
-  const metin=inp?.value?.trim();if(!metin)return;
-  await SB.from('drop_yorumlar').insert({drop_id:dropId,kullanici_id:parseInt(benKim.id),yorum:metin});
-  const{data:d}=await SB.from('droplar').select('yorum_sayisi').eq('id',dropId).single();
-  await SB.from('droplar').update({yorum_sayisi:(d?.yorum_sayisi||0)+1}).eq('id',dropId);
-  const w=document.getElementById('yw-'+dropId);if(w){delete w.dataset.loaded;w.style.display='none';}
-  yorumToggle(dropId);
-}
-
-async function yorumSil(yorumId, dropId){
-  if(!confirm('Bu yorumu silmek istediğine emin misin?'))return;
-  await SB.from('drop_yorumlar').delete().eq('id',yorumId);
-  const{data:d}=await SB.from('droplar').select('yorum_sayisi').eq('id',dropId).single();
-  await SB.from('droplar').update({yorum_sayisi:Math.max(0,(d?.yorum_sayisi||1)-1)}).eq('id',dropId);
-  document.getElementById('yorum-'+yorumId)?.remove();
-}
-
-async function yorumGonder(id){
-  if(!benKim)return;
-  const inp=document.getElementById('yi-'+id);
-  const y=inp?.value?.trim();if(!y)return;
-  await SB.from('drop_yorumlar').insert({drop_id:id,kullanici_id:benKim.id,yorum:y});
-  const{data:d}=await SB.from('droplar').select('yorum_sayisi').eq('id',id).single();
-  await SB.from('droplar').update({yorum_sayisi:(d?.yorum_sayisi||0)+1}).eq('id',id);
-  inp.value='';const w=document.getElementById('yw-'+id);delete w.dataset.loaded;w.style.display='none';yorumToggle(id);
-}
-
-async function dropSil(id){
-  if(!confirm('Bu dropu silmek istediğine emin misin?'))return;
-  await SB.from('droplar').delete().eq('id',id);
-  document.getElementById('drop-'+id)?.remove();
-}
-
-// ── TAKİP ──
-async function takipcileriYukle(){
-  const el=document.getElementById('takipciler-liste');if(!el||!profil?.id)return;
-  el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>';
-  try{
-    const pid=Number(profil.id);
-    const{data:t,error}=await SB.from('takipler').select('takip_eden_id').eq('takip_edilen_id',pid);
-    if(error)throw error;
-    if(!t?.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Henüz takipçi yok</div>';return;}
-    const ids=[...new Set(t.map(x=>Number(x.takip_eden_id)))];
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik,dogrulama_rozeti').in('id',ids);
-    el.innerHTML=kullar?.length?kullar.map(k=>kulKartHTML(k)).join(''):'<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Bulunamadı</div>';
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#f85149;font-size:11px;">❌ '+e.message+'</div>';}
-}
-
-async function takipEttikleriniYukle(){
-  const el=document.getElementById('takip-liste');if(!el||!profil?.id)return;
-  el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>';
-  try{
-    const pid=Number(profil.id);
-    const{data:t,error}=await SB.from('takipler').select('takip_edilen_id').eq('takip_eden_id',pid);
-    if(error)throw error;
-    if(!t?.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Kimseyi takip etmiyor</div>';return;}
-    const ids=[...new Set(t.map(x=>Number(x.takip_edilen_id)))];
-    const{data:kullar}=await SB.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik,dogrulama_rozeti').in('id',ids);
-    el.innerHTML=kullar?.length?kullar.map(k=>kulKartHTML(k)).join(''):'<div style="text-align:center;padding:20px;color:#444;font-size:11px;">Bulunamadı</div>';
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:20px;color:#f85149;font-size:11px;">❌ '+e.message+'</div>';}
-}
-
-function kulKartHTML(k){
-  return`<div class="tkart" onclick="location.href='/lobbygg/profil.html?id=${k.id}'">
-    <div class="tkav"><img src="${k.avatar_url||`https://minotar.net/helm/${k.kullanici_adi||'Steve'}/36.png`}" onerror="this.src='https://minotar.net/helm/Steve/36.png'"></div>
-    <div style="flex:1;"><div style="font-size:12px;font-weight:900;color:#fff;">${k.kullanici_adi||'?'}</div><div style="font-size:9px;color:#444;text-transform:uppercase;">${BADGEAD[k.abonelik]||'ÜYE'}</div></div>
-    <i class="fa-solid fa-chevron-right" style="font-size:10px;color:#2a2a2a;"></i>
-  </div>`;
-}
-
-async function takipToggle(){
-  if(!benKim)return;
-  const btn=document.getElementById('takip-btn');
-  if(takipEdiyorMu){
-    await SB.from('takipler').delete().eq('takip_eden_id',benKim.id).eq('takip_edilen_id',profil.id);
-    const yeni=Math.max(0,(profil.takipci_sayisi||1)-1);
-    await Promise.all([SB.from('kullanicilar').update({takipci_sayisi:yeni}).eq('id',profil.id),SB.from('kullanicilar').update({takip_sayisi:Math.max(0,(benKim.takip_sayisi||1)-1)}).eq('id',benKim.id)]);
-    profil.takipci_sayisi=yeni;takipEdiyorMu=false;
-  }else{
-    const{data:v}=await SB.from('takipler').select('id').eq('takip_eden_id',parseInt(benKim.id)).eq('takip_edilen_id',parseInt(profil.id));
-    if(!v?.length){
-      await SB.from('takipler').insert({takip_eden_id:benKim.id,takip_edilen_id:profil.id});
-      const yeni=(profil.takipci_sayisi||0)+1;
-      await Promise.all([SB.from('kullanicilar').update({takipci_sayisi:yeni}).eq('id',profil.id),SB.from('kullanicilar').update({takip_sayisi:(benKim.takip_sayisi||0)+1}).eq('id',benKim.id)]);
-      profil.takipci_sayisi=yeni;
-    }
-    takipEdiyorMu=true;
-  }
-  if(btn){btn.className='mc-btn '+(takipEdiyorMu?'mc-red':'mc-green');btn.innerHTML=`<i class="fa-solid fa-user-${takipEdiyorMu?'minus':'plus'}"></i> ${takipEdiyorMu?'Takibi Bırak':'Takip Et'}`;}
-  document.querySelectorAll('.stat-val')[2].textContent=profil.takipci_sayisi;
-}
-
-// ── DM ──
-function dmAc(){
-  if(!benKim){location.href='/lobbygg/giris.html';return;}
-  document.getElementById('dm-baslik').textContent=profil.kullanici_adi+' ile Mesajlaşma';
-  document.getElementById('dm-body').innerHTML=`
-    <div id="dm-mesajlar" style="max-height:260px;overflow-y:auto;margin-bottom:12px;"></div>
-    <div style="display:flex;gap:7px;">
-      <input type="text" class="yorum-in" id="dm-in" placeholder="Mesaj yaz..." style="flex:1;" onkeydown="if(event.key==='Enter')dmGonder()">
-      <button class="mc-btn mc-green" onclick="dmGonder()" style="padding:8px 12px;"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
-    <div style="margin-top:8px;font-size:9px;color:#444;text-align:center;">Tam DM için <a href="/lobbygg/mesajlar.html" style="color:#39ff14;">mesajlar sayfasına</a> git</div>`;
-  dmYukle();document.getElementById('dm-modal').classList.add('active');
-}
-
-async function dmYukle(){
-  const el=document.getElementById('dm-mesajlar');if(!el)return;
-  const{data}=await SB.from('mesajlar').select('*')
-    .or(`and(gonderen_id.eq.${benKim.id},alici_id.eq.${profil.id}),and(gonderen_id.eq.${profil.id},alici_id.eq.${benKim.id})`)
-    .order('created_at',{ascending:true}).limit(30);
-  if(!data?.length){el.innerHTML='<div style="text-align:center;color:#444;font-size:11px;padding:14px;">Henüz mesaj yok</div>';return;}
-  el.innerHTML=data.map(m=>{
-    const ben=m.gonderen_id===benKim.id;
-    return`<div style="display:flex;justify-content:${ben?'flex-end':'flex-start'};margin-bottom:8px;">
-      <div style="max-width:70%;background:${ben?'#1a3a10':'#111'};border:1px solid ${ben?'#2a5a18':'#1a1a1a'};padding:7px 11px;border-radius:${ben?'10px 10px 2px 10px':'10px 10px 10px 2px'};">
-        <div style="font-size:12px;color:#bbb;">${esc(m.mesaj)}</div>
-        <div style="font-size:8px;color:#444;margin-top:3px;">${zaman(m.created_at)}</div>
-      </div>
-    </div>`;
-  }).join('');
-  el.scrollTop=el.scrollHeight;
-}
-
-async function dmGonder(){
-  const inp=document.getElementById('dm-in');const m=inp?.value?.trim();if(!m)return;
-  await SB.from('mesajlar').insert({gonderen_id:benKim.id,alici_id:profil.id,mesaj:m});
-  inp.value='';dmYukle();
-}
-
-// ── SEKMELER ──
-const SEKME_IDS=['droplar','ilanlar','takipciler','takip','ozellestir','hesapayar'];
-function sekmeAc(idx){
-  document.querySelectorAll('.sekme').forEach((s,i)=>s.classList.toggle('active',i===idx));
-  document.querySelectorAll('.sekme-icerik').forEach(s=>s.classList.remove('active'));
-  const id=SEKME_IDS[idx]||'droplar';
-  document.getElementById('sekme-'+id)?.classList.add('active');
-  if(id==='takipciler')takipcileriYukle();
-  if(id==='takip')takipEttikleriniYukle();
-  if(id==='hesapayar'){setTimeout(takipIstekleriYukle,100);if(abone(profil))setTimeout(ziyaretcileriYukle,200);}
-}
-
-// ── YARDIMCI ──
-async function reklamlariYukle(){
-  // Aktif reklam ilanlarını getir (kategori=reklam, durum=aktif)
-  const{data}=await SB.from('ilanlar').select('id,kullanici_nick,baslik,banner_url,alt_kategori,aciklama').eq('kategori','reklam').eq('durum','aktif').limit(6);
-  if(!data||!data.length)return; // Reklam yoksa hiçbir şey gösterme
-  const solEl=document.getElementById('sol-reklam');
-  const sagEl=document.getElementById('sag-reklam');
-  if(!solEl||!sagEl)return;
-
-  const yarisi=Math.ceil(data.length/2);
-  const solReklamlar=data.slice(0,yarisi);
-  const sagReklamlar=data.slice(yarisi);
-
-  const reklamHTML=r=>`<div class="reklam-kart" onclick="location.href='/lobbygg/ilanlar.html'" title="${r.baslik||r.kullanici_nick||''}">
-    ${r.banner_url?`<img src="${r.banner_url}" alt="" style="height:120px;object-fit:cover;">`
-    :`<div style="height:80px;background:linear-gradient(135deg,#111,#1a1a1a);display:flex;align-items:center;justify-content:center;font-size:24px;">📣</div>`}
-    <div class="reklam-kart-icerik">
-      <div class="reklam-kart-isim">${r.baslik||r.kullanici_nick||'Reklam'}</div>
-      <div class="reklam-kart-tip">${r.alt_kategori||'Sponsorlu'}</div>
-    </div>
-  </div>`;
-
-  solEl.innerHTML=solReklamlar.map(reklamHTML).join('');
-  sagEl.innerHTML=sagReklamlar.map(reklamHTML).join('');
-}
-
-function zaman(ts){if(!ts)return'';const d=Date.now()-new Date(ts).getTime();if(d<60000)return'Az önce';if(d<3600000)return Math.floor(d/60000)+'dk';if(d<86400000)return Math.floor(d/3600000)+'sa';return Math.floor(d/86400000)+'g';}
-function git(el){location.href=el.dataset.u||el.closest("[data-u]")?.dataset.u||"#";}
-async function bildirimGonder(aliciId,gondId,tip,icerik,link){
-  if(!aliciId||aliciId===gondId)return;
-  try{
-    await SB.from('bildirimler').insert({
-      alici_id:Number(aliciId),
-      gonderen_id:Number(gondId),
-      tip,icerik,link,okundu:false
-    });
-  }catch(e){}
-}
-
-function kopyala(btn,txt){navigator.clipboard.writeText(txt);btn.innerHTML="✓ Kopyalandı!";}
-function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
-
-// Mevcut favori sunucuları ayar setine yükle
-function ayarFavleriBaşlat(favSunucular){
-  favSunucular.forEach(s=>{
-    ayarFavSecSet.add(s);
-    ALL_SUNUCULAR.forEach((sun,i)=>{if(sun.n===s){document.getElementById('ays-'+i)?.classList.add('on');}});
-  });
-  ayarAktifSecVal=profil.desteklenen_sunucu||null;
-}
-
-function initBannerCanvas(){
-  const canvas=document.getElementById('banner-canvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  // Banner wrap boyutunu al
-  const wrap=canvas.closest('.banner-wrap')||canvas.parentElement;
-  const W=canvas.width=wrap?wrap.offsetWidth:window.innerWidth;
-  const H=canvas.height=wrap?wrap.offsetHeight:315;
-  if(W===0||H===0){setTimeout(initBannerCanvas,200);return;}
-  const logo=new Image();logo.crossOrigin='anonymous';logo.src='https://i.imgur.com/6l08Y4k.png';
-  const LOGOLAR=Array.from({length:6},()=>({x:Math.random()*W,y:Math.random()*H,size:Math.random()*60+30,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,alpha:Math.random()*.12+.06,rot:Math.random()*Math.PI*2,vrot:(Math.random()-.5)*.005}));
-  const HUZMELER=Array.from({length:3},()=>({x:Math.random()*W,angle:(Math.random()-.5)*.5,w:Math.random()*80+40,alpha:Math.random()*.04+.02,speed:Math.random()*.3+.1,dir:Math.random()>.5?1:-1}));
-  function draw(){
-    ctx.fillStyle='#050505';ctx.fillRect(0,0,W,H);
-    HUZMELER.forEach(h=>{ctx.save();ctx.translate(h.x,H/2);ctx.rotate(h.angle);const g=ctx.createLinearGradient(0,-H,0,H);g.addColorStop(0,'transparent');g.addColorStop(.4,`rgba(57,255,20,${h.alpha})`);g.addColorStop(.5,`rgba(100,255,80,${h.alpha*1.8})`);g.addColorStop(.6,`rgba(57,255,20,${h.alpha})`);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(-h.w/2,-H*1.5,h.w,H*3);ctx.restore();h.x+=h.speed*h.dir;if(h.x>W+200)h.dir=-1;if(h.x<-200)h.dir=1;});
-    if(logo.complete&&logo.naturalWidth>0)LOGOLAR.forEach(l=>{ctx.save();ctx.globalAlpha=l.alpha;ctx.translate(l.x,l.y);ctx.rotate(l.rot);ctx.drawImage(logo,-l.size/2,-l.size/2,l.size,l.size);ctx.restore();l.x+=l.vx;l.y+=l.vy;l.rot+=l.vrot;if(l.x<-100)l.x=W+50;if(l.x>W+100)l.x=-50;if(l.y<-100)l.y=H+50;if(l.y>H+100)l.y=-50;});
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
 
 // ── TAKİP SİSTEMİ ──
 async function takipIstegiGonder(){
@@ -1516,6 +682,28 @@ async function takipToggle(){
       if(btn){btn.disabled=false;btn.style.opacity='1';btn.className='mc-btn mc-red';btn.innerHTML='<i class="fa-solid fa-user-minus"></i> Takibi Bırak';}
     }
   }catch(e){if(btn){btn.disabled=false;btn.style.opacity='1';}alert('Hata: '+e.message);}
+}
+
+// Profil sahibinin BENİMLE ilgili isteği
+async function gelerekIstekKabul(){
+  if(!benKim||!window.__banaIstekData?.length)return;
+  const istek=window.__banaIstekData[0];
+  await SB.from('takip_istekleri').update({durum:'kabul'}).eq('id',istek.id);
+  await SB.from('takipler').insert({takip_eden_id:Number(profil.id),takip_edilen_id:Number(benKim.id)});
+  const{data:bd}=await SB.from('kullanicilar').select('takipci_sayisi').eq('id',Number(benKim.id)).single();
+  await SB.from('kullanicilar').update({takipci_sayisi:(bd?.takipci_sayisi||0)+1}).eq('id',Number(benKim.id));
+  await SB.from('bildirimler').insert({alici_id:Number(profil.id),gonderen_id:Number(benKim.id),tip:'takip_kabul',icerik:'Takip isteğini kabul etti.',link:'/lobbygg/profil.html?id='+benKim.id,okundu:false});
+  window.__beniTakipEtmekIstiyor=false;
+  alert('Takip isteği kabul edildi!');
+  location.reload();
+}
+async function gelerekIstekReddet(){
+  if(!benKim||!window.__banaIstekData?.length)return;
+  const istek=window.__banaIstekData[0];
+  await SB.from('takip_istekleri').update({durum:'red'}).eq('id',istek.id);
+  window.__beniTakipEtmekIstiyor=false;
+  alert('Takip isteği reddedildi.');
+  location.reload();
 }
 
 // ── NAV ──
