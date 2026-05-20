@@ -399,11 +399,11 @@ async function init(){
   const droplar=dropR.value?.data||[];
   const klan=klanR.value?.data?.[0]||null;
 
-  render(ilanlar,droplar,klan);
+  render(ilanlar,droplar,klan,gizliVeTakipciDegil);
   document.getElementById('loading').style.display='none';
 }
 
-function render(ilanlar,droplar,klan){
+function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   const ben=benKim?.id===profil.id;
   const nick=profil.kullanici_adi||'Oyuncu';
   const av=profil.avatar_url||`https://minotar.net/helm/${nick}/96.png`;
@@ -474,18 +474,15 @@ function render(ilanlar,droplar,klan){
         </div>
 
         <div class="sekmeler" id="sekmeler">
-          ${gizliVeTakipciDegil?`
-            <div class="sekme active">🔒 Gizli Hesap</div>
-          `:`
-            <div class="sekme active" onclick="sekmeAc('droplar',0)">💬 Droplar</div>
-            <div class="sekme" onclick="sekmeAc('ilanlar',1)">📣 İlanlar</div>
-            <div class="sekme" onclick="sekmeAc('takipciler',2)">👥 Takipçiler</div>
-            <div class="sekme" onclick="sekmeAc('takip',3)">👤 Takip</div>
-            ${ben?`
-              <div class="sekme" onclick="sekmeAc('ozellestir',4)" style="color:#FFD700;">🎨 Özelleştir</div>
-              <div class="sekme" onclick="sekmeAc('hesapayar',5)" style="color:#b933ff;">⚙️ Hesap</div>
-            `:''}
-          `}
+          ${gizliVeTakipciDegil
+            ?'<div class="sekme active">🔒 Gizli Hesap</div>'
+            :'<div class="sekme active" onclick="sekmeAc('droplar',0)">💬 Droplar</div>'
+             +'<div class="sekme" onclick="sekmeAc('ilanlar',1)">📣 İlanlar</div>'
+             +'<div class="sekme" onclick="sekmeAc('takipciler',2)">👥 Takipçiler</div>'
+             +'<div class="sekme" onclick="sekmeAc('takip',3)">👤 Takip</div>'
+             +(ben?'<div class="sekme" onclick="sekmeAc('ozellestir',4)" style="color:#FFD700;">🎨 Özelleştir</div>'
+                  +'<div class="sekme" onclick="sekmeAc('hesapayar',5)" style="color:#b933ff;">⚙️ Hesap</div>':'')
+          }
         </div>
       </div>
     </div>
@@ -495,19 +492,15 @@ function render(ilanlar,droplar,klan){
       <!-- SOL REKLAM -->
       <div class="reklam-panel" id="sol-reklam"></div>
       <div>
-        <!-- GİZLİ HESAP MESAJI -->
-        ${gizliVeTakipciDegil?`
+        <!-- DROPLAR veya GİZLİ -->
         <div class="sekme-icerik active" id="sekme-droplar">
-          <div style="text-align:center;padding:48px 20px;color:#444;">
-            <i class="fa-solid fa-lock" style="font-size:48px;display:block;margin-bottom:14px;"></i>
+        ${gizliVeTakipciDegil?`<div style="text-align:center;padding:48px 20px;">
+            <i class="fa-solid fa-lock" style="font-size:48px;display:block;margin-bottom:14px;color:#444;"></i>
             <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:8px;">Bu Hesap Gizlidir</div>
             <div style="font-size:12px;color:#555;margin-bottom:20px;">Dropları görmek için takip et.</div>
-            ${benKim&&!takipIstegiVar?`<button class="mc-btn mc-green" onclick="takipIstegiGonder()"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>`:''}
-            ${takipIstegiVar?`<button class="mc-btn mc-gray" onclick="takipIstegiGeriAl()"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>`:''}
-          </div>
-        </div>`:`
-        <!-- DROPLAR -->
-        <div class="sekme-icerik active" id="sekme-droplar">
+            ${benKim&&!takipIstegiVar?'<button class=\"mc-btn mc-green\" onclick=\"takipIstegiGonder()\"><i class=\"fa-solid fa-user-plus\"></i> Takip İsteği Gönder</button>':''}
+            ${takipIstegiVar?'<button class=\"mc-btn mc-gray\" onclick=\"takipIstegiGeriAl()\"><i class=\"fa-solid fa-clock\"></i> İstek Gönderildi</button>':''}
+          </div>`:``}
           ${ben&&profil.dogrulama_rozeti?`
           <div class="drop-yaz-box">
             <div style="display:flex;gap:10px;align-items:flex-start;">
@@ -531,7 +524,6 @@ function render(ilanlar,droplar,klan){
           }
           <div id="droplar-liste"></div>
         </div>
-        `}
         <!-- İLANLAR -->
         <div class="sekme-icerik" id="sekme-ilanlar">
           ${ilanlar.length?ilanlar.map(i=>`
