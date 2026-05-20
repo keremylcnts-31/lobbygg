@@ -43,7 +43,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 
 /* PP ŞEKİLLERİ */
 .pp-wrap{position:relative;cursor:pointer;flex-shrink:0;}
-.pp-img{width:200px;height:200px;object-fit:cover;border:8px solid #0d0d0d;}
+.pp-img{width:200px;height:200px;object-fit:cover;border:3px solid #0d0d0d;}
 .pp-circle{border-radius:50%;}
 .pp-rounded{border-radius:14px;}
 .pp-wrap:hover .pp-img{filter:brightness(.85);}
@@ -223,19 +223,19 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .pp-frame-wrap .pp-img{border:3px solid transparent;}
 
 /* Çerçeve renkleri - data-frame attribute ile */
-[data-frame="none"]{border:8px solid #1a1a1a !important;}
-[data-frame="green"]{border:8px solid #39ff14 !important;}
-[data-frame="red"]{border:8px solid #ff1a3c !important;}
-[data-frame="blue"]{border:8px solid #00d4ff !important;}
-[data-frame="gold"]{border:8px solid #FFD700 !important;}
-[data-frame="purple"]{border:8px solid #b933ff !important;}
-[data-frame="white"]{border:8px solid #ffffff !important;}
-[data-frame="dark"]{border:8px solid #444444 !important;}
-[data-frame="cyan"]{border:8px solid #00ffcc !important;}
-[data-frame="neon-green"]{border:8px solid #39ff14 !important;box-shadow:0 0 0 0 #39ff14;animation:neonPulse 2s ease-in-out infinite;--fc:#39ff14;}
-[data-frame="neon-red"]{border:8px solid #ff1a3c !important;animation:neonPulse 2s ease-in-out infinite;--fc:#ff1a3c;}
-[data-frame="neon-blue"]{border:8px solid #00d4ff !important;animation:neonPulse 2s ease-in-out infinite;--fc:#00d4ff;}
-[data-frame="neon-gold"]{border:8px solid #FFD700 !important;animation:neonPulse 2s ease-in-out infinite;--fc:#FFD700;}
+[data-frame="none"]{border:3px solid #1a1a1a !important;}
+[data-frame="green"]{border:3px solid #39ff14 !important;}
+[data-frame="red"]{border:3px solid #ff1a3c !important;}
+[data-frame="blue"]{border:3px solid #00d4ff !important;}
+[data-frame="gold"]{border:3px solid #FFD700 !important;}
+[data-frame="purple"]{border:3px solid #b933ff !important;}
+[data-frame="white"]{border:3px solid #ffffff !important;}
+[data-frame="dark"]{border:3px solid #444444 !important;}
+[data-frame="cyan"]{border:3px solid #00ffcc !important;}
+[data-frame="neon-green"]{border:3px solid #39ff14 !important;box-shadow:0 0 0 0 #39ff14;animation:neonPulse 2s ease-in-out infinite;--fc:#39ff14;}
+[data-frame="neon-red"]{border:3px solid #ff1a3c !important;animation:neonPulse 2s ease-in-out infinite;--fc:#ff1a3c;}
+[data-frame="neon-blue"]{border:3px solid #00d4ff !important;animation:neonPulse 2s ease-in-out infinite;--fc:#00d4ff;}
+[data-frame="neon-gold"]{border:3px solid #FFD700 !important;animation:neonPulse 2s ease-in-out infinite;--fc:#FFD700;}
 [data-frame="rainbow"]{animation:rainbowRot 3s linear infinite;}
 [data-frame="glass"]{border:8px solid rgba(255,255,255,.2) !important;}
 .frame-glass-anim{overflow:hidden;position:relative;}
@@ -278,11 +278,21 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
   </div>
 </div>
 
-<nav class="nav">
-  <a href="/lobbygg/index.html"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG"></a>
-  <div style="display:flex;gap:7px;">
-    <a href="/lobbygg/ilanlar.html" class="mc-btn mc-gray"><i class="fa-solid fa-bullhorn"></i> İlanlar</a>
-    <a href="/lobbygg/klanlar.html" class="mc-btn mc-gray"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>
+<nav class="nav" style="height:60px;padding:0 3%;">
+  <a href="/lobbygg/index.html"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" style="height:52px;object-fit:contain;"></a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <a href="/lobbygg/index.html" class="mc-btn mc-gray" style="font-size:9px;padding:7px 11px;"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+    <a href="/lobbygg/ilanlar.html" class="mc-btn mc-gray" style="font-size:9px;padding:7px 11px;"><i class="fa-solid fa-bullhorn"></i> İlanlar</a>
+    <a href="/lobbygg/klanlar.html" class="mc-btn mc-gray" style="font-size:9px;padding:7px 11px;"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>
+    <a href="/lobbygg/bildirimler.html" id="nav-zil" style="position:relative;color:#555;font-size:18px;text-decoration:none;padding:6px;transition:.15s;" title="Bildirimler">
+      <i class="fa-solid fa-bell"></i>
+      <span id="nav-zil-badge" style="display:none;position:absolute;top:-2px;right:-2px;background:#39ff14;color:#000;font-size:8px;font-weight:900;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 3px;"></span>
+    </a>
+    <div id="nav-kullanici" style="display:none;align-items:center;gap:8px;">
+      <div style="font-size:10px;font-weight:900;color:#FFD700;" id="nav-lcoin">0 LC</div>
+      <img id="nav-av" src="" style="width:30px;height:30px;border-radius:50%;border:2px solid #2a2a2a;cursor:pointer;" onclick="location.href='/lobbygg/profil.html?id='+window.__benId">
+    </div>
+    <a href="/lobbygg/giris.html" class="mc-btn mc-green" id="nav-giris" style="font-size:9px;padding:7px 11px;"><i class="fa-solid fa-right-to-bracket"></i> Giriş</a>
   </div>
 </nav>
 
@@ -407,6 +417,7 @@ async function init(){
 
   try{render(ilanlar,droplar,klan,gizliVeTakipciDegil);}catch(e){console.error('Render hatası:',e);document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:60px;color:#f85149;">Sayfa yüklenirken hata oluştu: '+e.message+'</div>';}
   document.getElementById('loading').style.display='none';
+  navYukle();
 }
 
 function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
@@ -615,7 +626,7 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
     +'<div class="reklam-panel" id="sag-reklam"></div>'
     +'</div>';
 
-  renderDroplar(droplar,av,nick);
+  if(!gizliVeTakipciDegil)renderDroplar(droplar,av,nick);
   requestAnimationFrame(()=>initBannerCanvas());
   reklamlariYukle();
 }
