@@ -1454,6 +1454,89 @@ function initBannerCanvas(){
   }
   draw();
 }
+
+// ── TAKİP SİSTEMİ ──
+async function takipIstegiGonder(){
+  if(!benKim){location.href='/lobbygg/giris.html';return;}
+  const btn=document.getElementById('takip-btn');
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  const bid=Number(benKim.id),pid=Number(profil.id);
+  try{
+    const{error}=await SB.from('takip_istekleri').upsert(
+      {gonderen_id:bid,alici_id:pid,durum:'beklemede'},
+      {onConflict:'gonderen_id,alici_id'}
+    );
+    if(error)throw error;
+    bildirimGonder(pid,bid,'takip_istegi','Sana takip isteği gönderdi.','/lobbygg/profil.html?id='+bid);
+    takipIstegiVar=true;
+    if(btn){btn.disabled=false;btn.style.opacity='1';btn.className='mc-btn mc-gray';btn.onclick=takipIstegiGeriAl;btn.innerHTML='<i class="fa-solid fa-clock"></i> İstek Gönderildi';}
+  }catch(e){if(btn){btn.disabled=false;btn.style.opacity='1';}alert('Hata: '+e.message);}
+}
+
+async function takipIstegiGeriAl(){
+  if(!benKim)return;
+  const btn=document.getElementById('takip-btn');
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    await SB.from('takip_istekleri').delete().eq('gonderen_id',Number(benKim.id)).eq('alici_id',Number(profil.id));
+    takipIstegiVar=false;
+    if(btn){btn.disabled=false;btn.style.opacity='1';btn.className='mc-btn mc-green';btn.onclick=takipIstegiGonder;btn.innerHTML='<i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder';}
+  }catch(e){if(btn){btn.disabled=false;btn.style.opacity='1';}alert('Hata: '+e.message);}
+}
+
+async function takipToggle(){
+  if(!benKim){location.href='/lobbygg/giris.html';return;}
+  const btn=document.getElementById('takip-btn');
+  if(btn){btn.disabled=true;btn.style.opacity='.6';}
+  const bid=Number(benKim.id),pid=Number(profil.id);
+  try{
+    if(takipEdiyorMu){
+      const{error}=await SB.from('takipler').delete().eq('takip_eden_id',bid).eq('takip_edilen_id',pid);
+      if(error)throw error;
+      await Promise.all([
+        SB.from('kullanicilar').update({takipci_sayisi:Math.max(0,(profil.takipci_sayisi||1)-1)}).eq('id',pid),
+        SB.from('kullanicilar').update({takip_sayisi:Math.max(0,(benKim.takip_sayisi||1)-1)}).eq('id',bid)
+      ]);
+      profil.takipci_sayisi=Math.max(0,(profil.takipci_sayisi||1)-1);
+      takipEdiyorMu=false;
+      if(btn){btn.disabled=false;btn.style.opacity='1';btn.className='mc-btn mc-green';btn.innerHTML='<i class="fa-solid fa-user-plus"></i> Takip Et';}
+    }else{
+      const{count}=await SB.from('takipler').select('*',{count:'exact',head:true}).eq('takip_eden_id',bid).eq('takip_edilen_id',pid);
+      if(!count){
+        const{error}=await SB.from('takipler').insert({takip_eden_id:bid,takip_edilen_id:pid});
+        if(error)throw error;
+        await Promise.all([
+          SB.from('kullanicilar').update({takipci_sayisi:(profil.takipci_sayisi||0)+1}).eq('id',pid),
+          SB.from('kullanicilar').update({takip_sayisi:(benKim.takip_sayisi||0)+1}).eq('id',bid)
+        ]);
+        profil.takipci_sayisi=(profil.takipci_sayisi||0)+1;
+        bildirimGonder(pid,bid,'takip','Seni takip etmeye başladı.','/lobbygg/profil.html?id='+bid);
+      }
+      takipEdiyorMu=true;
+      if(btn){btn.disabled=false;btn.style.opacity='1';btn.className='mc-btn mc-red';btn.innerHTML='<i class="fa-solid fa-user-minus"></i> Takibi Bırak';}
+    }
+  }catch(e){if(btn){btn.disabled=false;btn.style.opacity='1';}alert('Hata: '+e.message);}
+}
+
+// ── NAV ──
+async function navYukle(){
+  try{
+    if(!benKim)return;
+    window.__benId=benKim.id;
+    const navAv=document.getElementById('nav-av');
+    const navKul=document.getElementById('nav-kullanici');
+    const navGiris=document.getElementById('nav-giris');
+    if(navAv)navAv.src=benKim.avatar_url||'https://minotar.net/helm/'+(benKim.kullanici_adi||'Steve')+'/30.png';
+    if(navKul)navKul.style.display='flex';
+    if(navGiris)navGiris.style.display='none';
+    const lc=document.getElementById('nav-lcoin');
+    if(lc)lc.textContent=(benKim.lcoin||0)+' LC';
+    const{count}=await SB.from('bildirimler').select('*',{count:'exact',head:true}).eq('alici_id',Number(benKim.id)).eq('okundu',false);
+    const badge=document.getElementById('nav-zil-badge');
+    if(badge&&count>0){badge.textContent=count>9?'9+':count;badge.style.display='flex';}
+  }catch(e){}
+}
+
 init().then(()=>{
   let fav=[];try{fav=JSON.parse(profil?.favori_sunucular||'[]');}catch(e){}
   ayarFavleriBaşlat(fav);
