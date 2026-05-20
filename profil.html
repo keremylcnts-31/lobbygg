@@ -693,12 +693,12 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   const ayarlarHTML2=ben?profilOzellestirHTML(profil,av,favSunucular):'';
   const hesapAyarHTML2=ben?hesapAyarlarHTML(profil):'';
 
-  // ── HTML ──
+// ── HTML ──
   document.getElementById('profil-wrap').innerHTML=
   // BANNER - max-width ile sınırlı, 851:315 oranı
   '<div style="background:#050505;padding:0;">'
-  +'<div style="max-width:940px;margin:0 auto;">'
-  +'<div style="position:relative;aspect-ratio:851/315;max-height:315px;overflow:hidden;background:#111;border-radius:0 0 0 0;">'
+  +'<div style="width:100%; max-width:940px; margin:0 auto; padding:0 16px;">' 
+  +'<div style="width:100%; position:relative; aspect-ratio:851/315; max-height:315px; overflow:hidden; background:#111; border-radius:8px 8px 0 0; border:1px solid #1a1a1a; border-bottom:none;">'
   +bannerHTML
   +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(5,5,5,.7) 100%);pointer-events:none;"></div>'
   +'</div></div></div>'
