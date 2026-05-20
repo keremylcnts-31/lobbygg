@@ -413,6 +413,7 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   const katilim=profil.kayit_tarihi?new Date(profil.kayit_tarihi).toLocaleDateString('tr-TR',{month:'long',year:'numeric'}):'';
   const bgCSS=bannerCSS(profil);
   document.title=nick+' — LOBBY.GG';
+  window.__profilAv=av;
   let favSunucular=[];try{favSunucular=JSON.parse(profil.favori_sunucular||'[]');}catch(e){}
 
   // Aksiyonlar
@@ -432,7 +433,10 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
     if(ma==='hic') mesajBtn='<span style="font-size:9px;color:#444;font-weight:700;padding:8px;">🚫 Mesaj almıyor</span>';
     else if(ma==='takipciler'&&!takipEdiyorMu) mesajBtn='<span class="mc-btn mc-gray" style="opacity:.5;cursor:not-allowed;"><i class="fa-solid fa-lock"></i> Mesaj</span>';
     else mesajBtn='<a href="/lobbygg/mesajlar.html?hedef='+profil.id+'" class="mc-btn mc-blue"><i class="fa-solid fa-envelope"></i> Mesaj</a>';
-    let discordBtn=profil.discord?'<button class="mc-btn mc-discord" onclick="navigator.clipboard.writeText(''+profil.discord+'');this.innerHTML='✓ Kopyalandı!'"><i class="fa-brands fa-discord"></i> Discord</button>':'';
+    if(profil.discord){ discordBtn='<button class="mc-btn mc-discord" onclick="kopyala(this,this.getAttribute(\"data-d\"))" data-d="'+profil.discord.replace(/"/g,'')+'"><i class="fa-brands fa-discord"></i> Discord</button>'; }
+    if(profil.discord){
+    if(profil.discord){ discordBtn='<button class="mc-btn mc-discord" onclick="kopyala(this,this.getAttribute(\"data-d\"))" data-d="'+profil.discord.replace(/"/g,'')+'"><i class="fa-brands fa-discord"></i> Discord</button>'; }
+    }
     aksiyonlar=takipBtn+mesajBtn+discordBtn;
   }else{
     aksiyonlar='<a href="/lobbygg/giris.html" class="mc-btn mc-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>';
@@ -449,12 +453,12 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   if(gizliVeTakipciDegil){
     sekmeHTML='<div class="sekme active">🔒 Gizli Hesap</div>';
   }else{
-    sekmeHTML='<div class="sekme active" onclick="sekmeAc('droplar',0)">💬 Droplar</div>'
-      +'<div class="sekme" onclick="sekmeAc('ilanlar',1)">📣 İlanlar</div>'
-      +'<div class="sekme" onclick="sekmeAc('takipciler',2)">👥 Takipçiler</div>'
-      +'<div class="sekme" onclick="sekmeAc('takip',3)">👤 Takip</div>';
-    if(ben) sekmeHTML+='<div class="sekme" onclick="sekmeAc('ozellestir',4)" style="color:#FFD700;">🎨 Özelleştir</div>'
-      +'<div class="sekme" onclick="sekmeAc('hesapayar',5)" style="color:#b933ff;">⚙️ Hesap</div>';
+    sekmeHTML='<div class="sekme active" onclick="sekmeAc(0)">💬 Droplar</div>'
+      +'<div class="sekme" onclick="sekmeAc(1)">📣 İlanlar</div>'
+      +'<div class="sekme" onclick="sekmeAc(2)">👥 Takipçiler</div>'
+      +'<div class="sekme" onclick="sekmeAc(3)">👤 Takip</div>';
+    if(ben) sekmeHTML+='<div class="sekme" onclick="sekmeAc(4)" style="color:#FFD700;">🎨 Özelleştir</div>'
+      +'<div class="sekme" onclick="sekmeAc(5)" style="color:#b933ff;">⚙️ Hesap</div>';
   }
 
   // Gizli içerik
@@ -474,8 +478,8 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
   if(klan){
     klanBadge='<span class="klan-badge" style="background:'+((klan.renk||'#FFD700'))+'18;border-color:'+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';">'+klan.tag+'</span>';
     klanBox='<div class="box"><div class="box-title">Klan</div>'
-      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="location.href='/lobbygg/klanlar.html'">'
-      +'<div style="font-size:14px;font-weight:900;padding:5px 12px;border-radius:3px;background:'+(klan.renk||'#FFD700')+'18;border:2px solid '+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+' ;">'+klan.tag+'</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="git(this)" data-u="/lobbygg/klanlar.html">'
+      +'<div style="font-size:14px;font-weight:900;padding:5px 12px;border-radius:3px;background:'+(klan.renk||'#FFD700')+'18;border:2px solid '+(klan.renk||'#FFD700')+';color:'+(klan.renk||'#FFD700')+';">'+klan.tag+'</div>'
       +'<div><div style="font-size:13px;font-weight:900;color:#fff;">'+klan.isim+'</div>'
       +'<div style="font-size:9px;color:#444;">'+(klan.uye_sayisi||1)+' üye</div></div></div></div>';
   }
@@ -528,7 +532,7 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
       favS.forEach(s=>{
         sunucuKutu+='<div class="sunucu-kart">'+sunucuLogoHTML(s,26)
           +'<div style="font-size:11px;font-weight:800;color:#bbb;flex:1;">'+s+'</div>'
-          +(ben?'<button onclick="favSunucuKaldir(''+s+'')" style="background:none;border:none;color:#555;cursor:pointer;font-size:12px;">✕</button>':'')
+          +(ben?'<button onclick="favSunucuKaldir(this.dataset.s)" data-s="'+s+'" style="background:none;border:none;color:#555;cursor:pointer;font-size:12px;">✕</button>':'')
           +'</div>';
       });
     }
@@ -566,8 +570,8 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
     // HEADER
     +'<div class="profil-wrap"><div class="profil-header">'
     +'<div class="profil-av-row">'
-    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom(''+av+'')">'
-    +'<img src="'+av+'" class="'+ppClass+'" data-frame="'+(profil.aktif_cerceve||'none')+'" id="main-pp-img" onerror="this.src='https://minotar.net/helm/Steve/96.png'"></div>'
+    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom()">'
+    +'<img src="'+av+'" class="'+ppClass+'" data-frame="'+(profil.aktif_cerceve||'none')+'" id="main-pp-img" onerror="this.src=\'https://minotar.net/helm/Steve/96.png\'"></div>'
     +'<div class="profil-info">'
     +'<div class="nick-row">'
     +'<span class="profil-nick">'+nick+'</span>'
@@ -598,8 +602,8 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
     +klanBox+sunucuKutu
     +'<div class="box"><div class="box-title">Profil Fotoğrafı</div>'
     +'<div style="display:flex;justify-content:center;padding:8px;">'
-    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom(''+av+'')">'
-    +'<img src="'+av+'" class="pp-img '+(ppSekil==='rounded'?'pp-rounded':'pp-circle')+'" data-frame="'+(profil.aktif_cerceve||'none')+'" style="width:64px;height:64px;" onerror="this.src='https://minotar.net/helm/Steve/64.png'">'
+    +'<div class="pp-frame-wrap frame-'+(profil.aktif_cerceve||'none')+'" onclick="ppZoom()">'
+    +'<img src="'+av+'" class="pp-img '+(ppSekil==='rounded'?'pp-rounded':'pp-circle')+'" data-frame="'+(profil.aktif_cerceve||'none')+'" style="width:64px;height:64px;" onerror="this.src=\'https://minotar.net/helm/Steve/64.png\'">'
     +'</div></div></div>'
     +'</div>'
     +'<div class="reklam-panel" id="sag-reklam"></div>'
@@ -739,7 +743,7 @@ function profilOzellestirHTML(kul,av,favSunucular){
 // ── AYARLAR FONKSİYONLARI ──
 let ppBase64=null,bannerBase64=null;
 
-function ppZoom(src){document.getElementById('zoom-img').src=src;document.getElementById('zoom-modal').classList.add('active');}
+function ppZoom(src){document.getElementById('zoom-img').src=src||(window.__profilAv);document.getElementById('zoom-modal').classList.add('active');}
 
 function ppYukle(inp){
   const f=inp.files[0];if(!f)return;
@@ -1333,9 +1337,11 @@ async function dmGonder(){
 }
 
 // ── SEKMELER ──
-function sekmeAc(id,idx){
+const SEKME_IDS=['droplar','ilanlar','takipciler','takip','ozellestir','hesapayar'];
+function sekmeAc(idx){
   document.querySelectorAll('.sekme').forEach((s,i)=>s.classList.toggle('active',i===idx));
   document.querySelectorAll('.sekme-icerik').forEach(s=>s.classList.remove('active'));
+  const id=SEKME_IDS[idx]||'droplar';
   document.getElementById('sekme-'+id)?.classList.add('active');
   if(id==='takipciler')takipcileriYukle();
   if(id==='takip')takipEttikleriniYukle();
@@ -1369,6 +1375,8 @@ async function reklamlariYukle(){
 }
 
 function zaman(ts){if(!ts)return'';const d=Date.now()-new Date(ts).getTime();if(d<60000)return'Az önce';if(d<3600000)return Math.floor(d/60000)+'dk';if(d<86400000)return Math.floor(d/3600000)+'sa';return Math.floor(d/86400000)+'g';}
+function git(el){location.href=el.dataset.u||el.closest("[data-u]")?.dataset.u||"#";}
+function kopyala(btn,txt){navigator.clipboard.writeText(txt);btn.innerHTML="✓ Kopyalandı!";}
 function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
 
 // Mevcut favori sunucuları ayar setine yükle
