@@ -365,6 +365,33 @@ function bannerCSS(kul){
 function abone(kul){return kul&&(kul.abonelik==='abone'||kul.abonelik==='premium'||kul.abonelik==='admin'||kul.abonelik==='yonetici');}
 
 setTimeout(()=>{document.getElementById('loading').style.display='none';},3000);
+// Güvenlik için metinleri temizleme fonksiyonu (esc hatasının çözümü)
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Tarihleri "2 saat önce" gibi gösterme fonksiyonu (olası zaman hatasının çözümü)
+function zaman(tarih) {
+  if (!tarih) return '';
+  const saniye = Math.floor((new Date() - new Date(tarih)) / 1000);
+  let aralik = Math.floor(saniye / 31536000);
+  if (aralik >= 1) return aralik + " yıl önce";
+  aralik = Math.floor(saniye / 2592000);
+  if (aralik >= 1) return aralik + " ay önce";
+  aralik = Math.floor(saniye / 86400);
+  if (aralik >= 1) return aralik + " gün önce";
+  aralik = Math.floor(saniye / 3600);
+  if (aralik >= 1) return aralik + " saat önce";
+  aralik = Math.floor(saniye / 60);
+  if (aralik >= 1) return aralik + " dakika önce";
+  return "Az önce";
+}  
 // --- EKSİK OLAN FONKSİYONLAR ---
 
 function profilOzellestirHTML(profil, av, favSunucular) {
