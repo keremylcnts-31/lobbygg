@@ -122,6 +122,12 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;height:10
 .zoom-x{position:fixed;top:16px;right:20px;background:rgba(0,0,0,.7);border:1px solid #333;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#fff;z-index:10001;}
 
 @media(max-width:700px){.sol{width:100%;}.sag{display:none;}.sol.gizle{display:none;}.sag.goster{display:flex;}}
+
+/* BİLDİRİM ZİLİ */
+.nav-zil{position:relative;cursor:pointer;color:#555;font-size:18px;transition:.15s;text-decoration:none;display:flex;align-items:center;padding:6px;}
+.nav-zil:hover{color:#ccc;}
+.nav-zil .badge{position:absolute;top:0;right:0;background:#39ff14;color:#000;font-size:8px;font-weight:900;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
+.nav-zil .badge.var{display:flex;}
 </style>
 </head>
 <body>
@@ -488,6 +494,21 @@ async function ctxEngelle(kid,nick){
 function zaman(ts){if(!ts)return'';const d=Date.now()-new Date(ts).getTime();if(d<60000)return'Az önce';if(d<3600000)return Math.floor(d/60000)+'dk';if(d<86400000)return Math.floor(d/3600000)+'sa';if(d<604800000)return Math.floor(d/86400000)+'g';return new Date(ts).toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
 function saat(ts){if(!ts)return'';const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
+
+
+// NAV ZİL
+async function navZilYukle(){
+  try{
+    const{data:{session}}=await SB.auth.getSession();
+    if(!session)return;
+    const{data:kul}=await SB.from('kullanicilar').select('id').eq('email',session.user.email);
+    if(!kul?.length)return;
+    const{count}=await SB.from('bildirimler').select('*',{count:'exact',head:true}).eq('alici_id',Number(kul[0].id)).eq('okundu',false);
+    const badge=document.getElementById('nav-zil-badge');
+    if(badge&&count>0){badge.textContent=count>9?'9+':count;badge.classList.add('var');}
+  }catch(e){}
+}
+navZilYukle();
 
 init();
 </script>

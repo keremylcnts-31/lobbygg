@@ -256,6 +256,12 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 .profil-body>div:nth-child(2){padding:0 8px;}.profil-body>div:nth-child(3){padding:0 8px;}
 @media(max-width:1100px){.profil-body{grid-template-columns:1fr 280px;}.reklam-panel{display:none;}}
 @media(max-width:768px){.profil-body{grid-template-columns:1fr;}.pp-img{width:100px;height:100px;}.profil-nick{font-size:24px;}}
+
+/* BİLDİRİM ZİLİ */
+.nav-zil{position:relative;cursor:pointer;color:#555;font-size:18px;transition:.15s;text-decoration:none;display:flex;align-items:center;padding:6px;}
+.nav-zil:hover{color:#ccc;}
+.nav-zil .badge{position:absolute;top:0;right:0;background:#39ff14;color:#000;font-size:8px;font-weight:900;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
+.nav-zil .badge.var{display:flex;}
 </style>
 </head>
 <body>
@@ -945,8 +951,9 @@ async function takipIstekleriYukle(){
 async function istekKabul(istekId,gondId){
   await SB.from('takip_istekleri').update({durum:'kabul'}).eq('id',istekId);
   await SB.from('takipler').insert({takip_eden_id:gondId,takip_edilen_id:Number(profil.id)});
-  const yeni=(profil.takipci_sayisi||0)+1;
-  await SB.from('kullanicilar').update({takipci_sayisi:yeni}).eq('id',Number(profil.id));
+  await SB.from('kullanicilar').update({takipci_sayisi:(profil.takipci_sayisi||0)+1}).eq('id',Number(profil.id));
+  // Kabul bildirimi gönder
+  bildirimGonder(gondId,Number(profil.id),'takip_kabul','Takip isteğini kabul etti.','/lobbygg/profil.html?id='+profil.id);
   await takipIstekleriYukle();
 }
 
@@ -1376,6 +1383,17 @@ async function reklamlariYukle(){
 
 function zaman(ts){if(!ts)return'';const d=Date.now()-new Date(ts).getTime();if(d<60000)return'Az önce';if(d<3600000)return Math.floor(d/60000)+'dk';if(d<86400000)return Math.floor(d/3600000)+'sa';return Math.floor(d/86400000)+'g';}
 function git(el){location.href=el.dataset.u||el.closest("[data-u]")?.dataset.u||"#";}
+async function bildirimGonder(aliciId,gondId,tip,icerik,link){
+  if(!aliciId||aliciId===gondId)return;
+  try{
+    await SB.from('bildirimler').insert({
+      alici_id:Number(aliciId),
+      gonderen_id:Number(gondId),
+      tip,icerik,link,okundu:false
+    });
+  }catch(e){}
+}
+
 function kopyala(btn,txt){navigator.clipboard.writeText(txt);btn.innerHTML="✓ Kopyalandı!";}
 function esc(t){return t?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')||'';}
 
