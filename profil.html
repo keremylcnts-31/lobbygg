@@ -284,7 +284,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 
 <script>
 const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
-let benKim=null,profil=null,takipEdiyorMu=false;
+let benKim=null,profil=null,takipEdiyorMu=false,takipIstegiVar=false;
 let ayarKat=null,ayarAltKat=null,ayarFavSec=new Set(),ayarAktifSec=null;
 
 const BADGEMAP={uye:'b-uye',abone:'b-abone',premium:'b-premium',admin:'b-admin',yonetici:'b-admin'};
@@ -371,7 +371,7 @@ async function init(){
   // Gizli profil - takipçi değilse kısıtlı göster (loading'i kapatma, render et ama kısıtlı)
   const gizliVeTakipciDegil = profil.profil_gizli && benKim?.id !== profil.id && !takipEdiyorMu;
 
-  let takipIstegiVar=false;
+  takipIstegiVar=false;
   if(benKim&&benKim.id!==profil.id){
     const[{data:t},{data:istek}]=await Promise.all([
       SB.from('takipler').select('id').eq('takip_eden_id',Number(benKim.id)).eq('takip_edilen_id',Number(profil.id)),
