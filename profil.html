@@ -365,7 +365,55 @@ function bannerCSS(kul){
 function abone(kul){return kul&&(kul.abonelik==='abone'||kul.abonelik==='premium'||kul.abonelik==='admin'||kul.abonelik==='yonetici');}
 
 setTimeout(()=>{document.getElementById('loading').style.display='none';},3000);
+// --- EKSİK OLAN FONKSİYONLAR ---
 
+function profilOzellestirHTML(profil, av, favSunucular) {
+  // Özelleştirme sekmesinin HTML'i buraya gelecek
+  return `
+    <div class="box">
+      <div class="box-title">🎨 Profili Özelleştir</div>
+      <div style="padding:20px; text-align:center; color:#555; font-size:12px;">
+        Özelleştirme seçenekleri (Çerçeve, Banner, Kategori) çok yakında burada olacak.
+      </div>
+    </div>
+  `;
+}
+
+function hesapAyarlarHTML(profil) {
+  // Hesap ayarları sekmesinin HTML'i buraya gelecek
+  return `
+    <div class="box">
+      <div class="box-title">⚙️ Hesap Ayarları</div>
+      <div style="padding:20px; text-align:center; color:#555; font-size:12px;">
+        Şifre değiştirme, e-posta ayarları ve gizlilik tercihleri yakında eklenecektir.
+      </div>
+    </div>
+  `;
+}
+
+// Diğer eksik olabilecek yardımcı fonksiyonların taslakları (Sayfada hata vermemesi için)
+function sekmeAc(index) {
+  const icerikler = document.querySelectorAll('.sekme-icerik');
+  const sekmeler = document.querySelectorAll('.sekme');
+  icerikler.forEach(i => i.classList.remove('active'));
+  sekmeler.forEach(s => s.classList.remove('active'));
+  
+  if(icerikler[index]) icerikler[index].classList.add('active');
+  if(sekmeler[index]) sekmeler[index].classList.add('active');
+}
+
+function ppZoom() {
+  const zoomModal = document.getElementById('zoom-modal');
+  const zoomImg = document.getElementById('zoom-img');
+  const mainPp = document.getElementById('main-pp-img');
+  if(zoomModal && zoomImg && mainPp) {
+    zoomImg.src = mainPp.src;
+    zoomModal.classList.add('active');
+  }
+}
+
+function reklamlariYukle() { /* Şimdilik boş durabilir */ }
+function ayarFavleriBaşlat(fav) { /* Şimdilik boş durabilir */ }
 async function init(){
   try{
     const{data:{session}}=await Promise.race([SB.auth.getSession(),new Promise(r=>setTimeout(()=>r({data:{session:null}}),3000))]);
