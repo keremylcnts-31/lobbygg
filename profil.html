@@ -367,10 +367,15 @@ function abone(kul){return kul&&(kul.abonelik==='abone'||kul.abonelik==='premium
 setTimeout(()=>{document.getElementById('loading').style.display='none';},3000);
 
 async function init(){
+  // Debug
+  document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:40px;color:#555;font-size:11px;">Bağlanıyor...</div>';
   try{
-    const{data:{session}}=await Promise.race([SB.auth.getSession(),new Promise(r=>setTimeout(()=>r({data:{session:null}}),3000))]);
-    if(session){const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);if(data?.length)benKim=data[0];}
-  }catch(e){}
+    const{data:{session}}=await Promise.race([SB.auth.getSession(),new Promise(r=>setTimeout(()=>r({data:{session:null}}),5000))]);
+    if(session){
+      const{data}=await SB.from('kullanicilar').select('*').eq('email',session.user.email);
+      if(data?.length)benKim=data[0];
+    }
+  }catch(e){console.error('Session hatası:',e);}
 
   const p=new URLSearchParams(location.search);
   const id=p.get('id'),nick=p.get('nick');
@@ -381,7 +386,13 @@ async function init(){
   }catch(e){}
 
   if(!profil){
-    document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:80px;color:#333;"><i class="fa-solid fa-user-slash" style="font-size:48px;display:block;margin-bottom:16px;"></i><div style="font-size:14px;font-weight:900;text-transform:uppercase;">Kullanıcı Bulunamadı</div><a href="/lobbygg/index.html" class="mc-btn mc-green" style="margin-top:16px;"><i class="fa-solid fa-house"></i> Ana Sayfa</a></div>';
+    const msg=benKim?'Kullanıcı Bulunamadı':'Giriş yapman gerekiyor';
+    document.getElementById('profil-wrap').innerHTML='<div style="text-align:center;padding:80px;color:#ccc;">'
+      +'<i class="fa-solid fa-user-slash" style="font-size:48px;display:block;margin-bottom:16px;color:#333;"></i>'
+      +'<div style="font-size:14px;font-weight:900;margin-bottom:16px;">'+msg+'</div>'
+      +(benKim?'<a href="/lobbygg/index.html" class="mc-btn mc-green"><i class="fa-solid fa-house"></i> Ana Sayfa</a>'
+             :'<a href="/lobbygg/giris.html" class="mc-btn mc-green"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>')
+      +'</div>';
     document.getElementById('loading').style.display='none';return;
   }
   // Gizli profil - takipçi değilse kısıtlı göster (loading'i kapatma, render et ama kısıtlı)
