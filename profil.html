@@ -300,7 +300,7 @@ body{background:#050505;color:#ccc;font-family:'Montserrat',sans-serif;min-heigh
 
 <script>
 const SB=window.supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
-let benKim=null,profil=null,takipEdiyorMu=false,takipIstegiVar=false;
+let benKim=null,profil=null,takipEdiyorMu=false,takipIstegiVar=false,profilBenTakipEdiyorMu=false;
 let ayarKat=null,ayarAltKat=null,ayarFavSec=new Set(),ayarAktifSec=null;
 
 const BADGEMAP={uye:'b-uye',abone:'b-abone',premium:'b-premium',admin:'b-admin',yonetici:'b-admin'};
@@ -441,10 +441,19 @@ function render(ilanlar,droplar,klan,gizliVeTakipciDegil=false){
       +'<a href="/lobbygg/klanlar.html" class="mc-btn mc-gray"><i class="fa-solid fa-shield-halved"></i> Klanlar</a>';
   }else if(benKim){
     let takipBtn='';
-    if(takipEdiyorMu) takipBtn='<button class="mc-btn mc-red" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-minus"></i> Takibi Bırak</button>';
-    else if(takipIstegiVar) takipBtn='<button class="mc-btn mc-gray" id="takip-btn" onclick="takipIstegiGeriAl()"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>';
-    else if(profil.profil_gizli) takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipIstegiGonder()"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>';
-    else takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-plus"></i> Takip Et</button>';
+    if(takipEdiyorMu){
+      takipBtn='<button class="mc-btn mc-red" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-minus"></i> Takibi Bırak</button>';
+    }else if(takipIstegiVar){
+      takipBtn='<button class="mc-btn mc-gray" id="takip-btn" onclick="takipIstegiGeriAl()"><i class="fa-solid fa-clock"></i> İstek Gönderildi</button>';
+    }else if(profil.profil_gizli){
+      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipIstegiGonder()"><i class="fa-solid fa-user-plus"></i> Takip İsteği Gönder</button>';
+    }else{
+      takipBtn='<button class="mc-btn mc-green" id="takip-btn" onclick="takipToggle()"><i class="fa-solid fa-user-plus"></i> Takip Et</button>';
+    }
+    // Profil sahibi beni takip ediyorsa "Sen de onu takip et" göster
+    if(!takipEdiyorMu&&!takipIstegiVar&&profilBenTakipEdiyorMu){
+      takipBtn+=' <span style="font-size:9px;color:#FFD700;font-weight:700;">● Seni takip ediyor</span>';
+    }
     let mesajBtn='';
     const ma=profil.mesaj_ayar||'herkes';
     if(ma==='hic') mesajBtn='<span style="font-size:9px;color:#444;font-weight:700;padding:8px;">🚫 Mesaj almıyor</span>';
