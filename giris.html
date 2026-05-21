@@ -4,338 +4,258 @@
 <meta charset="UTF-8">
 <link rel="icon" href="https://i.imgur.com/6l08Y4k.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOBBY.GG</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+<title>LOBBY.GG — Türkiye'nin Minecraft Topluluğu</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#050505;color:#fff;font-family:'Montserrat',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;}
-#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+body{background:#050505;color:#fff;font-family:'Montserrat',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
 
-/* NAV */
-.nav{position:fixed;top:0;left:0;right:0;z-index:200;height:110px;background:rgba(5,5,5,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;padding:0 5%;}
-.nav-logo img{height:100px;object-fit:contain;}
-.nav-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(90deg,#1a1a1a 0%,#1a1a1a 20%,#39ff14 35%,#aaffaa 45%,#39ff14 55%,#1a1a1a 70%,#1a1a1a 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite;}
-@keyframes shimmer{0%{background-position:200% center;}100%{background-position:-200% center;}}
-.nav-back{font-size:11px;color:#333;text-decoration:none;font-weight:700;transition:.2s;}
-.nav-back:hover{color:#39ff14;}
+/* CANVAS BG */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-/* WRAP */
-.wrap{width:100%;max-width:500px;padding:16px 20px 40px;margin-top:110px;position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;}
-.logo{text-align:center;margin-bottom:20px;animation:logoIn .8s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes logoIn{from{opacity:0;transform:scale(.7) translateY(-20px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.logo img{height:260px;object-fit:contain;}
-.logo-sub{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(90deg,#111 0%,#39ff14 40%,#fff 50%,#39ff14 60%,#111 100%);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s linear infinite;margin-top:-60px;}
+/* LOGO */
+.logo-wrap{position:fixed;top:0;left:0;right:0;padding:20px 5%;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.logo-wrap img{height:44px;object-fit:contain;}
+.login-link{font-size:12px;color:#444;font-weight:700;cursor:pointer;transition:.2s;}
+.login-link:hover{color:#39ff14;}
 
 /* KART */
-.card{width:100%;background:rgba(13,13,13,.95);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:28px;backdrop-filter:blur(20px);box-shadow:0 24px 64px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06);animation:cardIn .6s cubic-bezier(.34,1.56,.64,1) .2s both;position:relative;overflow:hidden;}
-@keyframes cardIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
-.card::before{content:'';position:absolute;top:0;left:-100%;width:50%;height:1px;background:linear-gradient(90deg,transparent,rgba(57,255,20,.6),transparent);animation:cardLine 3s ease-in-out infinite;}
-@keyframes cardLine{0%,100%{left:-100%;}50%{left:150%;}}
+.kart{width:100%;max-width:480px;position:relative;z-index:10;margin-top:60px;}
 
 /* ADIM */
-.step{display:none;animation:stepIn .4s cubic-bezier(.34,1.2,.64,1) both;}
-.step.active{display:block;}
-@keyframes stepIn{from{opacity:0;transform:translateX(20px) scale(.98);}to{opacity:1;transform:translateX(0) scale(1);}}
+.adim{display:none;animation:fadeIn .4s ease;}
+.adim.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
-/* PROG */
-.prog-wrap{display:flex;gap:5px;margin-bottom:24px;}
-.prog-step{flex:1;height:3px;background:#1a1a1a;border-radius:2px;transition:.4s;}
-.prog-step.done{background:#39ff14;}
-.prog-step.active{background:linear-gradient(90deg,#39ff14,#00ff88);}
+/* ÜSTBILGI */
+.ust{text-align:center;margin-bottom:32px;}
+.ust-etiket{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#39ff14;margin-bottom:10px;}
+.ust-baslik{font-size:28px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:8px;}
+.ust-alt{font-size:13px;color:#444;font-weight:600;}
 
-/* STEP TITLE */
-.step-title{font-size:17px;font-weight:900;margin-bottom:5px;background:linear-gradient(90deg,#fff 0%,#39ff14 50%,#fff 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite;}
-.step-sub{font-size:11px;color:#444;margin-bottom:20px;line-height:1.7;}
+/* NICK KUTU */
+.nick-kutu{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;display:flex;align-items:center;margin-bottom:12px;transition:.2s;}
+.nick-kutu:focus-within{border-color:#39ff14;}
+.nick-prefix{padding:16px 14px 16px 18px;font-size:14px;font-weight:700;color:#333;white-space:nowrap;border-right:1px solid rgba(255,255,255,.06);}
+.nick-prefix span{color:#39ff14;}
+.nick-in{flex:1;background:none;border:none;outline:none;color:#fff;font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;padding:16px 16px 16px 14px;}
+.nick-in::placeholder{color:#222;}
+
+/* NICK DURUM */
+.nick-durum{padding:10px 16px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;margin-bottom:16px;display:none;}
+.nick-durum.var{background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);color:#ff6b6b;display:block;}
+.nick-durum.musait{background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.15);color:#39ff14;display:block;}
 
 /* FORM */
-.fg{margin-bottom:12px;position:relative;}
-.fl{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#444;margin-bottom:6px;}
-.fi,.fs{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;color:#ccc;padding:12px 14px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;outline:none;transition:.2s;-webkit-appearance:none;}
-.fi:focus,.fs:focus{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.04);color:#fff;}
-.fi::placeholder{color:#222;}
-.fi-pass{padding-right:46px;}
-.pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#444;cursor:pointer;font-size:14px;line-height:1;padding:4px;}
-.fs{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:30px;}
-.fs option{background:#111;}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-grup{margin-bottom:14px;}
+.form-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#333;margin-bottom:8px;display:block;}
+.form-input{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;padding:15px 18px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:600;outline:none;transition:.2s;}
+.form-input:focus{border-color:#39ff14;background:rgba(57,255,20,.04);}
+.form-input::placeholder{color:#222;}
 
-/* CLAIM */
-.claim-wrap{display:flex;align-items:center;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.2);border-radius:8px;overflow:hidden;margin-bottom:10px;transition:.2s;}
-.claim-wrap:focus-within{border-color:rgba(57,255,20,.5);}
-.claim-prefix{display:flex;align-items:center;padding:14px 12px;font-size:13px;font-weight:700;color:#444;white-space:nowrap;border-right:1px solid rgba(255,255,255,.06);flex-shrink:0;}
-.claim-prefix b{color:#39ff14;}
-.claim-in{flex:1;background:none;border:none;outline:none;color:#fff;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;padding:14px 12px;}
-.claim-in::placeholder{color:#222;}
+/* AYIRICI */
+.ayirac{display:flex;align-items:center;gap:14px;margin:20px 0;}
+.ayirac-cizgi{flex:1;height:1px;background:rgba(255,255,255,.08);}
+.ayirac-txt{font-size:11px;font-weight:700;color:#333;}
 
-/* AVATAR */
-.nick-prev{display:none;align-items:center;gap:10px;background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.2);border-radius:6px;padding:10px 12px;margin-bottom:10px;}
-.nick-prev img{width:36px;height:36px;border-radius:4px;}
-.nick-prev span{font-size:11px;font-weight:800;color:#39ff14;}
+/* SOSYAL BUTONLAR */
+.sosyal-btn{width:100%;padding:14px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:.2s;margin-bottom:10px;border:1.5px solid;}
+.google-btn{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);color:#fff;}
+.google-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);}
+.discord-btn{background:rgba(88,101,242,.12);border-color:rgba(88,101,242,.3);color:#7289da;}
+.discord-btn:hover{background:rgba(88,101,242,.18);}
+.sosyal-ico{width:20px;height:20px;object-fit:contain;}
 
-/* ŞİFRE GÜÇ */
-.pguc-bar{height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-top:6px;}
-.pguc-fill{height:100%;border-radius:2px;transition:.4s;}
-.pguc-lbl{font-size:9px;font-weight:800;margin-top:4px;}
+/* ANA BUTON */
+.btn{width:100%;padding:16px;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:.2s;border:none;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-green{background:linear-gradient(135deg,#2d6e14,#3a7d1e);color:#fff;box-shadow:0 4px 20px rgba(57,255,20,.15);}
+.btn-green:hover{background:linear-gradient(135deg,#3a7d1e,#4a9e25);transform:translateY(-1px);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:none;border:1.5px solid rgba(255,255,255,.1);color:#555;margin-top:10px;}
+.btn-ghost:hover{border-color:#333;color:#ccc;}
 
-/* INFO KUTUSU */
-.info-box{background:rgba(100,150,255,.06);border:1px solid rgba(100,150,255,.15);border-radius:6px;padding:10px 14px;font-size:10px;font-weight:700;color:#6bb3ff;line-height:1.7;margin-bottom:14px;}
+/* ROL KARTLARI */
+.rol-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.rol-kart{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:20px 14px;cursor:pointer;text-align:center;transition:.2s;}
+.rol-kart:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.06);}
+.rol-kart.secili{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.06);}
+.rol-ikon{font-size:28px;margin-bottom:8px;}
+.rol-ad{font-size:12px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+.rol-kart.secili .rol-ad{color:#39ff14;}
 
-/* KATEGORİ */
-.kat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.kat-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:18px 10px;cursor:pointer;text-align:center;transition:.15s;}
-.kat-btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06);}
-.kat-btn.on{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.08);}
-.kat-ikon{font-size:32px;margin-bottom:8px;}
-.kat-ad{font-size:11px;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:.5px;}
-.kat-btn.on .kat-ad{color:#39ff14;}
-.alt-kat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.alt-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:10px 6px;cursor:pointer;text-align:center;font-size:10px;font-weight:800;color:#555;text-transform:uppercase;transition:.15s;}
+/* ALT ROL */
+.alt-rol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.alt-btn{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 6px;cursor:pointer;text-align:center;font-size:11px;font-weight:800;color:#555;text-transform:uppercase;transition:.2s;}
 .alt-btn:hover{border-color:rgba(255,255,255,.15);color:#ccc;}
-.alt-btn.on{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.08);color:#39ff14;}
+.alt-btn.secili{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.06);color:#39ff14;}
 
 /* SUNUCU */
-.sayac{font-size:10px;font-weight:700;color:#444;margin-bottom:10px;}
-.sayac span{color:#39ff14;font-weight:900;}
-.sunucu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:260px;overflow-y:auto;margin-bottom:14px;padding-right:2px;}
+.sunucu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:280px;overflow-y:auto;margin-bottom:20px;padding-right:4px;}
 .sunucu-grid::-webkit-scrollbar{width:3px;}
 .sunucu-grid::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px;}
-.s-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:10px 6px;cursor:pointer;text-align:center;transition:.15s;}
-.s-btn:hover{border-color:rgba(255,255,255,.15);}
-.s-btn.on{border-color:rgba(57,255,20,.4);background:rgba(57,255,20,.06);}
-.s-btn.on-tek{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.06);}
-.s-logo{display:flex;align-items:center;justify-content:center;margin-bottom:5px;}
-.s-isim{font-size:8px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.3px;line-height:1.3;}
-.s-btn.on .s-isim{color:#39ff14;}
-.s-btn.on-tek .s-isim{color:#FFD700;}
+.sunucu-btn{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 6px;cursor:pointer;text-align:center;transition:.2s;}
+.sunucu-btn:hover{border-color:rgba(255,255,255,.15);}
+.sunucu-btn.secili{border-color:rgba(57,255,20,.5);background:rgba(57,255,20,.06);}
+.sunucu-btn.secili .sunucu-ad{color:#39ff14;}
+.sunucu-logo{display:flex;justify-content:center;margin-bottom:6px;}
+.sunucu-logo img{width:32px;height:32px;border-radius:6px;image-rendering:pixelated;}
+.sunucu-ad{font-size:8px;font-weight:800;color:#555;text-transform:uppercase;line-height:1.3;}
 
-/* ÖNCÜ SUNUCULAR */
-.one-cikan-baslik{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:#FFD700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.divider{height:1px;background:rgba(255,255,255,.06);margin:14px 0;}
+/* HOŞ GELDİN */
+.hosgeldin{text-align:center;padding:20px 0;}
+.hosgeldin-ikon{font-size:60px;margin-bottom:20px;animation:bounce .6s ease;}
+@keyframes bounce{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+.hosgeldin-nick{font-size:24px;font-weight:900;background:linear-gradient(90deg,#fff,#39ff14,#fff);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite;margin-bottom:8px;}
+@keyframes shimmer{0%{background-position:200% center;}100%{background-position:-200% center;}}
+.hosgeldin-txt{font-size:13px;color:#444;line-height:1.8;margin-bottom:28px;}
 
-/* SEÇİM EFEKTİ */
-#secim-efekt{display:none;text-align:center;margin-bottom:16px;animation:secimGel .5s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes secimGel{from{opacity:0;transform:scale(.3);}to{opacity:1;transform:scale(1);}}
-@keyframes parcaUc{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-60px) scale(0);}}
+/* HATA */
+.hata-kutu{background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:8px;padding:12px 16px;font-size:12px;font-weight:700;color:#ff6b6b;margin-bottom:16px;display:none;text-align:center;}
+.hata-kutu.goster{display:block;}
 
-/* BUTONLAR */
-.btn{width:100%;padding:14px;border:none;border-radius:6px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
-.btn:active{transform:translateY(1px);}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
-.btn-green{background:linear-gradient(135deg,#2d6e14,#3a7d1e);color:#fff;box-shadow:0 4px 16px rgba(57,255,20,.15),inset 0 1px 0 rgba(255,255,255,.1);border:1px solid rgba(57,255,20,.3);}
-.btn-green:hover{background:linear-gradient(135deg,#3a7d1e,#4a9e25);}
-.btn-back{background:none;border:none;color:#444;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:5px;margin-bottom:14px;transition:.15s;}
-.btn-back:hover{color:#ccc;}
+/* GERİ LİNK */
+.geri-link{display:flex;align-items:center;gap:6px;font-size:12px;color:#333;font-weight:700;cursor:pointer;margin-bottom:24px;width:fit-content;transition:.2s;}
+.geri-link:hover{color:#ccc;}
 
-/* MESAJ */
-.msg{padding:10px 14px;border-radius:6px;font-size:11px;font-weight:800;text-align:center;margin-bottom:14px;display:none;line-height:1.6;}
-.msg.error{background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);color:#ff6b6b;display:block;}
-.msg.success{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.2);color:#39ff14;display:block;}
+/* KOMBİNASYON */
+.sozlesme{font-size:11px;color:#333;text-align:center;margin-top:16px;line-height:1.7;}
+.sozlesme a{color:#444;text-decoration:underline;}
 
-/* BİTİŞ */
-.bitis{text-align:center;padding:10px 0;}
-.bitis-ikon{font-size:56px;margin-bottom:16px;}
-.bitis-nick{font-size:22px;font-weight:900;margin-bottom:8px;background:linear-gradient(90deg,#fff,#39ff14,#fff);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 3s linear infinite;}
-.bitis-sub{font-size:12px;color:#444;line-height:1.9;margin-bottom:24px;}
+/* PROG BAR */
+.prog{display:flex;gap:4px;margin-bottom:28px;}
+.prog-adim{flex:1;height:3px;background:#1a1a1a;border-radius:2px;transition:.4s;}
+.prog-adim.done{background:#39ff14;}
+.prog-adim.aktif{background:rgba(57,255,20,.5);}
 
-.link-alt{text-align:center;margin-top:14px;}
-.link-alt a{font-size:11px;color:#333;text-decoration:none;font-weight:700;transition:.2s;}
-.link-alt a:hover{color:#39ff14;}
+/* GİRİŞ PANELİ */
 .giris-panel{display:none;width:100%;}
 .giris-panel.active{display:block;}
 </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
+<canvas id="bg"></canvas>
 
-<nav class="nav">
-  <a href="/lobbygg/index.html" class="nav-logo"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG"></a>
-  <div class="nav-title">Türkiye'nin Minecraft Topluluğu</div>
-  <a href="/lobbygg/index.html" class="nav-back">← Ana Sayfa</a>
-</nav>
+<div class="logo-wrap">
+  <a href="/lobbygg/index.html"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG"></a>
+  <div class="login-link" onclick="girisAc()">Zaten üye misin? <span style="color:#39ff14;">Giriş yap</span></div>
+</div>
 
-<div class="wrap">
-  <div class="logo">
-    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
-    <div class="logo-sub">Türkiye'nin Minecraft Topluluğu</div>
-  </div>
-
-  <!-- GİRİŞ -->
-  <div class="giris-panel" id="giris-panel">
-    <div class="card">
-      <button class="btn-back" onclick="girisKapat()">← Geri Dön</button>
-      <div class="step-title">Tekrar hoş geldin!</div>
-      <div class="step-sub">Hesabına giriş yap.</div>
-      <div class="msg" id="g-msg"></div>
-      <div class="fg"><label class="fl">E-posta</label><input type="email" class="fi" id="g-email" placeholder="ornek@gmail.com"></div>
-      <div class="fg">
-        <label class="fl">Şifre</label>
-        <input type="password" class="fi fi-pass" id="g-sifre" placeholder="••••••••" onkeydown="if(event.key==='Enter')giris()">
-        <button class="pass-toggle" onclick="goster('g-sifre',this)" type="button">👁</button>
-      </div>
-      <button class="btn btn-green" id="g-btn" onclick="giris()">→ Giriş Yap</button>
-      <div class="link-alt" style="margin-top:10px;"><a href="#" onclick="sifreSifirla();return false;">Şifremi unuttum</a></div>
+<!-- GİRİŞ PANELİ -->
+<div class="giris-panel" id="giris-panel">
+  <div class="kart">
+    <div class="ust">
+      <div class="ust-baslik">Tekrar hoş geldin 👋</div>
+      <div class="ust-alt">Hesabına giriş yap</div>
+    </div>
+    <div class="hata-kutu" id="g-hata"></div>
+    <div class="form-grup">
+      <label class="form-label">E-posta</label>
+      <input type="email" class="form-input" id="g-email" placeholder="ornek@gmail.com">
+    </div>
+    <div class="form-grup">
+      <label class="form-label">Şifre</label>
+      <input type="password" class="form-input" id="g-sifre" placeholder="••••••••" onkeydown="if(event.key==='Enter')girisYap()">
+    </div>
+    <button class="btn btn-green" onclick="girisYap()" id="g-btn">Giriş Yap</button>
+    <div class="ayirac"><div class="ayirac-cizgi"></div><div class="ayirac-txt">veya</div><div class="ayirac-cizgi"></div></div>
+    <button class="sosyal-btn google-btn" onclick="googleGiris()">
+      <img class="sosyal-ico" src="https://www.google.com/favicon.ico"> Google ile giriş yap
+    </button>
+    <button class="btn btn-ghost" onclick="girisKapat()">← Kayıt ol</button>
+    <div class="sozlesme">
+      <span style="cursor:pointer;color:#444;" onclick="sifreSifirla()">Şifreni mi unuttun?</span>
     </div>
   </div>
+</div>
 
-  <!-- KAYIT KARTI -->
-  <div class="card" id="kayit-kart">
-    <div class="prog-wrap" id="prog" style="display:none;">
-      <div class="prog-step" id="ps1"></div>
-      <div class="prog-step" id="ps2"></div>
-      <div class="prog-step" id="ps3"></div>
-      <div class="prog-step" id="ps4"></div>
-      <div class="prog-step" id="ps5"></div>
-      <div class="prog-step" id="ps6"></div>
+<!-- KAYIT AKIŞI -->
+<div class="kart" id="kayit-wrap">
+
+  <!-- ADIM 0: NİCK -->
+  <div class="adim active" id="a0">
+    <div class="ust">
+      <div class="ust-baslik">Kullanıcı adını seç</div>
+      <div class="ust-alt">İstediğin zaman değiştirebilirsin.</div>
     </div>
-    <div class="msg" id="msg"></div>
-
-    <!-- S0: NICK -->
-    <div class="step active" id="s0">
-      <div class="step-title" style="font-size:22px;">Profilini al.</div>
-      <div class="step-sub">Minecraft nickin ile yerini kap. Her nick benzersizdir.</div>
-      <div class="nick-prev" id="nick-prev">
-        <img id="nick-av" src="" alt="">
-        <span id="nick-txt"></span>
-      </div>
-      <div id="nick-durum" style="display:none;font-size:11px;font-weight:800;padding:8px 12px;border-radius:6px;margin-bottom:8px;text-align:center;"></div>
-      <div class="claim-wrap">
-        <div class="claim-prefix">lobby.gg/<b>lobbygg/</b></div>
-        <input class="claim-in" id="k-nick" placeholder="nickiniyaz" maxlength="16"
-          oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();nickOnizle(this.value)"
-          onkeydown="if(event.key==='Enter')git(1)">
-      </div>
-      <button class="btn btn-green" id="devam-btn" onclick="nickKontrolVeDevam()" style="margin-top:4px;">Devam Et →</button>
-      <div class="link-alt"><a href="#" onclick="girisAc();return false;">Zaten üye misin? Giriş yap</a></div>
+    <div class="nick-kutu">
+      <div class="nick-prefix">lobbygg.com.tr/<span>lobbygg/</span></div>
+      <input class="nick-in" id="k-nick" placeholder="nickiniyaz" maxlength="16"
+        oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase();nickKontrol(this.value)"
+        onkeydown="if(event.key==='Enter')nickDevam()">
     </div>
+    <div class="nick-durum" id="nick-durum"></div>
+    <button class="btn btn-green" id="nick-btn" onclick="nickDevam()">Devam Et →</button>
+    <div class="sozlesme" style="margin-top:20px;">Zaten üye misin? <span class="login-link" onclick="girisAc()">Giriş yap</span></div>
+  </div>
 
-    <!-- S1: EMAIL + ŞİFRE -->
-    <div class="step" id="s1">
-      <button class="btn-back" onclick="git(0)">← Geri</button>
-      <div class="step-title">Merhaba, <span id="s1-nick" style="-webkit-text-fill-color:#39ff14;"></span>! 👋</div>
-      <div class="step-sub">Gmail adresini ve şifreni belirle.</div>
-      <div class="fg"><label class="fl">Gmail Adresi *</label><input type="email" class="fi" id="k-email" placeholder="ornek@gmail.com"></div>
-      <div class="fg">
-        <label class="fl">Şifre * <span style="color:#2a2a2a;">(min 8 karakter)</span></label>
-        <input type="password" class="fi fi-pass" id="k-sifre" placeholder="••••••••" oninput="pguc(this.value)">
-        <button class="pass-toggle" onclick="goster('k-sifre',this)" type="button">👁</button>
-        <div id="pguc-wrap" style="display:none;"><div class="pguc-bar"><div class="pguc-fill" id="pguc-fill"></div></div><div class="pguc-lbl" id="pguc-lbl"></div></div>
-      </div>
-      <button class="btn btn-green" onclick="git(2)">Devam Et →</button>
+  <!-- ADIM 1: EMAIL + ŞİFRE -->
+  <div class="adim" id="a1">
+    <div class="prog"><div class="prog-adim aktif" id="p1"></div><div class="prog-adim" id="p2"></div><div class="prog-adim" id="p3"></div><div class="prog-adim" id="p4"></div></div>
+    <div class="geri-link" onclick="git(0)">← Geri</div>
+    <div class="ust">
+      <div class="ust-etiket" id="nick-etiket"></div>
+      <div class="ust-baslik">Hesabını oluştur</div>
+      <div class="ust-alt">Ücretsiz hesabını şimdi oluştur.</div>
     </div>
-
-    <!-- S2: KİŞİSEL -->
-    <div class="step" id="s2">
-      <button class="btn-back" onclick="git(1)">← Geri</button>
-      <div class="step-title">Seni tanıyalım</div>
-      <div class="info-box">🔒 Bu bilgiler profilinde görünmez. Sadece deneyimini iyileştirmek için saklarız.</div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Ad *</label><input type="text" class="fi" id="k-ad" placeholder="Kerem" oninput="this.value=this.value.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g,'')"></div>
-        <div class="fg"><label class="fl">Soyad *</label><input type="text" class="fi" id="k-soyad" placeholder="Yılmaz" oninput="this.value=this.value.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g,'')"></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label class="fl">Yaş *</label><input type="number" class="fi" id="k-yas" placeholder="18" min="10" max="99"></div>
-        <div class="fg"><label class="fl">Cinsiyet *</label>
-          <select class="fs" id="k-cinsiyet">
-            <option value="">Seç...</option>
-            <option value="Erkek">Erkek</option>
-            <option value="Kadın">Kadın</option>
-            <option value="Belirtmek İstemiyorum">Belirtmek İstemiyorum</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label class="fl">Discord (Opsiyonel)</label><input type="text" class="fi" id="k-discord" placeholder="kullanici_adi"></div>
-      <button class="btn btn-green" onclick="git(3)">Devam Et →</button>
+    <div class="hata-kutu" id="k-hata"></div>
+    <button class="sosyal-btn google-btn" onclick="googleKayit()">
+      <img class="sosyal-ico" src="https://www.google.com/favicon.ico"> Google ile devam et
+    </button>
+    <div class="ayirac"><div class="ayirac-cizgi"></div><div class="ayirac-txt">veya</div><div class="ayirac-cizgi"></div></div>
+    <div class="form-grup">
+      <label class="form-label">E-posta</label>
+      <input type="email" class="form-input" id="k-email" placeholder="ornek@gmail.com">
     </div>
-
-    <!-- S3: KATEGORİ -->
-    <div class="step" id="s3">
-      <button class="btn-back" onclick="git(2)">← Geri</button>
-      <div class="step-title">Kendini tanıt</div>
-      <div class="step-sub">Minecraft'taki rolünü seç. Profilinde gösterilecek.</div>
-      <div class="kat-grid">
-        <div class="kat-btn" onclick="katSec('pvp',this)"><div class="kat-ikon">⚔️</div><div class="kat-ad">PvP Oyuncusu</div></div>
-        <div class="kat-btn" onclick="katSec('icerik',this)"><div class="kat-ikon">🎬</div><div class="kat-ad">İçerik Üreticisi</div></div>
-        <div class="kat-btn" onclick="katSec('developer',this)"><div class="kat-ikon">⚙️</div><div class="kat-ad">Developer</div></div>
-        <div class="kat-btn" onclick="katSec('builder',this)"><div class="kat-ikon">🔨</div><div class="kat-ad">Builder</div></div>
+    <div class="form-grup">
+      <label class="form-label">Şifre</label>
+      <input type="password" class="form-input" id="k-sifre" placeholder="min. 8 karakter" oninput="sifreGuc(this.value)">
+      <div id="guc-bar" style="margin-top:8px;display:none;">
+        <div style="height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;"><div id="guc-fill" style="height:100%;border-radius:2px;transition:.3s;"></div></div>
+        <div id="guc-txt" style="font-size:9px;font-weight:800;margin-top:4px;"></div>
       </div>
-      <!-- PvP seviyeleri -->
-      <div id="alt-pvp" style="display:none;">
-        <div class="step-sub" style="margin-bottom:8px;">PvP seviyeni seç:</div>
-        <div class="alt-kat-grid">
-          <div class="alt-btn" onclick="altKatSec('T1',this)">T1</div>
-          <div class="alt-btn" onclick="altKatSec('HT1',this)">HT1</div>
-          <div class="alt-btn" onclick="altKatSec('LT1',this)">LT1</div>
-          <div class="alt-btn" onclick="altKatSec('T2',this)">T2</div>
-          <div class="alt-btn" onclick="altKatSec('HT2',this)">HT2</div>
-          <div class="alt-btn" onclick="altKatSec('LT2',this)">LT2</div>
-          <div class="alt-btn" onclick="altKatSec('T3',this)">T3</div>
-          <div class="alt-btn" onclick="altKatSec('HT3',this)">HT3</div>
-          <div class="alt-btn" onclick="altKatSec('LT3',this)">LT3</div>
-          <div class="alt-btn" onclick="altKatSec('T4',this)">T4</div>
-          <div class="alt-btn" onclick="altKatSec('T5',this)">T5</div>
-          <div class="alt-btn" onclick="altKatSec('Başlangıç',this)">Başlangıç</div>
-        </div>
-      </div>
-      <!-- İçerik üreticisi -->
-      <div id="alt-icerik" style="display:none;">
-        <div class="step-sub" style="margin-bottom:8px;">Platformunu seç:</div>
-        <div class="alt-kat-grid">
-          <div class="alt-btn" onclick="altKatSec('Kick',this)" style="color:#53fc18;">🎮 Kick</div>
-          <div class="alt-btn" onclick="altKatSec('YouTube',this)" style="color:#ff4444;">▶ YouTube</div>
-          <div class="alt-btn" onclick="altKatSec('Twitch',this)" style="color:#9146ff;">📡 Twitch</div>
-          <div class="alt-btn" onclick="altKatSec('TikTok',this)" style="color:#00d4ff;">🎵 TikTok</div>
-          <div class="alt-btn" onclick="altKatSec('Instagram',this)" style="color:#e1306c;">📸 Instagram</div>
-        </div>
-      </div>
-      <!-- Developer -->
-      <div id="alt-developer" style="display:none;">
-        <div class="step-sub" style="margin-bottom:8px;">Uzmanlığını seç:</div>
-        <div class="alt-kat-grid">
-          <div class="alt-btn" onclick="altKatSec('Plugin Dev',this)">🔌 Plugin Dev</div>
-          <div class="alt-btn" onclick="altKatSec('Skripter',this)">📜 Skripter</div>
-          <div class="alt-btn" onclick="altKatSec('Web Dev',this)">🌐 Web Dev</div>
-        </div>
-      </div>
-      <button class="btn btn-green" onclick="git(4)">Devam Et →</button>
     </div>
+    <button class="btn btn-green" onclick="emailKayit()">Devam Et →</button>
+    <div class="sozlesme">Kayıt olarak <a href="#">Kullanım Şartları</a>'nı kabul ediyorsun.</div>
+  </div>
 
-    <!-- S4: FAVORİ SUNUCULAR -->
-    <div class="step" id="s4">
-      <button class="btn-back" onclick="git(3)">← Geri</button>
-      <div class="step-title">Hangi sunucuları destekliyorsun?</div>
-      <div class="step-sub">En az 2 sunucu seç. Profilinde görünecek.</div>
-      <div class="one-cikan-baslik">⭐ Öne Çıkan Sunucular</div>
-      <div id="one-cikan-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;"></div>
-      <div class="divider"></div>
-      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:#555;margin-bottom:8px;">Tüm Sunucular</div>
-      <div class="sayac">Seçilen: <span id="fav-sayac">0</span> / min 2</div>
-      <div class="sunucu-grid" id="fav-grid"></div>
-      <button class="btn btn-green" onclick="git(5)">Devam Et →</button>
+  <!-- ADIM 2: ROL -->
+  <div class="adim" id="a2">
+    <div class="prog"><div class="prog-adim done"></div><div class="prog-adim aktif"></div><div class="prog-adim"></div><div class="prog-adim"></div></div>
+    <div class="geri-link" onclick="git(1)">← Geri</div>
+    <div class="ust">
+      <div class="ust-baslik">Rolünü seç</div>
+      <div class="ust-alt">Deneyimini kişiselleştirmek için kullanacağız.</div>
     </div>
-
-    <!-- S5: AKTİF SUNUCU -->
-    <div class="step" id="s5">
-      <button class="btn-back" onclick="git(4)">← Geri</button>
-      <div class="step-title">Şu an nerede oynuyorsun?</div>
-      <div class="step-sub">Tek sunucu seç, seni yüceltelim! 🌟</div>
-      <div id="secim-efekt">
-        <div id="secim-logo-buyuk" style="width:80px;height:80px;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;"></div>
-        <div id="secim-yazi" style="font-size:15px;font-weight:900;color:#FFD700;"></div>
-        <div style="font-size:11px;color:#555;margin-top:3px;">Harika bir seçim! 🎮</div>
-      </div>
-      <div class="sunucu-grid" id="aktif-grid"></div>
-      <button class="btn btn-green" id="kayit-btn" onclick="kayitTamamla()">🚀 Kayıt Ol!</button>
+    <div class="rol-grid" id="rol-grid"></div>
+    <div id="alt-rol-wrap" style="display:none;">
+      <div class="ust-alt" style="margin-bottom:12px;" id="alt-rol-baslik"></div>
+      <div class="alt-rol-grid" id="alt-rol-grid"></div>
     </div>
+    <button class="btn btn-green" id="rol-btn" onclick="rolDevam()">Devam Et →</button>
+  </div>
 
-    <!-- S6: BİTİŞ -->
-    <div class="step" id="s6">
-      <div class="bitis">
-        <div class="bitis-ikon">🎮</div>
-        <div class="bitis-nick" id="son-nick"></div>
-        <div class="bitis-sub">Hesabın oluşturuldu!<br><strong style="color:#39ff14;" id="son-email"></strong><br>adresine doğrulama maili gönderdik.<br><span style="font-size:10px;color:#333;">Spam klasörünü de kontrol et!</span></div>
-        <button class="btn btn-green" onclick="window.location.href='/lobbygg/giris.html'">← Giriş Yap</button>
-      </div>
+  <!-- ADIM 3: SUNUCU -->
+  <div class="adim" id="a3">
+    <div class="prog"><div class="prog-adim done"></div><div class="prog-adim done"></div><div class="prog-adim aktif"></div><div class="prog-adim"></div></div>
+    <div class="geri-link" onclick="git(2)">← Geri</div>
+    <div class="ust">
+      <div class="ust-baslik">Hangi sunucudasın?</div>
+      <div class="ust-alt">Şu an aktif olduğun Minecraft sunucusunu seç.</div>
+    </div>
+    <div class="sunucu-grid" id="sunucu-grid"></div>
+    <button class="btn btn-green" onclick="sunucuDevam()">Devam Et →</button>
+    <button class="btn btn-ghost" onclick="sunucuAtla()">Şimdilik geç</button>
+  </div>
+
+  <!-- ADIM 4: HOŞ GELDİN -->
+  <div class="adim" id="a4">
+    <div class="prog"><div class="prog-adim done"></div><div class="prog-adim done"></div><div class="prog-adim done"></div><div class="prog-adim done"></div></div>
+    <div class="hosgeldin">
+      <div class="hosgeldin-ikon">🎮</div>
+      <div class="hosgeldin-nick" id="son-nick"></div>
+      <div class="hosgeldin-txt">Hoş geldin! Profilini özelleştirmeye hazır mısın?</div>
+      <button class="btn btn-green" onclick="paneleGit()">Profilimi Düzenle →</button>
     </div>
   </div>
 </div>
@@ -346,377 +266,270 @@ const SB = window.supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA'
 );
 
-// ── CANVAS ──
-(function(){
-  const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
-  let W,H;
-  const logo=new Image();logo.crossOrigin='anonymous';logo.src='https://i.imgur.com/6l08Y4k.png';
-  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+let adim = 0;
+let seciliRol = null, seciliAltRol = null, seciliSunucu = null;
+
+// Session kontrol
+(async()=>{
+  const{data:{session}}=await SB.auth.getSession();
+  if(session) window.location.href='/lobbygg/profil.html';
+})();
+
+const ROLLER = [
+  {id:'pvp',ikon:'⚔️',ad:'PvP Oyuncusu'},
+  {id:'icerik',ikon:'🎬',ad:'İçerik Üreticisi'},
+  {id:'developer',ikon:'⚙️',ad:'Developer'},
+  {id:'builder',ikon:'🔨',ad:'Builder'},
+  {id:'yonetici',ikon:'👑',ad:'Sunucu Yöneticisi'},
+  {id:'diger',ikon:'🎮',ad:'Diğer'},
+];
+const ALT_ROLLER = {
+  pvp:{baslik:'PvP seviyeni seç:',secenekler:['T1','HT1','LT1','T2','HT2','LT2','T3','HT3','LT3','T4','T5','Başlangıç']},
+  icerik:{baslik:'Platformunu seç:',secenekler:['Kick','YouTube','Twitch','TikTok','Instagram']},
+  developer:{baslik:'Uzmanlığını seç:',secenekler:['Plugin Dev','Skripter','Web Dev']},
+};
+const SUNUCULAR = [
+  {ad:'HanedanMC',ip:'play.hanedanmc.com'},
+  {ad:'ChickenNW',ip:'oyna.chickennw.com'},
+  {ad:'BLOKYA',ip:'oyna.blokya.com'},
+  {ad:'DugeCraft',ip:'play.dugecraft.com.tr'},
+  {ad:'ZENITMC',ip:'play.zenitmc.com'},
+  {ad:'SENTORCRAFT',ip:'sentorcraft.com'},
+  {ad:'SOULCRAFT',ip:'soulcraft.tc'},
+  {ad:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},
+  {ad:'AtlantikMC',ip:'atlantikmc.com'},
+  {ad:'NAVELYA',ip:'navelya.net'},
+  {ad:'CRAFTLUNA',ip:'play.craftluna.net'},
+  {ad:'Melonya',ip:'melonya.net'},
+  {ad:'Rush Craft',ip:'play.rushcraft.com.tr'},
+  {ad:'RebornCraft',ip:'play.reborncraft.pw'},
+  {ad:'LuneCraft',ip:'mc.lunecraft.net'},
+  {ad:'SimitSMP',ip:'simitsmp.net'},
+  {ad:'MC4FUN',ip:'play.mc4fun.net'},
+  {ad:'İmibiyum',ip:'play.imibiyum.com'},
+];
+
+// Rolleri oluştur
+const rolGrid = document.getElementById('rol-grid');
+ROLLER.forEach(r=>{
+  const d=document.createElement('div');
+  d.className='rol-kart';
+  d.innerHTML='<div class="rol-ikon">'+r.ikon+'</div><div class="rol-ad">'+r.ad+'</div>';
+  d.addEventListener('click',()=>rolSec(r.id,d));
+  rolGrid.appendChild(d);
+});
+
+// Sunucuları oluştur
+const sunucuGrid = document.getElementById('sunucu-grid');
+SUNUCULAR.forEach(s=>{
+  const d=document.createElement('div');
+  d.className='sunucu-btn';
+  d.innerHTML='<div class="sunucu-logo"><img src="https://api.mcsrvstat.us/icon/'+s.ip+'" onerror="this.style.display=\'none\'"></div><div class="sunucu-ad">'+s.ad+'</div>';
+  d.addEventListener('click',()=>sunucuSec(s.ad,d));
+  sunucuGrid.appendChild(d);
+});
+
+// CANVAS
+(()=>{
+  const c=document.getElementById('bg'),ctx=c.getContext('2d');
+  const resize=()=>{c.width=window.innerWidth;c.height=window.innerHeight;};
   resize();window.addEventListener('resize',resize);
-  const LOGOLAR=Array.from({length:10},()=>({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,size:Math.random()*80+50,vx:(Math.random()-.5)*.5,vy:(Math.random()-.5)*.5,alpha:Math.random()*.12+.06,rot:Math.random()*Math.PI*2,vrot:(Math.random()-.5)*.006}));
-  const HUZMELER=Array.from({length:6},()=>({x:Math.random()*window.innerWidth,angle:(Math.random()-.5)*.6,w:Math.random()*100+50,alpha:Math.random()*.04+.02,speed:Math.random()*.4+.15,dir:Math.random()>.5?1:-1}));
+  const logo=new Image();logo.crossOrigin='anonymous';logo.src='https://i.imgur.com/6l08Y4k.png';
+  const L=Array.from({length:8},()=>({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,sz:Math.random()*80+40,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,a:Math.random()*.08+.04,r:Math.random()*Math.PI*2,vr:(Math.random()-.5)*.005}));
+  const H=Array.from({length:4},()=>({x:Math.random()*window.innerWidth,ang:(Math.random()-.5)*.5,w:Math.random()*80+40,a:Math.random()*.03+.015,sp:Math.random()*.3+.1,dir:Math.random()>.5?1:-1}));
   function draw(){
-    ctx.clearRect(0,0,W,H);
-    HUZMELER.forEach(h=>{ctx.save();ctx.translate(h.x,H/2);ctx.rotate(h.angle);const g=ctx.createLinearGradient(0,-H,0,H);g.addColorStop(0,'transparent');g.addColorStop(.4,`rgba(57,255,20,${h.alpha})`);g.addColorStop(.5,`rgba(100,255,80,${h.alpha*1.8})`);g.addColorStop(.6,`rgba(57,255,20,${h.alpha})`);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(-h.w/2,-H*1.5,h.w,H*3);ctx.restore();h.x+=h.speed*h.dir;if(h.x>W+300)h.dir=-1;if(h.x<-300)h.dir=1;});
-    if(logo.complete&&logo.naturalWidth>0){LOGOLAR.forEach(l=>{ctx.save();ctx.globalAlpha=l.alpha;ctx.translate(l.x,l.y);ctx.rotate(l.rot);ctx.drawImage(logo,-l.size/2,-l.size/2,l.size,l.size);ctx.restore();l.x+=l.vx;l.y+=l.vy;l.rot+=l.vrot;if(l.x<-150)l.x=W+100;if(l.x>W+150)l.x=-100;if(l.y<-150)l.y=H+100;if(l.y>H+150)l.y=-100;});}
+    const W=c.width,Hh=c.height;
+    ctx.fillStyle='#050505';ctx.fillRect(0,0,W,Hh);
+    H.forEach(h=>{ctx.save();ctx.translate(h.x,Hh/2);ctx.rotate(h.ang);const g=ctx.createLinearGradient(0,-Hh,0,Hh);g.addColorStop(0,'transparent');g.addColorStop(.4,'rgba(57,255,20,'+h.a+')');g.addColorStop(.6,'rgba(57,255,20,'+h.a+')');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(-h.w/2,-Hh*1.5,h.w,Hh*3);ctx.restore();h.x+=h.sp*h.dir;if(h.x>W+200)h.dir=-1;if(h.x<-200)h.dir=1;});
+    if(logo.complete&&logo.naturalWidth>0)L.forEach(l=>{ctx.save();ctx.globalAlpha=l.a;ctx.translate(l.x,l.y);ctx.rotate(l.r);ctx.drawImage(logo,-l.sz/2,-l.sz/2,l.sz,l.sz);ctx.restore();l.x+=l.vx;l.y+=l.vy;l.r+=l.vr;const W2=c.width,H2=c.height;if(l.x<-100)l.x=W2+50;if(l.x>W2+100)l.x=-50;if(l.y<-100)l.y=H2+50;if(l.y>H2+100)l.y=-50;});
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-// Session kontrol
-(async()=>{try{const{data:{session}}=await SB.auth.getSession();if(session)window.location.href='/lobbygg/panel.html';}catch(e){}})();
-
-// Sunucular
-const SUNUCULAR=[
-  {n:'HanedanMC',r:'#c0392b',i:'⚔️',ip:'play.hanedanmc.com'},
-  {n:'ChickenNW',r:'#e67e22',i:'🐔',ip:'oyna.chickennw.com'},
-  {n:'BLOKYA',r:'#27ae60',i:'🟩',ip:'oyna.blokya.com'},
-  {n:'DugeCraft',r:'#2980b9',i:'⛏️',ip:'play.dugecraft.com.tr'},
-  {n:'ZENITMC',r:'#8e44ad',i:'🌙',ip:'play.zenitmc.com'},
-  {n:'SENTORCRAFT',r:'#16a085',i:'🛡️',ip:'sentorcraft.com'},
-  {n:'SOULCRAFT',r:'#2c3e50',i:'💀',ip:'soulcraft.tc'},
-  {n:'AtlasOyuncu',r:'#d35400',i:'🗺️',ip:'play.atlasoyuncu.com'},
-  {n:'AtlantikMC',r:'#1abc9c',i:'🌊',ip:'atlantikmc.com'},
-  {n:'NAVELYA',r:'#9b59b6',i:'⭐',ip:'navelya.net'},
-  {n:'CRAFTLUNA',r:'#34495e',i:'🌕',ip:'play.craftluna.net'},
-  {n:'Melonya',r:'#e74c3c',i:'🍉',ip:'melonya.net'},
-  {n:'Rush Craft',r:'#f39c12',i:'⚡',ip:'play.rushcraft.com.tr'},
-  {n:'RebornCraft',r:'#1abc9c',i:'🔄',ip:'play.reborncraft.pw'},
-  {n:'LuneCraft',r:'#6c5ce7',i:'🌙',ip:'mc.lunecraft.net'},
-  {n:'SimitSMP',r:'#e17055',i:'🥨',ip:'simitsmp.net'},
-  {n:'MC4FUN',r:'#00b894',i:'🎮',ip:'play.mc4fun.net'},
-  {n:'İmibiyum',r:'#0984e3',i:'💎',ip:'play.imibiyum.com'},
-  {n:'Knight Network',r:'#636e72',i:'🏰',ip:null},
-  {n:'Cape Network',r:'#a29bfe',i:'🦸',ip:null},
-  {n:'Soya Network',r:'#55efc4',i:'🌱',ip:null},
-  {n:'Son Kral',r:'#e84393',i:'👑',ip:null},
-  {n:'MUZCRAFT',r:'#6c5ce7',i:'🎵',ip:null},
-  {n:'LORAMC',r:'#74b9ff',i:'🌀',ip:null},
-];
-const BELIRTME={n:'Belirtmek İstemiyorum',r:'#444',i:'🔒',ip:null,noEffect:true};
-const ONE_CIKAN=[
-  {n:'HanedanMC',r:'#FFD700',i:'⚔️',ip:'play.hanedanmc.com'},
-  {n:'ZENITMC',r:'#FFD700',i:'🌙',ip:'play.zenitmc.com'},
-  {n:'ChickenNW',r:'#FFD700',i:'🐔',ip:'oyna.chickennw.com'},
-];
-
-let favSec=new Set(),aktifSec=null,adim=0;
-let seciliKat=null,seciliAltKat=null;
-
-function imgHata(el,renk,ikon){el.style.display='none';const d=document.createElement('div');d.style.cssText=`width:${el.style.width||'34px'};height:${el.style.height||'34px'};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;background:${renk}22;border:1px solid ${renk}44;`;d.textContent=ikon;el.parentNode.appendChild(d);}
-
-function logoHTML(s,sz=34){if(s.ip){return`<img src="https://api.mcsrvstat.us/icon/${s.ip}" style="width:${sz}px;height:${sz}px;border-radius:6px;object-fit:cover;image-rendering:pixelated;" onerror="imgHata(this,'${s.r}','${s.i}')">`;}return`<div style="width:${sz}px;height:${sz}px;border-radius:6px;background:${s.r}22;border:1px solid ${s.r}44;display:flex;align-items:center;justify-content:center;font-size:${sz*.5}px;">${s.i}</div>`;}
-
-function gridOlustur(id,tip){
-  const el=document.getElementById(id);
-  const liste=tip==='aktif'?[...SUNUCULAR,BELIRTME]:SUNUCULAR;
-  let html='';
-  liste.forEach((s,idx)=>{
-    html+=`<div class="s-btn" id="${tip}_${idx}">
-      <div class="s-logo">${logoHTML(s)}</div>
-      <div class="s-isim">${s.n}</div>
-    </div>`;
-  });
-  el.innerHTML=html;
-  el.querySelectorAll('.s-btn').forEach((btn,idx)=>{
-    btn.addEventListener('click',()=>{
-      const s=liste[idx];
-      if(tip==='fav') favTikla(s.n,btn);
-      else aktifTikla(s,btn);
-    });
-  });
-}
-
-function oneCikanOlustur(){
-  const el=document.getElementById('one-cikan-grid');
-  el.innerHTML=ONE_CIKAN.map((s,idx)=>`
-    <div class="s-btn" style="border-color:#FFD70040;background:rgba(255,215,0,.04);" id="one_${idx}">
-      <div class="s-logo">${logoHTML(s)}</div>
-      <div class="s-isim" style="color:#FFD700;">${s.n}</div>
-    </div>`).join('');
-  el.querySelectorAll('.s-btn').forEach((btn,idx)=>{
-    btn.addEventListener('click',()=>{
-      const s=ONE_CIKAN[idx];
-      if(favSec.has(s.n)){favSec.delete(s.n);btn.classList.remove('on');}
-      else{favSec.add(s.n);btn.classList.add('on');}
-      document.getElementById('fav-sayac').textContent=favSec.size;
-    });
-  });
-}
-
-function favTikla(n,btn){
-  if(favSec.has(n)){favSec.delete(n);btn.classList.remove('on');}
-  else{favSec.add(n);btn.classList.add('on');}
-  document.getElementById('fav-sayac').textContent=favSec.size;
-}
-
-function aktifTikla(s,btn){
-  document.querySelectorAll('#aktif-grid .s-btn').forEach(b=>b.classList.remove('on-tek'));
-  aktifSec=s.n;
-  btn.classList.add('on-tek');
-  if(s.noEffect){document.getElementById('secim-efekt').style.display='none';return;}
-  const efekt=document.getElementById('secim-efekt');
-  const logoBuyuk=document.getElementById('secim-logo-buyuk');
-  logoBuyuk.innerHTML=logoHTML(s,80);
-  logoBuyuk.style.cssText=`width:80px;height:80px;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;background:${s.r}22;border:2px solid ${s.r}66;`;
-  const yazilar=['Ovv ne seçim ya! 🔥','Şampiyon oyuncu! 🏆','Çok iyi bir tercih! 👑','Efsane sunucu! ⚔️','İşte bu! 🎯'];
-  document.getElementById('secim-yazi').textContent=yazilar[Math.floor(Math.random()*yazilar.length)];
-  efekt.style.display='block';efekt.style.animation='none';efekt.offsetHeight;efekt.style.animation='secimGel .5s cubic-bezier(.34,1.56,.64,1) both';
-  // Parçacıklar
-  const renkler=['#FFD700','#39ff14','#ff6b6b','#fff','#a29bfe'];
-  for(let i=0;i<8;i++){const p=document.createElement('div');p.style.cssText=`position:fixed;width:8px;height:8px;border-radius:50%;background:${renkler[i%5]};pointer-events:none;z-index:9999;animation:parcaUc .8s ease forwards;`;const rect=btn.getBoundingClientRect();p.style.left=(rect.left+rect.width/2+(Math.random()-.5)*60)+'px';p.style.top=(rect.top+rect.height/2)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),900);}
-}
-
-function katSec(kat,btn){
-  document.querySelectorAll('.kat-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  seciliKat=kat;seciliAltKat=null;
-  ['pvp','icerik','developer'].forEach(k=>{const el=document.getElementById('alt-'+k);if(el)el.style.display=k===kat?'block':'none';});
-  if(kat==='builder')seciliAltKat='Builder';
-  document.querySelectorAll('.alt-btn').forEach(b=>b.classList.remove('on'));
-}
-
-function altKatSec(val,btn){
-  document.querySelectorAll('.alt-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  seciliAltKat=val;
-}
-
-// Adım yönetimi
+// Adım geçiş
 function git(hedef){
-  const msg=document.getElementById('msg');msg.className='msg';
-  if(hedef>adim){
-    if(adim===0){
-      const nick=document.getElementById('k-nick').value.trim();
-      if(!nick||nick.length<3)return hata('Nick en az 3 karakter olmalı!');
-      if(!/^[a-z0-9_]+$/.test(nick))return hata('Nick sadece küçük harf, rakam ve _ içerebilir!');
-      document.getElementById('s1-nick').textContent=nick;
-    }
-    if(adim===1){
-      const email=document.getElementById('k-email').value.trim();
-      const sifre=document.getElementById('k-sifre').value;
-      if(!email||!email.includes('@'))return hata('Geçerli bir email gir!');
-      if(sifre.length<8)return hata('Şifre en az 8 karakter olmalı!');
-    }
-    if(adim===2){
-      const ad=document.getElementById('k-ad').value.trim();
-      const soyad=document.getElementById('k-soyad').value.trim();
-      const yas=parseInt(document.getElementById('k-yas').value)||0;
-      const cinsiyet=document.getElementById('k-cinsiyet').value;
-      if(!ad||ad.length<2)return hata('Ad en az 2 harf olmalı!');
-      if(!soyad||soyad.length<2)return hata('Soyad en az 2 harf olmalı!');
-      if(/[0-9]/.test(ad)||/[0-9]/.test(soyad))return hata('Ad ve soyad sadece harf içerebilir!');
-      if(!yas||yas<10||yas>99)return hata('Geçerli bir yaş gir!');
-      if(!cinsiyet)return hata('Cinsiyet seç!');
-    }
-    if(adim===3){
-      if(!seciliKat)return hata('Bir kategori seç!');
-      if(!seciliAltKat)return hata('Alt kategori seç!');
-    }
-    if(adim===4){
-      if(favSec.size<2)return hata('En az 2 sunucu seç!');
-    }
-  }
-  const ids=['s0','s1','s2','s3','s4','s5','s6'];
-  document.getElementById(ids[adim])?.classList.remove('active');
+  document.getElementById('a'+adim).classList.remove('active');
   adim=hedef;
-  document.getElementById(ids[adim])?.classList.add('active');
-  const prog=document.getElementById('prog');
-  if(adim>0&&adim<7){
-    prog.style.display='flex';
-    for(let i=1;i<=6;i++){const ps=document.getElementById('ps'+i);if(!ps)continue;if(i<adim)ps.className='prog-step done';else if(i===adim)ps.className='prog-step active';else ps.className='prog-step';}
-  }else prog.style.display='none';
+  document.getElementById('a'+adim).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function hata(m){const el=document.getElementById('msg');el.className='msg error';el.textContent='⚠️ '+m;}
-
-// Nick önizleme
-let nickT;
-function nickOnizle(v){
-  clearTimeout(nickT);
-  const prev=document.getElementById('nick-prev');
+// Nick kontrol
+let nickTimer;
+async function nickKontrol(v){
   const durum=document.getElementById('nick-durum');
-  if(!v||v.length<2){prev.style.display='none';durum.style.display='none';return;}
-  durum.style.display='block';
-  durum.style.background='rgba(255,255,255,.03)';
-  durum.style.border='1px solid #333';
-  durum.style.color='#555';
+  if(!v||v.length<2){durum.className='nick-durum';return;}
+  durum.className='nick-durum musait';
   durum.textContent='⏳ Kontrol ediliyor...';
-  // Minecraft avatar
-  const img=document.getElementById('nick-av');
-  img.src=`https://minotar.net/helm/${v}/36.png`;
-  img.onload=()=>{document.getElementById('nick-txt').textContent=v;prev.style.display='flex';};
-  img.onerror=()=>prev.style.display='none';
-  // DB kontrol (debounce)
-  nickT=setTimeout(async()=>{
-    if(v.length<3)return;
-    try{
-      const {data,error}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',v);
-      if(error){durum.textContent='⚠️ Kontrol edilemedi';return;}
-      if(data&&data.length>0){
-        durum.style.background='rgba(255,50,50,.08)';
-        durum.style.border='1px solid rgba(255,50,50,.3)';
-        durum.style.color='#ff6b6b';
-        durum.textContent='❌ Bu kullanıcı adı zaten alınmış!';
-      }else{
-        durum.style.background='rgba(57,255,20,.06)';
-        durum.style.border='1px solid rgba(57,255,20,.2)';
-        durum.style.color='#39ff14';
-        durum.textContent='✅ '+v+' kullanılabilir!';
-      }
-    }catch(e){durum.textContent='⚠️ Kontrol edilemedi';}
-  },700);
+  clearTimeout(nickTimer);
+  nickTimer=setTimeout(async()=>{
+    const{data}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',v);
+    if(data&&data.length){
+      durum.className='nick-durum var';
+      durum.textContent='❌ Bu kullanıcı adı zaten alınmış!';
+    }else{
+      durum.className='nick-durum musait';
+      durum.textContent='✅ '+v+' kullanılabilir!';
+    }
+  },600);
 }
 
-async function nickKontrolVeDevam(){
+async function nickDevam(){
   const nick=document.getElementById('k-nick').value.trim();
-  const durum=document.getElementById('nick-durum');
-  const btn=document.getElementById('devam-btn');
-  if(!nick||nick.length<3)return hata('Nick en az 3 karakter olmalı!');
-  if(!/^[a-z0-9_]+$/.test(nick))return hata('Nick sadece küçük harf, rakam ve _ içerebilir!');
-  btn.disabled=true;btn.textContent='⏳ Kontrol ediliyor...';
-  try{
-    const {data,error}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
-    if(error)throw error;
-    if(data&&data.length>0){
-      btn.disabled=false;btn.textContent='Devam Et →';
-      durum.style.display='block';
-      durum.style.background='rgba(255,50,50,.08)';
-      durum.style.border='1px solid rgba(255,50,50,.3)';
-      durum.style.color='#ff6b6b';
-      durum.textContent='❌ Bu kullanıcı adı zaten alınmış!';
-      return hata('❌ Bu kullanıcı adı zaten alınmış!');
-    }
-    btn.disabled=false;btn.textContent='Devam Et →';
-    document.getElementById('s1-nick').textContent=nick;
-    // git(1) mantığını direkt uygula
-    document.getElementById('s0').classList.remove('active');
-    adim=1;
-    document.getElementById('s1').classList.add('active');
-    document.getElementById('prog').style.display='flex';
-    for(let i=1;i<=6;i++){const ps=document.getElementById('ps'+i);if(!ps)continue;if(i<1)ps.className='prog-step done';else if(i===1)ps.className='prog-step active';else ps.className='prog-step';}
-    window.scrollTo({top:0,behavior:'smooth'});
-  }catch(e){
-    btn.disabled=false;btn.textContent='Devam Et →';
-    hata('Bağlantı hatası, tekrar dene!');
+  if(!nick||nick.length<3){alert('Nick en az 3 karakter olmalı!');return;}
+  if(!/^[a-z0-9_]+$/.test(nick)){alert('Nick sadece harf, rakam ve _ içerebilir!');return;}
+  const btn=document.getElementById('nick-btn');
+  btn.disabled=true;btn.textContent='Kontrol ediliyor...';
+  const{data}=await SB.from('kullanicilar').select('id').ilike('kullanici_adi',nick);
+  btn.disabled=false;btn.textContent='Devam Et →';
+  if(data&&data.length){
+    const d=document.getElementById('nick-durum');
+    d.className='nick-durum var';
+    d.textContent='❌ Bu kullanıcı adı zaten alınmış!';
+    return;
   }
+  document.getElementById('nick-etiket').textContent='lobbygg.com.tr/'+nick+' is yours!';
+  git(1);
 }
 
 // Şifre güç
-function pguc(v){
-  const wrap=document.getElementById('pguc-wrap'),fill=document.getElementById('pguc-fill'),lbl=document.getElementById('pguc-lbl');
+function sifreGuc(v){
+  const wrap=document.getElementById('guc-bar'),fill=document.getElementById('guc-fill'),txt=document.getElementById('guc-txt');
   if(!v){wrap.style.display='none';return;}
   wrap.style.display='block';
   let p=0;if(v.length>=8)p++;if(v.length>=12)p++;if(/[A-Z]/.test(v))p++;if(/[0-9]/.test(v))p++;if(/[^A-Za-z0-9]/.test(v))p++;
-  const lvl=[{r:'#ff4444',w:'20%',t:'Çok Zayıf'},{r:'#ff8800',w:'35%',t:'Zayıf'},{r:'#FFD700',w:'55%',t:'Orta'},{r:'#88cc00',w:'75%',t:'İyi'},{r:'#39ff14',w:'90%',t:'Güçlü'},{r:'#39ff14',w:'100%',t:'Çok Güçlü ✓'}];
-  const s=lvl[Math.min(p,5)];
-  fill.style.width=s.w;fill.style.background=s.r;lbl.textContent=s.t;lbl.style.color=s.r;
+  const lvl=[{r:'#ff4444',w:'20%',t:'Çok Zayıf'},{r:'#ff8800',w:'35%',t:'Zayıf'},{r:'#FFD700',w:'55%',t:'Orta'},{r:'#88cc00',w:'75%',t:'İyi'},{r:'#39ff14',w:'100%',t:'Güçlü'}];
+  const s=lvl[Math.min(p,4)];
+  fill.style.width=s.w;fill.style.background=s.r;txt.textContent=s.t;txt.style.color=s.r;
 }
 
-// Şifre göster/gizle
-function goster(id,btn){const inp=document.getElementById(id);if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁';}}
-
-// Giriş aç/kapat
-function girisAc(){document.getElementById('kayit-kart').style.display='none';document.getElementById('giris-panel').classList.add('active');}
-function girisKapat(){document.getElementById('giris-panel').classList.remove('active');document.getElementById('kayit-kart').style.display='block';}
-
-// Giriş
-async function giris(){
-  const email=document.getElementById('g-email').value.trim();
-  const sifre=document.getElementById('g-sifre').value;
-  const btn=document.getElementById('g-btn');
-  const msg=document.getElementById('g-msg');
-  if(!email||!sifre){msg.className='msg error';msg.textContent='Email ve şifre gerekli!';return;}
-  btn.disabled=true;btn.textContent='Giriş yapılıyor...';
-  try{
-    const{error}=await SB.auth.signInWithPassword({email,password:sifre});
-    if(error){btn.disabled=false;btn.textContent='→ Giriş Yap';msg.className='msg error';if(error.message.includes('Invalid'))msg.textContent='❌ Email veya şifre hatalı!';else if(error.message.includes('not confirmed'))msg.textContent='📧 Email doğrulanmamış!';else msg.textContent=error.message;return;}
-    msg.className='msg success';msg.textContent='✓ Başarılı! Yönlendiriliyorsun...';
-    setTimeout(()=>window.location.href='/lobbygg/panel.html',800);
-  }catch(e){btn.disabled=false;btn.textContent='→ Giriş Yap';msg.className='msg error';msg.textContent='Hata: '+e.message;}
+// Rol seç
+function rolSec(id,btn){
+  document.querySelectorAll('.rol-kart').forEach(b=>b.classList.remove('secili'));
+  btn.classList.add('secili');
+  seciliRol=id;
+  seciliAltRol=null;
+  const altWrap=document.getElementById('alt-rol-wrap');
+  const altGrid=document.getElementById('alt-rol-grid');
+  const altBaslik=document.getElementById('alt-rol-baslik');
+  if(ALT_ROLLER[id]){
+    altWrap.style.display='block';
+    altBaslik.textContent=ALT_ROLLER[id].baslik;
+    altGrid.innerHTML='';
+    ALT_ROLLER[id].secenekler.forEach(s=>{
+      const d=document.createElement('div');
+      d.className='alt-btn';d.textContent=s;
+      d.addEventListener('click',()=>{
+        document.querySelectorAll('.alt-btn').forEach(b=>b.classList.remove('secili'));
+        d.classList.add('secili');seciliAltRol=s;
+      });
+      altGrid.appendChild(d);
+    });
+  }else{
+    altWrap.style.display='none';
+    if(id==='builder')seciliAltRol='Builder';
+    else if(id==='yonetici')seciliAltRol='Sunucu Yöneticisi';
+    else if(id==='diger')seciliAltRol='Diğer';
+  }
 }
 
-// Şifre sıfırla
-async function sifreSifirla(){
-  const email=document.getElementById('g-email').value.trim();
-  const msg=document.getElementById('g-msg');
-  if(!email){msg.className='msg error';msg.textContent='Önce email gir!';return;}
-  await SB.auth.resetPasswordForEmail(email,{redirectTo:'https://keremylcnts-31.github.io/lobbygg/giris.html'});
-  msg.className='msg success';msg.textContent='📧 Şifre sıfırlama maili gönderildi!';
+function rolDevam(){
+  if(!seciliRol){alert('Bir rol seç!');return;}
+  if(ALT_ROLLER[seciliRol]&&!seciliAltRol){alert('Alt kategori seç!');return;}
+  git(3);
 }
+
+// Sunucu seç
+function sunucuSec(ad,btn){
+  document.querySelectorAll('.sunucu-btn').forEach(b=>b.classList.remove('secili'));
+  btn.classList.add('secili');
+  seciliSunucu=ad;
+}
+function sunucuDevam(){
+  if(!seciliSunucu){alert('Bir sunucu seç!');return;}
+  tamamla();
+}
+function sunucuAtla(){tamamla();}
 
 // Kayıt tamamla
-async function kayitTamamla(){
-  if(!aktifSec)return hata('Aktif sunucunu seç!');
-  const btn=document.getElementById('kayit-btn');
-  btn.disabled=true;btn.textContent='⏳ Kayıt yapılıyor...';
-  const nick=document.getElementById('k-nick').value.trim().toLowerCase();
-  const email=document.getElementById('k-email').value.trim();
-  const sifre=document.getElementById('k-sifre').value;
-  const ad=document.getElementById('k-ad').value.trim();
-  const soyad=document.getElementById('k-soyad').value.trim();
-  const yas=parseInt(document.getElementById('k-yas').value)||0;
-  const cinsiyet=document.getElementById('k-cinsiyet').value;
-  const discord=document.getElementById('k-discord').value.trim();
-  try{
-    // Nick kontrol - DB'deki RPC fonksiyonu ile (en güvenilir yöntem)
-    const {data:nickVar, error:nickRpcErr} = await SB.rpc('nick_kontrol', {p_nick: nick});
-    if(nickRpcErr){
-      // RPC yoksa fallback: direkt sorgu
-      const {data:nickData} = await SB.from('kullanicilar').select('id').ilike('kullanici_adi', nick);
-      if(nickData && nickData.length > 0){
-        btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
-        return hata('❌ Bu kullanıcı adı zaten alınmış!');
-      }
-    } else if(nickVar === true){
-      btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
-      return hata('❌ Bu kullanıcı adı zaten alınmış!');
-    }
-    // Email kontrol
-    const {data:emailData} = await SB.from('kullanicilar').select('id').eq('email', email);
-    if(emailData && emailData.length > 0){
-      btn.disabled=false; btn.textContent='🚀 Kayıt Ol!';
-      return hata('❌ Bu email ile zaten kayıt olunmuş!');
-    }
-    const{error:ae}=await SB.auth.signUp({email,password:sifre,options:{emailRedirectTo:'https://keremylcnts-31.github.io/lobbygg/giris.html'}});
-    if(ae){
-      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
-      if(ae.message.includes('rate limit'))return hata('📧 Çok fazla deneme! 1 saat bekle.');
-      if(ae.message.includes('already registered'))return hata('❌ Bu email zaten kayıtlı!');
-      return hata(ae.message);
-    }
-    const{error:insertErr}=await SB.from('kullanicilar').insert({
-      kullanici_adi:nick,email,discord:discord||null,yas,cinsiyet,
-      gercek_ad:ad+' '+soyad,
-      kategori:seciliKat||null,
-      alt_kategori:seciliAltKat||null,
-      favori_sunucular:JSON.stringify([...favSec]),
-      desteklenen_sunucu:aktifSec!=='Belirtmek İstemiyorum'?aktifSec:null,
-      lcoin:0,abonelik:'uye',takipci_sayisi:0,takip_sayisi:0,
-      kayit_tarihi:new Date().toISOString()
-    });
-    // DB unique index hatası yakala
-    if(insertErr){
-      btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';
-      const msg=insertErr.message.toLowerCase();
-      if(msg.includes('unique')||msg.includes('duplicate')||msg.includes('kullanici_adi'))
-        return hata('❌ Bu kullanıcı adı zaten alınmış!');
-      if(msg.includes('email'))
-        return hata('❌ Bu email zaten kayıtlı!');
-      return hata('Kayıt hatası: '+insertErr.message);
-    }
-    document.getElementById('son-nick').textContent='Hoş geldin, '+nick+'! 🎮';
-    document.getElementById('son-email').textContent=email;
-    git(6);
-  }catch(e){btn.disabled=false;btn.textContent='🚀 Kayıt Ol!';hata('Hata: '+e.message);}
+async function tamamla(){
+  const nick=document.getElementById('k-nick').value.trim();
+  document.getElementById('son-nick').textContent='Hoş geldin, '+nick+'! 🎮';
+  git(4);
 }
 
-// Grid oluştur
-gridOlustur('fav-grid','fav');
-gridOlustur('aktif-grid','aktif');
-oneCikanOlustur();
+// EMAIL KAYIT
+async function emailKayit(){
+  const nick=document.getElementById('k-nick').value.trim();
+  const email=document.getElementById('k-email').value.trim();
+  const sifre=document.getElementById('k-sifre').value;
+  const hata=document.getElementById('k-hata');
+  hata.className='hata-kutu';
+
+  if(!email||!email.includes('@')){hata.className='hata-kutu goster';hata.textContent='Geçerli bir email gir!';return;}
+  if(sifre.length<8){hata.className='hata-kutu goster';hata.textContent='Şifre en az 8 karakter olmalı!';return;}
+
+  const{error:ae}=await SB.auth.signUp({email,password:sifre});
+  if(ae){
+    hata.className='hata-kutu goster';
+    if(ae.message.includes('already'))hata.textContent='Bu email zaten kayıtlı!';
+    else if(ae.message.includes('rate'))hata.textContent='Çok fazla deneme! Biraz bekle.';
+    else hata.textContent=ae.message;
+    return;
+  }
+
+  await SB.from('kullanicilar').insert({
+    kullanici_adi:nick,email,
+    kategori:seciliRol||null,
+    alt_kategori:seciliAltRol||null,
+    desteklened_sunucu:seciliSunucu||null,
+    lcoin:0,abonelik:'uye',takipci_sayisi:0,takip_sayisi:0,
+    kayit_tarihi:new Date().toISOString()
+  });
+
+  git(2);
+}
+
+// GOOGLE KAYIT/GİRİŞ
+async function googleKayit(){
+  await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/lobbygg/giris.html'}});
+}
+async function googleGiris(){
+  await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/lobbygg/profil.html'}});
+}
+
+// GİRİŞ
+async function girisYap(){
+  const email=document.getElementById('g-email').value.trim();
+  const sifre=document.getElementById('g-sifre').value;
+  const hata=document.getElementById('g-hata');
+  const btn=document.getElementById('g-btn');
+  hata.className='hata-kutu';
+  if(!email||!sifre){hata.className='hata-kutu goster';hata.textContent='Email ve şifre gerekli!';return;}
+  btn.disabled=true;btn.textContent='Giriş yapılıyor...';
+  const{error}=await SB.auth.signInWithPassword({email,password:sifre});
+  btn.disabled=false;btn.textContent='Giriş Yap';
+  if(error){hata.className='hata-kutu goster';hata.textContent=error.message.includes('Invalid')?'Email veya şifre hatalı!':error.message;return;}
+  window.location.href='/lobbygg/profil.html';
+}
+
+async function sifreSifirla(){
+  const email=document.getElementById('g-email').value.trim();
+  if(!email){alert('Önce email adresini gir.');return;}
+  await SB.auth.resetPasswordForEmail(email);
+  alert('Şifre sıfırlama emaili gönderildi!');
+}
+
+function girisAc(){
+  document.getElementById('kayit-wrap').style.display='none';
+  document.getElementById('giris-panel').classList.add('active');
+}
+function girisKapat(){
+  document.getElementById('giris-panel').classList.remove('active');
+  document.getElementById('kayit-wrap').style.display='block';
+}
+function paneleGit(){window.location.href='/lobbygg/profil.html';}
 </script>
 </body>
 </html>
