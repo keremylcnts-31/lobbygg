@@ -534,8 +534,8 @@
       gap: 6px;
       margin-top: 2px;
     }
-    .clan-actions .mc-btn { flex: 1; justify-content: center; }
-    .mc-btn:disabled {
+    .clan-actions .btn { flex: 1; justify-content: center; }
+    .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       pointer-events: none;
@@ -756,7 +756,7 @@
     </div>
     <div id="clan-grid" class="clan-grid"></div>
     <div class="load-more-wrap" id="load-more-wrap" style="display:none;">
-      <button class="mc-btn mc-gray mc-lg" id="load-more-btn">Daha Fazla Yükle</button>
+      <button class="btn btn-gray btn-lg" id="load-more-btn">Daha Fazla Yükle</button>
     </div>
 
   </div><!-- /main-content -->
@@ -1033,7 +1033,7 @@ function buildHero(stats) {
   const actions = document.createElement('div');
   actions.className = 'hero-actions';
   const createBtn = document.createElement('button');
-  createBtn.className = 'mc-btn mc-green mc-lg';
+  createBtn.className = 'btn btn-green btn-lg';
   createBtn.textContent = '⚔️  Klan Oluştur';
   createBtn.addEventListener('click', openCreateModal);
   actions.appendChild(createBtn);
@@ -1464,11 +1464,11 @@ function buildClanCard(clan) {
   const voteBtn = document.createElement('button');
 
   if (votedToday) {
-    voteBtn.className = 'mc-btn mc-gray mc-sm';
+    voteBtn.className = 'btn btn-gray btn-sm';
     voteBtn.textContent = '✅ Oy Kullandın';
     voteBtn.disabled = true;
   } else {
-    voteBtn.className = 'mc-btn mc-gold mc-sm';
+    voteBtn.className = 'btn btn-gold btn-sm';
     voteBtn.textContent = '🟡 Oy Ver';
     voteBtn.dataset.klanTag = clan.tag;
     voteBtn.addEventListener('click', (e) => {
@@ -1478,7 +1478,7 @@ function buildClanCard(clan) {
   }
 
   const gorBtn = document.createElement('a');
-  gorBtn.className = 'mc-btn mc-gray mc-sm';
+  gorBtn.className = 'btn btn-gray btn-sm';
   gorBtn.href = `klan.html?tag=${encodeURIComponent(clan.tag)}`;
   gorBtn.textContent = 'Klanı Gör';
   gorBtn.addEventListener('click', e => e.stopPropagation());
@@ -1563,7 +1563,7 @@ async function handleVote(clan, btn, statEl) {
       if (voteErr.code === '23505') {
         toast('Bugün zaten oy kullandın!', 'error');
         votedTodaySet.add(clan.tag);
-        btn.className = 'mc-btn mc-gray mc-sm';
+        btn.className = 'btn btn-gray btn-sm';
         btn.textContent = '✅ Oy Kullandın';
         return;
       }
@@ -1580,7 +1580,7 @@ async function handleVote(clan, btn, statEl) {
     clan.vote_sayisi = (clan.vote_sayisi || 0) + 1;
     votedTodaySet.add(clan.tag);
 
-    btn.className = 'mc-btn mc-gray mc-sm';
+    btn.className = 'btn btn-gray btn-sm';
     btn.textContent = '✅ Oy Kullandın';
     btn.disabled = true;
 
@@ -1593,7 +1593,7 @@ async function handleVote(clan, btn, statEl) {
     console.error(err);
     toast('Bir hata oluştu: ' + err.message, 'error');
     btn.disabled = false;
-    btn.className = 'mc-btn mc-gold mc-sm';
+    btn.className = 'btn btn-gold btn-sm';
     btn.textContent = '🟡 Oy Ver';
   }
 }
@@ -1817,11 +1817,11 @@ function buildCreateModal() {
   const footer = document.createElement('div');
   footer.className = 'modal-footer';
   const cancelBtn = document.createElement('button');
-  cancelBtn.className = 'mc-btn mc-gray';
+  cancelBtn.className = 'btn btn-gray';
   cancelBtn.textContent = 'İptal';
   cancelBtn.addEventListener('click', closeCreateModal);
   const submitBtn = document.createElement('button');
-  submitBtn.className = 'mc-btn mc-green';
+  submitBtn.className = 'btn btn-green';
   submitBtn.id = 'create-submit-btn';
   submitBtn.textContent = '⚔️  Klan Oluştur';
   submitBtn.addEventListener('click', () => handleCreateClan({
@@ -1919,8 +1919,7 @@ async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, s
       logo_url: logoUrl,
       desteklened_sunucu: server || null,
       uye_sayisi: 1,
-      vote_sayisi: 0,
-      abonelik: 'ucretsiz'
+      vote_sayisi: 0
     });
 
     if (insertErr) throw insertErr;

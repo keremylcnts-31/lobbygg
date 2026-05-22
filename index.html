@@ -70,7 +70,7 @@
     .nav-btns { display: flex; gap: 12px; align-items: center; }
 
     /* ── MC BUTTONS ── */
-    .mc-btn {
+    .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -93,16 +93,16 @@
       color: var(--btn-text, #ffffff);
       transition: background 0.1s, transform 0.05s, box-shadow 0.05s;
     }
-    .mc-btn:hover {
+    .btn:hover {
       background-color: var(--btn-hover);
       filter: brightness(1.05);
     }
-    .mc-btn:active {
+    .btn:active {
       transform: translateY(2px);
       box-shadow: inset 0 2px 0 var(--btn-light), inset 0 -2px 0 var(--btn-dark);
     }
 
-    .mc-green {
+    .btn-green {
       --btn-bg: #4c7e2b;
       --btn-light: #86af49;
       --btn-dark: #2c4e1b;
@@ -110,7 +110,7 @@
       --btn-hover: #5c8e32;
     }
 
-    .mc-gray {
+    .btn-gray {
       --btn-bg: #4c4c4c;
       --btn-light: #6f6f6f;
       --btn-dark: #262626;
@@ -118,7 +118,7 @@
       --btn-hover: #595959;
     }
 
-    .mc-blue {
+    .btn-blue {
       --btn-bg: #1d4d8c;
       --btn-light: #3a6fb3;
       --btn-dark: #0d274a;
@@ -126,7 +126,7 @@
       --btn-hover: #2b5fa3;
     }
 
-    .mc-btn.xl { padding: 14px 28px; font-size: 13px; }
+    .btn.xl { padding: 14px 28px; font-size: 13px; }
 
     /* ── HERO ── */
     #hero {
@@ -314,7 +314,7 @@
       #nav { padding: 0 16px; }
       #features { padding: 60px 16px; }
       .hero-actions { gap: 10px; }
-      .mc-btn.xl { padding: 11px 22px; font-size: 11px; }
+      .btn.xl { padding: 11px 22px; font-size: 11px; }
     }
   </style>
 </head>
@@ -453,12 +453,12 @@ function buildNav() {
 
   const girisBtn = document.createElement('a');
   girisBtn.href = 'giris.html';
-  girisBtn.className = 'mc-btn mc-gray';
+  girisBtn.className = 'btn btn-gray';
   girisBtn.textContent = 'Giriş Yap';
 
   const kayitBtn = document.createElement('a');
   kayitBtn.href = 'giris.html';
-  kayitBtn.className = 'mc-btn mc-green';
+  kayitBtn.className = 'btn btn-green';
   kayitBtn.textContent = 'Kayıt Ol';
 
   btns.appendChild(girisBtn);
@@ -504,12 +504,12 @@ function buildHero() {
 
   const startBtn = document.createElement('a');
   startBtn.href = 'giris.html';
-  startBtn.className = 'mc-btn mc-green xl';
+  startBtn.className = 'btn btn-green xl';
   startBtn.textContent = '⚡ Hemen Başla';
 
   const exploreBtn = document.createElement('a');
   exploreBtn.href = 'kesfet.html';
-  exploreBtn.className = 'mc-btn mc-gray xl';
+  exploreBtn.className = 'btn btn-gray xl';
   exploreBtn.textContent = '🔍 Keşfet';
 
   actions.appendChild(startBtn);
