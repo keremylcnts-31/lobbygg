@@ -71,50 +71,62 @@
 
     /* ── MC BUTTONS ── */
     .mc-btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 22px;
-      border-radius: 4px;
-      border: none; cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       font-family: 'Montserrat', sans-serif;
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 0.4px;
-      text-decoration: none;
-      transition: all 0.18s;
-      position: relative;
+      font-weight: 900;
       text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 8px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      text-decoration: none;
+      
+      /* 3D Minecraft style */
+      border-radius: 0px;
+      border: 2px solid #000000;
+      box-shadow: inset 0 2px 0 var(--btn-light), inset 0 -4px 0 var(--btn-dark);
+      background-color: var(--btn-bg);
+      color: var(--btn-text, #ffffff);
+      transition: background 0.1s, transform 0.05s, box-shadow 0.05s;
     }
-    .mc-btn::after {
-      content: '';
-      position: absolute;
-      bottom: -3px; left: 2px; right: 2px;
-      height: 3px; border-radius: 0 0 3px 3px;
-      transition: height 0.15s;
+    .mc-btn:hover {
+      background-color: var(--btn-hover);
+      filter: brightness(1.05);
     }
-    .mc-btn:active { transform: translateY(2px); }
-    .mc-btn:active::after { height: 1px; }
+    .mc-btn:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 2px 0 var(--btn-light), inset 0 -2px 0 var(--btn-dark);
+    }
 
     .mc-green {
-      background: #39ff14; color: #000;
-      box-shadow: 0 0 20px rgba(57,255,20,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+      --btn-bg: #4c7e2b;
+      --btn-light: #86af49;
+      --btn-dark: #2c4e1b;
+      --btn-text: #ffffff;
+      --btn-hover: #5c8e32;
     }
-    .mc-green::after { background: #1a8a00; }
-    .mc-green:hover { background: #50ff2a; box-shadow: 0 0 30px rgba(57,255,20,0.5); }
 
     .mc-gray {
-      background: #3a3a3a; color: #e0e0e0;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+      --btn-bg: #4c4c4c;
+      --btn-light: #6f6f6f;
+      --btn-dark: #262626;
+      --btn-text: #ffffff;
+      --btn-hover: #595959;
     }
-    .mc-gray::after { background: #1a1a1a; }
-    .mc-gray:hover { background: #444; }
 
     .mc-blue {
-      background: #00d4ff; color: #000;
-      box-shadow: 0 0 20px rgba(0,212,255,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+      --btn-bg: #1d4d8c;
+      --btn-light: #3a6fb3;
+      --btn-dark: #0d274a;
+      --btn-text: #ffffff;
+      --btn-hover: #2b5fa3;
     }
-    .mc-blue::after { background: #006080; }
-    .mc-blue:hover { background: #1adbff; box-shadow: 0 0 30px rgba(0,212,255,0.4); }
 
-    .mc-btn.xl { padding: 16px 40px; font-size: 16px; border-radius: 6px; }
+    .mc-btn.xl { padding: 14px 28px; font-size: 13px; }
 
     /* ── HERO ── */
     #hero {
@@ -302,7 +314,7 @@
       #nav { padding: 0 16px; }
       #features { padding: 60px 16px; }
       .hero-actions { gap: 10px; }
-      .mc-btn.xl { padding: 14px 28px; font-size: 14px; }
+      .mc-btn.xl { padding: 11px 22px; font-size: 11px; }
     }
   </style>
 </head>
