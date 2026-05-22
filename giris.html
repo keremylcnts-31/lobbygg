@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giriş / Kayıt — LOBBY.GG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050505;
+      --card: #0d0d0d;
+      --border: #1a1a1a;
+      --border2: #2a2a2a;
+      --accent: #39ff14;
+      --red: #ff1a3c;
+      --gold: #FFD700;
+      --purple: #b933ff;
+      --blue: #00d4ff;
+      --discord: #5865F2;
+      --text: #e0e0e0;
+      --muted: #666;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    canvas#bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── TOAST ── */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: #1a0008;
+      border: 1px solid var(--red);
+      box-shadow: 0 4px 20px rgba(255,26,60,0.3);
+      animation: toastIn 0.3s ease;
+      max-width: 300px;
+    }
+    .toast.success {
+      background: #001a06;
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(57,255,20,0.2);
+    }
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    @keyframes toastOut {
+      from { transform: translateX(0);   opacity: 1; }
+      to   { transform: translateX(120%); opacity: 0; }
+    }
+
+    /* ── WRAPPER ── */
+    #wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* ── CARD ── */
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(13,13,13,0.92);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 36px 32px 28px;
+      box-shadow:
+        0 0 0 1px rgba(57,255,20,0.05),
+        0 20px 60px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      position: relative;
+    }
+
+    /* ── LOGO ── */
+    .logo-wrap {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo-wrap img {
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(57,255,20,0.4));
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+    .progress-bar.hidden { display: none; }
+    .prog-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .prog-dot.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(57,255,20,0.5);
+    }
+    .prog-dot.done {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #000;
+    }
+    .prog-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border2);
+      transition: background 0.3s ease;
+    }
+    .prog-line.done { background: var(--accent); box-shadow: 0 0 6px rgba(57,255,20,0.5); }
+
+    /* ── STEP VIEWS ── */
+    .step-view {
+      display: none;
+      animation: fadeSlideIn 0.35s ease;
+    }
+    .step-view.active { display: block; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HEADINGS ── */
+    .step-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .step-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    /* ── FORM ELEMENTS ── */
+    .field-group { margin-bottom: 14px; position: relative; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field-input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(57,255,20,0.1);
+    }
+    .field-input.error {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(255,26,60,0.1);
+    }
+    .field-input.success {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(57,255,20,0.08);
+    }
+    .field-hint {
+      font-size: 11px;
+      margin-top: 5px;
+      font-weight: 600;
+    }
+    .field-hint.green { color: var(--accent); }
+    .field-hint.red   { color: var(--red); }
+    .field-hint.muted { color: var(--muted); }
+
+    /* password toggle */
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--muted);
+      font-size: 16px; line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--accent); }
+    .pw-wrap .field-input { padding-right: 40px; }
+
+    /* nick preview */
+    .nick-preview {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .nick-status {
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 5px;
+      min-height: 18px;
+      transition: color 0.2s;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%;
+      padding: 13px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-green {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 20px rgba(57,255,20,0.3);
+    }
+    .btn-green:not(:disabled):hover {
+      background: #50ff2a;
+      box-shadow: 0 0 30px rgba(57,255,20,0.5);
+      transform: translateY(-1px);
+    }
+    .btn-discord {
+      background: var(--discord);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(88,101,242,0.3);
+    }
+    .btn-discord:hover {
+      background: #6b77f5;
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+    }
+    .btn-ghost:hover { border-color: var(--border); color: var(--text); }
+
+    .btn-sm {
+      width: auto;
+      padding: 9px 16px;
+      font-size: 13px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .btn-row .btn { flex: 1; }
+
+    /* divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border2);
+    }
+
+    /* ── ROLE CARDS ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .role-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .role-card:hover {
+      border-color: rgba(57,255,20,0.3);
+      background: rgba(57,255,20,0.04);
+    }
+    .role-card.selected {
+      border-color: var(--accent);
+      background: rgba(57,255,20,0.08);
+      box-shadow: 0 0 16px rgba(57,255,20,0.15);
+    }
+    .role-card .role-icon { font-size: 22px; margin-bottom: 6px; }
+    .role-card .role-name { font-size: 11px; font-weight: 700; color: var(--text); }
+
+    /* sub-role chips */
+    .subrole-wrap {
+      display: none;
+      margin-bottom: 16px;
+      animation: fadeSlideIn 0.25s ease;
+    }
+    .subrole-wrap.visible { display: block; }
+    .subrole-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      padding: 5px 11px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.03);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .chip:hover { border-color: rgba(57,255,20,0.4); color: var(--text); }
+    .chip.selected {
+      border-color: var(--accent);
+      background: rgba(57,255,20,0.1);
+      color: var(--accent);
+    }
+
+    /* ── SERVER GRID ── */
+    .server-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .server-grid::-webkit-scrollbar { width: 4px; }
+    .server-grid::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
+    .server-grid::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+    .server-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .server-card:hover {
+      border-color: rgba(57,255,20,0.3);
+      background: rgba(57,255,20,0.04);
+    }
+    .server-card.selected {
+      border-color: var(--accent);
+      background: rgba(57,255,20,0.08);
+      box-shadow: 0 0 10px rgba(57,255,20,0.2);
+    }
+    .server-card img {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      margin-bottom: 5px;
+      background: var(--border);
+    }
+    .server-card .srv-name {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    /* ── SUCCESS STEP ── */
+    .success-wrap {
+      text-align: center;
+      padding: 16px 0;
+    }
+    .check-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 40px rgba(57,255,20,0.4);
+      animation: checkPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @keyframes checkPop {
+      0%  { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.1); opacity: 1; }
+      100%{ transform: scale(1); opacity: 1; }
+    }
+    .check-mark {
+      font-size: 36px;
+      color: var(--accent);
+      animation: checkMark 0.4s 0.2s both;
+    }
+    @keyframes checkMark {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .success-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .success-title span { color: var(--accent); }
+    .success-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .lcoin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 22px;
+      box-shadow: 0 0 16px rgba(255,215,0,0.15);
+    }
+
+    /* ── TOGGLE ── */
+    .toggle-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .toggle-link button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .toggle-link button:hover { color: #50ff2a; }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── SCROLLBAR global ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* loading overlay */
+    #load-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+    #load-overlay.hidden { opacity: 0; pointer-events: none; }
+    .load-logo { height: 56px; filter: drop-shadow(0 0 20px rgba(57,255,20,0.6)); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="load-overlay">
+  <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+</div>
+
+<!-- Canvas Background -->
+<canvas id="bg"></canvas>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Wrapper -->
+<div id="wrapper">
+  <div class="auth-card" id="auth-card">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+    </div>
+
+    <!-- Progress Bar (hidden in login mode) -->
+    <div class="progress-bar hidden" id="progress-bar">
+      <!-- built by JS -->
+    </div>
+
+    <!-- ── LOGIN VIEW ── -->
+    <div class="step-view active" id="view-login">
+      <div class="step-title">Tekrar Hoş Geldin!</div>
+      <div class="step-sub">Hesabına giriş yap veya yeni bir hesap oluştur.</div>
+
+      <div class="field-group">
+        <label class="field-label">E-posta</label>
+        <input class="field-input" type="email" id="login-email" placeholder="ornek@mail.com" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Şifre</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="login-password" placeholder="••••••••" />
+          <button class="pw-toggle" id="login-pw-toggle" type="button">👁</button>
+        </div>
+      </div>
+
+      <div id="btn-login-wrap" style="margin-bottom:10px;"></div>
+
+      <div class="divider">veya</div>
+
+      <div id="btn-google-login-wrap"></div>
+
+      <div class="toggle-link">
+        Hesabın yok mu?
+        <button id="go-register">Kayıt ol</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 0: Nick ── -->
+    <div class="step-view" id="view-step0">
+      <div class="step-title">Kullanıcı Adın</div>
+      <div class="step-sub">Bu isim profilinde görünecek. Değiştiremezsin, dikkatli seç!</div>
+
+      <div class="field-group">
+        <label class="field-label">Kullanıcı Adı</label>
+        <input class="field-input" type="text" id="nick-input" placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
+        <div class="nick-preview" id="nick-preview">lobbygg.com.tr/...</div>
+        <div class="nick-status" id="nick-status"></div>
+      </div>
+
+      <div id="btn-step0-next" style="margin-top:8px;"></div>
+
+      <div class="toggle-link">
+        Hesabın var mı?
+        <button id="go-login-from-reg">Giriş yap</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Hesap ── -->
+    <div class="step-view" id="view-step1">
+      <div class="step-title">Hesap Oluştur</div>
+      <div class="step-sub">E-posta ve şifrenle devam et ya da Google ile kayıt ol.</div>
+
+      <div class="field-group">
+        <label class="field-label">E-posta</label>
+        <input class="field-input" type="email" id="reg-email" placeholder="ornek@mail.com" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Şifre</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reg-password" placeholder="En az 6 karakter" />
+          <button class="pw-toggle" id="reg-pw-toggle" type="button">👁</button>
+        </div>
+        <div class="field-hint muted">En az 6 karakter kullan.</div>
+      </div>
+
+      <div id="btn-step1-next" style="margin-bottom:10px;"></div>
+
+      <div class="divider">veya</div>
+
+      <div id="btn-google-reg-wrap"></div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <div id="btn-step1-back" style="flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: Rol ── -->
+    <div class="step-view" id="view-step2">
+      <div class="step-title">Topluluktaki Rolün</div>
+      <div class="step-sub">Seni en iyi tanımlayan rolü seç.</div>
+
+      <div class="role-grid" id="role-grid"></div>
+      <div class="subrole-wrap" id="subrole-wrap">
+        <div class="subrole-title" id="subrole-title">Alt Kategori</div>
+        <div class="chips-wrap" id="subrole-chips"></div>
+      </div>
+
+      <div class="btn-row">
+        <div id="btn-step2-back" style="flex:0 0 auto;"></div>
+        <div id="btn-step2-next" style="flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Sunucu ── -->
+    <div class="step-view" id="view-step3">
+      <div class="step-title">Aktif Oynadığın Sunucu</div>
+      <div class="step-sub">Hangi sunucuda oynuyorsun? İstersen geç.</div>
+
+      <div class="server-grid" id="server-grid"></div>
+
+      <div class="btn-row">
+        <div id="btn-step3-back" style="flex:0 0 auto;"></div>
+        <div id="btn-step3-skip" style="flex:1;"></div>
+        <div id="btn-step3-next" style="flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: Hoş Geldin ── -->
+    <div class="step-view" id="view-step4">
+      <div class="success-wrap">
+        <div class="check-circle">
+          <span class="check-mark">✓</span>
+        </div>
+        <div class="success-title">Hoş geldin, <span id="welcome-nick">—</span>!</div>
+        <div class="success-sub">Hesabın başarıyla oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
+        <div class="lcoin-badge">
+          <span>🪙</span>
+          <span>+5 LC Giriş Bonusu!</span>
+        </div>
+        <div id="btn-goto-profile"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   SUPABASE
+================================================================ */
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================================================================
+   CANVAS BACKGROUND
+================================================================ */
+(function initCanvas() {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+
+  let W, H, beams = [], logos = [], logoImg;
+
+  logoImg = new Image();
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Beams
+  for (let i = 0; i < 8; i++) {
+    beams.push({
+      x: Math.random() * 1.5 - 0.25,
+      speed: 0.0002 + Math.random() * 0.0003,
+      width: 60 + Math.random() * 120,
+      alpha: 0.03 + Math.random() * 0.06,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
+
+  // Logos
+  for (let i = 0; i < 6; i++) {
+    logos.push({
+      x: Math.random(),
+      y: Math.random(),
+      size: 40 + Math.random() * 60,
+      alpha: 0.015 + Math.random() * 0.025,
+      speedX: (Math.random() - 0.5) * 0.00015,
+      speedY: (Math.random() - 0.5) * 0.00015,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.0005
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    // Light beams
+    beams.forEach(b => {
+      const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
+      grad.addColorStop(0,   `rgba(57,255,20,0)`);
+      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.6})`);
+      grad.addColorStop(1,   `rgba(57,255,20,0)`);
+      ctx.save();
+      ctx.translate(cx, 0);
+      ctx.rotate(-Math.PI / 6);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
+      ctx.restore();
+    });
+
+    // Logos
+    if (logoImg.complete) {
+      logos.forEach(l => {
+        l.x += l.speedX;
+        l.y += l.speedY;
+        l.rot += l.rotSpeed;
+        if (l.x < -0.1) l.x = 1.1;
+        if (l.x > 1.1)  l.x = -0.1;
+        if (l.y < -0.1) l.y = 1.1;
+        if (l.y > 1.1)  l.y = -0.1;
+
+        ctx.save();
+        ctx.globalAlpha = l.alpha;
+        ctx.translate(l.x * W, l.y * H);
+        ctx.rotate(l.rot);
+        ctx.drawImage(logoImg, -l.size / 2, -l.size * 0.25, l.size, l.size * 0.5);
+        ctx.restore();
+      });
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ================================================================
+   STATE
+================================================================ */
+const state = {
+  mode: 'login',   // 'login' | 'register'
+  step: 0,         // 0..4
+  nick: '',
+  nickValid: false,
+  nickAvailable: false,
+  email: '',
+  password: '',
+  role: '',
+  subRole: '',
+  server: ''
+};
+
+/* ================================================================
+   TOAST
+================================================================ */
+function showToast(msg, type = 'error') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type === 'success' ? ' success' : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => t.remove(), 320);
+  }, 3500);
+}
+
+/* ================================================================
+   DOM HELPERS
+================================================================ */
+function el(tag, props = {}, ...children) {
+  const e = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === 'class') e.className = v;
+    else if (k === 'style') Object.assign(e.style, v);
+    else if (k.startsWith('data-')) e.setAttribute(k, v);
+    else e[k] = v;
+  });
+  children.forEach(c => {
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else if (c) e.appendChild(c);
+  });
+  return e;
+}
+
+function makeBtn(text, cls, id, disabled = false) {
+  const b = el('button', { class: 'btn ' + cls, id, disabled });
+  b.appendChild(document.createTextNode(text));
+  return b;
+}
+
+function clearAndAppend(containerId, child) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  c.appendChild(child);
+}
+
+/* ================================================================
+   BUILD BUTTONS
+================================================================ */
+function buildStaticButtons() {
+  // Login submit
+  const btnLogin = makeBtn('Giriş Yap', 'btn-green');
+  btnLogin.addEventListener('click', handleLogin);
+  clearAndAppend('btn-login-wrap', btnLogin);
+
+  // Google login
+  const btnGoogle = el('button', { class: 'btn btn-discord' });
+  btnGoogle.appendChild(document.createTextNode('G — Google ile Giriş Yap'));
+  btnGoogle.addEventListener('click', handleGoogleAuth);
+  clearAndAppend('btn-google-login-wrap', btnGoogle);
+
+  // Step0 next
+  const btnS0 = makeBtn('İleri →', 'btn-green', 'btn-s0-next', true);
+  btnS0.addEventListener('click', () => goStep(1));
+  clearAndAppend('btn-step0-next', btnS0);
+
+  // Step1 next
+  const btnS1 = makeBtn('Devam Et', 'btn-green');
+  btnS1.addEventListener('click', handleRegister);
+  clearAndAppend('btn-step1-next', btnS1);
+
+  // Step1 back
+  const btnS1b = makeBtn('← Geri', 'btn-ghost btn-sm');
+  btnS1b.addEventListener('click', () => goStep(0));
+  clearAndAppend('btn-step1-back', btnS1b);
+
+  // Step1 Google
+  const btnGR = el('button', { class: 'btn btn-discord' });
+  btnGR.appendChild(document.createTextNode('G — Google ile Kayıt Ol'));
+  btnGR.addEventListener('click', handleGoogleAuth);
+  clearAndAppend('btn-google-reg-wrap', btnGR);
+
+  // Step2 back / next
+  const btnS2b = makeBtn('←', 'btn-ghost btn-sm');
+  btnS2b.addEventListener('click', () => goStep(1));
+  clearAndAppend('btn-step2-back', btnS2b);
+
+  const btnS2n = makeBtn('İleri →', 'btn-green');
+  btnS2n.addEventListener('click', () => {
+    if (!state.role) { showToast('Lütfen bir rol seç!'); return; }
+    goStep(3);
+  });
+  clearAndAppend('btn-step2-next', btnS2n);
+
+  // Step3 back / skip / next
+  const btnS3b = makeBtn('←', 'btn-ghost btn-sm');
+  btnS3b.addEventListener('click', () => goStep(2));
+  clearAndAppend('btn-step3-back', btnS3b);
+
+  const btnS3sk = makeBtn('Geç', 'btn-ghost btn-sm');
+  btnS3sk.addEventListener('click', () => finalizeRegistration());
+  clearAndAppend('btn-step3-skip', btnS3sk);
+
+  const btnS3n = makeBtn('Tamamla ✓', 'btn-green');
+  btnS3n.addEventListener('click', () => finalizeRegistration());
+  clearAndAppend('btn-step3-next', btnS3n);
+
+  // Step4 goto profile
+  const btnP = makeBtn('Profilime Git →', 'btn-green');
+  btnP.addEventListener('click', () => {
+    window.location.href = 'profil.html?nick=' + encodeURIComponent(state.nick);
+  });
+  clearAndAppend('btn-goto-profile', btnP);
+
+  // Toggle links
+  document.getElementById('go-register').addEventListener('click', () => switchMode('register'));
+  document.getElementById('go-login-from-reg').addEventListener('click', () => switchMode('login'));
+  document.getElementById('login-pw-toggle').addEventListener('click', () => togglePw('login-password', 'login-pw-toggle'));
+  document.getElementById('reg-pw-toggle').addEventListener('click', () => togglePw('reg-password', 'reg-pw-toggle'));
+}
+
+function togglePw(inputId, btnId) {
+  const inp = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+/* ================================================================
+   PROGRESS BAR
+================================================================ */
+const STEP_LABELS = ['Nick', 'Hesap', 'Rol', 'Sunucu'];
+
+function buildProgressBar() {
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  STEP_LABELS.forEach((lbl, i) => {
+    const dot = el('div', { class: 'prog-dot', title: lbl });
+    dot.textContent = i + 1;
+    bar.appendChild(dot);
+    if (i < STEP_LABELS.length - 1) {
+      bar.appendChild(el('div', { class: 'prog-line' }));
+    }
+  });
+}
+
+function updateProgressBar(step) {
+  const dots = document.querySelectorAll('.prog-dot');
+  const lines = document.querySelectorAll('.prog-line');
+  dots.forEach((d, i) => {
+    d.className = 'prog-dot';
+    if (i < step) d.classList.add('done');
+    else if (i === step) d.classList.add('active');
+  });
+  lines.forEach((l, i) => {
+    l.className = 'prog-line';
+    if (i < step) l.classList.add('done');
+  });
+}
+
+/* ================================================================
+   ROLES / SERVERS
+================================================================ */
+const ROLES = [
+  { key: 'pvp',      icon: '⚔️',  name: 'PvP Oyuncusu' },
+  { key: 'content',  icon: '🎬',  name: 'İçerik Üreticisi' },
+  { key: 'dev',      icon: '💻',  name: 'Developer' },
+  { key: 'builder',  icon: '🏗️',  name: 'Builder' },
+  { key: 'admin',    icon: '👑',  name: 'Sunucu Yöneticisi' },
+  { key: 'other',    icon: '🎮',  name: 'Diğer' }
+];
+
+const SUBROLES = {
+  pvp:     ['T1','HT1','LT1','T2','HT2','LT2','T3','HT3','LT3','T4','T5','Başlangıç'],
+  content: ['Kick','YouTube','Twitch','TikTok','Instagram'],
+  dev:     ['Plugin Dev','Skripter','Web Dev'],
+  builder: [],
+  admin:   [],
+  other:   []
+};
+
+const SERVERS = [
+  {name:'HanedanMC',    ip:'play.hanedanmc.com'},
+  {name:'ChickenNW',    ip:'oyna.chickennw.com'},
+  {name:'BLOKYA',       ip:'oyna.blokya.com'},
+  {name:'DugeCraft',    ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC',      ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT',  ip:'sentorcraft.com'},
+  {name:'SOULCRAFT',    ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu',  ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC',   ip:'atlantikmc.com'},
+  {name:'NAVELYA',      ip:'navelya.net'},
+  {name:'CRAFTLUNA',    ip:'play.craftluna.net'},
+  {name:'Melonya',      ip:'melonya.net'},
+  {name:'Rush Craft',   ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft',  ip:'play.reborncraft.pw'},
+  {name:'LuneCraft',    ip:'mc.lunecraft.net'},
+  {name:'SimitSMP',     ip:'simitsmp.net'},
+  {name:'MC4FUN',       ip:'play.mc4fun.net'},
+  {name:'İmibiyum',     ip:'play.imibiyum.com'}
+];
+
+function buildRoleGrid() {
+  const grid = document.getElementById('role-grid');
+  grid.innerHTML = '';
+  ROLES.forEach(r => {
+    const card = el('div', { class: 'role-card', 'data-key': r.key });
+    const icon = el('div', { class: 'role-icon' });
+    icon.textContent = r.icon;
+    const name = el('div', { class: 'role-name' });
+    name.textContent = r.name;
+    card.appendChild(icon);
+    card.appendChild(name);
+    card.addEventListener('click', () => selectRole(r.key));
+    grid.appendChild(card);
+  });
+}
+
+function selectRole(key) {
+  state.role = key;
+  state.subRole = '';
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.classList.toggle('selected', c.getAttribute('data-key') === key);
+  });
+  buildSubRoles(key);
+}
+
+function buildSubRoles(roleKey) {
+  const wrap = document.getElementById('subrole-wrap');
+  const chips = document.getElementById('subrole-chips');
+  const subs = SUBROLES[roleKey] || [];
+  chips.innerHTML = '';
+  if (subs.length === 0) {
+    wrap.classList.remove('visible');
+    return;
+  }
+  document.getElementById('subrole-title').textContent = 'Alt Kategori';
+  subs.forEach(s => {
+    const chip = el('div', { class: 'chip' });
+    chip.textContent = s;
+    chip.addEventListener('click', () => {
+      state.subRole = s;
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.textContent === s));
+    });
+    chips.appendChild(chip);
+  });
+  wrap.classList.add('visible');
+}
+
+function buildServerGrid() {
+  const grid = document.getElementById('server-grid');
+  grid.innerHTML = '';
+  SERVERS.forEach(s => {
+    const card = el('div', { class: 'server-card', 'data-ip': s.ip });
+    const img = el('img', { src: 'https://api.mcsrvstat.us/icon/' + s.ip, alt: s.name });
+    img.addEventListener('error', function() { this.src = 'https://i.imgur.com/6l08Y4k.png'; });
+    const name = el('div', { class: 'srv-name' });
+    name.textContent = s.name;
+    card.appendChild(img);
+    card.appendChild(name);
+    card.addEventListener('click', () => selectServer(s.name, card));
+    grid.appendChild(card);
+  });
+}
+
+function selectServer(name, card) {
+  state.server = name;
+  document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+/* ================================================================
+   MODE SWITCH
+================================================================ */
+function switchMode(mode) {
+  state.mode = mode;
+  const bar = document.getElementById('progress-bar');
+  if (mode === 'login') {
+    showView('view-login');
+    bar.classList.add('hidden');
+  } else {
+    showView('view-step0');
+    bar.classList.remove('hidden');
+    state.step = 0;
+    updateProgressBar(0);
+  }
+}
+
+function showView(id) {
+  document.querySelectorAll('.step-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ================================================================
+   STEP NAVIGATION
+================================================================ */
+function goStep(n) {
+  state.step = n;
+  updateProgressBar(n);
+  const views = ['view-step0','view-step1','view-step2','view-step3','view-step4'];
+  showView(views[n]);
+  if (n === 4) {
+    document.getElementById('welcome-nick').textContent = state.nick;
+    document.getElementById('progress-bar').classList.add('hidden');
+  }
+}
+
+/* ================================================================
+   NICK VALIDATION
+================================================================ */
+let nickTimer = null;
+
+function initNickInput() {
+  const input = document.getElementById('nick-input');
+  const preview = document.getElementById('nick-preview');
+  const status = document.getElementById('nick-status');
+  const nextBtn = document.getElementById('btn-s0-next');
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    state.nick = val;
+    state.nickValid = false;
+    state.nickAvailable = false;
+
+    // Preview
+    preview.textContent = val ? 'lobbygg.com.tr/' + val : 'lobbygg.com.tr/...';
+
+    // Validate format
+    const nickRx = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!val) {
+      status.textContent = '';
+      status.style.color = '';
+      input.className = 'field-input';
+      if (nextBtn) nextBtn.disabled = true;
+      clearTimeout(nickTimer);
+      return;
+    }
+
+    if (!nickRx.test(val)) {
+      status.textContent = '❌ 3-20 karakter, sadece harf, rakam ve alt çizgi kullan.';
+      status.style.color = 'var(--red)';
+      input.className = 'field-input error';
+      if (nextBtn) nextBtn.disabled = true;
+      clearTimeout(nickTimer);
+      return;
+    }
+
+    // Debounce check
+    status.textContent = '⏳ Kontrol ediliyor...';
+    status.style.color = 'var(--muted)';
+    input.className = 'field-input';
+    if (nextBtn) nextBtn.disabled = true;
+    clearTimeout(nickTimer);
+
+    nickTimer = setTimeout(async () => {
+      const { data, error } = await db
+        .from('kullanicilar')
+        .select('id')
+        .ilike('kullanici_adi', val)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        status.textContent = '⚠️ Kontrol hatası, tekrar dene.';
+        status.style.color = 'var(--red)';
+        return;
+      }
+
+      if (data) {
+        status.textContent = '❌ Alınmış';
+        status.style.color = 'var(--red)';
+        input.className = 'field-input error';
+        state.nickAvailable = false;
+        if (nextBtn) nextBtn.disabled = true;
+      } else {
+        status.textContent = '✅ Müsait';
+        status.style.color = 'var(--accent)';
+        input.className = 'field-input success';
+        state.nickValid = true;
+        state.nickAvailable = true;
+        if (nextBtn) nextBtn.disabled = false;
+      }
+    }, 500);
+  });
+}
+
+/* ================================================================
+   AUTH HANDLERS
+================================================================ */
+async function handleLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) { showToast('E-posta ve şifre gerekli!'); return; }
+
+  const btn = document.querySelector('#btn-login-wrap .btn');
+  btn.disabled = true;
+  btn.innerHTML = '';
+  const sp = el('span', { class: 'spinner' });
+  btn.appendChild(sp);
+  btn.appendChild(document.createTextNode(' Giriş yapılıyor...'));
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    showToast('Giriş hatası: ' + error.message);
+    btn.disabled = false;
+    btn.textContent = 'Giriş Yap';
+    return;
+  }
+  showToast('Giriş başarılı! Yönlendiriliyor...', 'success');
+  setTimeout(() => { window.location.href = 'lobbyx.html'; }, 1000);
+}
+
+async function handleRegister() {
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!email) { showToast('Geçerli bir e-posta gir!'); return; }
+  if (password.length < 6) { showToast('Şifre en az 6 karakter olmalı!'); return; }
+
+  state.email    = email;
+  state.password = password;
+
+  const btn = document.querySelector('#btn-step1-next .btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '';
+    btn.appendChild(el('span', { class: 'spinner' }));
+    btn.appendChild(document.createTextNode(' Devam ediliyor...'));
+  }
+
+  // We'll create the auth account here, then insert record after all steps
+  const { data, error } = await db.auth.signUp({ email, password });
+
+  if (error) {
+    showToast('Kayıt hatası: ' + error.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Devam Et'; }
+    return;
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Devam Et'; }
+  goStep(2);
+}
+
+async function handleGoogleAuth() {
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/lobbyx.html' }
+  });
+  if (error) showToast('Google ile giriş başarısız: ' + error.message);
+}
+
+async function finalizeRegistration() {
+  // Get current user
+  const { data: { user }, error: uErr } = await db.auth.getUser();
+  if (uErr || !user) {
+    showToast('Oturum bulunamadı, tekrar dene.');
+    return;
+  }
+
+  const record = {
+    id: user.id,
+    kullanici_adi: state.nick,
+    email: state.email || user.email,
+    abonelik: 'uye',
+    kayit_tarihi: new Date().toLocaleDateString('tr-TR'),
+    kategori: state.role,
+    alt_kategori: state.subRole,
+    desteklened_sunucu: state.server,
+    lcoin: 5
+  };
+
+  const { error } = await db.from('kullanicilar').insert(record);
+
+  if (error) {
+    // Possibly duplicate, try upsert
+    const { error: upsertErr } = await db.from('kullanicilar').upsert(record, { onConflict: 'id' });
+    if (upsertErr) {
+      showToast('Profil kaydedilemedi: ' + upsertErr.message);
+      return;
+    }
+  }
+
+  showToast('Hesap oluşturuldu!', 'success');
+  goStep(4);
+}
+
+/* ================================================================
+   SESSION CHECK
+================================================================ */
+async function checkSession() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    // Check if user has profile
+    const { data } = await db.from('kullanicilar').select('kullanici_adi').eq('id', session.user.id).maybeSingle();
+    if (data && data.kullanici_adi) {
+      window.location.href = 'lobbyx.html';
+      return;
+    }
+  }
+  // Hide loading
+  const overlay = document.getElementById('load-overlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.remove(), 400);
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+function init() {
+  buildProgressBar();
+  buildStaticButtons();
+  buildRoleGrid();
+  buildServerGrid();
+  initNickInput();
+  checkSession();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

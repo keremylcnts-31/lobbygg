@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — LOBBY.GG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050505;
+      --card: #0d0d0d;
+      --card2: #111;
+      --border: #1a1a1a;
+      --border2: #2a2a2a;
+      --accent: #39ff14;
+      --red: #ff1a3c;
+      --gold: #FFD700;
+      --purple: #b933ff;
+      --blue: #00d4ff;
+      --text: #e0e0e0;
+      --muted: #555;
+      --sidebar-w: 240px;
+      --nav-h: 60px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    canvas#bg {
+      position: fixed; inset: 0;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ── LOAD OVERLAY ── */
+    #load-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      transition: opacity 0.4s ease;
+    }
+    #load-overlay.hidden { opacity: 0; pointer-events: none; }
+    .load-logo { height: 56px; filter: drop-shadow(0 0 20px rgba(57,255,20,0.6)); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+    .load-text { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+    /* ── TOAST ── */
+    #toast-container {
+      position: fixed; top: 20px; right: 20px;
+      z-index: 9990;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      color: #fff;
+      background: #1a0008;
+      border: 1px solid var(--red);
+      box-shadow: 0 4px 20px rgba(255,26,60,0.3);
+      animation: toastIn 0.3s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: #001a06; border-color: var(--accent); box-shadow: 0 4px 20px rgba(57,255,20,0.2); }
+    .toast.info    { background: #00101a; border-color: var(--blue);   box-shadow: 0 4px 20px rgba(0,212,255,0.2); }
+    @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── TOP NAV ── */
+    #topnav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(13,13,13,0.97);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+    .nav-left { display: flex; align-items: center; gap: 16px; }
+    .nav-logo img { height: 36px; filter: drop-shadow(0 0 8px rgba(57,255,20,0.3)); }
+    .nav-badge {
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.3);
+      color: var(--accent);
+      font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user { display: flex; align-items: center; gap: 10px; }
+    .nav-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid var(--border2);
+      object-fit: cover; background: var(--border);
+    }
+    .nav-nick { font-size: 13px; font-weight: 700; color: #fff; }
+    .nav-role { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .back-btn {
+      background: none; border: 1px solid var(--border2);
+      color: var(--muted); font-family: 'Montserrat', sans-serif;
+      font-size: 12px; font-weight: 700; padding: 7px 14px;
+      border-radius: 6px; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .back-btn:hover { border-color: var(--border); color: var(--text); }
+
+    /* ── LAYOUT ── */
+    #layout {
+      position: fixed;
+      top: var(--nav-h); left: 0; right: 0; bottom: 0;
+      display: flex;
+      z-index: 10;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      height: 100%;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar-section-label {
+      font-size: 9px; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 2px;
+      padding: 12px 20px 6px;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 20px;
+      cursor: pointer;
+      font-size: 13px; font-weight: 700;
+      color: var(--muted);
+      border-left: 3px solid transparent;
+      transition: all 0.18s;
+      user-select: none;
+    }
+    .sidebar-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+    .sidebar-item.active {
+      background: rgba(57,255,20,0.06);
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .sidebar-item .si-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar-item .si-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff; font-size: 9px; font-weight: 800;
+      padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center;
+    }
+    .sidebar-sep { height: 1px; background: var(--border); margin: 8px 16px; }
+
+    /* ── CONTENT ── */
+    #content {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      padding: 28px;
+      background: var(--bg);
+    }
+    #content::-webkit-scrollbar { width: 6px; }
+    #content::-webkit-scrollbar-track { background: #0a0a0a; }
+    #content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: transparent; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
+    }
+    .page-title {
+      font-size: 22px; font-weight: 900; color: #fff;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .page-title .pt-icon { font-size: 24px; }
+    .page-subtitle { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+    /* ── STAT CARDS ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .stat-card.green::before { background: var(--accent); }
+    .stat-card.red::before   { background: var(--red); }
+    .stat-card.gold::before  { background: var(--gold); }
+    .stat-card.blue::before  { background: var(--blue); }
+    .stat-card:hover { border-color: var(--border2); }
+
+    .stat-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .stat-value { font-size: 32px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 6px; }
+    .stat-card.green .stat-value { color: var(--accent); text-shadow: 0 0 20px rgba(57,255,20,0.4); }
+    .stat-card.red   .stat-value { color: var(--red); text-shadow: 0 0 20px rgba(255,26,60,0.3); }
+    .stat-card.gold  .stat-value { color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.3); }
+    .stat-card.blue  .stat-value { color: var(--blue); text-shadow: 0 0 20px rgba(0,212,255,0.3); }
+    .stat-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: 0.2; }
+
+    /* ── GRID 2 COL ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* ── CARDS ── */
+    .panel-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-card-title { font-size: 13px; font-weight: 800; color: #fff; }
+    .panel-card-body { padding: 0; }
+
+    /* ── TABLE ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th {
+      padding: 10px 16px;
+      font-size: 10px; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px;
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 12px 16px;
+      font-size: 13px; font-weight: 600;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:nth-child(odd) td { background: rgba(255,255,255,0.01); }
+    .data-table tbody tr:hover td { background: rgba(57,255,20,0.03); }
+
+    /* avatar in table */
+    .tbl-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      object-fit: cover; border: 1.5px solid var(--border2);
+      background: var(--border);
+      vertical-align: middle; margin-right: 8px;
+    }
+    .user-cell { display: flex; align-items: center; gap: 8px; }
+    .user-nick { font-weight: 700; color: #fff; }
+    .user-email { font-size: 11px; color: var(--muted); }
+
+    /* ── BADGES ── */
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .bp-uye      { background: rgba(255,255,255,0.06); color: #aaa; border: 1px solid #333; }
+    .bp-abone    { background: rgba(0,212,255,0.1); color: var(--blue); border: 1px solid rgba(0,212,255,0.3); }
+    .bp-premium  { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+    .bp-admin    { background: rgba(57,255,20,0.1); color: var(--accent); border: 1px solid rgba(57,255,20,0.3); }
+    .bp-yonetici { background: rgba(185,51,255,0.1); color: var(--purple); border: 1px solid rgba(185,51,255,0.3); }
+    .bp-banned   { background: rgba(255,26,60,0.12); color: var(--red); border: 1px solid rgba(255,26,60,0.3); }
+
+    /* ── SMALL BUTTONS ── */
+    .btn-s {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 4px; border: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .btn-s:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-s-green { background: rgba(57,255,20,0.12); color: var(--accent); border: 1px solid rgba(57,255,20,0.25); }
+    .btn-s-green:not(:disabled):hover { background: rgba(57,255,20,0.2); }
+    .btn-s-red { background: rgba(255,26,60,0.12); color: var(--red); border: 1px solid rgba(255,26,60,0.25); }
+    .btn-s-red:not(:disabled):hover { background: rgba(255,26,60,0.2); }
+    .btn-s-gray { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border2); }
+    .btn-s-gray:not(:disabled):hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .btn-s-gold { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.25); }
+    .btn-s-gold:not(:disabled):hover { background: rgba(255,215,0,0.18); }
+    .btn-s-blue { background: rgba(0,212,255,0.1); color: var(--blue); border: 1px solid rgba(0,212,255,0.25); }
+    .btn-s-blue:not(:disabled):hover { background: rgba(0,212,255,0.18); }
+
+    .btn-action-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+    /* ── FULL BUTTON ── */
+    .btn-full {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: 6px; border: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-full-green { background: var(--accent); color: #000; box-shadow: 0 0 18px rgba(57,255,20,0.25); }
+    .btn-full-green:hover { background: #50ff2a; }
+
+    /* ── SEARCH / FILTER BAR ── */
+    .filter-bar {
+      display: flex; gap: 12px; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-input {
+      flex: 1; min-width: 200px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 9px 14px;
+      color: #fff; font-family: 'Montserrat', sans-serif;
+      font-size: 13px; font-weight: 600;
+      outline: none; transition: border-color 0.2s;
+    }
+    .filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(57,255,20,0.08); }
+    .filter-input::placeholder { color: var(--muted); }
+
+    .filter-select {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 9px 32px 9px 14px;
+      color: var(--text); font-family: 'Montserrat', sans-serif;
+      font-size: 12px; font-weight: 700;
+      outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex; gap: 2px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .tab-item {
+      padding: 10px 20px;
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .tab-item:hover { color: var(--text); }
+    .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--red); color: #fff;
+      font-size: 9px; font-weight: 800;
+      margin-left: 6px;
+    }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+    .toggle {
+      position: relative; display: inline-block;
+      width: 38px; height: 20px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--border2); border-radius: 10px;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 3px; bottom: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%; background: #fff;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+    .toggle-lbl { font-size: 11px; font-weight: 700; color: var(--muted); }
+
+    /* ── DROPDOWN ── */
+    .dd-wrap { position: relative; display: inline-block; }
+    .dd-menu {
+      position: absolute; top: calc(100% + 4px); left: 0;
+      min-width: 180px;
+      background: #161616; border: 1px solid var(--border2);
+      border-radius: 8px; z-index: 500;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      display: none;
+    }
+    .dd-menu.open { display: block; }
+    .dd-item {
+      padding: 10px 14px;
+      font-size: 12px; font-weight: 700;
+      color: var(--text); cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dd-item:hover { background: rgba(57,255,20,0.06); color: var(--accent); }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .page-btn {
+      width: 32px; height: 32px; border-radius: 6px; border: none;
+      background: var(--border); color: var(--text);
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover { background: var(--border2); }
+    .page-btn.active { background: var(--accent); color: #000; }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      padding: 48px 24px; text-align: center;
+    }
+    .empty-icon { font-size: 40px; opacity: 0.3; margin-bottom: 12px; }
+    .empty-text { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(57,255,20,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .center-spinner { display: flex; align-items: center; justify-content: center; padding: 40px; }
+
+    /* ── CHART ── */
+    .chart-container { padding: 20px; }
+    .bar-chart { display: flex; flex-direction: column; gap: 12px; }
+    .bar-row { display: flex; align-items: center; gap: 12px; }
+    .bar-label { font-size: 11px; font-weight: 700; color: var(--muted); width: 110px; flex-shrink: 0; text-align: right; }
+    .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .bar-fill.green { background: var(--accent); box-shadow: 0 0 8px rgba(57,255,20,0.5); }
+    .bar-fill.blue  { background: var(--blue);   box-shadow: 0 0 8px rgba(0,212,255,0.4); }
+    .bar-fill.gold  { background: var(--gold);   box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+    .bar-fill.red   { background: var(--red);    box-shadow: 0 0 8px rgba(255,26,60,0.4); }
+    .bar-fill.purple{ background: var(--purple); box-shadow: 0 0 8px rgba(185,51,255,0.4); }
+    .bar-num { font-size: 12px; font-weight: 800; color: #fff; width: 36px; flex-shrink: 0; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-box {
+      background: #121212;
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%; max-width: 460px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+    .modal-title { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-label { display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .modal-select, .modal-input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff; font-family: 'Montserrat', sans-serif;
+      font-size: 13px; font-weight: 600;
+      outline: none;
+    }
+    .modal-select:focus, .modal-input:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-actions .btn-full { flex: 1; }
+    .btn-full-cancel {
+      background: transparent; border: 1px solid var(--border2);
+      color: var(--muted); font-family: 'Montserrat', sans-serif;
+      font-size: 13px; font-weight: 700;
+      padding: 10px 20px; border-radius: 6px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-full-cancel:hover { border-color: var(--border); color: var(--text); }
+
+    /* ── SECTION DISPLAY ── */
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    /* ── QUICK STATS ROW ── */
+    .recent-list { display: flex; flex-direction: column; }
+    .recent-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-item:hover { background: rgba(255,255,255,0.02); }
+    .recent-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--border); border: 1.5px solid var(--border2); }
+    .recent-info { flex: 1; min-width: 0; }
+    .recent-nick { font-size: 13px; font-weight: 700; color: #fff; }
+    .recent-detail { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+    .recent-meta { font-size: 11px; color: var(--muted); font-weight: 600; flex-shrink: 0; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      :root { --sidebar-w: 60px; }
+      .sidebar-item .si-label { display: none; }
+      .sidebar-item .si-badge { display: none; }
+      .sidebar-section-label { display: none; }
+      .sidebar-sep { display: none; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="load-overlay">
+  <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+  <div class="load-text">Admin Panel Yükleniyor…</div>
+</div>
+
+<!-- Canvas Background -->
+<canvas id="bg"></canvas>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Top Nav -->
+<nav id="topnav"></nav>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal-overlay"></div>
+
+<!-- Layout -->
+<div id="layout">
+  <aside id="sidebar"></aside>
+  <main id="content"></main>
+</div>
+
+<script>
+/* ================================================================
+   SUPABASE
+================================================================ */
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================================================================
+   CANVAS
+================================================================ */
+(function() {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams = [], logos = [], logoImg;
+
+  logoImg = new Image();
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 6; i++) {
+    beams.push({
+      x: Math.random() * 1.5 - 0.25,
+      speed: 0.0001 + Math.random() * 0.0002,
+      width: 80 + Math.random() * 120,
+      alpha: 0.015 + Math.random() * 0.025,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
+  for (let i = 0; i < 5; i++) {
+    logos.push({
+      x: Math.random(), y: Math.random(),
+      size: 40 + Math.random() * 60,
+      alpha: 0.008 + Math.random() * 0.012,
+      speedX: (Math.random() - 0.5) * 0.0001,
+      speedY: (Math.random() - 0.5) * 0.0001,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.0003
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    beams.forEach(b => {
+      const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
+      grad.addColorStop(0, 'rgba(57,255,20,0)');
+      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.5})`);
+      grad.addColorStop(1, 'rgba(57,255,20,0)');
+      ctx.save();
+      ctx.translate(cx, 0);
+      ctx.rotate(-Math.PI / 6);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
+      ctx.restore();
+    });
+    if (logoImg.complete) {
+      logos.forEach(l => {
+        l.x += l.speedX; l.y += l.speedY; l.rot += l.rotSpeed;
+        if (l.x < -0.1) l.x = 1.1; if (l.x > 1.1) l.x = -0.1;
+        if (l.y < -0.1) l.y = 1.1; if (l.y > 1.1) l.y = -0.1;
+        ctx.save();
+        ctx.globalAlpha = l.alpha;
+        ctx.translate(l.x * W, l.y * H);
+        ctx.rotate(l.rot);
+        ctx.drawImage(logoImg, -l.size / 2, -l.size * 0.25, l.size, l.size * 0.5);
+        ctx.restore();
+      });
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ================================================================
+   TOAST
+================================================================ */
+function toast(msg, type = 'error') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type === 'success' ? ' success' : type === 'info' ? ' info' : '');
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ================================================================
+   MODAL
+================================================================ */
+function openModal(html_builder) {
+  const overlay = document.getElementById('modal-overlay');
+  overlay.innerHTML = '';
+  overlay.classList.remove('hidden');
+  const box = document.createElement('div');
+  box.className = 'modal-box';
+  html_builder(box);
+  overlay.appendChild(box);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  }, { once: true });
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+/* ================================================================
+   UTILS
+================================================================ */
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function abbrevNum(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function badgePill(val) {
+  const pill = document.createElement('span');
+  pill.className = 'badge-pill';
+  const map = {
+    uye: ['bp-uye', 'Üye'],
+    abone: ['bp-abone', 'Abone'],
+    premium: ['bp-premium', 'Premium'],
+    admin: ['bp-admin', 'Admin'],
+    yonetici: ['bp-yonetici', 'Yönetici'],
+    banned: ['bp-banned', 'Banned'],
+  };
+  const info = map[val] || ['bp-uye', val || 'Üye'];
+  pill.classList.add(info[0]);
+  pill.textContent = info[1];
+  return pill;
+}
+
+function makeSpin() {
+  const s = document.createElement('div');
+  s.className = 'center-spinner';
+  const sp = document.createElement('div');
+  sp.className = 'spinner';
+  s.appendChild(sp);
+  return s;
+}
+
+/* ================================================================
+   GLOBAL STATE
+================================================================ */
+let currentUser = null;
+let currentSection = 'dashboard';
+let pendingCount = 0;
+
+/* ================================================================
+   BUILD NAV
+================================================================ */
+function buildNav(user) {
+  const nav = document.getElementById('topnav');
+
+  const left = document.createElement('div');
+  left.className = 'nav-left';
+
+  const logoA = document.createElement('a');
+  logoA.href = 'lobbyx.html';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoA.appendChild(logoImg);
+  left.appendChild(logoA);
+
+  const badge = document.createElement('span');
+  badge.className = 'nav-badge';
+  badge.textContent = '⚙ Admin Panel';
+  left.appendChild(badge);
+
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  const backA = document.createElement('a');
+  backA.href = 'lobbyx.html';
+  backA.className = 'back-btn';
+  backA.innerHTML = '← Ana Sayfa';
+  right.appendChild(backA);
+
+  const userWrap = document.createElement('div');
+  userWrap.className = 'nav-user';
+
+  const avatar = document.createElement('img');
+  avatar.className = 'nav-avatar';
+  avatar.src = user.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.kullanici_adi}`;
+  avatar.alt = user.kullanici_adi;
+  avatar.onerror = function() { this.src = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=admin'; };
+
+  const info = document.createElement('div');
+  const nickEl = document.createElement('div');
+  nickEl.className = 'nav-nick';
+  nickEl.textContent = user.kullanici_adi;
+  const roleEl = document.createElement('div');
+  roleEl.className = 'nav-role';
+  roleEl.textContent = user.abonelik === 'admin' ? '🔑 Admin' : '👑 Yönetici';
+  info.appendChild(nickEl);
+  info.appendChild(roleEl);
+
+  userWrap.appendChild(avatar);
+  userWrap.appendChild(info);
+  right.appendChild(userWrap);
+
+  nav.appendChild(left);
+  nav.appendChild(right);
+}
+
+/* ================================================================
+   BUILD SIDEBAR
+================================================================ */
+const SECTIONS = [
+  { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+  { id: 'users',     icon: '👥', label: 'Kullanıcılar' },
+  { id: 'ilanlar',   icon: '📣', label: 'İlanlar', hasBadge: true },
+  { id: 'klanlar',   icon: '🛡️', label: 'Klanlar' },
+  { id: 'stats',     icon: '📈', label: 'İstatistikler' },
+];
+
+function buildSidebar() {
+  const sidebar = document.getElementById('sidebar');
+
+  const mainLabel = document.createElement('div');
+  mainLabel.className = 'sidebar-section-label';
+  mainLabel.textContent = 'Yönetim';
+  sidebar.appendChild(mainLabel);
+
+  SECTIONS.forEach(sec => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-item' + (sec.id === currentSection ? ' active' : '');
+    item.dataset.section = sec.id;
+
+    const icon = document.createElement('span');
+    icon.className = 'si-icon';
+    icon.textContent = sec.icon;
+
+    const label = document.createElement('span');
+    label.className = 'si-label';
+    label.textContent = sec.label;
+
+    item.appendChild(icon);
+    item.appendChild(label);
+
+    if (sec.hasBadge && pendingCount > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'si-badge';
+      badge.textContent = pendingCount;
+      badge.id = 'pending-badge';
+      item.appendChild(badge);
+    }
+
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      showSection(sec.id);
+    });
+
+    sidebar.appendChild(item);
+  });
+
+  const sep = document.createElement('div');
+  sep.className = 'sidebar-sep';
+  sidebar.appendChild(sep);
+
+  const sysLabel = document.createElement('div');
+  sysLabel.className = 'sidebar-section-label';
+  sysLabel.textContent = 'Sistem';
+  sidebar.appendChild(sysLabel);
+
+  const logoutItem = document.createElement('div');
+  logoutItem.className = 'sidebar-item';
+  const lo_icon = document.createElement('span');
+  lo_icon.className = 'si-icon';
+  lo_icon.textContent = '🚪';
+  const lo_label = document.createElement('span');
+  lo_label.className = 'si-label';
+  lo_label.textContent = 'Çıkış';
+  logoutItem.appendChild(lo_icon);
+  logoutItem.appendChild(lo_label);
+  logoutItem.addEventListener('click', async () => {
+    await db.auth.signOut();
+    window.location.href = 'giris.html';
+  });
+  sidebar.appendChild(logoutItem);
+}
+
+/* ================================================================
+   SHOW SECTION
+================================================================ */
+function showSection(id) {
+  currentSection = id;
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  switch (id) {
+    case 'dashboard': renderDashboard(); break;
+    case 'users':     renderUsers();     break;
+    case 'ilanlar':   renderIlanlar();   break;
+    case 'klanlar':   renderKlanlar();   break;
+    case 'stats':     renderStats();     break;
+  }
+}
+
+/* ================================================================
+   SECTION: DASHBOARD
+================================================================ */
+async function renderDashboard() {
+  const content = document.getElementById('content');
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'page-header';
+  const titleWrap = document.createElement('div');
+  const title = document.createElement('div');
+  title.className = 'page-title';
+  title.innerHTML = '<span class="pt-icon">📊</span> Dashboard';
+  const sub = document.createElement('div');
+  sub.className = 'page-subtitle';
+  sub.textContent = 'Genel platform istatistikleri';
+  titleWrap.appendChild(title);
+  titleWrap.appendChild(sub);
+  header.appendChild(titleWrap);
+  content.appendChild(header);
+
+  // Stat cards placeholder
+  const statGrid = document.createElement('div');
+  statGrid.className = 'stat-grid';
+  statGrid.id = 'dash-stat-grid';
+  content.appendChild(statGrid);
+
+  // Show loading
+  for (let i = 0; i < 4; i++) {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.style.height = '100px';
+    card.appendChild(makeSpin());
+    statGrid.appendChild(card);
+  }
+
+  // Fetch stats
+  const today = new Date().toISOString().split('T')[0];
+  const [u, pending, k, todayU] = await Promise.all([
+    db.from('kullanicilar').select('id', { count: 'exact', head: true }),
+    db.from('ilanlar').select('id', { count: 'exact', head: true }).eq('durum', 'beklemede'),
+    db.from('klanlar').select('tag', { count: 'exact', head: true }),
+    db.from('kullanicilar').select('id', { count: 'exact', head: true }).gte('kayit_tarihi', today)
+  ]);
+
+  statGrid.innerHTML = '';
+
+  const stats = [
+    { label: 'Toplam Kullanıcı', value: abbrevNum(u.count || 0), color: 'green', icon: '👥' },
+    { label: 'Bekleyen İlan',    value: abbrevNum(pending.count || 0), color: 'red', icon: '📣' },
+    { label: 'Toplam Klan',      value: abbrevNum(k.count || 0), color: 'blue', icon: '🛡️' },
+    { label: "Bugünkü Kayıt",    value: abbrevNum(todayU.count || 0), color: 'gold', icon: '🆕' },
+  ];
+
+  pendingCount = pending.count || 0;
+  // Update badge
+  const badge = document.getElementById('pending-badge');
+  if (badge) badge.textContent = pendingCount;
+
+  stats.forEach(s => {
+    const card = document.createElement('div');
+    card.className = `stat-card ${s.color}`;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'stat-label';
+    lbl.textContent = s.label;
+
+    const val = document.createElement('div');
+    val.className = 'stat-value';
+    val.textContent = s.value;
+
+    const ico = document.createElement('div');
+    ico.className = 'stat-icon';
+    ico.textContent = s.icon;
+
+    card.appendChild(lbl);
+    card.appendChild(val);
+    card.appendChild(ico);
+    statGrid.appendChild(card);
+  });
+
+  // Bottom grid
+  const grid2 = document.createElement('div');
+  grid2.className = 'grid-2';
+  content.appendChild(grid2);
+
+  // Recent users card
+  const uCard = document.createElement('div');
+  uCard.className = 'panel-card';
+  const uHeader = document.createElement('div');
+  uHeader.className = 'panel-card-header';
+  const uTitle = document.createElement('div');
+  uTitle.className = 'panel-card-title';
+  uTitle.textContent = '🧑 Son Kayıt Olan Kullanıcılar';
+  uHeader.appendChild(uTitle);
+  uCard.appendChild(uHeader);
+
+  const uBody = document.createElement('div');
+  uBody.className = 'panel-card-body recent-list';
+  uBody.appendChild(makeSpin());
+  uCard.appendChild(uBody);
+  grid2.appendChild(uCard);
+
+  // Recent ilanlar card
+  const iCard = document.createElement('div');
+  iCard.className = 'panel-card';
+  const iHeader = document.createElement('div');
+  iHeader.className = 'panel-card-header';
+  const iTitle = document.createElement('div');
+  iTitle.className = 'panel-card-title';
+  iTitle.textContent = '📋 Son İlanlar';
+  iHeader.appendChild(iTitle);
+  iCard.appendChild(iHeader);
+
+  const iBody = document.createElement('div');
+  iBody.className = 'panel-card-body recent-list';
+  iBody.appendChild(makeSpin());
+  iCard.appendChild(iBody);
+  grid2.appendChild(iCard);
+
+  // Fetch recent users
+  const { data: recentUsers } = await db.from('kullanicilar')
+    .select('kullanici_adi, avatar_url, abonelik, kayit_tarihi')
+    .order('kayit_tarihi', { ascending: false })
+    .limit(10);
+
+  uBody.innerHTML = '';
+  if (!recentUsers || recentUsers.length === 0) {
+    const es = document.createElement('div');
+    es.className = 'empty-state';
+    es.innerHTML = '<div class="empty-icon">👤</div><div class="empty-text">Kullanıcı yok</div>';
+    uBody.appendChild(es);
+  } else {
+    recentUsers.forEach(u => {
+      const row = document.createElement('div');
+      row.className = 'recent-item';
+
+      const av = document.createElement('img');
+      av.className = 'recent-avatar';
+      av.src = u.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${u.kullanici_adi}`;
+      av.onerror = function() { this.src = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${u.kullanici_adi}`; };
+
+      const info = document.createElement('div');
+      info.className = 'recent-info';
+      const nick = document.createElement('div');
+      nick.className = 'recent-nick';
+      nick.textContent = u.kullanici_adi;
+      info.appendChild(nick);
+      info.appendChild(badgePill(u.abonelik || 'uye'));
+
+      const meta = document.createElement('div');
+      meta.className = 'recent-meta';
+      meta.textContent = formatDate(u.kayit_tarihi);
+
+      row.appendChild(av);
+      row.appendChild(info);
+      row.appendChild(meta);
+      uBody.appendChild(row);
+    });
+  }
+
+  // Fetch recent ilanlar
+  const { data: recentIlanlar } = await db.from('ilanlar')
+    .select('baslik, kategori, kullanici_nick, durum, id')
+    .order('id', { ascending: false })
+    .limit(5);
+
+  iBody.innerHTML = '';
+  if (!recentIlanlar || recentIlanlar.length === 0) {
+    const es = document.createElement('div');
+    es.className = 'empty-state';
+    es.innerHTML = '<div class="empty-icon">📣</div><div class="empty-text">İlan yok</div>';
+    iBody.appendChild(es);
+  } else {
+    recentIlanlar.forEach(il => {
+      const row = document.createElement('div');
+      row.className = 'recent-item';
+
+      const icon = document.createElement('div');
+      icon.style.cssText = 'width:34px;height:34px;border-radius:8px;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;';
+      icon.textContent = '📣';
+
+      const info = document.createElement('div');
+      info.className = 'recent-info';
+      const nick = document.createElement('div');
+      nick.className = 'recent-nick';
+      nick.style.fontSize = '12px';
+      nick.textContent = il.baslik || '—';
+      const detail = document.createElement('div');
+      detail.className = 'recent-detail';
+      detail.textContent = `${il.kullanici_nick || '—'} · ${il.kategori || '—'}`;
+      info.appendChild(nick);
+      info.appendChild(detail);
+
+      const durumBadge = document.createElement('span');
+      durumBadge.className = 'badge-pill';
+      const durumMap = {
+        beklemede: ['bp-uye', 'Bekliyor'],
+        onaylandi: ['bp-admin', 'Onaylı'],
+        reddedildi: ['bp-banned', 'Reddedildi']
+      };
+      const durumInfo = durumMap[il.durum] || ['bp-uye', il.durum || '—'];
+      durumBadge.classList.add(durumInfo[0]);
+      durumBadge.textContent = durumInfo[1];
+
+      row.appendChild(icon);
+      row.appendChild(info);
+      row.appendChild(durumBadge);
+      iBody.appendChild(row);
+    });
+  }
+}
+
+/* ================================================================
+   SECTION: USERS
+================================================================ */
+let usersPage = 0;
+let usersFilter = '';
+let usersAbonelik = '';
+const USERS_PER_PAGE = 20;
+
+async function renderUsers() {
+  const content = document.getElementById('content');
+
+  const header = buildPageHeader('👥', 'Kullanıcılar', 'Tüm kayıtlı oyuncular');
+  content.appendChild(header);
+
+  const filterBar = document.createElement('div');
+  filterBar.className = 'filter-bar';
+
+  const searchInput = document.createElement('input');
+  searchInput.className = 'filter-input';
+  searchInput.placeholder = '🔍  Kullanıcı adı veya e-posta ara...';
+  searchInput.value = usersFilter;
+
+  const abonelikSelect = document.createElement('select');
+  abonelikSelect.className = 'filter-select';
+  [['', 'Tüm Üyelikler'], ['uye','Üye'], ['abone','Abone'], ['premium','Premium'], ['admin','Admin'], ['yonetici','Yönetici'], ['banned','Banned']]
+    .forEach(([val, lbl]) => {
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = lbl;
+      if (val === usersAbonelik) opt.selected = true;
+      abonelikSelect.appendChild(opt);
+    });
+
+  filterBar.appendChild(searchInput);
+  filterBar.appendChild(abonelikSelect);
+  content.appendChild(filterBar);
+
+  const tableCard = document.createElement('div');
+  tableCard.className = 'panel-card';
+  content.appendChild(tableCard);
+
+  const tableWrap = document.createElement('div');
+  tableWrap.id = 'users-table-wrap';
+  tableCard.appendChild(tableWrap);
+
+  const pagWrap = document.createElement('div');
+  pagWrap.id = 'users-pag';
+  tableCard.appendChild(pagWrap);
+
+  async function loadUsers() {
+    tableWrap.innerHTML = '';
+    tableWrap.appendChild(makeSpin());
+
+    let query = db.from('kullanicilar')
+      .select('id, kullanici_adi, email, abonelik, kayit_tarihi, avatar_url, dogrulama_rozeti', { count: 'exact' });
+
+    if (usersFilter) query = query.ilike('kullanici_adi', `%${usersFilter}%`);
+    if (usersAbonelik) query = query.eq('abonelik', usersAbonelik);
+
+    const { data, count, error } = await query
+      .order('kayit_tarihi', { ascending: false })
+      .range(usersPage * USERS_PER_PAGE, (usersPage + 1) * USERS_PER_PAGE - 1);
+
+    tableWrap.innerHTML = '';
+
+    if (error || !data) {
+      tableWrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Yüklenemedi</div></div>';
+      return;
+    }
+
+    if (data.length === 0) {
+      tableWrap.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Kullanıcı bulunamadı</div></div>';
+    } else {
+      const table = document.createElement('table');
+      table.className = 'data-table';
+      table.style.overflowX = 'auto';
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      ['Avatar/Nick', 'E-posta', 'Üyelik', 'Kayıt', 'İşlemler'].forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      data.forEach(u => {
+        const tr = document.createElement('tr');
+
+        // Avatar + Nick
+        const tdUser = document.createElement('td');
+        const userCell = document.createElement('div');
+        userCell.className = 'user-cell';
+        const av = document.createElement('img');
+        av.className = 'tbl-avatar';
+        av.src = u.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${u.kullanici_adi}`;
+        av.onerror = function() { this.src = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${u.kullanici_adi}`; };
+        const nickInfo = document.createElement('div');
+        const nick = document.createElement('div');
+        nick.className = 'user-nick';
+        nick.textContent = u.kullanici_adi;
+        nickInfo.appendChild(nick);
+        if (u.dogrulama_rozeti) {
+          const rozet = document.createElement('span');
+          rozet.style.cssText = 'font-size:10px;color:var(--blue);font-weight:700;';
+          rozet.textContent = '✓ Doğrulandı';
+          nickInfo.appendChild(rozet);
+        }
+        userCell.appendChild(av);
+        userCell.appendChild(nickInfo);
+        tdUser.appendChild(userCell);
+        tr.appendChild(tdUser);
+
+        // Email
+        const tdEmail = document.createElement('td');
+        tdEmail.style.color = 'var(--muted)';
+        tdEmail.style.fontSize = '12px';
+        tdEmail.textContent = u.email || '—';
+        tr.appendChild(tdEmail);
+
+        // Abonelik
+        const tdAb = document.createElement('td');
+        tdAb.appendChild(badgePill(u.abonelik || 'uye'));
+        tr.appendChild(tdAb);
+
+        // Kayit
+        const tdDate = document.createElement('td');
+        tdDate.style.fontSize = '12px';
+        tdDate.style.color = 'var(--muted)';
+        tdDate.textContent = formatDate(u.kayit_tarihi);
+        tr.appendChild(tdDate);
+
+        // Actions
+        const tdAct = document.createElement('td');
+        const actGrp = document.createElement('div');
+        actGrp.className = 'btn-action-group';
+
+        // Rozet ver
+        const rozetBtn = document.createElement('button');
+        rozetBtn.className = 'btn-s btn-s-gold';
+        rozetBtn.textContent = '🏅 Rozet';
+        rozetBtn.addEventListener('click', () => openRozetModal(u));
+
+        // Abonelik değiştir
+        const abBtn = document.createElement('button');
+        abBtn.className = 'btn-s btn-s-blue';
+        abBtn.textContent = '🎖️ Üyelik';
+        abBtn.addEventListener('click', () => openAbonelikModal(u, loadUsers));
+
+        // Profil görüntüle
+        const profilBtn = document.createElement('a');
+        profilBtn.className = 'btn-s btn-s-gray';
+        profilBtn.textContent = '👁 Profil';
+        profilBtn.href = `profil.html?id=${u.id}`;
+        profilBtn.target = '_blank';
+        profilBtn.style.textDecoration = 'none';
+
+        // Ban
+        const banBtn = document.createElement('button');
+        banBtn.className = 'btn-s btn-s-red';
+        banBtn.textContent = u.abonelik === 'banned' ? '🔓 Kaldır' : '🚫 Ban';
+        banBtn.addEventListener('click', () => banUser(u, banBtn, loadUsers));
+
+        actGrp.appendChild(rozetBtn);
+        actGrp.appendChild(abBtn);
+        actGrp.appendChild(profilBtn);
+        actGrp.appendChild(banBtn);
+        tdAct.appendChild(actGrp);
+        tr.appendChild(tdAct);
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      tableWrap.appendChild(table);
+
+      // Pagination
+      pagWrap.innerHTML = '';
+      const totalPages = Math.ceil(count / USERS_PER_PAGE);
+      if (totalPages > 1) {
+        const pag = buildPagination(usersPage, totalPages, (pg) => {
+          usersPage = pg;
+          loadUsers();
+        });
+        pagWrap.appendChild(pag);
+      }
+    }
+  }
+
+  let searchTimeout;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      usersFilter = searchInput.value.trim();
+      usersPage = 0;
+      loadUsers();
+    }, 400);
+  });
+
+  abonelikSelect.addEventListener('change', () => {
+    usersAbonelik = abonelikSelect.value;
+    usersPage = 0;
+    loadUsers();
+  });
+
+  loadUsers();
+}
+
+function openRozetModal(user) {
+  openModal(box => {
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = `🏅 Rozet Ver — ${user.kullanici_adi}`;
+    box.appendChild(title);
+
+    const sub = document.createElement('div');
+    sub.className = 'modal-sub';
+    sub.textContent = 'Kullanıcıya doğrulama rozeti ver veya kaldır.';
+    box.appendChild(sub);
+
+    const field = document.createElement('div');
+    field.className = 'modal-field';
+    const lbl = document.createElement('label');
+    lbl.className = 'modal-label';
+    lbl.textContent = 'Doğrulama Rozeti';
+    const sel = document.createElement('select');
+    sel.className = 'modal-select';
+    [['true', '✅ Rozet Ver'], ['false', '❌ Rozet Kaldır']].forEach(([v, t]) => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = t;
+      if ((v === 'true') === !!user.dogrulama_rozeti) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    field.appendChild(lbl);
+    field.appendChild(sel);
+    box.appendChild(field);
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    const cancel = document.createElement('button');
+    cancel.className = 'btn-full-cancel';
+    cancel.textContent = 'İptal';
+    cancel.addEventListener('click', closeModal);
+
+    const confirm = document.createElement('button');
+    confirm.className = 'btn-full btn-full-green';
+    confirm.textContent = 'Kaydet';
+    confirm.addEventListener('click', async () => {
+      confirm.disabled = true;
+      confirm.textContent = '...';
+      const val = sel.value === 'true';
+      const { error } = await db.from('kullanicilar').update({ dogrulama_rozeti: val }).eq('id', user.id);
+      if (error) { toast('Hata: ' + error.message); }
+      else { toast('Rozet güncellendi!', 'success'); closeModal(); }
+      confirm.disabled = false;
+      confirm.textContent = 'Kaydet';
+    });
+
+    actions.appendChild(cancel);
+    actions.appendChild(confirm);
+    box.appendChild(actions);
+  });
+}
+
+function openAbonelikModal(user, onDone) {
+  openModal(box => {
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = `🎖️ Üyelik Değiştir — ${user.kullanici_adi}`;
+    box.appendChild(title);
+
+    const sub = document.createElement('div');
+    sub.className = 'modal-sub';
+    sub.textContent = 'Kullanıcının üyelik tipini değiştir.';
+    box.appendChild(sub);
+
+    const field = document.createElement('div');
+    field.className = 'modal-field';
+    const lbl = document.createElement('label');
+    lbl.className = 'modal-label';
+    lbl.textContent = 'Üyelik Tipi';
+    const sel = document.createElement('select');
+    sel.className = 'modal-select';
+    [['uye','Üye'], ['abone','Abone'], ['premium','Premium'], ['admin','Admin'], ['yonetici','Yönetici'], ['banned','Banned']].forEach(([v, t]) => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = t;
+      if (v === (user.abonelik || 'uye')) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    field.appendChild(lbl);
+    field.appendChild(sel);
+    box.appendChild(field);
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    const cancel = document.createElement('button');
+    cancel.className = 'btn-full-cancel';
+    cancel.textContent = 'İptal';
+    cancel.addEventListener('click', closeModal);
+
+    const confirm = document.createElement('button');
+    confirm.className = 'btn-full btn-full-green';
+    confirm.textContent = 'Kaydet';
+    confirm.addEventListener('click', async () => {
+      confirm.disabled = true;
+      confirm.textContent = '...';
+      const { error } = await db.from('kullanicilar').update({ abonelik: sel.value }).eq('id', user.id);
+      if (error) { toast('Hata: ' + error.message); }
+      else {
+        toast('Üyelik güncellendi!', 'success');
+        closeModal();
+        if (onDone) onDone();
+      }
+      confirm.disabled = false;
+      confirm.textContent = 'Kaydet';
+    });
+
+    actions.appendChild(cancel);
+    actions.appendChild(confirm);
+    box.appendChild(actions);
+  });
+}
+
+async function banUser(user, btn, onDone) {
+  const isBanned = user.abonelik === 'banned';
+  const newVal = isBanned ? 'uye' : 'banned';
+  const msg = isBanned ? 'Yasak kaldırılsın mı?' : `${user.kullanici_adi} banlanacak. Emin misin?`;
+  if (!confirm(msg)) return;
+
+  btn.disabled = true;
+  const { error } = await db.from('kullanicilar').update({ abonelik: newVal }).eq('id', user.id);
+  btn.disabled = false;
+  if (error) { toast('Hata: ' + error.message); }
+  else {
+    toast(isBanned ? 'Ban kaldırıldı.' : 'Kullanıcı banlandı.', isBanned ? 'success' : 'error');
+    user.abonelik = newVal;
+    btn.textContent = newVal === 'banned' ? '🔓 Kaldır' : '🚫 Ban';
+    if (onDone) onDone();
+  }
+}
+
+/* ================================================================
+   SECTION: İLANLAR
+================================================================ */
+let ilanTab = 'beklemede';
+
+async function renderIlanlar() {
+  const content = document.getElementById('content');
+
+  const header = buildPageHeader('📣', 'İlanlar', 'Bekleyen ve onaylanan ilanları yönet');
+  content.appendChild(header);
+
+  const tabBar = document.createElement('div');
+  tabBar.className = 'tab-bar';
+  const tabs = [
+    { id: 'beklemede', label: 'Bekleyenler', badge: true },
+    { id: 'onaylandi', label: 'Onaylı' },
+    { id: 'reddedildi', label: 'Reddedilenler' }
+  ];
+
+  tabs.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'tab-item' + (t.id === ilanTab ? ' active' : '');
+    item.textContent = t.label;
+    if (t.badge && pendingCount > 0) {
+      const badge = document.createElement('span');
+      badge.className = 'tab-badge';
+      badge.textContent = pendingCount;
+      item.appendChild(badge);
+    }
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      ilanTab = t.id;
+      loadIlanlar();
+    });
+    tabBar.appendChild(item);
+  });
+  content.appendChild(tabBar);
+
+  const tableCard = document.createElement('div');
+  tableCard.className = 'panel-card';
+  tableCard.id = 'ilan-card';
+  content.appendChild(tableCard);
+
+  async function loadIlanlar() {
+    tableCard.innerHTML = '';
+    tableCard.appendChild(makeSpin());
+
+    const { data, error } = await db.from('ilanlar')
+      .select('id, baslik, kategori, alt_kategori, kullanici_nick, kullanici_id, durum, one_cikan, fiyat')
+      .eq('durum', ilanTab)
+      .order('id', { ascending: false })
+      .limit(50);
+
+    tableCard.innerHTML = '';
+
+    if (error || !data || data.length === 0) {
+      const es = document.createElement('div');
+      es.className = 'empty-state';
+      const ico = document.createElement('div');
+      ico.className = 'empty-icon';
+      ico.textContent = '📣';
+      const txt = document.createElement('div');
+      txt.className = 'empty-text';
+      txt.textContent = ilanTab === 'beklemede' ? 'Bekleyen ilan yok 🎉' : 'Ilan bulunamadı';
+      es.appendChild(ico);
+      es.appendChild(txt);
+      tableCard.appendChild(es);
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'data-table';
+
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    const cols = ['Başlık', 'Kategori', 'Oyuncu', 'Öne Çıkar', 'İşlemler'];
+    cols.forEach(h => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    data.forEach(il => {
+      const tr = document.createElement('tr');
+      tr.id = `ilan-row-${il.id}`;
+
+      // Başlık
+      const tdTitle = document.createElement('td');
+      tdTitle.style.fontWeight = '700';
+      tdTitle.style.color = '#fff';
+      tdTitle.textContent = il.baslik || '—';
+      tr.appendChild(tdTitle);
+
+      // Kategori
+      const tdKat = document.createElement('td');
+      const katBadge = document.createElement('span');
+      katBadge.className = 'badge-pill bp-uye';
+      katBadge.textContent = il.kategori || '—';
+      tdKat.appendChild(katBadge);
+      if (il.alt_kategori) {
+        const altBadge = document.createElement('span');
+        altBadge.style.cssText = 'font-size:10px;color:var(--muted);margin-left:6px;';
+        altBadge.textContent = il.alt_kategori;
+        tdKat.appendChild(altBadge);
+      }
+      tr.appendChild(tdKat);
+
+      // Nick
+      const tdNick = document.createElement('td');
+      tdNick.style.fontSize = '12px';
+      tdNick.style.color = 'var(--accent)';
+      tdNick.style.fontWeight = '700';
+      tdNick.textContent = il.kullanici_nick || '—';
+      tr.appendChild(tdNick);
+
+      // Öne Çıkar toggle
+      const tdOneCikan = document.createElement('td');
+      const toggleWrap = document.createElement('label');
+      toggleWrap.className = 'toggle';
+      const toggleInput = document.createElement('input');
+      toggleInput.type = 'checkbox';
+      toggleInput.checked = !!il.one_cikan;
+      const toggleSlider = document.createElement('span');
+      toggleSlider.className = 'toggle-slider';
+      toggleInput.addEventListener('change', async () => {
+        const { error } = await db.from('ilanlar').update({ one_cikan: toggleInput.checked }).eq('id', il.id);
+        if (error) {
+          toast('Güncelleme başarısız');
+          toggleInput.checked = !toggleInput.checked;
+        } else {
+          toast('Öne çıkar güncellendi', 'success');
+        }
+      });
+      toggleWrap.appendChild(toggleInput);
+      toggleWrap.appendChild(toggleSlider);
+      tdOneCikan.appendChild(toggleWrap);
+      tr.appendChild(tdOneCikan);
+
+      // Actions
+      const tdAct = document.createElement('td');
+      const actGrp = document.createElement('div');
+      actGrp.className = 'btn-action-group';
+
+      if (ilanTab !== 'onaylandi') {
+        const approveBtn = document.createElement('button');
+        approveBtn.className = 'btn-s btn-s-green';
+        approveBtn.textContent = '✓ Onayla';
+        approveBtn.addEventListener('click', async () => {
+          approveBtn.disabled = true;
+          const { error } = await db.from('ilanlar').update({ durum: 'onaylandi' }).eq('id', il.id);
+          if (error) { toast('Hata!'); approveBtn.disabled = false; }
+          else {
+            toast('İlan onaylandı!', 'success');
+            pendingCount = Math.max(0, pendingCount - 1);
+            const badge = document.getElementById('pending-badge');
+            if (badge) badge.textContent = pendingCount;
+            document.getElementById(`ilan-row-${il.id}`)?.remove();
+          }
+        });
+        actGrp.appendChild(approveBtn);
+      }
+
+      if (ilanTab !== 'reddedildi') {
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn-s btn-s-red';
+        rejectBtn.textContent = '✕ Reddet';
+        rejectBtn.addEventListener('click', async () => {
+          rejectBtn.disabled = true;
+          const { error } = await db.from('ilanlar').update({ durum: 'reddedildi' }).eq('id', il.id);
+          if (error) { toast('Hata!'); rejectBtn.disabled = false; }
+          else {
+            toast('İlan reddedildi.', 'info');
+            if (ilanTab === 'beklemede') {
+              pendingCount = Math.max(0, pendingCount - 1);
+              const badge = document.getElementById('pending-badge');
+              if (badge) badge.textContent = pendingCount;
+            }
+            document.getElementById(`ilan-row-${il.id}`)?.remove();
+          }
+        });
+        actGrp.appendChild(rejectBtn);
+      }
+
+      if (ilanTab !== 'beklemede') {
+        const pendBtn = document.createElement('button');
+        pendBtn.className = 'btn-s btn-s-gray';
+        pendBtn.textContent = '⏳ Beklet';
+        pendBtn.addEventListener('click', async () => {
+          const { error } = await db.from('ilanlar').update({ durum: 'beklemede' }).eq('id', il.id);
+          if (!error) { toast('Tekrar beklemeye alındı.', 'info'); document.getElementById(`ilan-row-${il.id}`)?.remove(); }
+          else toast('Hata!');
+        });
+        actGrp.appendChild(pendBtn);
+      }
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-s btn-s-red';
+      delBtn.textContent = '🗑 Sil';
+      delBtn.addEventListener('click', async () => {
+        if (!confirm('İlanı tamamen silmek istiyor musun?')) return;
+        const { error } = await db.from('ilanlar').delete().eq('id', il.id);
+        if (!error) { toast('İlan silindi.', 'info'); document.getElementById(`ilan-row-${il.id}`)?.remove(); }
+        else toast('Hata!');
+      });
+      actGrp.appendChild(delBtn);
+
+      tdAct.appendChild(actGrp);
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    tableCard.appendChild(table);
+  }
+
+  loadIlanlar();
+}
+
+/* ================================================================
+   SECTION: KLANLAR
+================================================================ */
+async function renderKlanlar() {
+  const content = document.getElementById('content');
+
+  const header = buildPageHeader('🛡️', 'Klanlar', 'Tüm klanları görüntüle ve yönet');
+  content.appendChild(header);
+
+  const tableCard = document.createElement('div');
+  tableCard.className = 'panel-card';
+  tableCard.id = 'klan-card';
+  content.appendChild(tableCard);
+
+  tableCard.appendChild(makeSpin());
+
+  const { data, error } = await db.from('klanlar')
+    .select('tag, isim, kurucu_id, uye_sayisi, vote_sayisi, abonelik, logo_url, renk')
+    .order('vote_sayisi', { ascending: false });
+
+  tableCard.innerHTML = '';
+
+  if (error || !data || data.length === 0) {
+    const es = document.createElement('div');
+    es.className = 'empty-state';
+    es.innerHTML = '<div class="empty-icon">🛡️</div><div class="empty-text">Klan bulunamadı</div>';
+    tableCard.appendChild(es);
+    return;
+  }
+
+  const table = document.createElement('table');
+  table.className = 'data-table';
+
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  ['Tag', 'İsim', 'Üye', 'Vote', 'Abonelik', 'İşlemler'].forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+
+  data.forEach(k => {
+    const tr = document.createElement('tr');
+    tr.id = `klan-row-${k.tag}`;
+
+    // Tag
+    const tdTag = document.createElement('td');
+    const tagBadge = document.createElement('span');
+    tagBadge.style.cssText = `font-size:12px;font-weight:800;color:${k.renk || 'var(--accent)'};background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:4px;`;
+    tagBadge.textContent = `[${k.tag}]`;
+    tdTag.appendChild(tagBadge);
+    tr.appendChild(tdTag);
+
+    // İsim
+    const tdIsim = document.createElement('td');
+    const klanCell = document.createElement('div');
+    klanCell.className = 'user-cell';
+    if (k.logo_url) {
+      const logo = document.createElement('img');
+      logo.className = 'tbl-avatar';
+      logo.src = k.logo_url;
+      logo.style.borderRadius = '6px';
+      logo.onerror = function() { this.style.display = 'none'; };
+      klanCell.appendChild(logo);
+    }
+    const isimEl = document.createElement('div');
+    isimEl.style.fontWeight = '700';
+    isimEl.style.color = '#fff';
+    isimEl.textContent = k.isim || k.tag;
+    klanCell.appendChild(isimEl);
+    tdIsim.appendChild(klanCell);
+    tr.appendChild(tdIsim);
+
+    // Üye
+    const tdUye = document.createElement('td');
+    tdUye.style.color = 'var(--muted)';
+    tdUye.textContent = k.uye_sayisi || 0;
+    tr.appendChild(tdUye);
+
+    // Vote
+    const tdVote = document.createElement('td');
+    tdVote.style.color = 'var(--gold)';
+    tdVote.style.fontWeight = '700';
+    tdVote.textContent = '⭐ ' + (k.vote_sayisi || 0);
+    tr.appendChild(tdVote);
+
+    // Abonelik
+    const tdAb = document.createElement('td');
+    tdAb.appendChild(badgePill(k.abonelik || 'uye'));
+    tr.appendChild(tdAb);
+
+    // Actions
+    const tdAct = document.createElement('td');
+    const actGrp = document.createElement('div');
+    actGrp.className = 'btn-action-group';
+
+    const abBtn = document.createElement('button');
+    abBtn.className = 'btn-s btn-s-blue';
+    abBtn.textContent = '🎖️ Üyelik';
+    abBtn.addEventListener('click', () => openKlanAbonelikModal(k, () => {
+      // refresh row
+      renderKlanlar();
+    }));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-s btn-s-red';
+    delBtn.textContent = '🗑 Sil';
+    delBtn.addEventListener('click', async () => {
+      if (!confirm(`[${k.tag}] klanını silmek istiyor musun?`)) return;
+      const { error } = await db.from('klanlar').delete().eq('tag', k.tag);
+      if (!error) { toast('Klan silindi.', 'info'); document.getElementById(`klan-row-${k.tag}`)?.remove(); }
+      else toast('Hata: ' + error.message);
+    });
+
+    actGrp.appendChild(abBtn);
+    actGrp.appendChild(delBtn);
+    tdAct.appendChild(actGrp);
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  tableCard.appendChild(table);
+}
+
+function openKlanAbonelikModal(klan, onDone) {
+  openModal(box => {
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = `🎖️ Klan Üyeliği — [${klan.tag}]`;
+    box.appendChild(title);
+
+    const field = document.createElement('div');
+    field.className = 'modal-field';
+    const lbl = document.createElement('label');
+    lbl.className = 'modal-label';
+    lbl.textContent = 'Üyelik Tipi';
+    const sel = document.createElement('select');
+    sel.className = 'modal-select';
+    [['uye','Üye'], ['abone','Abone'], ['premium','Premium']].forEach(([v, t]) => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = t;
+      if (v === (klan.abonelik || 'uye')) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    field.appendChild(lbl);
+    field.appendChild(sel);
+    box.appendChild(field);
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+    const cancel = document.createElement('button');
+    cancel.className = 'btn-full-cancel';
+    cancel.textContent = 'İptal';
+    cancel.addEventListener('click', closeModal);
+    const confirm = document.createElement('button');
+    confirm.className = 'btn-full btn-full-green';
+    confirm.textContent = 'Kaydet';
+    confirm.addEventListener('click', async () => {
+      confirm.disabled = true;
+      const { error } = await db.from('klanlar').update({ abonelik: sel.value }).eq('tag', klan.tag);
+      if (error) toast('Hata: ' + error.message);
+      else { toast('Güncellendi!', 'success'); closeModal(); if (onDone) onDone(); }
+      confirm.disabled = false;
+    });
+    actions.appendChild(cancel);
+    actions.appendChild(confirm);
+    box.appendChild(actions);
+  });
+}
+
+/* ================================================================
+   SECTION: STATS
+================================================================ */
+async function renderStats() {
+  const content = document.getElementById('content');
+
+  const header = buildPageHeader('📈', 'İstatistikler', 'Platform analitiği ve grafikler');
+  content.appendChild(header);
+
+  const grid2 = document.createElement('div');
+  grid2.className = 'grid-2';
+  content.appendChild(grid2);
+
+  // Card 1: Kategori dağılımı
+  const katCard = document.createElement('div');
+  katCard.className = 'panel-card';
+  const katHeader = document.createElement('div');
+  katHeader.className = 'panel-card-header';
+  const katTitle = document.createElement('div');
+  katTitle.className = 'panel-card-title';
+  katTitle.textContent = '📊 İlan Kategori Dağılımı';
+  katHeader.appendChild(katTitle);
+  katCard.appendChild(katHeader);
+  const katBody = document.createElement('div');
+  katBody.className = 'chart-container';
+  katBody.appendChild(makeSpin());
+  katCard.appendChild(katBody);
+  grid2.appendChild(katCard);
+
+  // Card 2: Sunucu popülerliği
+  const srvCard = document.createElement('div');
+  srvCard.className = 'panel-card';
+  const srvHeader = document.createElement('div');
+  srvHeader.className = 'panel-card-header';
+  const srvTitle = document.createElement('div');
+  srvTitle.className = 'panel-card-title';
+  srvTitle.textContent = '🌍 En Popüler Sunucular';
+  srvHeader.appendChild(srvTitle);
+  srvCard.appendChild(srvHeader);
+  const srvBody = document.createElement('div');
+  srvBody.className = 'chart-container';
+  srvBody.appendChild(makeSpin());
+  srvCard.appendChild(srvBody);
+  grid2.appendChild(srvCard);
+
+  // Card 3: Günlük kayıtlar (full width)
+  const dayCard = document.createElement('div');
+  dayCard.className = 'panel-card';
+  dayCard.style.gridColumn = '1 / -1';
+  const dayHeader = document.createElement('div');
+  dayHeader.className = 'panel-card-header';
+  const dayTitle = document.createElement('div');
+  dayTitle.className = 'panel-card-title';
+  dayTitle.textContent = '📅 Son 7 Günlük Kayıt';
+  dayHeader.appendChild(dayTitle);
+  dayCard.appendChild(dayHeader);
+  const dayBody = document.createElement('div');
+  dayBody.className = 'chart-container';
+  dayBody.appendChild(makeSpin());
+  dayCard.appendChild(dayBody);
+  grid2.appendChild(dayCard);
+
+  // Abonelik dağılımı card
+  const abCard = document.createElement('div');
+  abCard.className = 'panel-card';
+  abCard.style.gridColumn = '1 / -1';
+  const abHeader = document.createElement('div');
+  abHeader.className = 'panel-card-header';
+  const abTitle = document.createElement('div');
+  abTitle.className = 'panel-card-title';
+  abTitle.textContent = '👥 Üyelik Tipi Dağılımı';
+  abHeader.appendChild(abTitle);
+  abCard.appendChild(abHeader);
+  const abBody = document.createElement('div');
+  abBody.className = 'chart-container';
+  abBody.appendChild(makeSpin());
+  abCard.appendChild(abBody);
+  grid2.appendChild(abCard);
+
+  // ─── Fetch data ───
+
+  // Kategori dağılımı
+  const { data: katData } = await db.from('ilanlar')
+    .select('kategori')
+    .not('kategori', 'is', null);
+
+  katBody.innerHTML = '';
+  if (katData && katData.length > 0) {
+    const counts = {};
+    katData.forEach(r => { counts[r.kategori] = (counts[r.kategori] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const max = sorted[0]?.[1] || 1;
+    const chart = buildBarChart(sorted.map(([lbl, val]) => ({ label: lbl, value: val, max, color: 'green' })));
+    katBody.appendChild(chart);
+  } else {
+    katBody.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Veri yok</div></div>';
+  }
+
+  // Sunucu popülerliği
+  const { data: srvData } = await db.from('kullanicilar')
+    .select('desteklened_sunucu')
+    .not('desteklened_sunucu', 'is', null);
+
+  srvBody.innerHTML = '';
+  if (srvData && srvData.length > 0) {
+    const counts = {};
+    srvData.forEach(r => {
+      if (r.desteklened_sunucu) counts[r.desteklened_sunucu] = (counts[r.desteklened_sunucu] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const max = sorted[0]?.[1] || 1;
+    const chart = buildBarChart(sorted.map(([lbl, val]) => ({ label: lbl, value: val, max, color: 'blue' })));
+    srvBody.appendChild(chart);
+  } else {
+    srvBody.innerHTML = '<div class="empty-state"><div class="empty-icon">🌍</div><div class="empty-text">Veri yok</div></div>';
+  }
+
+  // Son 7 gün kayıt
+  dayBody.innerHTML = '';
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+
+  const dayPromises = days.map(day => {
+    const next = new Date(day);
+    next.setDate(next.getDate() + 1);
+    return db.from('kullanicilar')
+      .select('id', { count: 'exact', head: true })
+      .gte('kayit_tarihi', day)
+      .lt('kayit_tarihi', next.toISOString().split('T')[0]);
+  });
+
+  const dayResults = await Promise.all(dayPromises);
+  const dayCounts = dayResults.map((r, i) => ({ label: days[i].slice(5), value: r.count || 0 }));
+  const maxDay = Math.max(...dayCounts.map(d => d.value), 1);
+  const dayChart = buildBarChart(dayCounts.map(d => ({ ...d, max: maxDay, color: 'gold' })));
+  dayBody.appendChild(dayChart);
+
+  // Abonelik dağılımı
+  const { data: abData } = await db.from('kullanicilar')
+    .select('abonelik');
+
+  abBody.innerHTML = '';
+  if (abData && abData.length > 0) {
+    const counts = {};
+    abData.forEach(r => {
+      const k = r.abonelik || 'uye';
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    const colorMap = { uye: 'green', abone: 'blue', premium: 'gold', admin: 'green', yonetici: 'purple', banned: 'red' };
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0]?.[1] || 1;
+    const chart = buildBarChart(sorted.map(([lbl, val]) => ({ label: lbl, value: val, max, color: colorMap[lbl] || 'green' })));
+    abBody.appendChild(chart);
+  } else {
+    abBody.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Veri yok</div></div>';
+  }
+}
+
+function buildBarChart(items) {
+  const chart = document.createElement('div');
+  chart.className = 'bar-chart';
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = item.label;
+
+    const track = document.createElement('div');
+    track.className = 'bar-track';
+
+    const fill = document.createElement('div');
+    fill.className = `bar-fill ${item.color}`;
+    fill.style.width = '0%';
+    track.appendChild(fill);
+
+    const num = document.createElement('div');
+    num.className = 'bar-num';
+    num.textContent = item.value;
+
+    row.appendChild(lbl);
+    row.appendChild(track);
+    row.appendChild(num);
+    chart.appendChild(row);
+
+    // Animate
+    setTimeout(() => {
+      fill.style.width = `${Math.round((item.value / item.max) * 100)}%`;
+    }, 80);
+  });
+
+  return chart;
+}
+
+/* ================================================================
+   PAGINATION BUILDER
+================================================================ */
+function buildPagination(currentPage, totalPages, onPage) {
+  const pag = document.createElement('div');
+  pag.className = 'pagination';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'page-btn';
+  prevBtn.textContent = '←';
+  prevBtn.disabled = currentPage === 0;
+  prevBtn.addEventListener('click', () => onPage(currentPage - 1));
+  pag.appendChild(prevBtn);
+
+  const start = Math.max(0, currentPage - 2);
+  const end = Math.min(totalPages - 1, currentPage + 2);
+
+  for (let i = start; i <= end; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+    btn.textContent = i + 1;
+    const page = i;
+    btn.addEventListener('click', () => onPage(page));
+    pag.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'page-btn';
+  nextBtn.textContent = '→';
+  nextBtn.disabled = currentPage >= totalPages - 1;
+  nextBtn.addEventListener('click', () => onPage(currentPage + 1));
+  pag.appendChild(nextBtn);
+
+  return pag;
+}
+
+/* ================================================================
+   PAGE HEADER BUILDER
+================================================================ */
+function buildPageHeader(icon, title, subtitle) {
+  const header = document.createElement('div');
+  header.className = 'page-header';
+
+  const titleWrap = document.createElement('div');
+  const titleEl = document.createElement('div');
+  titleEl.className = 'page-title';
+  const iconEl = document.createElement('span');
+  iconEl.className = 'pt-icon';
+  iconEl.textContent = icon;
+  const textEl = document.createTextNode(' ' + title);
+  titleEl.appendChild(iconEl);
+  titleEl.appendChild(textEl);
+
+  const subEl = document.createElement('div');
+  subEl.className = 'page-subtitle';
+  subEl.textContent = subtitle;
+
+  titleWrap.appendChild(titleEl);
+  titleWrap.appendChild(subEl);
+  header.appendChild(titleWrap);
+  return header;
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+async function init() {
+  const overlay = document.getElementById('load-overlay');
+
+  // Check session
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.href = 'giris.html';
+    return;
+  }
+
+  // Fetch user
+  const { data: user, error: userErr } = await db.from('kullanicilar')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  if (userErr || !user) {
+    window.location.href = 'lobbyx.html';
+    return;
+  }
+
+  // Access control
+  if (!['admin', 'yonetici'].includes(user.abonelik)) {
+    window.location.href = 'lobbyx.html';
+    return;
+  }
+
+  currentUser = user;
+
+  // Fetch pending count before build
+  const { count } = await db.from('ilanlar')
+    .select('id', { count: 'exact', head: true })
+    .eq('durum', 'beklemede');
+  pendingCount = count || 0;
+
+  buildNav(user);
+  buildSidebar();
+  showSection('dashboard');
+
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    setTimeout(() => { overlay.style.display = 'none'; }, 400);
+  }, 600);
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.dd-wrap')) {
+    document.querySelectorAll('.dd-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOBBY.GG — Türkiye'nin Minecraft Topluluğu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050505;
+      --card: #0d0d0d;
+      --border: #1a1a1a;
+      --border2: #2a2a2a;
+      --accent: #39ff14;
+      --red: #ff1a3c;
+      --gold: #FFD700;
+      --purple: #b933ff;
+      --blue: #00d4ff;
+      --text: #e0e0e0;
+      --muted: #666;
+    }
+
+    html, body {
+      width: 100%; min-height: 100%;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    canvas#bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── LOADING OVERLAY ── */
+    #load-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    #load-overlay.hidden { opacity: 0; pointer-events: none; }
+    .load-logo { height: 64px; filter: drop-shadow(0 0 24px rgba(57,255,20,0.7)); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
+
+    /* ── NAV ── */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(5,5,5,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo img { height: 40px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(57,255,20,0.35)); }
+    .nav-btns { display: flex; gap: 12px; align-items: center; }
+
+    /* ── MC BUTTONS ── */
+    .mc-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 22px;
+      border-radius: 4px;
+      border: none; cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.4px;
+      text-decoration: none;
+      transition: all 0.18s;
+      position: relative;
+      text-transform: uppercase;
+    }
+    .mc-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 2px; right: 2px;
+      height: 3px; border-radius: 0 0 3px 3px;
+      transition: height 0.15s;
+    }
+    .mc-btn:active { transform: translateY(2px); }
+    .mc-btn:active::after { height: 1px; }
+
+    .mc-green {
+      background: #39ff14; color: #000;
+      box-shadow: 0 0 20px rgba(57,255,20,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .mc-green::after { background: #1a8a00; }
+    .mc-green:hover { background: #50ff2a; box-shadow: 0 0 30px rgba(57,255,20,0.5); }
+
+    .mc-gray {
+      background: #3a3a3a; color: #e0e0e0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .mc-gray::after { background: #1a1a1a; }
+    .mc-gray:hover { background: #444; }
+
+    .mc-blue {
+      background: #00d4ff; color: #000;
+      box-shadow: 0 0 20px rgba(0,212,255,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .mc-blue::after { background: #006080; }
+    .mc-blue:hover { background: #1adbff; box-shadow: 0 0 30px rgba(0,212,255,0.4); }
+
+    .mc-btn.xl { padding: 16px 40px; font-size: 16px; border-radius: 6px; }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 24px 60px;
+      text-align: center;
+    }
+
+    .hero-logo {
+      height: 120px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 40px rgba(57,255,20,0.5));
+      margin-bottom: 32px;
+      animation: heroFloat 3s ease-in-out infinite;
+    }
+    @keyframes heroFloat {
+      0%,100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .hero-tagline {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      text-shadow: 0 0 60px rgba(57,255,20,0.15);
+    }
+    .hero-tagline .green { color: var(--accent); text-shadow: 0 0 30px rgba(57,255,20,0.6); }
+
+    .hero-sub {
+      font-size: clamp(14px, 2vw, 18px);
+      color: var(--muted);
+      font-weight: 600;
+      max-width: 560px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── STATS TICKER ── */
+    #stats-ticker {
+      position: relative;
+      z-index: 10;
+      padding: 16px 0;
+      background: rgba(57,255,20,0.04);
+      border-top: 1px solid rgba(57,255,20,0.12);
+      border-bottom: 1px solid rgba(57,255,20,0.12);
+      overflow: hidden;
+    }
+    .ticker-inner {
+      display: flex;
+      gap: 60px;
+      align-items: center;
+      animation: tickerScroll 20s linear infinite;
+      white-space: nowrap;
+      width: max-content;
+    }
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; font-weight: 700;
+      color: var(--accent);
+    }
+    .ticker-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    .ticker-num { color: #fff; font-weight: 900; font-size: 16px; }
+
+    /* ── FEATURES SECTION ── */
+    #features {
+      position: relative;
+      z-index: 10;
+      padding: 80px 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 50px;
+      letter-spacing: -0.5px;
+    }
+
+    .feature-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+      cursor: default;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      border-color: rgba(57,255,20,0.25);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.5), 0 0 30px rgba(57,255,20,0.06);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      display: block;
+      filter: drop-shadow(0 0 16px rgba(57,255,20,0.3));
+    }
+    .feature-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    /* ── FOOTER ── */
+    #footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    #footer .footer-logo { height: 28px; margin-bottom: 12px; opacity: 0.5; }
+    #footer a { color: var(--accent); text-decoration: none; }
+    #footer a:hover { text-decoration: underline; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    @media (max-width: 600px) {
+      #nav { padding: 0 16px; }
+      #features { padding: 60px 16px; }
+      .hero-actions { gap: 10px; }
+      .mc-btn.xl { padding: 14px 28px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="load-overlay">
+  <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+</div>
+
+<!-- Canvas Background -->
+<canvas id="bg"></canvas>
+
+<!-- Navigation -->
+<nav id="nav"></nav>
+
+<!-- Hero Section -->
+<section id="hero"></section>
+
+<!-- Stats Ticker -->
+<div id="stats-ticker"></div>
+
+<!-- Features Section -->
+<section id="features"></section>
+
+<!-- Footer -->
+<footer id="footer"></footer>
+
+<script>
+/* ================================================================
+   SUPABASE
+================================================================ */
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================================================================
+   CANVAS BACKGROUND
+================================================================ */
+(function initCanvas() {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams = [], logos = [], logoImg;
+
+  logoImg = new Image();
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 10; i++) {
+    beams.push({
+      x: Math.random() * 1.5 - 0.25,
+      speed: 0.0002 + Math.random() * 0.0003,
+      width: 80 + Math.random() * 160,
+      alpha: 0.025 + Math.random() * 0.05,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
+
+  for (let i = 0; i < 8; i++) {
+    logos.push({
+      x: Math.random(),
+      y: Math.random(),
+      size: 50 + Math.random() * 80,
+      alpha: 0.012 + Math.random() * 0.02,
+      speedX: (Math.random() - 0.5) * 0.00012,
+      speedY: (Math.random() - 0.5) * 0.00012,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.0004
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+
+    beams.forEach(b => {
+      const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
+      grad.addColorStop(0,   'rgba(57,255,20,0)');
+      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.6})`);
+      grad.addColorStop(1,   'rgba(57,255,20,0)');
+      ctx.save();
+      ctx.translate(cx, 0);
+      ctx.rotate(-Math.PI / 6);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
+      ctx.restore();
+    });
+
+    if (logoImg.complete) {
+      logos.forEach(l => {
+        l.x += l.speedX; l.y += l.speedY; l.rot += l.rotSpeed;
+        if (l.x < -0.1) l.x = 1.1;
+        if (l.x > 1.1)  l.x = -0.1;
+        if (l.y < -0.1) l.y = 1.1;
+        if (l.y > 1.1)  l.y = -0.1;
+        ctx.save();
+        ctx.globalAlpha = l.alpha;
+        ctx.translate(l.x * W, l.y * H);
+        ctx.rotate(l.rot);
+        ctx.drawImage(logoImg, -l.size / 2, -l.size * 0.25, l.size, l.size * 0.5);
+        ctx.restore();
+      });
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ================================================================
+   BUILD NAV
+================================================================ */
+function buildNav() {
+  const nav = document.getElementById('nav');
+
+  // Logo
+  const logoWrap = document.createElement('a');
+  logoWrap.href = 'index.html';
+  logoWrap.className = 'nav-logo';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoWrap.appendChild(logoImg);
+  nav.appendChild(logoWrap);
+
+  // Buttons
+  const btns = document.createElement('div');
+  btns.className = 'nav-btns';
+
+  const girisBtn = document.createElement('a');
+  girisBtn.href = 'giris.html';
+  girisBtn.className = 'mc-btn mc-gray';
+  girisBtn.textContent = 'Giriş Yap';
+
+  const kayitBtn = document.createElement('a');
+  kayitBtn.href = 'giris.html';
+  kayitBtn.className = 'mc-btn mc-green';
+  kayitBtn.textContent = 'Kayıt Ol';
+
+  btns.appendChild(girisBtn);
+  btns.appendChild(kayitBtn);
+  nav.appendChild(btns);
+}
+
+/* ================================================================
+   BUILD HERO
+================================================================ */
+function buildHero() {
+  const hero = document.getElementById('hero');
+
+  // Logo
+  const logo = document.createElement('img');
+  logo.src = 'https://i.imgur.com/6l08Y4k.png';
+  logo.alt = 'LOBBY.GG';
+  logo.className = 'hero-logo';
+  hero.appendChild(logo);
+
+  // Tagline
+  const tagline = document.createElement('h1');
+  tagline.className = 'hero-tagline';
+  const line1 = document.createTextNode("Türkiye'nin ");
+  const span = document.createElement('span');
+  span.className = 'green';
+  span.textContent = 'Minecraft';
+  const line2 = document.createTextNode(' Oyuncu Topluluğu');
+  tagline.appendChild(line1);
+  tagline.appendChild(span);
+  tagline.appendChild(line2);
+  hero.appendChild(tagline);
+
+  // Sub
+  const sub = document.createElement('p');
+  sub.className = 'hero-sub';
+  sub.textContent = 'Dijital kartvizitini oluştur, oyuncuları keşfet, topluluğa katıl';
+  hero.appendChild(sub);
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'hero-actions';
+
+  const startBtn = document.createElement('a');
+  startBtn.href = 'giris.html';
+  startBtn.className = 'mc-btn mc-green xl';
+  startBtn.textContent = '⚡ Hemen Başla';
+
+  const exploreBtn = document.createElement('a');
+  exploreBtn.href = 'kesfet.html';
+  exploreBtn.className = 'mc-btn mc-gray xl';
+  exploreBtn.textContent = '🔍 Keşfet';
+
+  actions.appendChild(startBtn);
+  actions.appendChild(exploreBtn);
+  hero.appendChild(actions);
+
+  // Scroll indicator
+  const scrollIndicator = document.createElement('div');
+  scrollIndicator.style.cssText = 'position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0.4;animation:scrollBounce 2s ease-in-out infinite;';
+  const scrollStyle = document.createElement('style');
+  scrollStyle.textContent = '@keyframes scrollBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}';
+  document.head.appendChild(scrollStyle);
+  const scrollLine = document.createElement('div');
+  scrollLine.style.cssText = 'width:1px;height:32px;background:linear-gradient(to bottom,rgba(57,255,20,0.8),transparent);';
+  const scrollArrow = document.createElement('div');
+  scrollArrow.style.cssText = 'font-size:18px;color:#39ff14;';
+  scrollArrow.textContent = '↓';
+  scrollIndicator.appendChild(scrollLine);
+  scrollIndicator.appendChild(scrollArrow);
+  hero.appendChild(scrollIndicator);
+}
+
+/* ================================================================
+   BUILD STATS TICKER
+================================================================ */
+async function buildTicker() {
+  const ticker = document.getElementById('stats-ticker');
+  let userCount = 0, klanCount = 0, ilanCount = 0;
+
+  try {
+    const [u, k, i] = await Promise.all([
+      db.from('kullanicilar').select('id', { count: 'exact', head: true }),
+      db.from('klanlar').select('tag', { count: 'exact', head: true }),
+      db.from('ilanlar').select('id', { count: 'exact', head: true })
+    ]);
+    userCount = u.count || 0;
+    klanCount = k.count || 0;
+    ilanCount = i.count || 0;
+  } catch (e) {}
+
+  const items = [
+    { icon: '👤', num: userCount + '+', label: 'Oyuncu' },
+    { icon: '🛡️', num: klanCount, label: 'Klan' },
+    { icon: '📣', num: ilanCount, label: 'İlan' },
+    { icon: '🌍', num: '18', label: 'Sunucu' },
+    { icon: '⚡', num: '7/24', label: 'Aktif Topluluk' }
+  ];
+
+  // Double for seamless loop
+  const inner = document.createElement('div');
+  inner.className = 'ticker-inner';
+
+  function buildItems() {
+    return items.map(it => {
+      const el = document.createElement('div');
+      el.className = 'ticker-item';
+
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+
+      const icon = document.createElement('span');
+      icon.textContent = it.icon;
+
+      const num = document.createElement('span');
+      num.className = 'ticker-num';
+      num.textContent = it.num;
+
+      const lbl = document.createElement('span');
+      lbl.textContent = it.label;
+
+      el.appendChild(dot);
+      el.appendChild(icon);
+      el.appendChild(num);
+      el.appendChild(lbl);
+      return el;
+    });
+  }
+
+  buildItems().forEach(el => inner.appendChild(el));
+  buildItems().forEach(el => inner.appendChild(el)); // duplicate for loop
+
+  ticker.appendChild(inner);
+}
+
+/* ================================================================
+   BUILD FEATURES
+================================================================ */
+function buildFeatures() {
+  const section = document.getElementById('features');
+
+  const lbl = document.createElement('div');
+  lbl.className = 'section-label';
+  lbl.textContent = 'Neden LOBBY.GG?';
+  section.appendChild(lbl);
+
+  const title = document.createElement('h2');
+  title.className = 'section-title';
+  title.textContent = 'Her Oyuncunun İhtiyacı Olan Her Şey';
+  section.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'feature-cards';
+  section.appendChild(grid);
+
+  const cards = [
+    { icon: '👤', title: 'Dijital Profil', desc: 'Kendi dijital kartvizitini oluştur. Sunucu, rol, klan — hepsini tek yerde sergile.' },
+    { icon: '🔍', title: 'Oyuncu Keşfet', desc: 'Binlerce Minecraft oyuncusunu bul, filtreyle, takip et ve bağlantı kur.' },
+    { icon: '📣', title: 'İlan Ver', desc: 'Oyuncu ara, klan kur, sunucu admin ilanı ver. Toplulukla paylaş.' },
+  ];
+
+  cards.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'feature-card';
+
+    const icon = document.createElement('span');
+    icon.className = 'feature-icon';
+    icon.textContent = c.icon;
+
+    const title = document.createElement('div');
+    title.className = 'feature-title';
+    title.textContent = c.title;
+
+    const desc = document.createElement('p');
+    desc.className = 'feature-desc';
+    desc.textContent = c.desc;
+
+    card.appendChild(icon);
+    card.appendChild(title);
+    card.appendChild(desc);
+    grid.appendChild(card);
+  });
+}
+
+/* ================================================================
+   BUILD FOOTER
+================================================================ */
+function buildFooter() {
+  const footer = document.getElementById('footer');
+
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoImg.className = 'footer-logo';
+  footer.appendChild(logoImg);
+
+  const footerBr = document.createElement('br');
+  footer.appendChild(footerBr);
+
+  const text = document.createElement('span');
+  text.textContent = '© 2025 LOBBY.GG — ';
+  footer.appendChild(text);
+
+  const link = document.createElement('a');
+  link.href = 'kesfet.html';
+  link.textContent = 'Topluluğa Katıl';
+  footer.appendChild(link);
+}
+
+/* ================================================================
+   SMART REDIRECT & INIT
+================================================================ */
+async function init() {
+  const overlay = document.getElementById('load-overlay');
+
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      window.location.href = 'lobbyx.html';
+      return;
+    }
+  } catch (e) {
+    // No session — show landing page
+  }
+
+  buildNav();
+  buildHero();
+  buildFeatures();
+  buildFooter();
+  await buildTicker();
+
+  // Hide overlay
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    setTimeout(() => { overlay.style.display = 'none'; }, 500);
+  }, 400);
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOBBY.GG — Ana Sayfa</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* =====================
+       PAGE LAYOUT
+       ===================== */
+    .main-layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 20px) 16px 80px;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* =====================
+       LEFT SIDEBAR
+       ===================== */
+    .left-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: calc(var(--nav-h) + 20px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .sidebar-nav-item:hover {
+      background: var(--bg-card);
+      color: var(--text-1);
+      border-color: var(--border-thin);
+    }
+    .sidebar-nav-item.active {
+      background: rgba(57,255,20,0.08);
+      color: var(--accent);
+      border-color: rgba(57,255,20,0.2);
+    }
+    .sidebar-nav-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+
+    .lcoin-card {
+      background: linear-gradient(135deg, #1a1200, #2a1f00);
+      border: 1px solid rgba(255,215,0,0.25);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .lcoin-card-icon { font-size: 28px; }
+    .lcoin-card-label { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--text-3); letter-spacing: 0.5px; }
+    .lcoin-card-amount { font-size: 20px; font-weight: 900; color: var(--gold); line-height: 1; }
+
+    .sidebar-divider { height: 1px; background: var(--border-thin); margin: 4px 0; }
+
+    .drop-share-btn {
+      width: 100%;
+      margin-top: 4px;
+      padding: 12px;
+      font-size: 11px;
+    }
+
+    /* =====================
+       CENTER FEED
+       ===================== */
+    .feed-center {
+      flex: 1;
+      min-width: 0;
+      max-width: 580px;
+    }
+
+    /* Feed Tabs */
+    .feed-tabs {
+      display: flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .feed-tab-btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+    .feed-tab-btn:hover { color: var(--text-2); background: rgba(255,255,255,0.02); }
+    .feed-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(57,255,20,0.04); }
+
+    /* New Drop Pill */
+    .new-drops-pill {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--accent);
+      color: #000;
+      font-size: 11px;
+      font-weight: 900;
+      border-radius: 20px;
+      padding: 8px 20px;
+      cursor: pointer;
+      margin: 0 auto 12px;
+      width: fit-content;
+      animation: pill-bounce 0.5s ease;
+      transition: transform 0.2s ease;
+      position: relative;
+      z-index: 10;
+    }
+    .new-drops-pill:hover { transform: scale(1.05); }
+    .new-drops-pill.visible { display: flex; }
+    @keyframes pill-bounce {
+      0% { transform: translateY(-10px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* =====================
+       DROP COMPOSER
+       ===================== */
+    .composer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .composer-card:focus-within { border-color: var(--border); }
+
+    .composer-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .composer-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .composer-avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+    .composer-body { flex: 1; min-width: 0; }
+
+    .composer-textarea {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 14px;
+      resize: none;
+      min-height: 80px;
+      padding: 4px 0;
+      line-height: 1.5;
+    }
+    .composer-textarea::placeholder { color: var(--text-dim); }
+    .composer-textarea:focus { outline: none; }
+
+    .composer-image-preview {
+      position: relative;
+      margin-top: 8px;
+      display: none;
+    }
+    .composer-image-preview.visible { display: block; }
+    .composer-image-preview img {
+      width: 100%;
+      border-radius: var(--radius);
+      max-height: 300px;
+      object-fit: cover;
+    }
+    .composer-image-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-1);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-thin);
+    }
+    .composer-actions { display: flex; gap: 8px; align-items: center; }
+    .composer-action-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--border-thin);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-3);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .composer-action-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(57,255,20,0.05); }
+
+    .composer-char-counter {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+    }
+    .composer-char-counter.warn { color: #ff8800; }
+    .composer-char-counter.danger { color: var(--red); }
+
+    .composer-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Login prompt overlay on composer */
+    .composer-login-overlay {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+    }
+    .composer-login-blur {
+      filter: blur(3px);
+      pointer-events: none;
+      user-select: none;
+    }
+    .composer-login-cta {
+      position: absolute;
+      inset: 0;
+      background: rgba(5,5,5,0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: var(--radius);
+    }
+    .composer-login-cta-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+
+    /* =====================
+       DROP CARDS
+       ===================== */
+    .drop-feed { display: flex; flex-direction: column; gap: 1px; }
+
+    .drop-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      transition: border-color 0.2s ease;
+      animation: drop-in 0.3s ease;
+      overflow: hidden;
+    }
+    .drop-card:hover { border-color: var(--border); }
+    @keyframes drop-in {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .drop-card.new-drop { animation: drop-new 0.5s ease; border-color: rgba(57,255,20,0.3); }
+    @keyframes drop-new {
+      0% { opacity: 0; transform: translateY(-16px); box-shadow: 0 0 0 3px rgba(57,255,20,0.3); }
+      60% { box-shadow: 0 0 20px rgba(57,255,20,0.2); }
+      100% { opacity: 1; transform: translateY(0); box-shadow: none; }
+    }
+
+    .drop-card-inner { padding: 16px; }
+
+    /* Drop header */
+    .drop-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .drop-avatar-wrap { position: relative; flex-shrink: 0; cursor: pointer; }
+    .drop-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      object-fit: cover;
+    }
+    .drop-avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+
+    .drop-meta { flex: 1; min-width: 0; }
+    .drop-nick-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .drop-nick {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .drop-nick:hover { color: var(--accent); }
+    .drop-verify { width: 14px; height: 14px; flex-shrink: 0; }
+    .drop-time {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .drop-more-btn {
+      width: 28px;
+      height: 28px;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      color: var(--text-3);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .drop-more-btn:hover { background: var(--border-thin); border-color: var(--border); color: var(--text-1); }
+
+    /* Drop content */
+    .drop-content {
+      font-size: 14px;
+      color: var(--text-1);
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .drop-content-collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .drop-readmore {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: pointer;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .drop-readmore:hover { text-decoration: underline; }
+
+    .drop-image {
+      width: 100%;
+      border-radius: var(--radius);
+      margin-top: 10px;
+      max-height: 400px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .drop-image:hover { opacity: 0.9; }
+
+    /* Drop actions */
+    .drop-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-thin);
+    }
+    .drop-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-3);
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .drop-action-btn:hover { background: var(--border-thin); color: var(--text-1); }
+    .drop-action-btn.liked { color: var(--red); }
+    .drop-action-btn.liked:hover { background: rgba(255,26,60,0.1); }
+    .drop-action-btn.comment-active { color: var(--blue); }
+    .drop-action-icon { font-size: 15px; }
+
+    /* =====================
+       COMMENTS
+       ===================== */
+    .drop-comments {
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--border-thin);
+      padding: 12px 16px;
+      display: none;
+    }
+    .drop-comments.open { display: block; }
+
+    .comment-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      animation: comment-in 0.2s ease;
+    }
+    @keyframes comment-in {
+      from { opacity: 0; transform: translateX(-6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .comment-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .comment-avatar-placeholder {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+
+    .comment-body {
+      flex: 1;
+      background: var(--border-thin);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+    }
+    .comment-nick {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-2);
+      margin-bottom: 2px;
+    }
+    .comment-text {
+      font-size: 12px;
+      color: var(--text-1);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .comment-like-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-top: 4px;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .comment-like-btn:hover { color: var(--red); }
+    .comment-like-btn.liked { color: var(--red); }
+
+    .comment-see-all {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: pointer;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .comment-see-all:hover { text-decoration: underline; }
+
+    .comment-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .comment-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 8px 14px;
+      transition: border-color 0.2s;
+    }
+    .comment-input:focus { border-color: var(--accent); outline: none; }
+    .comment-input::placeholder { color: var(--text-dim); }
+
+    .comment-send-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      color: #000;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .comment-send-btn:hover { background: #5fff4a; transform: scale(1.05); }
+
+    /* =====================
+       LOAD MORE BUTTON
+       ===================== */
+    .load-more-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .load-more-btn:hover { background: var(--border-thin); color: var(--text-1); border-color: var(--border); }
+
+    /* =====================
+       RIGHT SIDEBAR
+       ===================== */
+    .right-sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      position: sticky;
+      top: calc(var(--nav-h) + 20px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .sidebar-box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .sidebar-box-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-2);
+    }
+    .sidebar-box-link {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .sidebar-box-link:hover { text-decoration: underline; }
+
+    /* Suggested Users */
+    .suggest-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      transition: background 0.2s;
+    }
+    .suggest-item:hover { background: rgba(255,255,255,0.02); }
+    .suggest-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .suggest-avatar-ph {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+    .suggest-info { flex: 1; min-width: 0; }
+    .suggest-nick {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-1);
+      truncate: true;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .suggest-follow-btn {
+      font-size: 10px;
+      font-weight: 900;
+      padding: 5px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Server Status */
+    .server-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      transition: background 0.2s;
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .server-item:last-child { border-bottom: none; }
+    .server-item:hover { background: rgba(255,255,255,0.02); }
+    .server-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: var(--border-thin);
+      flex-shrink: 0;
+    }
+    .server-info { flex: 1; min-width: 0; }
+    .server-name { font-size: 12px; font-weight: 800; color: var(--text-1); }
+    .server-players { font-size: 10px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+    .server-online-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .server-online-dot.offline { background: var(--text-dim); }
+
+    /* Featured Listings */
+    .ilan-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      transition: background 0.2s;
+      border-bottom: 1px solid var(--border-thin);
+      cursor: pointer;
+    }
+    .ilan-item:last-child { border-bottom: none; }
+    .ilan-item:hover { background: rgba(255,255,255,0.02); }
+    .ilan-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .ilan-info { flex: 1; min-width: 0; }
+    .ilan-title { font-size: 12px; font-weight: 800; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ilan-price { font-size: 11px; font-weight: 900; color: var(--accent); }
+
+    /* =====================
+       IMAGE ZOOM MODAL
+       ===================== */
+    .img-zoom-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      cursor: zoom-out;
+    }
+    .img-zoom-overlay img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: var(--radius);
+      object-fit: contain;
+    }
+
+    /* =====================
+       FOLLOWING EMPTY
+       ===================== */
+    .following-empty {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      display: none;
+    }
+    .following-empty.visible { display: block; }
+
+    /* =====================
+       LOADING STATE
+       ===================== */
+    .feed-loading {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .skeleton-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 16px;
+      animation: skeleton-pulse 1.4s ease-in-out infinite;
+    }
+    .skeleton-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .skeleton-circle { border-radius: 50%; background: var(--border-thin); flex-shrink: 0; }
+    .skeleton-line { background: var(--border-thin); border-radius: 4px; height: 10px; }
+    @keyframes skeleton-pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    /* =====================
+       MOBILE BOTTOM NAV
+       ===================== */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(5,5,5,0.96);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-thin);
+      z-index: 1000;
+      align-items: stretch;
+    }
+    .mobile-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-3);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .mobile-nav-item:hover, .mobile-nav-item.active { color: var(--accent); }
+    .mobile-nav-icon { font-size: 20px; }
+    .mobile-nav-drop {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #000;
+      margin-top: -16px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .mobile-nav-drop:hover { transform: scale(1.1); background: #5fff4a; }
+
+    /* =====================
+       RESPONSIVE
+       ===================== */
+    @media (max-width: 1100px) {
+      .right-sidebar { display: none; }
+      .feed-center { max-width: 680px; }
+    }
+    @media (max-width: 780px) {
+      .left-sidebar { display: none; }
+      .mobile-bottom-nav { display: flex; }
+      .main-layout { padding-bottom: 80px; }
+    }
+    @media (max-width: 580px) {
+      .main-layout { padding: calc(var(--nav-h) + 12px) 8px 80px; }
+      .feed-center { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== CANVAS BG ===== -->
+<canvas id="canvas-bg"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- ===== NAV ===== -->
+  <nav class="nav" id="main-nav"></nav>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div class="main-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="left-sidebar" id="left-sidebar"></aside>
+
+    <!-- CENTER FEED -->
+    <main class="feed-center" id="feed-center">
+
+      <!-- Feed Tabs -->
+      <div class="feed-tabs" id="feed-tabs">
+        <button class="feed-tab-btn active" id="tab-takip">👥 Takip Edilenler</button>
+        <button class="feed-tab-btn" id="tab-kesif">🌎 Keşfet</button>
+      </div>
+
+      <!-- New Drop Pill -->
+      <div class="new-drops-pill" id="new-drops-pill">
+        ↑ <span id="new-drops-count">0</span> yeni drop
+      </div>
+
+      <!-- Composer -->
+      <div id="composer-container"></div>
+
+      <!-- Following Empty State -->
+      <div class="following-empty" id="following-empty">
+        <div style="font-size:48px;margin-bottom:12px;">🌐</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text-2);margin-bottom:8px;">Henüz kimseyi takip etmiyorsun</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Keşfet sekmesine geç veya aşağıdaki önerilere göz at!</div>
+        <button class="mc-btn mc-green" id="goto-kesif-btn">🌎 Keşfet'e Git</button>
+      </div>
+
+      <!-- Feed -->
+      <div class="feed-loading" id="feed-loading">
+        <!-- Skeleton cards -->
+      </div>
+      <div class="drop-feed" id="drop-feed"></div>
+      <button class="load-more-btn" id="load-more-btn" style="display:none;">⬇ Daha Fazla Yükle</button>
+
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="right-sidebar" id="right-sidebar"></aside>
+
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav"></nav>
+
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- IMAGE ZOOM -->
+<div class="img-zoom-overlay" id="img-zoom" style="display:none;"></div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu" style="display:none;"></div>
+
+<script>
+// =============================================
+// SUPABASE INIT
+// =============================================
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// SERVERS LIST
+// =============================================
+const SERVERS = [
+  {name:'HanedanMC', ip:'play.hanedanmc.com'},
+  {name:'ChickenNW', ip:'oyna.chickennw.com'},
+  {name:'BLOKYA', ip:'oyna.blokya.com'},
+  {name:'DugeCraft', ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC', ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+  {name:'SOULCRAFT', ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC', ip:'atlantikmc.com'},
+  {name:'NAVELYA', ip:'navelya.net'},
+  {name:'CRAFTLUNA', ip:'play.craftluna.net'},
+  {name:'Melonya', ip:'melonya.net'},
+  {name:'Rush Craft', ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft', ip:'play.reborncraft.pw'},
+  {name:'LuneCraft', ip:'mc.lunecraft.net'},
+  {name:'SimitSMP', ip:'simitsmp.net'},
+  {name:'MC4FUN', ip:'play.mc4fun.net'},
+  {name:'İmibiyum', ip:'play.imibiyum.com'}
+];
+
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let currentProfile = null;
+let currentTab = 'takip';
+let dropOffset = 0;
+const DROP_LIMIT = 10;
+let isLoadingDrops = false;
+let hasMoreDrops = true;
+let pendingNewDropIds = [];
+let likedDrops = new Set();
+let followedUsers = new Set();
+let autoRefreshInterval = null;
+let realtimeSub = null;
+
+// =============================================
+// CANVAS ANIMATION
+// =============================================
+(function initCanvas() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let w, h;
+  const beams = [];
+  const logos = [];
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 6; i++) {
+    beams.push({
+      x: Math.random() * 1400 - 200,
+      y: Math.random() * 1000,
+      width: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.3 + 0.1,
+      opacity: Math.random() * 0.06 + 0.02
+    });
+  }
+
+  const logoImg = new Image();
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  for (let i = 0; i < 5; i++) {
+    logos.push({
+      x: Math.random() * 1400,
+      y: Math.random() * 1000,
+      size: Math.random() * 60 + 30,
+      speedX: (Math.random() - 0.5) * 0.25,
+      speedY: (Math.random() - 0.5) * 0.15,
+      opacity: Math.random() * 0.04 + 0.01
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, w, h);
+
+    beams.forEach(b => {
+      b.x += b.speed * 0.5;
+      b.y += b.speed;
+      if (b.y > h + 200) { b.y = -200; b.x = Math.random() * w; }
+
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(-Math.PI / 4);
+      const grad = ctx.createLinearGradient(0, -300, 0, 300);
+      grad.addColorStop(0, `rgba(57,255,20,0)`);
+      grad.addColorStop(0.5, `rgba(57,255,20,${b.opacity})`);
+      grad.addColorStop(1, `rgba(57,255,20,0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width / 2, -300, b.width, 600);
+      ctx.restore();
+    });
+
+    logos.forEach(l => {
+      l.x += l.speedX;
+      l.y += l.speedY;
+      if (l.x > w + 100) l.x = -100;
+      if (l.x < -100) l.x = w + 100;
+      if (l.y > h + 100) l.y = -100;
+      if (l.y < -100) l.y = h + 100;
+
+      if (logoImg.complete) {
+        ctx.save();
+        ctx.globalAlpha = l.opacity;
+        ctx.drawImage(logoImg, l.x - l.size / 2, l.y - l.size / 4, l.size, l.size / 2.5);
+        ctx.restore();
+      }
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', gold: '🪙' };
+  const icon = document.createElement('span');
+  icon.textContent = icons[type] || 'ℹ️';
+  const text = document.createElement('span');
+  text.textContent = msg;
+  toast.appendChild(icon);
+  toast.appendChild(text);
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// =============================================
+// TIME RELATIVE
+// =============================================
+function relativeTime(dateStr) {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return `${diff}s önce`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}dk önce`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}sa önce`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}g önce`;
+  return date.toLocaleDateString('tr-TR');
+}
+
+// =============================================
+// AVATAR HELPER
+// =============================================
+function createAvatar(url, nick, size = 40, rounded = true) {
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = nick;
+    img.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};object-fit:cover;border:2px solid var(--border);flex-shrink:0;`;
+    img.onerror = () => {
+      const ph = document.createElement('div');
+      ph.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
+      ph.textContent = (nick || '?')[0].toUpperCase();
+      img.replaceWith(ph);
+    };
+    return img;
+  } else {
+    const ph = document.createElement('div');
+    ph.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
+    ph.textContent = (nick || '?')[0].toUpperCase();
+    return ph;
+  }
+}
+
+// =============================================
+// BADGE HELPER
+// =============================================
+function createBadge(abonelik) {
+  const badge = document.createElement('span');
+  const map = {
+    'premium': { cls: 'b-premium', label: '⭐ Premium' },
+    'abone': { cls: 'b-abone', label: '🟢 Abone' },
+    'admin': { cls: 'b-admin', label: '🛡 Admin' }
+  };
+  const info = map[abonelik] || { cls: 'b-uye', label: '👤 Üye' };
+  badge.className = `badge ${info.cls}`;
+  badge.textContent = info.label;
+  return badge;
+}
+
+// =============================================
+// BUILD NAV
+// =============================================
+function buildNav() {
+  const nav = document.getElementById('main-nav');
+  nav.innerHTML = '';
+
+  // Logo
+  const logo = document.createElement('img');
+  logo.src = 'https://i.imgur.com/6l08Y4k.png';
+  logo.alt = 'LOBBY.GG';
+  logo.className = 'nav-logo';
+  logo.style.cursor = 'pointer';
+  logo.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
+  nav.appendChild(logo);
+
+  // Links
+  const links = document.createElement('div');
+  links.className = 'nav-links';
+  const navItems = [
+    { label: 'Ana Sayfa', href: 'lobbyx.html', active: true },
+    { label: 'İlanlar', href: 'ilanlar.html' },
+    { label: 'Klanlar', href: 'klanlar.html' },
+    { label: 'Keşfet', href: 'kesfet.html' }
+  ];
+  navItems.forEach(item => {
+    const a = document.createElement('a');
+    a.href = item.href;
+    a.className = 'nav-link' + (item.active ? ' active' : '');
+    a.textContent = item.label;
+    links.appendChild(a);
+  });
+  nav.appendChild(links);
+
+  // Right
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  if (currentUser && currentProfile) {
+    // Bell
+    const bell = document.createElement('div');
+    bell.className = 'nav-bell';
+    bell.textContent = '🔔';
+    bell.style.cursor = 'pointer';
+    right.appendChild(bell);
+
+    // LCoin
+    const lcoin = document.createElement('div');
+    lcoin.className = 'nav-lcoin';
+    const coinIcon = document.createElement('span');
+    coinIcon.className = 'nav-lcoin-icon';
+    coinIcon.textContent = '🪙';
+    const coinAmt = document.createElement('span');
+    coinAmt.id = 'nav-lcoin-amount';
+    coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+    lcoin.appendChild(coinIcon);
+    lcoin.appendChild(coinAmt);
+    right.appendChild(lcoin);
+
+    // Avatar
+    const avWrap = document.createElement('a');
+    avWrap.href = 'profil.html';
+    avWrap.className = 'nav-avatar';
+    avWrap.title = currentProfile.kullanici_adi;
+    const avImg = document.createElement('img');
+    avImg.src = currentProfile.avatar_url || '';
+    avImg.alt = currentProfile.kullanici_adi;
+    avImg.onerror = () => { avImg.style.display = 'none'; };
+    avWrap.appendChild(avImg);
+    right.appendChild(avWrap);
+  } else {
+    const loginBtn = document.createElement('a');
+    loginBtn.href = 'login.html';
+    loginBtn.className = 'mc-btn mc-green mc-sm';
+    loginBtn.textContent = 'Giriş Yap';
+    right.appendChild(loginBtn);
+  }
+
+  nav.appendChild(right);
+}
+
+// =============================================
+// BUILD LEFT SIDEBAR
+// =============================================
+function buildLeftSidebar() {
+  const sidebar = document.getElementById('left-sidebar');
+  sidebar.innerHTML = '';
+
+  const navItems = [
+    { icon: '🏠', label: 'Ana Sayfa', href: 'lobbyx.html', active: true },
+    { icon: '🌎', label: 'Keşfet', href: 'kesfet.html' },
+    { icon: '📣', label: 'İlanlar', href: 'ilanlar.html' },
+    { icon: '🛡️', label: 'Klanlar', href: 'klanlar.html' },
+    { icon: '💬', label: 'Mesajlar', href: 'mesajlar.html' },
+    { icon: '🔔', label: 'Bildirimler', href: 'bildirimler.html' },
+    { icon: '👤', label: 'Profilim', href: 'profil.html' }
+  ];
+
+  navItems.forEach(item => {
+    const a = document.createElement('a');
+    a.href = item.href;
+    a.className = 'sidebar-nav-item' + (item.active ? ' active' : '');
+
+    const icon = document.createElement('span');
+    icon.className = 'sidebar-nav-icon';
+    icon.textContent = item.icon;
+
+    const label = document.createElement('span');
+    label.textContent = item.label;
+
+    a.appendChild(icon);
+    a.appendChild(label);
+    sidebar.appendChild(a);
+  });
+
+  // Divider
+  const div = document.createElement('div');
+  div.className = 'sidebar-divider';
+  sidebar.appendChild(div);
+
+  // LCoin card (if logged in)
+  if (currentUser && currentProfile) {
+    const lcoinCard = document.createElement('div');
+    lcoinCard.className = 'lcoin-card';
+
+    const icon = document.createElement('span');
+    icon.className = 'lcoin-card-icon';
+    icon.textContent = '🪙';
+
+    const info = document.createElement('div');
+    const label = document.createElement('div');
+    label.className = 'lcoin-card-label';
+    label.textContent = 'LCoin Bakiyem';
+    const amount = document.createElement('div');
+    amount.className = 'lcoin-card-amount';
+    amount.id = 'sidebar-lcoin-amount';
+    amount.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+
+    info.appendChild(label);
+    info.appendChild(amount);
+    lcoinCard.appendChild(icon);
+    lcoinCard.appendChild(info);
+    sidebar.appendChild(lcoinCard);
+  }
+
+  // Drop Share button
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'mc-btn mc-green drop-share-btn';
+  shareBtn.textContent = '✏️ Drop Paylaş';
+  shareBtn.addEventListener('click', () => {
+    const composer = document.getElementById('composer-textarea');
+    if (composer) {
+      composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => composer.focus(), 300);
+    } else {
+      window.location.href = 'login.html';
+    }
+  });
+  sidebar.appendChild(shareBtn);
+}
+
+// =============================================
+// BUILD RIGHT SIDEBAR
+// =============================================
+async function buildRightSidebar() {
+  const sidebar = document.getElementById('right-sidebar');
+  sidebar.innerHTML = '';
+
+  // === WHO TO FOLLOW ===
+  const followBox = document.createElement('div');
+  followBox.className = 'sidebar-box';
+
+  const followHeader = document.createElement('div');
+  followHeader.className = 'sidebar-box-header';
+  const followTitle = document.createElement('div');
+  followTitle.className = 'sidebar-box-title';
+  followTitle.textContent = '👥 Kim Takip Et?';
+  const followLink = document.createElement('a');
+  followLink.href = 'kesfet.html';
+  followLink.className = 'sidebar-box-link';
+  followLink.textContent = 'Tümü →';
+  followHeader.appendChild(followTitle);
+  followHeader.appendChild(followLink);
+  followBox.appendChild(followHeader);
+
+  // Load suggested users
+  try {
+    let q = sb.from('kullanicilar').select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, kategori').limit(5);
+    if (currentUser) q = q.neq('id', currentUser.id);
+    const { data: users } = await q;
+    (users || []).forEach(u => {
+      const item = document.createElement('div');
+      item.className = 'suggest-item';
+
+      const av = createAvatar(u.avatar_url, u.kullanici_adi, 36);
+      const info = document.createElement('div');
+      info.className = 'suggest-info';
+      const nick = document.createElement('div');
+      nick.className = 'suggest-nick';
+      nick.textContent = u.kullanici_adi;
+      const cat = document.createElement('div');
+      cat.style.cssText = 'font-size:10px;color:var(--text-3);margin-top:2px;';
+      cat.textContent = u.kategori || 'Oyuncu';
+      info.appendChild(nick);
+      info.appendChild(cat);
+
+      const followBtn = document.createElement('button');
+      followBtn.className = 'mc-btn mc-green mc-sm suggest-follow-btn';
+      followBtn.textContent = followedUsers.has(u.id) ? '✓ Takip' : 'Takip Et';
+      if (followedUsers.has(u.id)) followBtn.classList.replace('mc-green', 'mc-gray');
+
+      followBtn.addEventListener('click', async () => {
+        if (!currentUser) { showToast('Takip etmek için giriş yap!', 'error'); return; }
+        await toggleFollow(u.id, followBtn, u.kullanici_adi);
+      });
+
+      item.appendChild(av);
+      item.appendChild(info);
+      item.appendChild(followBtn);
+      followBox.appendChild(item);
+    });
+  } catch (e) {}
+
+  sidebar.appendChild(followBox);
+
+  // === SERVER STATUS ===
+  const serverBox = document.createElement('div');
+  serverBox.className = 'sidebar-box';
+
+  const serverHeader = document.createElement('div');
+  serverHeader.className = 'sidebar-box-header';
+  const serverTitle = document.createElement('div');
+  serverTitle.className = 'sidebar-box-title';
+  serverTitle.textContent = '🌐 Sunucu Durumu';
+  serverHeader.appendChild(serverTitle);
+  serverBox.appendChild(serverHeader);
+
+  const displayServers = SERVERS.slice(0, 5);
+  displayServers.forEach(srv => {
+    const item = document.createElement('div');
+    item.className = 'server-item';
+
+    const logo = document.createElement('img');
+    logo.className = 'server-logo';
+    logo.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
+    logo.alt = srv.name;
+    logo.onerror = () => { logo.src = 'https://i.imgur.com/6l08Y4k.png'; };
+
+    const info = document.createElement('div');
+    info.className = 'server-info';
+    const name = document.createElement('div');
+    name.className = 'server-name';
+    name.textContent = srv.name;
+    const players = document.createElement('div');
+    players.className = 'server-players';
+    const dot = document.createElement('div');
+    dot.className = 'server-online-dot';
+    const playerText = document.createElement('span');
+    playerText.textContent = 'Yükleniyor...';
+    players.appendChild(dot);
+    players.appendChild(playerText);
+    info.appendChild(name);
+    info.appendChild(players);
+
+    item.appendChild(logo);
+    item.appendChild(info);
+    serverBox.appendChild(item);
+
+    // Async fetch server status
+    fetch(`https://api.mcsrvstat.us/2/${srv.ip}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.online) {
+          playerText.textContent = `${d.players?.online || 0} / ${d.players?.max || 0} çevrimiçi`;
+          dot.classList.remove('offline');
+        } else {
+          playerText.textContent = 'Çevrimdışı';
+          dot.classList.add('offline');
+        }
+      })
+      .catch(() => {
+        playerText.textContent = 'Bilinmiyor';
+        dot.classList.add('offline');
+      });
+  });
+
+  sidebar.appendChild(serverBox);
+
+  // === FEATURED LISTINGS ===
+  const ilanBox = document.createElement('div');
+  ilanBox.className = 'sidebar-box';
+  const ilanHeader = document.createElement('div');
+  ilanHeader.className = 'sidebar-box-header';
+  const ilanTitle = document.createElement('div');
+  ilanTitle.className = 'sidebar-box-title';
+  ilanTitle.textContent = '📣 Öne Çıkan İlanlar';
+  const ilanLink = document.createElement('a');
+  ilanLink.href = 'ilanlar.html';
+  ilanLink.className = 'sidebar-box-link';
+  ilanLink.textContent = 'Tümü →';
+  ilanHeader.appendChild(ilanTitle);
+  ilanHeader.appendChild(ilanLink);
+  ilanBox.appendChild(ilanHeader);
+
+  try {
+    const { data: ilanlar } = await sb.from('ilanlar')
+      .select('id, baslik, kategori, fiyat, one_cikan')
+      .eq('one_cikan', true)
+      .eq('durum', 'aktif')
+      .limit(3);
+
+    const catIcons = { 'Oyuncu Ara': '🎮', 'Sunucu': '🖥️', 'İçerik': '📹', 'Klan': '🛡️' };
+
+    (ilanlar || []).forEach(ilan => {
+      const item = document.createElement('div');
+      item.className = 'ilan-item';
+      item.addEventListener('click', () => { window.location.href = `ilan-detay.html?id=${ilan.id}`; });
+
+      const icon = document.createElement('div');
+      icon.className = 'ilan-icon';
+      icon.textContent = catIcons[ilan.kategori] || '📣';
+
+      const info = document.createElement('div');
+      info.className = 'ilan-info';
+      const title = document.createElement('div');
+      title.className = 'ilan-title';
+      title.textContent = ilan.baslik;
+      const price = document.createElement('div');
+      price.className = 'ilan-price';
+      price.textContent = ilan.fiyat ? `${ilan.fiyat} ₺` : 'Ücretsiz';
+
+      info.appendChild(title);
+      info.appendChild(price);
+      item.appendChild(icon);
+      item.appendChild(info);
+      ilanBox.appendChild(item);
+    });
+
+    if (!ilanlar || ilanlar.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:16px;text-align:center;color:var(--text-dim);font-size:12px;';
+      empty.textContent = 'Öne çıkan ilan yok';
+      ilanBox.appendChild(empty);
+    }
+  } catch (e) {}
+
+  sidebar.appendChild(ilanBox);
+}
+
+// =============================================
+// BUILD MOBILE BOTTOM NAV
+// =============================================
+function buildMobileNav() {
+  const nav = document.getElementById('mobile-bottom-nav');
+  nav.innerHTML = '';
+
+  const items = [
+    { icon: '🏠', label: 'Ana', href: 'lobbyx.html', active: true },
+    { icon: '🌎', label: 'Keşfet', href: 'kesfet.html' },
+    { icon: '+', label: '', isDrop: true },
+    { icon: '🔔', label: 'Bildirim', href: 'bildirimler.html' },
+    { icon: '👤', label: 'Profil', href: 'profil.html' }
+  ];
+
+  items.forEach(item => {
+    if (item.isDrop) {
+      const btn = document.createElement('div');
+      btn.className = 'mobile-nav-drop';
+      btn.textContent = '+';
+      btn.style.cssText = `
+        width:44px;height:44px;border-radius:50%;background:var(--accent);
+        border:3px solid var(--bg);display:flex;align-items:center;justify-content:center;
+        font-size:22px;color:#000;margin-top:-16px;cursor:pointer;flex:1;
+        transition:transform 0.2s,background 0.2s;font-weight:900;
+      `;
+      btn.addEventListener('click', () => {
+        if (!currentUser) { window.location.href = 'login.html'; return; }
+        const textarea = document.getElementById('composer-textarea');
+        if (textarea) { textarea.scrollIntoView({ behavior: 'smooth' }); textarea.focus(); }
+      });
+      btn.addEventListener('mouseenter', () => { btn.style.transform = 'scale(1.1)'; });
+      btn.addEventListener('mouseleave', () => { btn.style.transform = 'scale(1)'; });
+      nav.appendChild(btn);
+    } else {
+      const a = document.createElement('a');
+      a.href = item.href;
+      a.className = 'mobile-nav-item' + (item.active ? ' active' : '');
+
+      const icon = document.createElement('div');
+      icon.className = 'mobile-nav-icon';
+      icon.textContent = item.icon;
+
+      const label = document.createElement('div');
+      label.textContent = item.label;
+
+      a.appendChild(icon);
+      a.appendChild(label);
+      nav.appendChild(a);
+    }
+  });
+}
+
+// =============================================
+// BUILD COMPOSER
+// =============================================
+function buildComposer() {
+  const container = document.getElementById('composer-container');
+  container.innerHTML = '';
+
+  if (!currentUser || !currentProfile) {
+    // Not logged in: blurred composer + CTA
+    const wrap = document.createElement('div');
+    wrap.className = 'composer-login-overlay';
+
+    const blurred = document.createElement('div');
+    blurred.className = 'composer-card composer-login-blur';
+
+    const row = document.createElement('div');
+    row.className = 'composer-row';
+    const avPh = document.createElement('div');
+    avPh.className = 'composer-avatar-placeholder';
+    avPh.textContent = '?';
+    const body = document.createElement('div');
+    body.className = 'composer-body';
+    const ta = document.createElement('div');
+    ta.style.cssText = 'height:70px;background:var(--border-thin);border-radius:4px;margin-bottom:8px;';
+    body.appendChild(ta);
+    row.appendChild(avPh);
+    row.appendChild(body);
+    blurred.appendChild(row);
+    wrap.appendChild(blurred);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'composer-login-cta';
+    const txt = document.createElement('div');
+    txt.className = 'composer-login-cta-text';
+    txt.textContent = 'Drop paylaşmak için giriş yap!';
+    const btn = document.createElement('a');
+    btn.href = 'login.html';
+    btn.className = 'mc-btn mc-green';
+    btn.textContent = '🚪 Giriş Yap';
+    overlay.appendChild(txt);
+    overlay.appendChild(btn);
+    wrap.appendChild(overlay);
+
+    container.appendChild(wrap);
+    return;
+  }
+
+  // Logged in composer
+  const card = document.createElement('div');
+  card.className = 'composer-card';
+
+  const row = document.createElement('div');
+  row.className = 'composer-row';
+
+  const av = createAvatar(currentProfile.avatar_url, currentProfile.kullanici_adi, 40);
+  row.appendChild(av);
+
+  const body = document.createElement('div');
+  body.className = 'composer-body';
+
+  const textarea = document.createElement('textarea');
+  textarea.id = 'composer-textarea';
+  textarea.className = 'composer-textarea';
+  textarea.placeholder = 'Ne düşünüyorsun? Bir drop paylaş... 🎮';
+  textarea.maxLength = 280;
+  textarea.rows = 3;
+
+  body.appendChild(textarea);
+
+  // Image preview
+  const imgPreview = document.createElement('div');
+  imgPreview.className = 'composer-image-preview';
+  const previewImg = document.createElement('img');
+  previewImg.id = 'composer-preview-img';
+  const removeImg = document.createElement('div');
+  removeImg.className = 'composer-image-remove';
+  removeImg.textContent = '✕';
+  removeImg.addEventListener('click', () => {
+    imgPreview.classList.remove('visible');
+    fileInput.value = '';
+    previewImg.src = '';
+  });
+  imgPreview.appendChild(previewImg);
+  imgPreview.appendChild(removeImg);
+  body.appendChild(imgPreview);
+
+  row.appendChild(body);
+  card.appendChild(row);
+
+  // Footer
+  const footer = document.createElement('div');
+  footer.className = 'composer-footer';
+
+  const actions = document.createElement('div');
+  actions.className = 'composer-actions';
+
+  // File input (hidden)
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  fileInput.id = 'composer-file-input';
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      imgPreview.classList.add('visible');
+    };
+    reader.readAsDataURL(file);
+  });
+  actions.appendChild(fileInput);
+
+  // Image button
+  const imgBtn = document.createElement('button');
+  imgBtn.className = 'composer-action-btn';
+  imgBtn.title = 'Görsel Ekle';
+  imgBtn.textContent = '📎';
+  imgBtn.addEventListener('click', () => fileInput.click());
+  actions.appendChild(imgBtn);
+
+  // Char counter
+  const charCounter = document.createElement('span');
+  charCounter.className = 'composer-char-counter';
+  charCounter.textContent = '280';
+  textarea.addEventListener('input', () => {
+    const remaining = 280 - textarea.value.length;
+    charCounter.textContent = remaining;
+    charCounter.className = 'composer-char-counter';
+    if (remaining < 50) charCounter.classList.add('warn');
+    if (remaining < 20) charCounter.classList.add('danger');
+  });
+  actions.appendChild(charCounter);
+
+  footer.appendChild(actions);
+
+  // Right side
+  const right = document.createElement('div');
+  right.className = 'composer-right';
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'mc-btn mc-green';
+  sendBtn.textContent = '🚀 Gönder';
+  sendBtn.addEventListener('click', () => submitDrop(textarea, fileInput, imgPreview, previewImg));
+
+  // Enter key support
+  textarea.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      submitDrop(textarea, fileInput, imgPreview, previewImg);
+    }
+  });
+
+  right.appendChild(sendBtn);
+  footer.appendChild(right);
+  card.appendChild(footer);
+  container.appendChild(card);
+}
+
+// =============================================
+// SUBMIT DROP
+// =============================================
+async function submitDrop(textarea, fileInput, imgPreview, previewImg) {
+  const content = textarea.value.trim();
+  if (!content && !fileInput.files[0]) {
+    showToast('Bir şeyler yazman gerekiyor!', 'error');
+    return;
+  }
+  if (content.length > 280) {
+    showToast('Drop 280 karakteri geçemez!', 'error');
+    return;
+  }
+
+  const sendBtn = document.querySelector('.composer-card .mc-btn');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏳ Gönderiliyor...'; }
+
+  try {
+    let gorsel_url = null;
+
+    // Upload image if exists
+    if (fileInput.files[0]) {
+      const file = fileInput.files[0];
+      const ext = file.name.split('.').pop();
+      const path = `drops/${currentUser.id}/${Date.now()}.${ext}`;
+      const { data: uploadData, error: uploadErr } = await sb.storage
+        .from('media')
+        .upload(path, file);
+      if (!uploadErr && uploadData) {
+        const { data: { publicUrl } } = sb.storage.from('media').getPublicUrl(path);
+        gorsel_url = publicUrl;
+      }
+    }
+
+    const { data: newDrop, error } = await sb.from('droplar').insert({
+      kullanici_id: currentUser.id,
+      icerik: content || '',
+      gorsel_url,
+      begeni_sayisi: 0,
+      yorum_sayisi: 0
+    }).select().single();
+
+    if (error) throw error;
+
+    // Award LCoin +10
+    const newLcoin = (currentProfile.lcoin || 0) + 10;
+    await sb.from('kullanicilar').update({ lcoin: newLcoin }).eq('id', currentUser.id);
+    currentProfile.lcoin = newLcoin;
+    const navAmt = document.getElementById('nav-lcoin-amount');
+    const sideAmt = document.getElementById('sidebar-lcoin-amount');
+    if (navAmt) navAmt.textContent = newLcoin.toLocaleString('tr-TR');
+    if (sideAmt) sideAmt.textContent = newLcoin.toLocaleString('tr-TR');
+
+    showToast('+10 LCoin kazandın! 🪙', 'gold');
+
+    // Reset composer
+    textarea.value = '';
+    imgPreview.classList.remove('visible');
+    previewImg.src = '';
+    fileInput.value = '';
+
+    // Prepend new drop to feed
+    if (newDrop) {
+      const enriched = { ...newDrop, kullanicilar: currentProfile };
+      const card = buildDropCard(enriched);
+      card.classList.add('new-drop');
+      const feed = document.getElementById('drop-feed');
+      feed.insertBefore(card, feed.firstChild);
+    }
+
+  } catch (e) {
+    console.error(e);
+    showToast('Bir hata oluştu!', 'error');
+  } finally {
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '🚀 Gönder'; }
+  }
+}
+
+// =============================================
+// LOAD DROPS
+// =============================================
+async function loadDrops(append = false) {
+  if (isLoadingDrops) return;
+  isLoadingDrops = true;
+
+  if (!append) {
+    dropOffset = 0;
+    hasMoreDrops = true;
+    document.getElementById('drop-feed').innerHTML = '';
+    buildSkeletons();
+    document.getElementById('load-more-btn').style.display = 'none';
+    document.getElementById('following-empty').classList.remove('visible');
+  }
+
+  try {
+    let query = sb.from('droplar')
+      .select(`*, kullanicilar(id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti)`)
+      .order('created_at', { ascending: false })
+      .range(dropOffset, dropOffset + DROP_LIMIT - 1);
+
+    if (currentTab === 'takip' && currentUser && followedUsers.size > 0) {
+      query = query.in('kullanici_id', [...followedUsers]);
+    } else if (currentTab === 'takip' && currentUser && followedUsers.size === 0) {
+      // No follows yet
+      document.getElementById('feed-loading').innerHTML = '';
+      document.getElementById('following-empty').classList.add('visible');
+      isLoadingDrops = false;
+      return;
+    }
+
+    const { data: drops, error } = await query;
+    if (error) throw error;
+
+    document.getElementById('feed-loading').innerHTML = '';
+    document.getElementById('following-empty').classList.remove('visible');
+
+    if (!drops || drops.length === 0) {
+      if (!append) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '';
+        const icon = document.createElement('div');
+        icon.className = 'empty-state-icon';
+        icon.textContent = '🌐';
+        const title = document.createElement('div');
+        title.className = 'empty-state-title';
+        title.textContent = 'Henüz drop yok';
+        const sub = document.createElement('div');
+        sub.className = 'empty-state-sub';
+        sub.textContent = 'İlk dropu paylaşan sen ol!';
+        empty.appendChild(icon);
+        empty.appendChild(title);
+        empty.appendChild(sub);
+        document.getElementById('drop-feed').appendChild(empty);
+      }
+      hasMoreDrops = false;
+    } else {
+      const feed = document.getElementById('drop-feed');
+      drops.forEach(drop => {
+        const card = buildDropCard(drop);
+        feed.appendChild(card);
+      });
+      dropOffset += drops.length;
+      hasMoreDrops = drops.length === DROP_LIMIT;
+    }
+
+    document.getElementById('load-more-btn').style.display = hasMoreDrops ? 'block' : 'none';
+
+    // Load liked state
+    if (currentUser && drops && drops.length > 0) {
+      const ids = drops.map(d => d.id);
+      const { data: likes } = await sb.from('drop_begeniler')
+        .select('drop_id')
+        .eq('kullanici_id', currentUser.id)
+        .in('drop_id', ids);
+      (likes || []).forEach(l => {
+        likedDrops.add(l.drop_id);
+        const btn = document.querySelector(`[data-like-btn="${l.drop_id}"]`);
+        if (btn) {
+          btn.classList.add('liked');
+          btn.querySelector('.like-icon').textContent = '❤️';
+        }
+      });
+    }
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('feed-loading').innerHTML = '';
+    showToast('Droplar yüklenirken hata oluştu', 'error');
+  } finally {
+    isLoadingDrops = false;
+  }
+}
+
+// =============================================
+// BUILD SKELETONS
+// =============================================
+function buildSkeletons() {
+  const loading = document.getElementById('feed-loading');
+  loading.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const card = document.createElement('div');
+    card.className = 'skeleton-card';
+    card.style.marginBottom = '10px';
+
+    const row = document.createElement('div');
+    row.className = 'skeleton-row';
+    const circle = document.createElement('div');
+    circle.className = 'skeleton-circle';
+    circle.style.cssText = 'width:40px;height:40px;';
+    const lines = document.createElement('div');
+    lines.style.cssText = 'flex:1;display:flex;flex-direction:column;gap:6px;';
+    const l1 = document.createElement('div');
+    l1.className = 'skeleton-line';
+    l1.style.width = '40%';
+    const l2 = document.createElement('div');
+    l2.className = 'skeleton-line';
+    l2.style.width = '70%';
+    const l3 = document.createElement('div');
+    l3.className = 'skeleton-line';
+    l3.style.width = '55%';
+    lines.appendChild(l1);
+    lines.appendChild(l2);
+    lines.appendChild(l3);
+    row.appendChild(circle);
+    row.appendChild(lines);
+    card.appendChild(row);
+    loading.appendChild(card);
+  }
+}
+
+// =============================================
+// BUILD DROP CARD
+// =============================================
+function buildDropCard(drop) {
+  const user = drop.kullanicilar || {};
+  const card = document.createElement('div');
+  card.className = 'drop-card';
+  card.dataset.dropId = drop.id;
+
+  const inner = document.createElement('div');
+  inner.className = 'drop-card-inner';
+
+  // --- Header ---
+  const header = document.createElement('div');
+  header.className = 'drop-header';
+
+  const avWrap = document.createElement('div');
+  avWrap.className = 'drop-avatar-wrap';
+  const av = createAvatar(user.avatar_url, user.kullanici_adi, 40);
+  av.addEventListener('click', () => { window.location.href = `profil.html?id=${user.id}`; });
+  avWrap.appendChild(av);
+  header.appendChild(avWrap);
+
+  const meta = document.createElement('div');
+  meta.className = 'drop-meta';
+
+  const nickRow = document.createElement('div');
+  nickRow.className = 'drop-nick-row';
+
+  const nick = document.createElement('a');
+  nick.href = `profil.html?id=${user.id}`;
+  nick.className = 'drop-nick';
+  nick.textContent = user.kullanici_adi || 'Anonim';
+  nickRow.appendChild(nick);
+
+  if (user.dogrulama_rozeti) {
+    const verify = document.createElement('img');
+    verify.src = 'https://i.imgur.com/VDpHaPy.png';
+    verify.alt = 'Doğrulanmış';
+    verify.className = 'drop-verify';
+    nickRow.appendChild(verify);
+  }
+
+  const badge = createBadge(user.abonelik);
+  badge.style.fontSize = '8px';
+  nickRow.appendChild(badge);
+
+  const time = document.createElement('span');
+  time.className = 'drop-time';
+  time.textContent = relativeTime(drop.created_at);
+  nickRow.appendChild(time);
+
+  meta.appendChild(nickRow);
+  header.appendChild(meta);
+
+  // More button
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'drop-more-btn';
+  moreBtn.textContent = '⋯';
+  moreBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showDropContextMenu(e, drop, card);
+  });
+  header.appendChild(moreBtn);
+
+  inner.appendChild(header);
+
+  // --- Content ---
+  const content = document.createElement('div');
+  content.className = 'drop-content';
+
+  if (drop.icerik) {
+    const isLong = drop.icerik.length > 200 || drop.icerik.split('\n').length > 3;
+    if (isLong) {
+      content.classList.add('drop-content-collapsed');
+      content.textContent = drop.icerik;
+      inner.appendChild(content);
+
+      const readMore = document.createElement('span');
+      readMore.className = 'drop-readmore';
+      readMore.textContent = 'Devamını oku';
+      readMore.addEventListener('click', () => {
+        content.classList.remove('drop-content-collapsed');
+        readMore.style.display = 'none';
+      });
+      inner.appendChild(readMore);
+    } else {
+      content.textContent = drop.icerik;
+      inner.appendChild(content);
+    }
+  }
+
+  // Image
+  if (drop.gorsel_url) {
+    const img = document.createElement('img');
+    img.className = 'drop-image';
+    img.src = drop.gorsel_url;
+    img.alt = 'Drop görseli';
+    img.loading = 'lazy';
+    img.addEventListener('click', () => openImageZoom(drop.gorsel_url));
+    inner.appendChild(img);
+  }
+
+  // --- Actions ---
+  const actions = document.createElement('div');
+  actions.className = 'drop-actions';
+
+  // Like button
+  const likeBtn = document.createElement('button');
+  likeBtn.className = 'drop-action-btn' + (likedDrops.has(drop.id) ? ' liked' : '');
+  likeBtn.dataset.likeBtnId = drop.id;
+  likeBtn.setAttribute('data-like-btn', drop.id);
+  const likeIcon = document.createElement('span');
+  likeIcon.className = 'drop-action-icon like-icon';
+  likeIcon.textContent = likedDrops.has(drop.id) ? '❤️' : '🤍';
+  const likeCount = document.createElement('span');
+  likeCount.className = 'like-count';
+  likeCount.textContent = drop.begeni_sayisi || 0;
+  likeBtn.appendChild(likeIcon);
+  likeBtn.appendChild(likeCount);
+  likeBtn.addEventListener('click', () => toggleLike(drop.id, likeBtn, likeIcon, likeCount));
+  actions.appendChild(likeBtn);
+
+  // Comment button
+  const commentBtn = document.createElement('button');
+  commentBtn.className = 'drop-action-btn';
+  const commentIcon = document.createElement('span');
+  commentIcon.className = 'drop-action-icon';
+  commentIcon.textContent = '💬';
+  const commentCount = document.createElement('span');
+  commentCount.textContent = drop.yorum_sayisi || 0;
+  commentBtn.appendChild(commentIcon);
+  commentBtn.appendChild(commentCount);
+
+  let commentsOpen = false;
+  commentBtn.addEventListener('click', () => {
+    commentsOpen = !commentsOpen;
+    const commentSection = card.querySelector('.drop-comments');
+    if (commentsOpen) {
+      commentSection.classList.add('open');
+      commentBtn.classList.add('comment-active');
+      loadComments(drop.id, commentSection);
+    } else {
+      commentSection.classList.remove('open');
+      commentBtn.classList.remove('comment-active');
+    }
+  });
+  actions.appendChild(commentBtn);
+
+  // Share button
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'drop-action-btn';
+  const shareIcon = document.createElement('span');
+  shareIcon.className = 'drop-action-icon';
+  shareIcon.textContent = '🔁';
+  const shareLabel = document.createElement('span');
+  shareLabel.textContent = 'Paylaş';
+  shareBtn.appendChild(shareIcon);
+  shareBtn.appendChild(shareLabel);
+  shareBtn.addEventListener('click', () => {
+    const url = `${window.location.origin}/drop.html?id=${drop.id}`;
+    navigator.clipboard.writeText(url).then(() => showToast('Link kopyalandı! 🔗', 'success'));
+  });
+  actions.appendChild(shareBtn);
+
+  inner.appendChild(actions);
+  card.appendChild(inner);
+
+  // --- Comments Section ---
+  const commentSection = document.createElement('div');
+  commentSection.className = 'drop-comments';
+  card.appendChild(commentSection);
+
+  return card;
+}
+
+// =============================================
+// TOGGLE LIKE
+// =============================================
+async function toggleLike(dropId, btn, icon, countEl) {
+  if (!currentUser) { showToast('Beğenmek için giriş yap!', 'error'); return; }
+
+  const isLiked = likedDrops.has(dropId);
+  const currentCount = parseInt(countEl.textContent) || 0;
+
+  // Optimistic update
+  if (isLiked) {
+    likedDrops.delete(dropId);
+    btn.classList.remove('liked');
+    icon.textContent = '🤍';
+    countEl.textContent = Math.max(0, currentCount - 1);
+  } else {
+    likedDrops.add(dropId);
+    btn.classList.add('liked');
+    icon.textContent = '❤️';
+    countEl.textContent = currentCount + 1;
+    // Heart burst animation
+    btn.style.transform = 'scale(1.3)';
+    setTimeout(() => { btn.style.transform = ''; }, 200);
+  }
+
+  try {
+    if (isLiked) {
+      await sb.from('drop_begeniler').delete()
+        .eq('drop_id', dropId).eq('kullanici_id', currentUser.id);
+      await sb.from('droplar').update({ begeni_sayisi: Math.max(0, currentCount - 1) }).eq('id', dropId);
+    } else {
+      await sb.from('drop_begeniler').insert({ drop_id: dropId, kullanici_id: currentUser.id });
+      await sb.from('droplar').update({ begeni_sayisi: currentCount + 1 }).eq('id', dropId);
+    }
+  } catch (e) {
+    // Revert
+    if (isLiked) {
+      likedDrops.add(dropId);
+      btn.classList.add('liked');
+      icon.textContent = '❤️';
+      countEl.textContent = currentCount;
+    } else {
+      likedDrops.delete(dropId);
+      btn.classList.remove('liked');
+      icon.textContent = '🤍';
+      countEl.textContent = currentCount;
+    }
+  }
+}
+
+// =============================================
+// LOAD COMMENTS
+// =============================================
+async function loadComments(dropId, section) {
+  section.innerHTML = '';
+
+  // Comment input row
+  const inputRow = document.createElement('div');
+  inputRow.className = 'comment-input-row';
+
+  const av = createAvatar(currentProfile?.avatar_url, currentProfile?.kullanici_adi, 28);
+  const input = document.createElement('input');
+  input.className = 'comment-input';
+  input.placeholder = currentUser ? 'Yorum yaz... (Enter)' : 'Yorum yapmak için giriş yap';
+  input.disabled = !currentUser;
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'comment-send-btn';
+  sendBtn.textContent = '↑';
+  sendBtn.style.display = currentUser ? 'flex' : 'none';
+
+  const sendComment = async () => {
+    const text = input.value.trim();
+    if (!text || !currentUser) return;
+    input.value = '';
+    try {
+      const { data: newComment } = await sb.from('drop_yorumlar').insert({
+        drop_id: dropId,
+        kullanici_id: currentUser.id,
+        yorum: text,
+        begeni_sayisi: 0
+      }).select().single();
+
+      if (newComment) {
+        const commentEl = buildCommentItem({ ...newComment, kullanicilar: currentProfile });
+        section.insertBefore(commentEl, inputRow);
+        // Update count
+        const countEl = document.querySelector(`[data-drop-id="${dropId}"] .comment-count`);
+        // Update yorum_sayisi
+        await sb.from('droplar').update({ yorum_sayisi: (parseInt(section.dataset.commentCount || 0) + 1) }).eq('id', dropId);
+      }
+    } catch (e) { showToast('Yorum gönderilemedi', 'error'); }
+  };
+
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(); });
+  sendBtn.addEventListener('click', sendComment);
+
+  inputRow.appendChild(av);
+  inputRow.appendChild(input);
+  inputRow.appendChild(sendBtn);
+  section.appendChild(inputRow);
+
+  // Load comments from DB
+  try {
+    const { data: comments } = await sb.from('drop_yorumlar')
+      .select(`*, kullanicilar(id, kullanici_adi, avatar_url)`)
+      .eq('drop_id', dropId)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (!comments || comments.length === 0) {
+      const emptyEl = document.createElement('div');
+      emptyEl.style.cssText = 'text-align:center;color:var(--text-dim);font-size:11px;padding:12px 0;';
+      emptyEl.textContent = 'Henüz yorum yok. İlk yorumu sen yap!';
+      section.insertBefore(emptyEl, inputRow);
+      return;
+    }
+
+    section.dataset.commentCount = comments.length;
+
+    // Check total count
+    const { count } = await sb.from('drop_yorumlar').select('*', { count: 'exact', head: true }).eq('drop_id', dropId);
+    if (count > 3) {
+      const seeAll = document.createElement('a');
+      seeAll.className = 'comment-see-all';
+      seeAll.textContent = `${count} yorumun tamamını gör →`;
+      seeAll.addEventListener('click', async () => {
+        seeAll.remove();
+        const { data: allComments } = await sb.from('drop_yorumlar')
+          .select(`*, kullanicilar(id, kullanici_adi, avatar_url)`)
+          .eq('drop_id', dropId)
+          .order('created_at', { ascending: true });
+        section.innerHTML = '';
+        section.appendChild(inputRow);
+        (allComments || []).forEach(c => {
+          const el = buildCommentItem(c);
+          section.insertBefore(el, inputRow);
+        });
+      });
+      section.insertBefore(seeAll, inputRow);
+    }
+
+    comments.reverse().forEach(comment => {
+      const el = buildCommentItem(comment);
+      section.insertBefore(el, inputRow);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// =============================================
+// BUILD COMMENT ITEM
+// =============================================
+function buildCommentItem(comment) {
+  const user = comment.kullanicilar || {};
+  const item = document.createElement('div');
+  item.className = 'comment-item';
+
+  const av = createAvatar(user.avatar_url, user.kullanici_adi, 28);
+  const body = document.createElement('div');
+  body.className = 'comment-body';
+
+  const nick = document.createElement('div');
+  nick.className = 'comment-nick';
+  nick.textContent = user.kullanici_adi || 'Anonim';
+
+  const text = document.createElement('div');
+  text.className = 'comment-text';
+  text.textContent = comment.yorum;
+
+  const likeRow = document.createElement('div');
+  likeRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:4px;';
+
+  const likeBtn = document.createElement('button');
+  likeBtn.className = 'comment-like-btn';
+  likeBtn.innerHTML = `❤️ ${comment.begeni_sayisi || 0}`;
+
+  const timeEl = document.createElement('span');
+  timeEl.style.cssText = 'font-size:10px;color:var(--text-dim);';
+  timeEl.textContent = relativeTime(comment.created_at);
+
+  likeRow.appendChild(likeBtn);
+  likeRow.appendChild(timeEl);
+  body.appendChild(nick);
+  body.appendChild(text);
+  body.appendChild(likeRow);
+  item.appendChild(av);
+  item.appendChild(body);
+  return item;
+}
+
+// =============================================
+// DROP CONTEXT MENU
+// =============================================
+function showDropContextMenu(e, drop, card) {
+  const menu = document.getElementById('ctx-menu');
+  menu.innerHTML = '';
+
+  const isOwn = currentUser && drop.kullanici_id === currentUser.id;
+
+  if (isOwn) {
+    const deleteItem = document.createElement('div');
+    deleteItem.className = 'ctx-item danger';
+    deleteItem.textContent = '🗑️ Dropu Sil';
+    deleteItem.addEventListener('click', async () => {
+      menu.style.display = 'none';
+      try {
+        await sb.from('droplar').delete().eq('id', drop.id);
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'all 0.3s ease';
+        setTimeout(() => card.remove(), 300);
+        showToast('Drop silindi', 'success');
+      } catch (err) { showToast('Silinemedi!', 'error'); }
+    });
+    menu.appendChild(deleteItem);
+    const div = document.createElement('div');
+    div.className = 'ctx-divider';
+    menu.appendChild(div);
+  }
+
+  const copyLink = document.createElement('div');
+  copyLink.className = 'ctx-item';
+  copyLink.textContent = '🔗 Linki Kopyala';
+  copyLink.addEventListener('click', () => {
+    navigator.clipboard.writeText(`${window.location.origin}/drop.html?id=${drop.id}`);
+    showToast('Link kopyalandı!', 'success');
+    menu.style.display = 'none';
+  });
+  menu.appendChild(copyLink);
+
+  if (!isOwn) {
+    const report = document.createElement('div');
+    report.className = 'ctx-item danger';
+    report.textContent = '⚠️ Raporla';
+    report.addEventListener('click', () => {
+      showToast('Rapor gönderildi', 'info');
+      menu.style.display = 'none';
+    });
+    menu.appendChild(report);
+  }
+
+  menu.style.display = 'block';
+  const x = Math.min(e.clientX, window.innerWidth - 180);
+  const y = Math.min(e.clientY, window.innerHeight - 120);
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('ctx-menu').style.display = 'none';
+});
+
+// =============================================
+// IMAGE ZOOM
+// =============================================
+function openImageZoom(src) {
+  const overlay = document.getElementById('img-zoom');
+  overlay.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = 'Görsel';
+  overlay.appendChild(img);
+  overlay.style.display = 'flex';
+  overlay.addEventListener('click', () => { overlay.style.display = 'none'; }, { once: true });
+}
+
+// =============================================
+// TOGGLE FOLLOW
+// =============================================
+async function toggleFollow(userId, btn, nick) {
+  const isFollowing = followedUsers.has(userId);
+  try {
+    if (isFollowing) {
+      await sb.from('takipler').delete()
+        .eq('takip_eden_id', currentUser.id)
+        .eq('takip_edilen_id', userId);
+      followedUsers.delete(userId);
+      btn.textContent = 'Takip Et';
+      btn.classList.replace('mc-gray', 'mc-green');
+    } else {
+      await sb.from('takipler').insert({ takip_eden_id: currentUser.id, takip_edilen_id: userId });
+      followedUsers.add(userId);
+      btn.textContent = '✓ Takip';
+      btn.classList.replace('mc-green', 'mc-gray');
+      showToast(`${nick} takip edildi!`, 'success');
+    }
+  } catch (e) { showToast('Hata oluştu!', 'error'); }
+}
+
+// =============================================
+// LOAD FOLLOWED USERS
+// =============================================
+async function loadFollowedUsers() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('takipler')
+      .select('takip_edilen_id')
+      .eq('takip_eden_id', currentUser.id);
+    (data || []).forEach(row => followedUsers.add(row.takip_edilen_id));
+  } catch (e) {}
+}
+
+// =============================================
+// REALTIME SUBSCRIPTION
+// =============================================
+function setupRealtime() {
+  realtimeSub = sb
+    .channel('droplar-feed')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'droplar' }, payload => {
+      const newDrop = payload.new;
+      if (!newDrop) return;
+      // Don't show own drops (already shown)
+      if (currentUser && newDrop.kullanici_id === currentUser.id) return;
+
+      pendingNewDropIds.unshift(newDrop.id);
+      const pill = document.getElementById('new-drops-pill');
+      const countEl = document.getElementById('new-drops-count');
+      countEl.textContent = pendingNewDropIds.length;
+      pill.classList.add('visible');
+    })
+    .subscribe();
+}
+
+// =============================================
+// NEW DROPS PILL
+// =============================================
+document.getElementById('new-drops-pill').addEventListener('click', async () => {
+  const pill = document.getElementById('new-drops-pill');
+  pill.classList.remove('visible');
+
+  if (pendingNewDropIds.length === 0) return;
+
+  const ids = [...pendingNewDropIds];
+  pendingNewDropIds = [];
+
+  try {
+    const { data: newDrops } = await sb.from('droplar')
+      .select(`*, kullanicilar(id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti)`)
+      .in('id', ids)
+      .order('created_at', { ascending: false });
+
+    const feed = document.getElementById('drop-feed');
+    (newDrops || []).forEach(drop => {
+      const card = buildDropCard(drop);
+      card.classList.add('new-drop');
+      feed.insertBefore(card, feed.firstChild);
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {}
+});
+
+// =============================================
+// AUTO REFRESH (fallback)
+// =============================================
+function setupAutoRefresh() {
+  autoRefreshInterval = setInterval(() => {
+    // Silent check: look for new drops since last loaded
+    // Realtime handles this, but as fallback:
+    if (pendingNewDropIds.length === 0) {
+      // Could do a count query here as fallback
+    }
+  }, 60000);
+}
+
+// =============================================
+// GOTO KESIF BUTTON
+// =============================================
+document.getElementById('goto-kesif-btn').addEventListener('click', () => {
+  currentTab = 'keşif';
+  document.getElementById('tab-takip').classList.remove('active');
+  document.getElementById('tab-kesif').classList.add('active');
+  document.getElementById('following-empty').classList.remove('visible');
+  loadDrops();
+});
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+document.getElementById('tab-takip').addEventListener('click', () => {
+  if (currentTab === 'takip') return;
+  currentTab = 'takip';
+  document.getElementById('tab-takip').classList.add('active');
+  document.getElementById('tab-kesif').classList.remove('active');
+  loadDrops();
+});
+
+document.getElementById('tab-kesif').addEventListener('click', () => {
+  if (currentTab === 'kesif') return;
+  currentTab = 'kesif';
+  document.getElementById('tab-kesif').classList.add('active');
+  document.getElementById('tab-takip').classList.remove('active');
+  loadDrops();
+});
+
+// Load more
+document.getElementById('load-more-btn').addEventListener('click', () => {
+  loadDrops(true);
+});
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+  // Check session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    const { data: profile } = await sb.from('kullanicilar')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    currentProfile = profile;
+    await loadFollowedUsers();
+  }
+
+  buildNav();
+  buildLeftSidebar();
+  buildComposer();
+  buildMobileNav();
+
+  // Default tab: if logged in with follows → takip, else kesif
+  if (!currentUser || followedUsers.size === 0) {
+    currentTab = 'kesif';
+    document.getElementById('tab-takip').classList.remove('active');
+    document.getElementById('tab-kesif').classList.add('active');
+  }
+
+  await loadDrops();
+  buildRightSidebar();
+  setupRealtime();
+  setupAutoRefresh();
+}
+
+init();
+</script>
+</body>
+</html>

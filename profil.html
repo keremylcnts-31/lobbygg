@@ -1,0 +1,3039 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil — LOBBY.GG</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ===== PROFILE PAGE SPECIFIC ===== */
+    .profile-outer {
+      padding-top: var(--nav-h);
+    }
+
+    /* Banner */
+    .banner-wrap {
+      border-radius: 0;
+      max-height: 280px;
+    }
+    .banner-canvas-mini { width: 100%; height: 100%; display: block; }
+
+    /* Profile Container */
+    .profile-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+    }
+
+    /* Profile Header Card */
+    .profile-header-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      margin-top: -50px;
+      position: relative;
+      z-index: 10;
+      padding: 20px 24px 20px;
+    }
+
+    .profile-header-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    /* PP */
+    .profile-pp-wrap {
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .profile-pp-wrap .pp-wrap {
+      width: 96px;
+      height: 96px;
+    }
+    .profile-pp-wrap .pp-img {
+      width: 96px;
+      height: 96px;
+      border-width: 3px;
+    }
+    .profile-pp-zoom-hint {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(0,0,0,0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    .profile-pp-wrap:hover .profile-pp-zoom-hint {
+      opacity: 1;
+      background: rgba(0,0,0,0.5);
+    }
+    .profile-pp-wrap .pp-img.shape-rounded ~ .profile-pp-zoom-hint {
+      border-radius: 20%;
+    }
+
+    /* Info */
+    .profile-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 5px;
+    }
+    .profile-nick {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-1);
+      line-height: 1.1;
+    }
+    .profile-verify-badge {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .profile-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .profile-klan-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.2);
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .profile-klan-tag:hover { background: rgba(57,255,20,0.15); }
+
+    .profile-bio {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 10px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .profile-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .profile-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-2);
+      cursor: pointer;
+    }
+    .profile-stat strong {
+      font-weight: 900;
+      color: var(--text-1);
+    }
+    .profile-stat:hover strong { color: var(--accent); }
+    .profile-stat-sep {
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+    .profile-lcoin-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    /* Action Buttons */
+    .profile-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .profile-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .profile-follows-me {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .follow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 4px var(--accent-glow); }
+      50% { box-shadow: 0 0 10px rgba(57,255,20,0.5); }
+    }
+
+    /* More Dropdown */
+    .more-btn {
+      width: 34px; height: 34px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .more-btn:hover { color: var(--text-1); border-color: var(--border-hover); }
+
+    /* Request Buttons */
+    .req-btn-wrap {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Locked Msg Btn */
+    .msg-locked-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
+      background: var(--border-thin);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--text-dim);
+      cursor: not-allowed;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Tabs */
+    .profile-tabs-wrap {
+      margin-top: 16px;
+    }
+
+    /* Two Column Layout */
+    .profile-body {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 768px) {
+      .profile-body { grid-template-columns: 1fr; }
+      .profile-right { order: -1; }
+    }
+
+    /* Private Overlay */
+    .private-overlay {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 60px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      text-align: center;
+    }
+    .private-overlay-icon { font-size: 48px; opacity: 0.5; }
+    .private-overlay-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .private-overlay-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Drop Composer */
+    .drop-composer {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .drop-composer-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .drop-composer-pp {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .drop-composer-right { flex: 1; }
+    .drop-textarea {
+      width: 100%;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 12px;
+      resize: none;
+      min-height: 80px;
+      transition: border-color 0.2s;
+    }
+    .drop-textarea:focus { border-color: var(--accent); outline: none; }
+    .drop-textarea::placeholder { color: var(--text-dim); }
+    .drop-composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .drop-char-count {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .drop-char-count.warn { color: var(--gold); }
+    .drop-char-count.danger { color: var(--red); }
+    .drop-composer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drop-img-label {
+      width: 32px; height: 32px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all 0.2s;
+    }
+    .drop-img-label:hover { color: var(--text-1); border-color: var(--border-hover); }
+    .drop-img-preview {
+      position: relative;
+      margin-top: 10px;
+      display: none;
+    }
+    .drop-img-preview img {
+      max-height: 160px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .drop-img-remove {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text-1);
+      border: 1px solid var(--border);
+    }
+
+    /* Drop Card */
+    .drop-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .drop-card:hover { border-color: var(--border); }
+    .drop-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .drop-card-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .drop-card-pp {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+    .drop-card-nick {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+    .drop-card-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .drop-card-content {
+      font-size: 13px;
+      color: var(--text-1);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .drop-card-img {
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-thin);
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .drop-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .drop-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+    .drop-action-btn:hover { color: var(--text-1); background: var(--border-thin); }
+    .drop-action-btn.liked { color: var(--red); }
+    .drop-action-btn.liked:hover { color: #ff6b85; }
+    .drop-menu-btn {
+      margin-left: auto;
+      width: 28px; height: 28px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .drop-menu-btn:hover { color: var(--text-1); background: var(--border-thin); }
+
+    /* Comment Panel */
+    .comment-panel {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-thin);
+    }
+    .comment-panel.open { display: block; }
+    .comment-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .comment-pp {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .comment-bubble {
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      flex: 1;
+    }
+    .comment-nick { font-size: 11px; font-weight: 800; color: var(--text-1); margin-bottom: 2px; }
+    .comment-text { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+    .comment-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .comment-input {
+      flex: 1;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 8px 14px;
+      transition: border-color 0.2s;
+    }
+    .comment-input:focus { border-color: var(--accent); outline: none; }
+    .comment-input::placeholder { color: var(--text-dim); }
+    .comment-send-btn {
+      width: 32px; height: 32px;
+      background: var(--accent-dim);
+      border: none;
+      border-radius: 50%;
+      color: #050505;
+      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .comment-send-btn:hover { background: var(--accent); }
+
+    /* İlan Cards */
+    .ilan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .ilan-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .ilan-card:hover { border-color: var(--border); transform: translateY(-2px); }
+    .ilan-card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .ilan-card-desc {
+      font-size: 11px;
+      color: var(--text-2);
+      margin: 8px 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.5;
+    }
+    .ilan-card-price {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .ilan-card-price.free { color: var(--accent); }
+    .ilan-card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    /* Follow List */
+    .follow-list { display: flex; flex-direction: column; gap: 8px; }
+    .follow-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      transition: border-color 0.2s;
+    }
+    .follow-item:hover { border-color: var(--border); }
+    .follow-item-pp {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+    .follow-item-info { flex: 1; min-width: 0; }
+    .follow-item-nick {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      truncate: true;
+    }
+    .follow-item-sub { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+    /* Customize Tab */
+    .customize-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .customize-section-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-2);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .customize-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-thin);
+    }
+
+    .pp-shape-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pp-shape-opt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .pp-shape-preview {
+      width: 50px; height: 50px;
+      background: var(--border);
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .pp-shape-preview.circle { border-radius: 50%; }
+    .pp-shape-preview.rounded { border-radius: 10px; }
+    .pp-shape-opt.selected .pp-shape-preview { border-color: var(--accent); }
+    .pp-shape-label { font-size: 10px; font-weight: 700; color: var(--text-2); }
+    .pp-shape-opt.selected .pp-shape-label { color: var(--accent); }
+
+    /* Frame Grid */
+    .frame-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 600px) {
+      .frame-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .frame-opt {
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .frame-opt:hover { border-color: var(--border-hover); background: var(--border-thin); }
+    .frame-opt.selected { border-color: var(--accent); background: rgba(57,255,20,0.05); }
+    .frame-opt-pp {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      object-fit: cover;
+    }
+    .frame-opt-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-2);
+      text-align: center;
+    }
+    .frame-opt.selected .frame-opt-label { color: var(--accent); }
+    .frame-lock-badge {
+      position: absolute;
+      top: 6px; right: 6px;
+      font-size: 10px;
+    }
+
+    /* Banner color dots */
+    .banner-color-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .banner-color-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .banner-color-dot:hover { transform: scale(1.1); }
+    .banner-color-dot.selected { border-color: white; transform: scale(1.1); }
+
+    .banner-preview {
+      width: 100%;
+      height: 80px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    /* Settings Tab */
+    .settings-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .settings-section-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-2);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-thin);
+    }
+    .radio-group { display: flex; flex-direction: column; gap: 10px; }
+    .radio-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 10px 14px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      transition: border-color 0.2s;
+    }
+    .radio-opt:hover { border-color: var(--border); }
+    .radio-opt.selected { border-color: var(--accent); background: rgba(57,255,20,0.03); }
+    .radio-circle {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .radio-opt.selected .radio-circle { border-color: var(--accent); }
+    .radio-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+    }
+    .radio-opt.selected .radio-dot { display: block; }
+    .radio-text { font-size: 12px; font-weight: 600; color: var(--text-2); }
+    .radio-opt.selected .radio-text { color: var(--text-1); }
+
+    /* Takip İsteği Item */
+    .req-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+    .req-item-pp {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
+    .req-item-info { flex: 1; min-width: 0; }
+    .req-item-nick { font-size: 13px; font-weight: 800; color: var(--text-1); }
+    .req-item-sub { font-size: 10px; color: var(--text-dim); }
+    .req-item-actions { display: flex; gap: 6px; }
+
+    /* Right Panel */
+    .right-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .right-card-title {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .right-info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+    .right-info-item span:first-child { flex-shrink: 0; }
+    .right-info-item strong { color: var(--text-1); }
+
+    .klan-card-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: var(--radius);
+      transition: background 0.2s;
+    }
+    .klan-card-inner:hover { background: var(--border-thin); }
+    .klan-logo {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .klan-name { font-size: 13px; font-weight: 800; color: var(--text-1); }
+    .klan-tag-small {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .klan-uye { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+
+    .server-list { display: flex; flex-direction: column; gap: 8px; }
+    .server-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-2);
+    }
+    .server-logo {
+      width: 24px; height: 24px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .server-name { font-weight: 700; color: var(--text-1); }
+    .server-active-label {
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.2);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: auto;
+    }
+
+    /* PP Zoom Modal */
+    .pp-zoom-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+    }
+    .pp-zoom-overlay.open { display: flex; }
+    .pp-zoom-img {
+      max-width: 360px;
+      max-height: 360px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--border);
+      cursor: zoom-out;
+    }
+    .pp-zoom-img.shape-rounded { border-radius: 20%; }
+
+    /* Loading skeleton */
+    .skel {
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--border-thin) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: skel-anim 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+    @keyframes skel-anim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skel-text { height: 14px; margin-bottom: 8px; }
+    .skel-circle { border-radius: 50%; }
+
+    /* Visitors locked */
+    .visitors-locked {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 24px;
+      text-align: center;
+    }
+    .visitors-locked-icon { font-size: 28px; opacity: 0.3; }
+    .visitors-locked-text { font-size: 12px; color: var(--text-dim); }
+
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-area:hover { border-color: var(--accent); background: rgba(57,255,20,0.03); }
+    .upload-area-icon { font-size: 28px; margin-bottom: 6px; opacity: 0.5; }
+    .upload-area-text { font-size: 11px; color: var(--text-dim); }
+
+    /* Abone lock */
+    .premium-lock {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--gold);
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 3px;
+      padding: 2px 6px;
+      margin-left: 6px;
+    }
+
+    /* Server picker grid */
+    .server-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    .server-picker-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .server-picker-item:hover { border-color: var(--border); }
+    .server-picker-item.selected { border-color: var(--accent); background: rgba(57,255,20,0.05); }
+    .server-picker-logo { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+    .server-picker-name { font-size: 9px; font-weight: 800; text-align: center; color: var(--text-2); }
+    .server-picker-item.selected .server-picker-name { color: var(--accent); }
+
+    /* Visitor item */
+    .visitor-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .visitor-item:last-child { border-bottom: none; }
+    .visitor-pp {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
+    .visitor-nick { font-size: 12px; font-weight: 700; color: var(--text-1); }
+    .visitor-time { font-size: 10px; color: var(--text-dim); margin-left: auto; }
+
+    /* Fade-in */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp 0.35s ease both; }
+
+    /* Responsive header */
+    @media (max-width: 640px) {
+      .profile-header-inner { flex-wrap: wrap; }
+      .profile-actions { align-items: flex-start; width: 100%; }
+      .profile-actions-row { justify-content: flex-start; }
+      .profile-pp-wrap .pp-wrap { width: 72px; height: 72px; }
+      .profile-pp-wrap .pp-img { width: 72px; height: 72px; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas-bg"></canvas>
+<div class="page-wrapper">
+
+  <!-- NAV -->
+  <nav class="nav" id="nav"></nav>
+
+  <div class="profile-outer">
+    <!-- BANNER -->
+    <div class="banner-wrap" id="bannerWrap">
+      <canvas class="banner-canvas-mini" id="bannerCanvas"></canvas>
+    </div>
+
+    <div class="profile-container">
+      <!-- PROFILE HEADER CARD -->
+      <div class="profile-header-card card fade-in-up" id="profileHeaderCard">
+        <div class="profile-header-inner" id="profileHeaderInner">
+          <!-- skeleton -->
+          <div class="skel skel-circle" style="width:96px;height:96px;flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div class="skel skel-text" style="width:160px;"></div>
+            <div class="skel skel-text" style="width:100px;"></div>
+            <div class="skel skel-text" style="width:220px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="profile-tabs-wrap" id="profileTabsWrap" style="display:none;">
+        <div class="tabs" id="tabsBar"></div>
+      </div>
+
+      <!-- BODY -->
+      <div class="profile-body" id="profileBody" style="display:none;">
+        <div id="mainContent"></div>
+        <div class="profile-right" id="rightPanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PP Zoom Modal -->
+  <div class="pp-zoom-overlay" id="ppZoomOverlay">
+    <img src="" alt="PP Zoom" class="pp-zoom-img" id="ppZoomImg" />
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const SERVERS = [
+  {name:'HanedanMC', ip:'play.hanedanmc.com'},
+  {name:'ChickenNW', ip:'oyna.chickennw.com'},
+  {name:'BLOKYA', ip:'oyna.blokya.com'},
+  {name:'DugeCraft', ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC', ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+  {name:'SOULCRAFT', ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC', ip:'atlantikmc.com'},
+  {name:'NAVELYA', ip:'navelya.net'},
+  {name:'CRAFTLUNA', ip:'play.craftluna.net'},
+  {name:'Melonya', ip:'melonya.net'},
+  {name:'Rush Craft', ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft', ip:'play.reborncraft.pw'},
+  {name:'LuneCraft', ip:'mc.lunecraft.net'},
+  {name:'SimitSMP', ip:'simitsmp.net'},
+  {name:'MC4FUN', ip:'play.mc4fun.net'},
+  {name:'İmibiyum', ip:'play.imibiyum.com'}
+];
+
+const KATEGORI_MAP = {
+  'PvP': ['UHC', 'KitPvP', 'SkyWars', 'BedWars', 'Diğer'],
+  'İçerik Üretici': ['YouTube', 'Twitch', 'TikTok', 'Diğer'],
+  'Developer': ['Plugin', 'Bot', 'Web', 'Diğer'],
+  'Builder': ['Survival', 'Creative', 'Harita', 'Diğer'],
+  'Yönetici': ['Server', 'Discord', 'Mod', 'Diğer'],
+  'Diğer': ['Genel']
+};
+
+const BANNER_COLORS = [
+  {key:'default', label:'Varsayılan', color:'#0d0d0d'},
+  {key:'blue',    label:'Mavi',       color:'linear-gradient(135deg,#091e3a,#1a4a8a)'},
+  {key:'green',   label:'Yeşil',      color:'linear-gradient(135deg,#0d1f00,#1e4a09)'},
+  {key:'purple',  label:'Mor',        color:'linear-gradient(135deg,#1a0d2a,#3a0a6a)'},
+  {key:'red',     label:'Kırmızı',    color:'linear-gradient(135deg,#1a0909,#4a0909)'},
+  {key:'gold',    label:'Altın',      color:'linear-gradient(135deg,#1a1200,#3a2800)'},
+  {key:'pink',    label:'Pembe',      color:'linear-gradient(135deg,#1a0915,#3a0a28)'},
+  {key:'dark',    label:'Koyu',       color:'linear-gradient(135deg,#0a0a0a,#1a1a1a)'},
+  {key:'cyber',   label:'Cyber',      color:'linear-gradient(135deg,#000510,#001520)'}
+];
+
+const CAT_BADGE_MAP = {
+  'PvP': 'b-pvp',
+  'İçerik Üretici': 'b-icerik',
+  'Developer': 'b-developer',
+  'Builder': 'b-builder',
+  'Yönetici': 'b-yonetici-cat',
+  'Diğer': 'b-diger'
+};
+
+// ===== STATE =====
+let currentUser = null;
+let profileUser = null;
+let isOwnProfile = false;
+let followStatus = null; // null | 'following' | 'pending' | 'received'
+let isFollower = false;
+let activeTab = 'droplar';
+let drops = [];
+let customizeState = {};
+let settingsState = {};
+let savedBannerColor = null;
+let savedBannerImg = null;
+let newBannerFile = null;
+let newPPFile = null;
+let selectedFrame = null;
+let selectedShape = null;
+let selectedFavServers = [];
+let selectedDestServer = null;
+
+// ===== UTILS =====
+function toast(msg, type='success') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = {success:'✅', error:'❌', info:'ℹ️', gold:'⭐'};
+  const ico = document.createElement('span');
+  ico.textContent = icons[type] || '✅';
+  const txt = document.createElement('span');
+  txt.textContent = msg;
+  t.appendChild(ico);
+  t.appendChild(txt);
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('tr-TR', {day:'2-digit', month:'long', year:'numeric'});
+}
+
+function timeAgo(str) {
+  if (!str) return '';
+  const diff = (Date.now() - new Date(str).getTime()) / 1000;
+  if (diff < 60) return 'az önce';
+  if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
+  if (diff < 86400) return Math.floor(diff/3600) + ' sa önce';
+  return Math.floor(diff/86400) + ' gün önce';
+}
+
+function el(tag, opts={}) {
+  const e = document.createElement(tag);
+  if (opts.className) e.className = opts.className;
+  if (opts.textContent !== undefined) e.textContent = opts.textContent;
+  if (opts.id) e.id = opts.id;
+  if (opts.style) Object.assign(e.style, opts.style);
+  if (opts.attrs) Object.entries(opts.attrs).forEach(([k,v]) => e.setAttribute(k,v));
+  return e;
+}
+
+function ppSrc(user) {
+  return user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.kullanici_adi||'?')}&background=1a1a1a&color=39ff14&bold=true&size=96`;
+}
+
+function serverLogo(ip) {
+  return `https://api.mcsrvstat.us/icon/${ip}`;
+}
+
+// ===== CANVAS BG =====
+(function initCanvasBg() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams=[], logos=[];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for(let i=0;i<6;i++) beams.push({
+    x: Math.random()*W, y: Math.random()*H,
+    angle: Math.PI/4 + (Math.random()-0.5)*0.3,
+    speed: 0.3+Math.random()*0.4,
+    width: 60+Math.random()*80,
+    alpha: 0.03+Math.random()*0.04
+  });
+
+  const logoTexts = ['LOBBY.GG'];
+  for(let i=0;i<5;i++) logos.push({
+    x: Math.random()*W, y: Math.random()*H,
+    vx: (Math.random()-0.5)*0.2,
+    vy: (Math.random()-0.5)*0.2,
+    alpha: 0.02+Math.random()*0.03,
+    size: 22+Math.random()*28,
+    rot: Math.random()*Math.PI*2,
+    rotSpeed: (Math.random()-0.5)*0.002
+  });
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#050505';
+    ctx.fillRect(0,0,W,H);
+
+    beams.forEach(b => {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.angle);
+      const grad = ctx.createLinearGradient(-b.width/2,0,b.width/2,0);
+      grad.addColorStop(0,'transparent');
+      grad.addColorStop(0.5,`rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(1,'transparent');
+      ctx.fillStyle=grad;
+      ctx.fillRect(-b.width/2,-2000,b.width,4000);
+      ctx.restore();
+      b.x += Math.cos(b.angle)*b.speed;
+      b.y += Math.sin(b.angle)*b.speed;
+      if(b.x>W+200) b.x=-200;
+      if(b.y>H+200) b.y=-200;
+    });
+
+    logos.forEach(l => {
+      ctx.save();
+      ctx.translate(l.x, l.y);
+      ctx.rotate(l.rot);
+      ctx.globalAlpha = l.alpha;
+      ctx.font = `900 ${l.size}px Montserrat, sans-serif`;
+      ctx.fillStyle = '#39ff14';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('LOBBY.GG', 0, 0);
+      ctx.restore();
+      l.x += l.vx; l.y += l.vy; l.rot += l.rotSpeed;
+      if(l.x<-100) l.x=W+100;
+      if(l.x>W+100) l.x=-100;
+      if(l.y<-50) l.y=H+50;
+      if(l.y>H+50) l.y=-50;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== BANNER MINI CANVAS =====
+function initBannerCanvas() {
+  const bc = document.getElementById('bannerCanvas');
+  if (!bc) return;
+  const ctx = bc.getContext('2d');
+  let W2, H2, bms=[];
+
+  function resize2() {
+    W2 = bc.width = bc.offsetWidth;
+    H2 = bc.height = bc.offsetHeight;
+  }
+  resize2();
+  window.addEventListener('resize', resize2);
+
+  for(let i=0;i<4;i++) bms.push({
+    x:Math.random()*W2, y:Math.random()*H2,
+    angle:Math.PI/4+(Math.random()-0.5)*0.3,
+    speed:0.5+Math.random()*0.5,
+    width:40+Math.random()*60,
+    alpha:0.06+Math.random()*0.07
+  });
+
+  (function drawBanner() {
+    if (!bc.offsetParent && !bc.closest('.banner-wrap')) return;
+    ctx.clearRect(0,0,W2||bc.offsetWidth||940,H2||bc.offsetHeight||280);
+    ctx.fillStyle='#050505';
+    ctx.fillRect(0,0,W2,H2);
+    bms.forEach(b => {
+      ctx.save();
+      ctx.translate(b.x,b.y);
+      ctx.rotate(b.angle);
+      const g = ctx.createLinearGradient(-b.width/2,0,b.width/2,0);
+      g.addColorStop(0,'transparent');
+      g.addColorStop(0.5,`rgba(57,255,20,${b.alpha})`);
+      g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;
+      ctx.fillRect(-b.width/2,-H2,b.width,H2*2);
+      ctx.restore();
+      b.x+=Math.cos(b.angle)*b.speed;
+      b.y+=Math.sin(b.angle)*b.speed;
+      if(b.x>W2+200)b.x=-200;
+      if(b.y>H2+200)b.y=-200;
+    });
+    requestAnimationFrame(drawBanner);
+  })();
+}
+initBannerCanvas();
+
+// ===== NAV =====
+function buildNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+
+  const logoA = el('a', {attrs:{href:'lobbyx.html'}});
+  const logoImg = el('img', {className:'nav-logo', attrs:{src:'https://i.imgur.com/6l08Y4k.png', alt:'LOBBY.GG'}});
+  logoA.appendChild(logoImg);
+  nav.appendChild(logoA);
+
+  const navLinks = el('div', {className:'nav-links'});
+  const links = [
+    {label:'Ana Sayfa', href:'lobbyx.html'},
+    {label:'İlanlar', href:'ilanlar.html'},
+    {label:'Klanlar', href:'klanlar.html'},
+    {label:'Keşfet', href:'kesfet.html'}
+  ];
+  links.forEach(l => {
+    const a = el('a', {className:'nav-link', attrs:{href:l.href}});
+    const sp = el('span', {textContent:l.label});
+    a.appendChild(sp);
+    navLinks.appendChild(a);
+  });
+  nav.appendChild(navLinks);
+
+  const navRight = el('div', {className:'nav-right'});
+
+  const bell = el('div', {className:'nav-bell'});
+  bell.textContent = '🔔';
+  navRight.appendChild(bell);
+
+  const lcoin = el('div', {className:'nav-lcoin'});
+  const lcoinIco = el('span', {className:'nav-lcoin-icon', textContent:'🪙'});
+  const lcoinVal = el('span', {id:'navLcoin', textContent:'0'});
+  lcoin.appendChild(lcoinIco);
+  lcoin.appendChild(lcoinVal);
+  navRight.appendChild(lcoin);
+
+  const avatarWrap = el('div', {className:'nav-avatar', id:'navAvatar'});
+  const avatarImg = el('img', {attrs:{src:'https://ui-avatars.com/api/?name=?&background=1a1a1a&color=39ff14', alt:'Avatar'}});
+  avatarWrap.appendChild(avatarImg);
+  avatarWrap.addEventListener('click', () => { window.location.href='profil.html'; });
+  navRight.appendChild(avatarWrap);
+
+  nav.appendChild(navRight);
+}
+
+// ===== MAIN INIT =====
+async function init() {
+  buildNav();
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: u } = await sb.from('kullanicilar').select('*').eq('id', session.user.id).single();
+    currentUser = u;
+    if (u) {
+      document.getElementById('navLcoin').textContent = (u.lcoin||0).toLocaleString();
+      const navAvImg = document.querySelector('#navAvatar img');
+      if (navAvImg) navAvImg.src = ppSrc(u);
+    }
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const paramId = params.get('id');
+  const paramNick = params.get('nick');
+
+  let targetUser = null;
+
+  if (paramId) {
+    const { data } = await sb.from('kullanicilar').select('*').eq('id', paramId).single();
+    targetUser = data;
+  } else if (paramNick) {
+    const { data } = await sb.from('kullanicilar').select('*').eq('kullanici_adi', paramNick).single();
+    targetUser = data;
+  } else if (currentUser) {
+    targetUser = currentUser;
+  }
+
+  if (!targetUser) {
+    document.getElementById('profileHeaderInner').innerHTML = '';
+    const er = el('div', {className:'empty-state', style:{flexDirection:'column', padding:'40px 20px', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center'}});
+    
+    if (!currentUser && !paramId && !paramNick) {
+      const ico = el('div', {className:'empty-state-icon', textContent:'🔒', style:{fontSize:'40px', marginBottom:'10px'}});
+      const tit = el('div', {className:'empty-state-title', textContent:'Giriş Yapmalısınız', style:{fontSize:'18px', fontWeight:'900', color:'var(--text-1)', marginBottom:'8px'}});
+      const sub = el('div', {style:{fontSize:'13px', color:'var(--text-2)', marginBottom:'20px', maxWidth:'300px'}}, 'Kendi profilinizi görmek ve özelleştirmek için lütfen giriş yapın veya kayıt olun.');
+      const btn = el('button', {className:'mc-btn mc-green', textContent:'Giriş Yap / Kayıt Ol'});
+      btn.addEventListener('click', () => { window.location.href = 'giris.html'; });
+      er.appendChild(ico); er.appendChild(tit); er.appendChild(sub); er.appendChild(btn);
+    } else {
+      const ico = el('div', {className:'empty-state-icon', textContent:'😕', style:{fontSize:'40px', marginBottom:'10px'}});
+      const tit = el('div', {className:'empty-state-title', textContent:'Kullanıcı Bulunamadı', style:{fontSize:'18px', fontWeight:'900', color:'var(--text-1)', marginBottom:'8px'}});
+      const sub = el('div', {style:{fontSize:'13px', color:'var(--text-2)', marginBottom:'20px', maxWidth:'300px'}}, 'Aradığınız oyuncu sistemde kayıtlı olmayabilir.');
+      const btn = el('button', {className:'mc-btn mc-gray', textContent:'Keşfet\'e Git'});
+      btn.addEventListener('click', () => { window.location.href = 'kesfet.html'; });
+      er.appendChild(ico); er.appendChild(tit); er.appendChild(sub); er.appendChild(btn);
+    }
+    
+    document.getElementById('profileHeaderInner').appendChild(er);
+    return;
+  }
+
+  profileUser = targetUser;
+  isOwnProfile = currentUser && currentUser.id === profileUser.id;
+
+  // Track visitor
+  if (!isOwnProfile && currentUser) {
+    sb.from('profil_ziyaretciler').insert({
+      profil_id: profileUser.id,
+      ziyaretci_id: currentUser.id,
+      ziyaret_tarihi: new Date().toISOString()
+    }).then(() => {});
+  }
+
+  // Check follow status
+  if (!isOwnProfile && currentUser) {
+    const { data: fw } = await sb.from('takipler')
+      .select('id')
+      .eq('takip_eden_id', currentUser.id)
+      .eq('takip_edilen_id', profileUser.id)
+      .single();
+
+    const { data: pending } = await sb.from('takip_istekleri')
+      .select('id, durum')
+      .eq('gonderen_id', currentUser.id)
+      .eq('alici_id', profileUser.id)
+      .eq('durum', 'bekliyor')
+      .single();
+
+    const { data: theyFollowMe } = await sb.from('takipler')
+      .select('id')
+      .eq('takip_eden_id', profileUser.id)
+      .eq('takip_edilen_id', currentUser.id)
+      .single();
+
+    const { data: theyRequested } = await sb.from('takip_istekleri')
+      .select('id')
+      .eq('gonderen_id', profileUser.id)
+      .eq('alici_id', currentUser.id)
+      .eq('durum', 'bekliyor')
+      .single();
+
+    if (fw) followStatus = 'following';
+    else if (pending) followStatus = 'pending';
+    else if (theyRequested) followStatus = 'received';
+    else followStatus = null;
+
+    isFollower = !!fw || (followStatus === 'following');
+
+    // are they following me?
+    if (theyFollowMe) isFollower = true; // they follow the viewer
+    // correction: isFollower = viewer follows profile
+    isFollower = !!fw;
+  }
+
+  renderBanner();
+  renderProfileHeader();
+  renderTabs();
+  renderBody();
+}
+
+// ===== BANNER =====
+function renderBanner() {
+  const bw = document.getElementById('bannerWrap');
+  bw.innerHTML = '';
+
+  if (profileUser.banner_url) {
+    const img = el('img', {className:'banner-img', attrs:{src:profileUser.banner_url, alt:'Banner'}});
+    bw.appendChild(img);
+  } else if (profileUser.banner_renk && profileUser.banner_renk !== 'default') {
+    bw.className = `banner-wrap banner-color-${profileUser.banner_renk}`;
+  } else {
+    const bc = el('canvas', {className:'banner-canvas-mini', id:'bannerCanvas'});
+    bw.appendChild(bc);
+    setTimeout(initBannerCanvas, 50);
+  }
+}
+
+// ===== PROFILE HEADER =====
+function renderProfileHeader() {
+  const container = document.getElementById('profileHeaderInner');
+  container.innerHTML = '';
+
+  // PP
+  const ppSection = el('div', {className:'profile-pp-wrap'});
+  const ppWrap = el('div', {className:'pp-wrap'});
+  ppWrap.setAttribute('data-frame', profileUser.aktif_cerceve || 'none');
+
+  const ppImg = el('img', {className:'pp-img'});
+  ppImg.src = ppSrc(profileUser);
+  ppImg.alt = profileUser.kullanici_adi;
+  if (profileUser.pp_sekil === 'rounded') ppImg.classList.add('shape-rounded');
+
+  ppWrap.appendChild(ppImg);
+  const zoomHint = el('div', {className:'profile-pp-zoom-hint', textContent:'🔍'});
+  ppSection.appendChild(ppWrap);
+  ppSection.appendChild(zoomHint);
+  ppSection.addEventListener('click', () => openPPZoom());
+  container.appendChild(ppSection);
+
+  // Info
+  const info = el('div', {className:'profile-info'});
+
+  // Name row
+  const nameRow = el('div', {className:'profile-name-row'});
+  const nick = el('span', {className:'profile-nick', textContent:profileUser.kullanici_adi});
+  nameRow.appendChild(nick);
+
+  if (profileUser.dogrulama_rozeti) {
+    const vbadge = el('img', {className:'profile-verify-badge', attrs:{src:'https://i.imgur.com/VDpHaPy.png', alt:'Doğrulanmış', title:'Doğrulanmış Hesap'}});
+    nameRow.appendChild(vbadge);
+  }
+  info.appendChild(nameRow);
+
+  // Badges row
+  const badgesRow = el('div', {className:'profile-badges-row'});
+  const abonelikMap = {uye:'b-uye',abone:'b-abone',premium:'b-premium',admin:'b-admin'};
+  const abonelikLabel = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin'};
+  const ab = profileUser.abonelik || 'uye';
+  const abBadge = el('span', {className:`badge ${abonelikMap[ab]||'b-uye'}`, textContent:abonelikLabel[ab]||'Üye'});
+  badgesRow.appendChild(abBadge);
+
+  if (profileUser.kategori) {
+    const catBadge = el('span', {className:`badge b-cat ${CAT_BADGE_MAP[profileUser.kategori]||'b-diger'}`, textContent:profileUser.kategori});
+    badgesRow.appendChild(catBadge);
+  }
+  if (profileUser.alt_kategori) {
+    const altBadge = el('span', {className:'badge b-diger', textContent:profileUser.alt_kategori});
+    badgesRow.appendChild(altBadge);
+  }
+  if (profileUser.klan_tag) {
+    const klanTag = el('span', {className:'profile-klan-tag', textContent:'['+profileUser.klan_tag+']'});
+    klanTag.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href=`klanlar.html?tag=${profileUser.klan_tag}`;
+    });
+    badgesRow.appendChild(klanTag);
+  }
+  info.appendChild(badgesRow);
+
+  if (profileUser.bio) {
+    const bio = el('p', {className:'profile-bio', textContent:profileUser.bio});
+    info.appendChild(bio);
+  }
+
+  // Stats row
+  const statsRow = el('div', {className:'profile-stats-row'});
+
+  const takipciStat = el('div', {className:'profile-stat'});
+  const takipciVal = el('strong', {textContent:(profileUser.takipci_sayisi||0).toLocaleString()});
+  takipciStat.appendChild(takipciVal);
+  takipciStat.appendChild(document.createTextNode(' Takipçi'));
+  takipciStat.addEventListener('click', () => switchTab('takipciler'));
+  statsRow.appendChild(takipciStat);
+
+  const sep1 = el('span', {className:'profile-stat-sep', textContent:'·'});
+  statsRow.appendChild(sep1);
+
+  const takipStat = el('div', {className:'profile-stat'});
+  const takipVal = el('strong', {textContent:(profileUser.takip_sayisi||0).toLocaleString()});
+  takipStat.appendChild(takipVal);
+  takipStat.appendChild(document.createTextNode(' Takip'));
+  takipStat.addEventListener('click', () => switchTab('takip'));
+  statsRow.appendChild(takipStat);
+
+  const sep2 = el('span', {className:'profile-stat-sep', textContent:'·'});
+  statsRow.appendChild(sep2);
+
+  const lcoinStat = el('div', {className:'profile-lcoin-stat'});
+  lcoinStat.appendChild(document.createTextNode('🪙 '));
+  lcoinStat.appendChild(el('strong', {textContent:(profileUser.lcoin||0).toLocaleString()}));
+  lcoinStat.appendChild(document.createTextNode(' LCoin'));
+  statsRow.appendChild(lcoinStat);
+
+  info.appendChild(statsRow);
+  container.appendChild(info);
+
+  // Actions
+  const actions = el('div', {className:'profile-actions'});
+
+  if (isOwnProfile) {
+    const row = el('div', {className:'profile-actions-row'});
+    const editBtn = el('button', {className:'mc-btn mc-gray', textContent:'Profili Düzenle'});
+    editBtn.addEventListener('click', () => switchTab('ozellestir'));
+    const msgBtn = el('button', {className:'mc-btn mc-blue', textContent:'💬 Mesajlar'});
+    msgBtn.addEventListener('click', () => { window.location.href='mesajlar.html'; });
+    row.appendChild(editBtn);
+    row.appendChild(msgBtn);
+    actions.appendChild(row);
+  } else if (currentUser) {
+    const row = el('div', {className:'profile-actions-row'});
+
+    // Follow button
+    const followBtn = buildFollowBtn();
+    row.appendChild(followBtn);
+
+    // Message button
+    const msgRow = buildMsgBtn();
+    row.appendChild(msgRow);
+
+    // More button
+    const moreBtn = el('button', {className:'more-btn', textContent:'⋯', attrs:{title:'Daha Fazla'}});
+    moreBtn.addEventListener('click', (e) => showMoreMenu(e, moreBtn));
+    row.appendChild(moreBtn);
+
+    actions.appendChild(row);
+
+    // "Follows me" indicator
+    // Check if they follow the current user
+    checkIfTheyFollowMe(actions);
+  }
+
+  container.appendChild(actions);
+
+  document.getElementById('profileTabsWrap').style.display = 'block';
+  document.getElementById('profileBody').style.display = 'grid';
+}
+
+async function checkIfTheyFollowMe(actionsEl) {
+  if (!currentUser || !profileUser) return;
+  const { data } = await sb.from('takipler')
+    .select('id')
+    .eq('takip_eden_id', profileUser.id)
+    .eq('takip_edilen_id', currentUser.id)
+    .single();
+  if (data) {
+    const followsMeRow = el('div', {className:'profile-follows-me'});
+    const dot = el('span', {className:'follow-dot'});
+    followsMeRow.appendChild(dot);
+    followsMeRow.appendChild(document.createTextNode('Seni takip ediyor'));
+    actionsEl.appendChild(followsMeRow);
+  }
+}
+
+function buildFollowBtn() {
+  const btn = el('button', {className:'mc-btn'});
+
+  if (followStatus === 'following') {
+    btn.className = 'mc-btn mc-gray';
+    btn.textContent = 'Takibi Bırak';
+    btn.addEventListener('click', () => unfollowUser(btn));
+  } else if (followStatus === 'pending') {
+    btn.className = 'mc-btn mc-gold';
+    btn.textContent = '⏳ İstek Bekliyor';
+    btn.disabled = true;
+  } else if (followStatus === 'received') {
+    // They sent me a request
+    btn.className = 'mc-btn mc-blue';
+    btn.textContent = '👁 Takip İsteğin Var';
+    btn.addEventListener('click', () => { switchTab('hesap'); });
+  } else {
+    if (profileUser.profil_gizli) {
+      btn.className = 'mc-btn mc-blue';
+      btn.textContent = '🔒 İstek Gönder';
+      btn.addEventListener('click', () => sendFollowRequest(btn));
+    } else {
+      btn.className = 'mc-btn mc-green';
+      btn.textContent = '+ Takip Et';
+      btn.addEventListener('click', () => followUser(btn));
+    }
+  }
+  return btn;
+}
+
+function buildMsgBtn() {
+  const ma = profileUser.mesaj_ayar || 'herkes';
+
+  if (ma === 'hic') {
+    const lb = el('div', {className:'msg-locked-btn'});
+    lb.textContent = '🚫 Mesaj Almıyor';
+    return lb;
+  }
+
+  if (ma === 'takipciler' && !isFollower) {
+    const lb = el('div', {className:'msg-locked-btn', attrs:{title:'Sadece takipçilerine mesaj gönderebilir'}});
+    lb.textContent = '🔒 Kilitli';
+    return lb;
+  }
+
+  const btn = el('button', {className:'mc-btn mc-blue', textContent:'💬 Mesaj'});
+  btn.addEventListener('click', () => {
+    window.location.href = `mesajlar.html?user=${profileUser.id}`;
+  });
+  return btn;
+}
+
+function showMoreMenu(e, anchorBtn) {
+  // Remove existing
+  document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
+
+  const menu = el('div', {className:'ctx-menu'});
+  const rect = anchorBtn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 4) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+
+  const blockItem = el('div', {className:'ctx-item danger'});
+  blockItem.textContent = '🚫 Engelle';
+  blockItem.addEventListener('click', async () => {
+    menu.remove();
+    if (!confirm('Bu kullanıcıyı engellemek istediğinize emin misiniz?')) return;
+    await sb.from('engellemeler').insert({engelleyen_id:currentUser.id, engellened_id:profileUser.id});
+    toast('Kullanıcı engellendi.', 'info');
+  });
+
+  const reportItem = el('div', {className:'ctx-item danger'});
+  reportItem.textContent = '⚠️ Şikayet Et';
+  reportItem.addEventListener('click', () => {
+    menu.remove();
+    toast('Şikayet alındı, incelenecek.', 'info');
+  });
+
+  menu.appendChild(blockItem);
+  menu.appendChild(reportItem);
+  document.body.appendChild(menu);
+
+  const close = (ev) => {
+    if (!menu.contains(ev.target) && ev.target !== anchorBtn) {
+      menu.remove();
+      document.removeEventListener('click', close);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', close), 50);
+}
+
+async function followUser(btn) {
+  if (!currentUser) return;
+  btn.disabled = true;
+  btn.textContent = '...';
+  await sb.from('takipler').insert({takip_eden_id:currentUser.id, takip_edilen_id:profileUser.id});
+  await sb.from('kullanicilar').update({takipci_sayisi:(profileUser.takipci_sayisi||0)+1}).eq('id', profileUser.id);
+  await sb.from('kullanicilar').update({takip_sayisi:(currentUser.takip_sayisi||0)+1}).eq('id', currentUser.id);
+  await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'takip', icerik:currentUser.kullanici_adi+' sizi takip etmeye başladı.', link:`profil.html?id=${currentUser.id}`});
+  followStatus = 'following';
+  btn.className = 'mc-btn mc-gray';
+  btn.textContent = 'Takibi Bırak';
+  btn.disabled = false;
+  btn.removeEventListener('click', ()=>{});
+  btn.addEventListener('click', () => unfollowUser(btn));
+  toast('Takip edildi!', 'success');
+  profileUser.takipci_sayisi = (profileUser.takipci_sayisi||0)+1;
+  updateStatDisplay();
+}
+
+async function unfollowUser(btn) {
+  if (!currentUser) return;
+  btn.disabled = true;
+  await sb.from('takipler').delete().eq('takip_eden_id', currentUser.id).eq('takip_edilen_id', profileUser.id);
+  await sb.from('kullanicilar').update({takipci_sayisi:Math.max(0,(profileUser.takipci_sayisi||1)-1)}).eq('id', profileUser.id);
+  await sb.from('kullanicilar').update({takip_sayisi:Math.max(0,(currentUser.takip_sayisi||1)-1)}).eq('id', currentUser.id);
+  followStatus = null;
+  profileUser.takipci_sayisi = Math.max(0,(profileUser.takipci_sayisi||1)-1);
+
+  if (profileUser.profil_gizli) {
+    btn.className = 'mc-btn mc-blue';
+    btn.textContent = '🔒 İstek Gönder';
+    btn.disabled = false;
+    btn.addEventListener('click', () => sendFollowRequest(btn));
+  } else {
+    btn.className = 'mc-btn mc-green';
+    btn.textContent = '+ Takip Et';
+    btn.disabled = false;
+    btn.addEventListener('click', () => followUser(btn));
+  }
+  toast('Takipten çıkıldı.', 'info');
+  updateStatDisplay();
+}
+
+async function sendFollowRequest(btn) {
+  if (!currentUser) return;
+  btn.disabled = true;
+  await sb.from('takip_istekleri').insert({gonderen_id:currentUser.id, alici_id:profileUser.id, durum:'bekliyor'});
+  await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'takip_istegi', icerik:currentUser.kullanici_adi+' takip isteği gönderdi.', link:`profil.html?id=${currentUser.id}`});
+  followStatus = 'pending';
+  btn.className = 'mc-btn mc-gold';
+  btn.textContent = '⏳ İstek Bekliyor';
+  btn.disabled = true;
+  toast('Takip isteği gönderildi!', 'gold');
+}
+
+function updateStatDisplay() {
+  const statEl = document.querySelector('.profile-stat strong');
+  if (statEl) statEl.textContent = (profileUser.takipci_sayisi||0).toLocaleString();
+}
+
+function openPPZoom() {
+  const overlay = document.getElementById('ppZoomOverlay');
+  const img = document.getElementById('ppZoomImg');
+  img.src = ppSrc(profileUser);
+  if (profileUser.pp_sekil === 'rounded') img.classList.add('shape-rounded');
+  else img.classList.remove('shape-rounded');
+  overlay.classList.add('open');
+}
+document.getElementById('ppZoomOverlay').addEventListener('click', () => {
+  document.getElementById('ppZoomOverlay').classList.remove('open');
+});
+
+// ===== TABS =====
+const TAB_DEFS = [
+  {id:'droplar',    icon:'💬', label:'Droplar'},
+  {id:'ilanlar',   icon:'📣', label:'İlanlar'},
+  {id:'takipciler',icon:'👥', label:'Takipçiler'},
+  {id:'takip',     icon:'👤', label:'Takip'},
+];
+const OWN_TABS = [
+  {id:'ozellestir',icon:'🎨', label:'Özelleştir'},
+  {id:'hesap',     icon:'⚙️', label:'Hesap'},
+];
+
+function renderTabs() {
+  const bar = document.getElementById('tabsBar');
+  bar.innerHTML = '';
+
+  const tabs = [...TAB_DEFS, ...(isOwnProfile ? OWN_TABS : [])];
+  tabs.forEach(t => {
+    const btn = el('button', {className:'tab-btn' + (t.id===activeTab?' active':'')});
+    btn.setAttribute('data-tab', t.id);
+    const ico = el('span', {textContent:t.icon});
+    const lb = el('span', {textContent:t.label});
+    btn.appendChild(ico);
+    btn.appendChild(lb);
+    btn.addEventListener('click', () => switchTab(t.id));
+    bar.appendChild(btn);
+  });
+}
+
+function switchTab(tabId) {
+  activeTab = tabId;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
+  });
+  renderMainContent();
+}
+
+// ===== BODY RENDER =====
+function renderBody() {
+  renderMainContent();
+  renderRightPanel();
+}
+
+function renderMainContent() {
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = '';
+
+  // Private overlay logic
+  const isPrivate = profileUser.profil_gizli && !isOwnProfile && !isFollower;
+
+  if (isPrivate && (activeTab==='droplar'||activeTab==='ilanlar'||activeTab==='takipciler'||activeTab==='takip')) {
+    const overlay = el('div', {className:'private-overlay fade-in-up'});
+    const ico = el('div', {className:'private-overlay-icon', textContent:'🔒'});
+    const tit = el('div', {className:'private-overlay-title', textContent:'Bu hesap gizli'});
+    const sub = el('div', {className:'private-overlay-sub', textContent:'Takip ederek içeriklerini görebilirsin.'});
+
+    let reqBtn;
+    if (currentUser) {
+      if (followStatus === 'pending') {
+        reqBtn = el('button', {className:'mc-btn mc-gold', textContent:'⏳ İstek Bekliyor'});
+        reqBtn.disabled = true;
+      } else {
+        reqBtn = el('button', {className:'mc-btn mc-green', textContent:'🔒 Takip İsteği Gönder'});
+        reqBtn.addEventListener('click', () => sendFollowRequest(reqBtn));
+      }
+    }
+
+    overlay.appendChild(ico);
+    overlay.appendChild(tit);
+    overlay.appendChild(sub);
+    if (reqBtn) overlay.appendChild(reqBtn);
+    mc.appendChild(overlay);
+    return;
+  }
+
+  if (activeTab === 'droplar') renderDropsTab(mc);
+  else if (activeTab === 'ilanlar') renderIlanlarTab(mc);
+  else if (activeTab === 'takipciler') renderFollowList(mc, 'takipciler');
+  else if (activeTab === 'takip') renderFollowList(mc, 'takip');
+  else if (activeTab === 'ozellestir') renderOzellestirTab(mc);
+  else if (activeTab === 'hesap') renderHesapTab(mc);
+}
+
+// ===== DROPS TAB =====
+async function renderDropsTab(container) {
+  const wrap = el('div', {className:'fade-in-up'});
+
+  if (isOwnProfile) {
+    wrap.appendChild(buildDropComposer());
+  }
+
+  const loadWrap = el('div');
+  loadWrap.innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  wrap.appendChild(loadWrap);
+  container.appendChild(wrap);
+
+  const { data: dropsData } = await sb.from('droplar')
+    .select('*')
+    .eq('kullanici_id', profileUser.id)
+    .order('created_at', {ascending:false})
+    .limit(20);
+
+  loadWrap.innerHTML = '';
+  drops = dropsData || [];
+
+  if (!drops.length) {
+    const es = el('div', {className:'empty-state'});
+    const ico = el('div', {className:'empty-state-icon', textContent:'💬'});
+    const tit = el('div', {className:'empty-state-title', textContent:'Henüz Drop Yok'});
+    const sub = el('div', {className:'empty-state-sub', textContent:isOwnProfile?'İlk dropunu paylaş!':'Bu kullanıcı henüz bir drop paylaşmamış.'});
+    es.appendChild(ico); es.appendChild(tit); es.appendChild(sub);
+    loadWrap.appendChild(es);
+    return;
+  }
+
+  let myLikes = new Set();
+  if (currentUser) {
+    const { data: lkd } = await sb.from('drop_begeniler').select('drop_id').eq('kullanici_id', currentUser.id).in('drop_id', drops.map(d=>d.id));
+    if (lkd) lkd.forEach(l => myLikes.add(l.drop_id));
+  }
+
+  drops.forEach(d => {
+    const card = buildDropCard(d, myLikes.has(d.id));
+    loadWrap.appendChild(card);
+  });
+}
+
+function buildDropComposer() {
+  const comp = el('div', {className:'drop-composer'});
+  const header = el('div', {className:'drop-composer-header'});
+
+  const ppImg = el('img', {className:'drop-composer-pp', attrs:{src:ppSrc(currentUser), alt:'PP'}});
+  header.appendChild(ppImg);
+
+  const right = el('div', {className:'drop-composer-right'});
+  const ta = el('textarea', {className:'drop-textarea', attrs:{placeholder:'Ne düşünüyorsun?', maxlength:'280'}});
+  right.appendChild(ta);
+
+  const footer = el('div', {className:'drop-composer-footer'});
+  const charCount = el('span', {className:'drop-char-count', textContent:'0/280'});
+  ta.addEventListener('input', () => {
+    const len = ta.value.length;
+    charCount.textContent = `${len}/280`;
+    charCount.className = 'drop-char-count' + (len>250?' warn':'') + (len>270?' danger':'');
+  });
+
+  const imgFile = el('input', {attrs:{type:'file', accept:'image/*', id:'dropImgFile', style:'display:none'}});
+  const imgLabel = el('label', {className:'drop-img-label', attrs:{for:'dropImgFile', title:'Fotoğraf Ekle'}});
+  imgLabel.textContent = '🖼️';
+
+  const imgPreview = el('div', {className:'drop-img-preview', id:'dropImgPreview'});
+  const prevImg = el('img', {attrs:{id:'dropPrevImg', alt:'Preview'}});
+  const removeImg = el('div', {className:'drop-img-remove', textContent:'✕'});
+  imgPreview.appendChild(prevImg);
+  imgPreview.appendChild(removeImg);
+
+  let selectedImgFile = null;
+  imgFile.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    selectedImgFile = f;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      prevImg.src = ev.target.result;
+      imgPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(f);
+  });
+  removeImg.addEventListener('click', () => {
+    selectedImgFile = null;
+    imgFile.value = '';
+    imgPreview.style.display = 'none';
+  });
+
+  const postBtn = el('button', {className:'mc-btn mc-green', textContent:'📤 Paylaş'});
+  postBtn.addEventListener('click', async () => {
+    const text = ta.value.trim();
+    if (!text && !selectedImgFile) { toast('Bir şeyler yaz!', 'error'); return; }
+    postBtn.disabled = true;
+    postBtn.textContent = '...';
+
+    let imgUrl = null;
+    if (selectedImgFile) {
+      const path = `drops/${currentUser.id}/${Date.now()}`;
+      const { data: upData, error: upErr } = await sb.storage.from('media').upload(path, selectedImgFile);
+      if (!upErr) {
+        const { data: { publicUrl } } = sb.storage.from('media').getPublicUrl(path);
+        imgUrl = publicUrl;
+      }
+    }
+
+    await sb.from('droplar').insert({
+      kullanici_id: currentUser.id,
+      kullanici_nick: currentUser.kullanici_adi,
+      icerik: text,
+      gorsel_url: imgUrl,
+      begeni_sayisi: 0,
+      yorum_sayisi: 0,
+      created_at: new Date().toISOString()
+    });
+
+    ta.value = '';
+    charCount.textContent = '0/280';
+    selectedImgFile = null;
+    imgFile.value = '';
+    imgPreview.style.display = 'none';
+    postBtn.disabled = false;
+    postBtn.textContent = '📤 Paylaş';
+    toast('Drop paylaşıldı!', 'success');
+    // Reload drops
+    renderDropsTab(document.getElementById('mainContent'));
+  });
+
+  const actionsDiv = el('div', {className:'drop-composer-actions'});
+  actionsDiv.appendChild(imgFile);
+  actionsDiv.appendChild(imgLabel);
+  actionsDiv.appendChild(postBtn);
+
+  footer.appendChild(charCount);
+  footer.appendChild(actionsDiv);
+  right.appendChild(footer);
+  right.appendChild(imgPreview);
+
+  header.appendChild(right);
+  comp.appendChild(header);
+  return comp;
+}
+
+function buildDropCard(drop, isLiked) {
+  const card = el('div', {className:'drop-card', id:`drop-${drop.id}`});
+
+  const header = el('div', {className:'drop-card-header'});
+  const userDiv = el('div', {className:'drop-card-user'});
+  const ppImg = el('img', {className:'drop-card-pp', attrs:{src:ppSrc(profileUser), alt:'PP'}});
+  const userInfo = el('div');
+  const nick = el('div', {className:'drop-card-nick', textContent:profileUser.kullanici_adi});
+  const time = el('div', {className:'drop-card-time', textContent:timeAgo(drop.created_at)});
+  userInfo.appendChild(nick);
+  userInfo.appendChild(time);
+  userDiv.appendChild(ppImg);
+  userDiv.appendChild(userInfo);
+  header.appendChild(userDiv);
+
+  // 3-dot menu for own drops
+  if (isOwnProfile) {
+    const menuBtn = el('button', {className:'drop-menu-btn', textContent:'⋯'});
+    menuBtn.addEventListener('click', (e) => showDropMenu(e, menuBtn, drop.id));
+    header.appendChild(menuBtn);
+  }
+
+  card.appendChild(header);
+
+  if (drop.icerik) {
+    const content = el('div', {className:'drop-card-content', textContent:drop.icerik});
+    card.appendChild(content);
+  }
+
+  if (drop.gorsel_url) {
+    const dImg = el('img', {className:'drop-card-img', attrs:{src:drop.gorsel_url, alt:'Drop Görseli'}});
+    dImg.addEventListener('click', () => openImgModal(drop.gorsel_url));
+    card.appendChild(dImg);
+  }
+
+  // Actions
+  const actDiv = el('div', {className:'drop-card-actions'});
+
+  // Like button
+  const likeBtn = el('button', {className:'drop-action-btn' + (isLiked?' liked':'')});
+  const likeIco = el('span', {textContent:isLiked?'❤️':'🤍'});
+  const likeCnt = el('span', {textContent:drop.begeni_sayisi||0});
+  likeBtn.appendChild(likeIco);
+  likeBtn.appendChild(likeCnt);
+  let liked = isLiked;
+  likeBtn.addEventListener('click', async () => {
+    if (!currentUser) { toast('Giriş yapmalısın!', 'error'); return; }
+    if (liked) {
+      // Can only unlike own like
+      await sb.from('drop_begeniler').delete().eq('drop_id', drop.id).eq('kullanici_id', currentUser.id);
+      await sb.from('droplar').update({begeni_sayisi:Math.max(0,(drop.begeni_sayisi||1)-1)}).eq('id', drop.id);
+      drop.begeni_sayisi = Math.max(0,(drop.begeni_sayisi||1)-1);
+      liked = false;
+      likeIco.textContent = '🤍';
+      likeCnt.textContent = drop.begeni_sayisi;
+      likeBtn.classList.remove('liked');
+    } else {
+      await sb.from('drop_begeniler').insert({drop_id:drop.id, kullanici_id:currentUser.id});
+      await sb.from('droplar').update({begeni_sayisi:(drop.begeni_sayisi||0)+1}).eq('id', drop.id);
+      drop.begeni_sayisi = (drop.begeni_sayisi||0)+1;
+      liked = true;
+      likeIco.textContent = '❤️';
+      likeCnt.textContent = drop.begeni_sayisi;
+      likeBtn.classList.add('liked');
+      if (profileUser.id !== currentUser.id) {
+        await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'begeni', icerik:currentUser.kullanici_adi+' dropunu beğendi.', link:`profil.html?id=${profileUser.id}`});
+      }
+    }
+  });
+  actDiv.appendChild(likeBtn);
+
+  // Comment button
+  const commentBtn = el('button', {className:'drop-action-btn'});
+  const cmtIco = el('span', {textContent:'💬'});
+  const cmtCnt = el('span', {textContent:drop.yorum_sayisi||0});
+  commentBtn.appendChild(cmtIco);
+  commentBtn.appendChild(cmtCnt);
+
+  // Comment panel
+  const cmtPanel = el('div', {className:'comment-panel', id:`cmt-${drop.id}`});
+  commentBtn.addEventListener('click', () => {
+    const open = cmtPanel.classList.toggle('open');
+    if (open) loadComments(drop.id, cmtPanel, cmtCnt, drop);
+  });
+  actDiv.appendChild(commentBtn);
+  card.appendChild(actDiv);
+  card.appendChild(cmtPanel);
+
+  return card;
+}
+
+async function loadComments(dropId, panel, cntEl, drop) {
+  panel.innerHTML = '';
+  const { data: comments } = await sb.from('drop_yorumlar')
+    .select('*, kullanicilar(kullanici_adi, avatar_url)')
+    .eq('drop_id', dropId)
+    .order('created_at', {ascending:true})
+    .limit(20);
+
+  if (comments && comments.length) {
+    comments.forEach(c => {
+      const item = el('div', {className:'comment-item'});
+      const pp = el('img', {className:'comment-pp', attrs:{src:ppSrc(c.kullanicilar), alt:'PP'}});
+      const bubble = el('div', {className:'comment-bubble'});
+      const nick = el('div', {className:'comment-nick', textContent:c.kullanicilar?.kullanici_adi||'Anonim'});
+      const txt = el('div', {className:'comment-text', textContent:c.yorum});
+      bubble.appendChild(nick);
+      bubble.appendChild(txt);
+      item.appendChild(pp);
+      item.appendChild(bubble);
+      panel.appendChild(item);
+    });
+  } else {
+    const noC = el('div', {className:'text-dim', style:{fontSize:'12px', marginBottom:'8px'}});
+    noC.textContent = 'Henüz yorum yok.';
+    panel.appendChild(noC);
+  }
+
+  if (currentUser) {
+    const inputRow = el('div', {className:'comment-input-row'});
+    const myPp = el('img', {className:'comment-pp', attrs:{src:ppSrc(currentUser), alt:'PP'}});
+    const input = el('input', {className:'comment-input', attrs:{type:'text', placeholder:'Yorum yaz...', maxlength:'200'}});
+    const sendBtn = el('button', {className:'comment-send-btn', textContent:'➤'});
+    const submitComment = async () => {
+      const txt2 = input.value.trim();
+      if (!txt2) return;
+      await sb.from('drop_yorumlar').insert({drop_id:dropId, kullanici_id:currentUser.id, yorum:txt2, begeni_sayisi:0, created_at:new Date().toISOString()});
+      await sb.from('droplar').update({yorum_sayisi:(drop.yorum_sayisi||0)+1}).eq('id', dropId);
+      drop.yorum_sayisi = (drop.yorum_sayisi||0)+1;
+      if (cntEl) cntEl.textContent = drop.yorum_sayisi;
+      input.value = '';
+      if (profileUser.id !== currentUser.id) {
+        await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'yorum', icerik:currentUser.kullanici_adi+' dropuna yorum yaptı.', link:`profil.html?id=${profileUser.id}`});
+      }
+      loadComments(dropId, panel, cntEl, drop);
+    };
+    input.addEventListener('keydown', (e) => { if (e.key==='Enter') submitComment(); });
+    sendBtn.addEventListener('click', submitComment);
+    inputRow.appendChild(myPp);
+    inputRow.appendChild(input);
+    inputRow.appendChild(sendBtn);
+    panel.appendChild(inputRow);
+  }
+}
+
+function showDropMenu(e, btn, dropId) {
+  document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
+  const menu = el('div', {className:'ctx-menu'});
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom+4)+'px';
+  menu.style.right = (window.innerWidth-rect.right)+'px';
+
+  const delItem = el('div', {className:'ctx-item danger', textContent:'🗑️ Sil'});
+  delItem.addEventListener('click', async () => {
+    menu.remove();
+    if (!confirm('Bu dropu silmek istiyor musun?')) return;
+    await sb.from('droplar').delete().eq('id', dropId);
+    const card = document.getElementById(`drop-${dropId}`);
+    if (card) card.remove();
+    toast('Drop silindi.', 'info');
+  });
+  menu.appendChild(delItem);
+  document.body.appendChild(menu);
+
+  const close = (ev) => {
+    if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', close); }
+  };
+  setTimeout(() => document.addEventListener('click', close), 50);
+}
+
+function openImgModal(src) {
+  const overlay = el('div', {className:'modal-overlay', style:{zIndex:'4000'}});
+  const img = el('img', {attrs:{src, alt:'Görsel', style:'max-width:90vw;max-height:90vh;border-radius:8px;cursor:zoom-out;'}});
+  overlay.appendChild(img);
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+
+// ===== İLANLAR TAB =====
+async function renderIlanlarTab(container) {
+  const wrap = el('div', {className:'fade-in-up'});
+  const spinner = el('div', {className:'empty-state'});
+  spinner.appendChild(el('div', {className:'spinner'}));
+  wrap.appendChild(spinner);
+  container.appendChild(wrap);
+
+  const { data: ilanlar } = await sb.from('ilanlar')
+    .select('*')
+    .eq('kullanici_id', profileUser.id)
+    .eq('durum', 'aktif')
+    .order('one_cikan', {ascending:false})
+    .order('id', {ascending:false});
+
+  spinner.remove();
+
+  if (!ilanlar || !ilanlar.length) {
+    const es = el('div', {className:'empty-state'});
+    es.appendChild(el('div', {className:'empty-state-icon', textContent:'📣'}));
+    es.appendChild(el('div', {className:'empty-state-title', textContent:'İlan Yok'}));
+    es.appendChild(el('div', {className:'empty-state-sub', textContent:'Bu kullanıcının aktif ilanı bulunmuyor.'}));
+    wrap.appendChild(es);
+    return;
+  }
+
+  const grid = el('div', {className:'ilan-grid'});
+  ilanlar.forEach(ilan => {
+    const card = el('div', {className:'ilan-card'});
+
+    const catCls = CAT_BADGE_MAP[ilan.kategori] || 'b-diger';
+    const catBadge = el('span', {className:`badge b-cat ${catCls}`, textContent:ilan.kategori||'Diğer', style:{marginBottom:'8px', display:'inline-flex'}});
+    card.appendChild(catBadge);
+
+    const title = el('div', {className:'ilan-card-title', textContent:ilan.baslik});
+    card.appendChild(title);
+
+    const desc = el('div', {className:'ilan-card-desc', textContent:ilan.aciklama});
+    card.appendChild(desc);
+
+    const price = el('div', {className:'ilan-card-price' + (!ilan.fiyat||ilan.fiyat===0?' free':''), textContent:ilan.fiyat?ilan.fiyat.toLocaleString()+' ₺':'Ücretsiz'});
+    card.appendChild(price);
+
+    const actDiv = el('div', {className:'ilan-card-actions'});
+    if (ilan.discord) {
+      const dc = el('button', {className:'mc-btn mc-blue mc-sm', textContent:'💬 Discord'});
+      dc.addEventListener('click', () => window.open(`https://discord.com/users/${ilan.discord}`, '_blank'));
+      actDiv.appendChild(dc);
+    }
+    card.appendChild(actDiv);
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+}
+
+// ===== FOLLOW LISTS =====
+async function renderFollowList(container, type) {
+  const wrap = el('div', {className:'fade-in-up'});
+  const spinner = el('div', {className:'empty-state'});
+  spinner.appendChild(el('div', {className:'spinner'}));
+  wrap.appendChild(spinner);
+  container.appendChild(wrap);
+
+  let userIds = [];
+  if (type === 'takipciler') {
+    const { data } = await sb.from('takipler').select('takip_eden_id').eq('takip_edilen_id', profileUser.id);
+    userIds = (data||[]).map(r=>r.takip_eden_id);
+  } else {
+    const { data } = await sb.from('takipler').select('takip_edilen_id').eq('takip_eden_id', profileUser.id);
+    userIds = (data||[]).map(r=>r.takip_edilen_id);
+  }
+
+  spinner.remove();
+
+  if (!userIds.length) {
+    const es = el('div', {className:'empty-state'});
+    es.appendChild(el('div', {className:'empty-state-icon', textContent: type==='takipciler'?'👥':'👤'}));
+    es.appendChild(el('div', {className:'empty-state-title', textContent:type==='takipciler'?'Takipçi Yok':'Takip Edilmiyor'}));
+    wrap.appendChild(es);
+    return;
+  }
+
+  const { data: users } = await sb.from('kullanicilar').select('id,kullanici_adi,avatar_url,abonelik,aktif_cerceve').in('id', userIds);
+
+  let myFollowingIds = new Set();
+  if (currentUser) {
+    const { data: mf } = await sb.from('takipler').select('takip_edilen_id').eq('takip_eden_id', currentUser.id);
+    if (mf) mf.forEach(r => myFollowingIds.add(r.takip_edilen_id));
+  }
+
+  const list = el('div', {className:'follow-list'});
+  (users||[]).forEach(u => {
+    const item = el('div', {className:'follow-item'});
+    const pp = el('img', {className:'follow-item-pp', attrs:{src:ppSrc(u), alt:u.kullanici_adi}});
+    pp.addEventListener('click', () => { window.location.href=`profil.html?id=${u.id}`; });
+
+    const info = el('div', {className:'follow-item-info'});
+    const nick = el('div', {className:'follow-item-nick', textContent:u.kullanici_adi});
+    const abMap2 = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin'};
+    const sub = el('div', {className:'follow-item-sub', textContent:abMap2[u.abonelik||'uye']||'Üye'});
+    info.appendChild(nick);
+    info.appendChild(sub);
+
+    item.appendChild(pp);
+    item.appendChild(info);
+
+    if (currentUser && u.id !== currentUser.id) {
+      const isFollowingU = myFollowingIds.has(u.id);
+      const fBtn = el('button', {className:`mc-btn mc-sm ${isFollowingU?'mc-gray':'mc-green'}`, textContent:isFollowingU?'Takip Ediliyor':'Takip Et'});
+      let fw = isFollowingU;
+      fBtn.addEventListener('click', async () => {
+        fBtn.disabled = true;
+        if (fw) {
+          await sb.from('takipler').delete().eq('takip_eden_id',currentUser.id).eq('takip_edilen_id',u.id);
+          fBtn.className = 'mc-btn mc-sm mc-green';
+          fBtn.textContent = 'Takip Et';
+          fw = false;
+          myFollowingIds.delete(u.id);
+        } else {
+          await sb.from('takipler').insert({takip_eden_id:currentUser.id, takip_edilen_id:u.id});
+          fBtn.className = 'mc-btn mc-sm mc-gray';
+          fBtn.textContent = 'Takip Ediliyor';
+          fw = true;
+          myFollowingIds.add(u.id);
+        }
+        fBtn.disabled = false;
+      });
+      item.appendChild(fBtn);
+    }
+
+    list.appendChild(item);
+  });
+  wrap.appendChild(list);
+}
+
+// ===== ÖZELLEŞTİR TAB =====
+function renderOzellestirTab(container) {
+  const wrap = el('div', {className:'fade-in-up'});
+
+  // — Profile Photo Section —
+  const ppSec = el('div', {className:'customize-section'});
+  const ppTitle = el('div', {className:'customize-section-title', textContent:'📸 Profil Fotoğrafı'});
+  ppSec.appendChild(ppTitle);
+
+  const ppRow = el('div', {style:{display:'flex', gap:'16px', alignItems:'flex-start', flexWrap:'wrap'}});
+
+  // Current PP preview
+  const ppPreviewWrap = el('div', {className:'pp-wrap', style:{width:'80px',height:'80px'}});
+  ppPreviewWrap.setAttribute('data-frame', profileUser.aktif_cerceve||'none');
+  const ppPreviewImg = el('img', {className:'pp-img', attrs:{src:ppSrc(currentUser), alt:'PP', id:'customizePP', style:'width:80px;height:80px;'}});
+  if (profileUser.pp_sekil === 'rounded') ppPreviewImg.classList.add('shape-rounded');
+  ppPreviewWrap.appendChild(ppPreviewImg);
+  ppRow.appendChild(ppPreviewWrap);
+
+  const ppBtns = el('div', {style:{display:'flex', flexDirection:'column', gap:'8px'}});
+  const ppUploadInput = el('input', {attrs:{type:'file', accept:'image/*', id:'ppUploadFile', style:'display:none'}});
+  const ppUploadLabel = el('label', {className:'mc-btn mc-blue', attrs:{for:'ppUploadFile', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
+  ppUploadLabel.textContent = '📷 Fotoğraf Yükle';
+
+  const gifNote = el('div', {style:{fontSize:'10px', color:'var(--text-dim)'}});
+  if (['abone','premium'].includes(profileUser.abonelik)) {
+    gifNote.textContent = 'GIF de destekleniyor ✓';
+    ppUploadInput.setAttribute('accept', 'image/*,image/gif');
+  } else {
+    gifNote.innerHTML = 'GIF desteklenir <span class="premium-lock">👑 Abone</span>';
+  }
+
+  ppUploadInput.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    newPPFile = f;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      ppPreviewImg.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+    toast('Fotoğraf seçildi. Kaydet butonuna bas.', 'info');
+  });
+
+  const ppRemoveBtn = el('button', {className:'mc-btn mc-red', textContent:'🗑️ Kaldır'});
+  ppRemoveBtn.addEventListener('click', async () => {
+    await sb.from('kullanicilar').update({avatar_url:null}).eq('id', currentUser.id);
+    ppPreviewImg.src = ppSrc({kullanici_adi:currentUser.kullanici_adi});
+    toast('Profil fotoğrafı kaldırıldı.', 'info');
+  });
+
+  ppBtns.appendChild(ppUploadInput);
+  ppBtns.appendChild(ppUploadLabel);
+  ppBtns.appendChild(gifNote);
+  ppBtns.appendChild(ppRemoveBtn);
+  ppRow.appendChild(ppBtns);
+  ppSec.appendChild(ppRow);
+
+  // PP Shape
+  const shapeTitle = el('div', {style:{fontSize:'10px',fontWeight:'900',textTransform:'uppercase',letterSpacing:'0.5px',color:'var(--text-2)',margin:'16px 0 10px'}});
+  shapeTitle.textContent = '⬡ Şekil';
+  ppSec.appendChild(shapeTitle);
+
+  const shapeRow = el('div', {className:'pp-shape-row'});
+  const shapes = [
+    {id:'circle', label:'Yuvarlak', cls:'circle', req:null},
+    {id:'rounded', label:'Oval', cls:'rounded', req:'abone'}
+  ];
+  selectedShape = profileUser.pp_sekil || 'circle';
+
+  shapes.forEach(s => {
+    const opt = el('div', {className:'pp-shape-opt' + (selectedShape===s.id?' selected':'')});
+    const preview = el('div', {className:`pp-shape-preview ${s.cls}`});
+    const lbl = el('div', {className:'pp-shape-label', textContent:s.label});
+    if (s.req && !['abone','premium'].includes(profileUser.abonelik)) {
+      const lock = el('span', {className:'premium-lock', textContent:'👑'});
+      lbl.appendChild(lock);
+    }
+    opt.appendChild(preview);
+    opt.appendChild(lbl);
+    opt.addEventListener('click', () => {
+      if (s.req && !['abone','premium'].includes(profileUser.abonelik)) {
+        toast('Bu özellik için abone olmalısın!', 'gold');
+        return;
+      }
+      selectedShape = s.id;
+      shapeRow.querySelectorAll('.pp-shape-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      ppPreviewImg.classList.toggle('shape-rounded', s.id==='rounded');
+    });
+    shapeRow.appendChild(opt);
+  });
+  ppSec.appendChild(shapeRow);
+  wrap.appendChild(ppSec);
+
+  // — PP Frame Section —
+  const frameSec = el('div', {className:'customize-section'});
+  const frameTitle = el('div', {className:'customize-section-title', textContent:'🖼️ PP Çerçevesi'});
+  frameSec.appendChild(frameTitle);
+
+  const frames = [
+    {id:'none',      label:'Yok',       color:'#2a2a2a', premium:false},
+    {id:'green',     label:'Yeşil',     color:'#39ff14', premium:false},
+    {id:'red',       label:'Kırmızı',   color:'#ff1a3c', premium:false},
+    {id:'blue',      label:'Mavi',      color:'#00d4ff', premium:false},
+    {id:'gold',      label:'Altın',     color:'#FFD700', premium:false},
+    {id:'purple',    label:'Mor',       color:'#b933ff', premium:false},
+    {id:'white',     label:'Beyaz',     color:'#ffffff', premium:false},
+    {id:'cyan',      label:'Camgöbeği', color:'#00ffcc', premium:false},
+    {id:'neon-green',label:'Neon Yeşil',color:'#39ff14', premium:true},
+    {id:'neon-blue', label:'Neon Mavi', color:'#00d4ff', premium:true},
+    {id:'rainbow',   label:'Gökkuşağı', color:'linear-gradient(135deg,red,yellow,green,blue,purple)', premium:true},
+    {id:'glass',     label:'Cam',       color:'rgba(255,255,255,0.3)', premium:true}
+  ];
+  selectedFrame = profileUser.aktif_cerceve || 'none';
+
+  const frameGrid = el('div', {className:'frame-grid'});
+  const framePPSrc = ppSrc(currentUser);
+
+  frames.forEach(f => {
+    const opt = el('div', {className:'frame-opt' + (selectedFrame===f.id?' selected':'')});
+
+    const framePP = el('img', {className:'frame-opt-pp', attrs:{src:framePPSrc, alt:f.label}});
+    // Apply color as border
+    framePP.style.borderColor = f.id.startsWith('neon') ? f.color : f.color;
+    if (f.id === 'neon-green') { framePP.style.boxShadow = '0 0 10px rgba(57,255,20,0.5)'; }
+    if (f.id === 'neon-blue') { framePP.style.boxShadow = '0 0 10px rgba(0,212,255,0.5)'; }
+    if (f.id === 'rainbow') { framePP.style.borderColor = '#ff0000'; framePP.style.animation = 'rainbow-border 3s linear infinite'; }
+
+    const lbl = el('div', {className:'frame-opt-label', textContent:f.label});
+
+    if (f.premium) {
+      const lock = el('span', {className:'frame-lock-badge', textContent:'👑'});
+      opt.appendChild(lock);
+    }
+
+    opt.appendChild(framePP);
+    opt.appendChild(lbl);
+
+    opt.addEventListener('click', () => {
+      if (f.premium && !['premium'].includes(profileUser.abonelik)) {
+        toast('Bu çerçeve için Premium gereklidir!', 'gold');
+        return;
+      }
+      selectedFrame = f.id;
+      frameGrid.querySelectorAll('.frame-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      // Update live PP
+      const livePPWrap = document.querySelector('.profile-pp-wrap .pp-wrap');
+      if (livePPWrap) livePPWrap.setAttribute('data-frame', f.id);
+      ppPreviewWrap.setAttribute('data-frame', f.id);
+    });
+
+    frameGrid.appendChild(opt);
+  });
+  frameSec.appendChild(frameGrid);
+  wrap.appendChild(frameSec);
+
+  // — Banner Section —
+  const bannerSec = el('div', {className:'customize-section'});
+  const bannerSecTitle = el('div', {className:'customize-section-title', textContent:'🎨 Banner'});
+  bannerSec.appendChild(bannerSecTitle);
+
+  const colorRow = el('div', {className:'banner-color-row'});
+  BANNER_COLORS.forEach(bc2 => {
+    const dot = el('div', {className:'banner-color-dot' + (profileUser.banner_renk===bc2.key||(!profileUser.banner_renk&&bc2.key==='default')?' selected':'')});
+    dot.style.background = bc2.color;
+    dot.title = bc2.label;
+    dot.addEventListener('click', () => {
+      savedBannerColor = bc2.key;
+      savedBannerImg = null;
+      colorRow.querySelectorAll('.banner-color-dot').forEach(d=>d.classList.remove('selected'));
+      dot.classList.add('selected');
+      // Update banner preview
+      const prev = document.getElementById('bannerPreviewEl');
+      if (prev) { prev.style.background = bc2.color; prev.innerHTML=''; }
+    });
+    colorRow.appendChild(dot);
+  });
+  bannerSec.appendChild(colorRow);
+
+  // Upload banner
+  const bannerUploadWrap = el('div', {style:{marginBottom:'10px'}});
+  if (['abone','premium'].includes(profileUser.abonelik)) {
+    const bannerFileInput = el('input', {attrs:{type:'file', accept:'image/*', id:'bannerFileInput', style:'display:none'}});
+    const bannerUploadLabel = el('label', {className:'mc-btn mc-blue', attrs:{for:'bannerFileInput', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
+    bannerUploadLabel.textContent = '🖼️ Görsel Yükle';
+    bannerFileInput.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      newBannerFile = f;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const prev = document.getElementById('bannerPreviewEl');
+        if (prev) {
+          prev.style.background = '';
+          prev.innerHTML = '';
+          const pImg = el('img', {attrs:{src:ev.target.result, alt:'Banner Preview', style:'width:100%;height:100%;object-fit:cover;'}});
+          prev.appendChild(pImg);
+        }
+      };
+      reader.readAsDataURL(f);
+    });
+    bannerUploadWrap.appendChild(bannerFileInput);
+    bannerUploadWrap.appendChild(bannerUploadLabel);
+  } else {
+    const lockNote = el('div', {style:{fontSize:'12px',color:'var(--text-dim)'}});
+    lockNote.innerHTML = '🖼️ Görsel Yükle <span class="premium-lock">👑 Abone</span>';
+    bannerUploadWrap.appendChild(lockNote);
+  }
+  bannerSec.appendChild(bannerUploadWrap);
+
+  // Banner preview
+  const bannerPreview = el('div', {className:'banner-preview', id:'bannerPreviewEl'});
+  if (profileUser.banner_url) {
+    const bi = el('img', {attrs:{src:profileUser.banner_url, alt:'Banner', style:'width:100%;height:100%;object-fit:cover;'}});
+    bannerPreview.appendChild(bi);
+  } else if (profileUser.banner_renk) {
+    const bc3 = BANNER_COLORS.find(c=>c.key===profileUser.banner_renk);
+    if (bc3) bannerPreview.style.background = bc3.color;
+  } else {
+    bannerPreview.style.background = '#050505';
+  }
+  bannerSec.appendChild(bannerPreview);
+  wrap.appendChild(bannerSec);
+
+  // — Bio & Discord —
+  const bioSec = el('div', {className:'customize-section'});
+  const bioTitle = el('div', {className:'customize-section-title', textContent:'✏️ Bio & İletişim'});
+  bioSec.appendChild(bioTitle);
+
+  const bioGroup = el('div', {className:'input-group', style:{marginBottom:'14px'}});
+  const bioLabel = el('label', {className:'input-label', textContent:'BIO (Maks. 160 karakter)'});
+  const bioTa = el('textarea', {className:'input-field', attrs:{maxlength:'160', rows:'3', placeholder:'Kendini tanıt...'}});
+  bioTa.style.resize = 'vertical';
+  bioTa.value = profileUser.bio || '';
+  const bioCharCnt = el('span', {style:{fontSize:'10px',color:'var(--text-dim)'}, textContent:`${(profileUser.bio||'').length}/160`});
+  bioTa.addEventListener('input', () => { bioCharCnt.textContent = `${bioTa.value.length}/160`; });
+  bioGroup.appendChild(bioLabel);
+  bioGroup.appendChild(bioTa);
+  bioGroup.appendChild(bioCharCnt);
+  bioSec.appendChild(bioGroup);
+
+  const discordGroup = el('div', {className:'input-group'});
+  const discordLabel = el('label', {className:'input-label', textContent:'Discord Kullanıcı Adı'});
+  const discordInput = el('input', {className:'input-field', attrs:{type:'text', placeholder:'kullanici#0000 veya yeni format', id:'discordInput'}});
+  discordInput.value = profileUser.discord || '';
+  discordGroup.appendChild(discordLabel);
+  discordGroup.appendChild(discordInput);
+  bioSec.appendChild(discordGroup);
+  wrap.appendChild(bioSec);
+
+  // — Kategori —
+  const katSec = el('div', {className:'customize-section'});
+  const katTitle = el('div', {className:'customize-section-title', textContent:'🏷️ Kategori'});
+  katSec.appendChild(katTitle);
+
+  const katRow = el('div', {style:{display:'flex',gap:'10px',flexWrap:'wrap'}});
+  const katSelect = el('select', {className:'select-field', style:{flex:'1',minWidth:'140px'}});
+  Object.keys(KATEGORI_MAP).forEach(k => {
+    const opt2 = el('option', {textContent:k, attrs:{value:k}});
+    if (profileUser.kategori === k) opt2.selected = true;
+    katSelect.appendChild(opt2);
+  });
+
+  const altKatSelect = el('select', {className:'select-field', style:{flex:'1',minWidth:'120px'}});
+  const updateAltKat = () => {
+    altKatSelect.innerHTML = '';
+    const alts = KATEGORI_MAP[katSelect.value] || ['Diğer'];
+    alts.forEach(a => {
+      const o = el('option', {textContent:a, attrs:{value:a}});
+      if (profileUser.alt_kategori === a) o.selected = true;
+      altKatSelect.appendChild(o);
+    });
+  };
+  updateAltKat();
+  katSelect.addEventListener('change', updateAltKat);
+
+  katRow.appendChild(katSelect);
+  katRow.appendChild(altKatSelect);
+  katSec.appendChild(katRow);
+  wrap.appendChild(katSec);
+
+  // — Aktif Sunucu —
+  const sunucuSec = el('div', {className:'customize-section'});
+  const sunucuTitle = el('div', {className:'customize-section-title', textContent:'🖥️ Aktif Sunucu'});
+  sunucuSec.appendChild(sunucuTitle);
+
+  const subNote = el('div', {style:{fontSize:'11px',color:'var(--text-dim)',marginBottom:'10px'}});
+  subNote.textContent = 'Desteklediğin sunucuyu ve favori sunucularını seç.';
+  sunucuSec.appendChild(subNote);
+
+  const destLabel = el('div', {className:'input-label', style:{marginBottom:'8px'}, textContent:'AKTİF / DESTEKLEDİĞİN SUNUCU'});
+  sunucuSec.appendChild(destLabel);
+
+  selectedDestServer = profileUser.desteklened_sunucu || null;
+  const destGrid = el('div', {className:'server-picker-grid'});
+
+  SERVERS.forEach(srv => {
+    const item = el('div', {className:'server-picker-item' + (selectedDestServer===srv.ip?' selected':'')});
+    const logo = el('img', {className:'server-picker-logo', attrs:{src:serverLogo(srv.ip), alt:srv.name}});
+    logo.onerror = function() { this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=36'; };
+    const name = el('div', {className:'server-picker-name', textContent:srv.name});
+    item.appendChild(logo);
+    item.appendChild(name);
+    item.addEventListener('click', () => {
+      selectedDestServer = srv.ip;
+      destGrid.querySelectorAll('.server-picker-item').forEach(i=>i.classList.remove('selected'));
+      item.classList.add('selected');
+    });
+    destGrid.appendChild(item);
+  });
+  sunucuSec.appendChild(destGrid);
+
+  const favLabel = el('div', {className:'input-label', style:{margin:'14px 0 8px'}});
+  favLabel.textContent = 'FAVORİ SUNUCULAR (maks 5)';
+  sunucuSec.appendChild(favLabel);
+
+  selectedFavServers = Array.isArray(profileUser.favori_sunucular) ? [...profileUser.favori_sunucular] : [];
+  const favGrid = el('div', {className:'server-picker-grid', id:'favServerGrid'});
+
+  SERVERS.forEach(srv => {
+    const item = el('div', {className:'server-picker-item' + (selectedFavServers.includes(srv.ip)?' selected':'')});
+    const logo = el('img', {className:'server-picker-logo', attrs:{src:serverLogo(srv.ip), alt:srv.name}});
+    logo.onerror = function() { this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=36'; };
+    const name = el('div', {className:'server-picker-name', textContent:srv.name});
+    item.appendChild(logo);
+    item.appendChild(name);
+    item.addEventListener('click', () => {
+      const idx = selectedFavServers.indexOf(srv.ip);
+      if (idx > -1) {
+        selectedFavServers.splice(idx, 1);
+        item.classList.remove('selected');
+      } else {
+        if (selectedFavServers.length >= 5) { toast('En fazla 5 favori sunucu seçebilirsin!', 'error'); return; }
+        selectedFavServers.push(srv.ip);
+        item.classList.add('selected');
+      }
+    });
+    favGrid.appendChild(item);
+  });
+  sunucuSec.appendChild(favGrid);
+  wrap.appendChild(sunucuSec);
+
+  // Save Button
+  const saveBtn = el('button', {className:'mc-btn mc-green mc-lg', style:{width:'100%', marginTop:'8px'}});
+  saveBtn.textContent = '💾 Değişiklikleri Kaydet';
+  saveBtn.addEventListener('click', async () => {
+    saveBtn.disabled = true;
+    saveBtn.textContent = '...';
+
+    const updates = {
+      bio: bioTa.value.trim(),
+      discord: document.getElementById('discordInput').value.trim(),
+      kategori: katSelect.value,
+      alt_kategori: altKatSelect.value,
+      aktif_cerceve: selectedFrame || profileUser.aktif_cerceve,
+      pp_sekil: selectedShape || profileUser.pp_sekil,
+      banner_renk: savedBannerColor || profileUser.banner_renk,
+      desteklened_sunucu: selectedDestServer,
+      favori_sunucular: selectedFavServers
+    };
+
+    // Upload PP
+    if (newPPFile) {
+      const path = `avatars/${currentUser.id}/${Date.now()}`;
+      const { error } = await sb.storage.from('media').upload(path, newPPFile);
+      if (!error) {
+        const { data: { publicUrl } } = sb.storage.from('media').getPublicUrl(path);
+        updates.avatar_url = publicUrl;
+      }
+    }
+
+    // Upload Banner
+    if (newBannerFile) {
+      const path2 = `banners/${currentUser.id}/${Date.now()}`;
+      const { error: be } = await sb.storage.from('media').upload(path2, newBannerFile);
+      if (!be) {
+        const { data: { publicUrl: bUrl } } = sb.storage.from('media').getPublicUrl(path2);
+        updates.banner_url = bUrl;
+        updates.banner_renk = null;
+      }
+    }
+
+    const { error: saveErr } = await sb.from('kullanicilar').update(updates).eq('id', currentUser.id);
+    if (saveErr) {
+      toast('Kayıt sırasında hata oluştu: ' + saveErr.message, 'error');
+    } else {
+      // Update local
+      Object.assign(profileUser, updates);
+      Object.assign(currentUser, updates);
+      renderBanner();
+      renderProfileHeader();
+      toast('Profil güncellendi! ✓', 'success');
+    }
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Değişiklikleri Kaydet';
+  });
+  wrap.appendChild(saveBtn);
+
+  container.appendChild(wrap);
+}
+
+// ===== HESAP TAB =====
+async function renderHesapTab(container) {
+  const wrap = el('div', {className:'fade-in-up'});
+
+  // — Privacy —
+  const privSec = el('div', {className:'settings-section'});
+  const privTitle = el('div', {className:'settings-section-title', textContent:'🔒 Gizlilik'});
+  privSec.appendChild(privTitle);
+
+  const toggleWrap = el('div', {className:'toggle-wrap', style:{marginBottom:'16px'}});
+  const toggle = el('div', {className:'toggle' + (profileUser.profil_gizli?' on':'')});
+  let privToggle = !!profileUser.profil_gizli;
+  toggle.addEventListener('click', () => {
+    privToggle = !privToggle;
+    toggle.classList.toggle('on', privToggle);
+  });
+  const toggleLabel = el('span', {style:{fontSize:'13px',color:'var(--text-2)',fontWeight:'600'}});
+  toggleLabel.textContent = 'Gizli Hesap (sadece takipçiler görebilir)';
+  toggleWrap.appendChild(toggle);
+  toggleWrap.appendChild(toggleLabel);
+  privSec.appendChild(toggleWrap);
+
+  // Mesaj ayar
+  const msgTitle = el('div', {style:{fontSize:'11px',fontWeight:'900',textTransform:'uppercase',letterSpacing:'0.5px',color:'var(--text-2)',marginBottom:'10px'}});
+  msgTitle.textContent = 'Mesaj Gönderebilecekler';
+  privSec.appendChild(msgTitle);
+
+  const msgOpts = [
+    {val:'herkes', label:'Herkes'},
+    {val:'takipciler', label:'Sadece Takipçilerim'},
+    {val:'hic', label:'Kimse (Mesajları Kapat)'}
+  ];
+  let selectedMsg = profileUser.mesaj_ayar || 'herkes';
+  const radioGroup = el('div', {className:'radio-group'});
+  msgOpts.forEach(o => {
+    const opt = el('div', {className:'radio-opt' + (selectedMsg===o.val?' selected':'')});
+    const circle = el('div', {className:'radio-circle'});
+    const dot = el('div', {className:'radio-dot'});
+    circle.appendChild(dot);
+    const txt = el('div', {className:'radio-text', textContent:o.label});
+    opt.appendChild(circle);
+    opt.appendChild(txt);
+    opt.addEventListener('click', () => {
+      selectedMsg = o.val;
+      radioGroup.querySelectorAll('.radio-opt').forEach(r=>r.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+    radioGroup.appendChild(opt);
+  });
+  privSec.appendChild(radioGroup);
+
+  const savePrivBtn = el('button', {className:'mc-btn mc-green', style:{marginTop:'14px'}});
+  savePrivBtn.textContent = '💾 Gizlilik Kaydet';
+  savePrivBtn.addEventListener('click', async () => {
+    savePrivBtn.disabled = true;
+    await sb.from('kullanicilar').update({profil_gizli:privToggle, mesaj_ayar:selectedMsg}).eq('id', currentUser.id);
+    profileUser.profil_gizli = privToggle;
+    profileUser.mesaj_ayar = selectedMsg;
+    currentUser.profil_gizli = privToggle;
+    currentUser.mesaj_ayar = selectedMsg;
+    toast('Gizlilik ayarları kaydedildi!', 'success');
+    savePrivBtn.disabled = false;
+  });
+  privSec.appendChild(savePrivBtn);
+  wrap.appendChild(privSec);
+
+  // — Takip İstekleri —
+  const reqSec = el('div', {className:'settings-section'});
+  const reqTitle = el('div', {className:'settings-section-title', textContent:'👋 Takip İstekleri'});
+  reqSec.appendChild(reqTitle);
+
+  const reqLoading = el('div', {className:'empty-state'});
+  reqLoading.appendChild(el('div', {className:'spinner'}));
+  reqSec.appendChild(reqLoading);
+  wrap.appendChild(reqSec);
+
+  const { data: requests } = await sb.from('takip_istekleri')
+    .select('*, kullanicilar!gonderen_id(id, kullanici_adi, avatar_url)')
+    .eq('alici_id', currentUser.id)
+    .eq('durum', 'bekliyor');
+
+  reqLoading.remove();
+
+  if (!requests || !requests.length) {
+    const noReq = el('div', {style:{fontSize:'12px',color:'var(--text-dim)',padding:'12px 0'}});
+    noReq.textContent = 'Bekleyen takip isteği yok.';
+    reqSec.appendChild(noReq);
+  } else {
+    requests.forEach(req => {
+      const item = el('div', {className:'req-item', id:`req-${req.id}`});
+      const pp = el('img', {className:'req-item-pp', attrs:{src:ppSrc(req.kullanicilar), alt:'PP'}});
+      const info = el('div', {className:'req-item-info'});
+      const nick = el('div', {className:'req-item-nick', textContent:req.kullanicilar?.kullanici_adi||'Bilinmiyor'});
+      info.appendChild(nick);
+      const actDiv = el('div', {className:'req-item-actions'});
+
+      const acceptBtn = el('button', {className:'mc-btn mc-green mc-sm', textContent:'Kabul'});
+      acceptBtn.addEventListener('click', async () => {
+        acceptBtn.disabled = true;
+        const senderId = req.kullanicilar?.id;
+        if (!senderId) return;
+        // Insert into takipler
+        await sb.from('takipler').insert({takip_eden_id:senderId, takip_edilen_id:currentUser.id});
+        // Update counts
+        await sb.from('kullanicilar').update({takipci_sayisi:(currentUser.takipci_sayisi||0)+1}).eq('id', currentUser.id);
+        await sb.from('kullanicilar').update({takip_sayisi:(req.kullanicilar?.takip_sayisi||0)+1}).eq('id', senderId);
+        // Delete request
+        await sb.from('takip_istekleri').delete().eq('id', req.id);
+        // Notify sender
+        await sb.from('bildirimler').insert({alici_id:senderId, gonderen_id:currentUser.id, tip:'takip_kabul', icerik:currentUser.kullanici_adi+' takip isteğini kabul etti.', link:`profil.html?id=${currentUser.id}`});
+        document.getElementById(`req-${req.id}`)?.remove();
+        toast('Takip isteği kabul edildi!', 'success');
+      });
+
+      const rejectBtn = el('button', {className:'mc-btn mc-red mc-sm', textContent:'Reddet'});
+      rejectBtn.addEventListener('click', async () => {
+        await sb.from('takip_istekleri').delete().eq('id', req.id);
+        document.getElementById(`req-${req.id}`)?.remove();
+        toast('İstek reddedildi.', 'info');
+      });
+
+      actDiv.appendChild(acceptBtn);
+      actDiv.appendChild(rejectBtn);
+      item.appendChild(pp);
+      item.appendChild(info);
+      item.appendChild(actDiv);
+      reqSec.appendChild(item);
+    });
+  }
+
+  // — Profil Ziyaretçileri —
+  const visSec = el('div', {className:'settings-section'});
+  const visTitle = el('div', {className:'settings-section-title', textContent:'👁️ Profil Ziyaretçileri'});
+  visSec.appendChild(visTitle);
+
+  if (['abone','premium'].includes(profileUser.abonelik)) {
+    const { data: visitors } = await sb.from('profil_ziyaretciler')
+      .select('*, kullanicilar!ziyaretci_id(id, kullanici_adi, avatar_url)')
+      .eq('profil_id', currentUser.id)
+      .order('ziyaret_tarihi', {ascending:false})
+      .limit(10);
+
+    if (!visitors || !visitors.length) {
+      const noV = el('div', {style:{fontSize:'12px',color:'var(--text-dim)',padding:'12px 0'}});
+      noV.textContent = 'Henüz ziyaretçi yok.';
+      visSec.appendChild(noV);
+    } else {
+      visitors.forEach(v => {
+        const item = el('div', {className:'visitor-item'});
+        const pp = el('img', {className:'visitor-pp', attrs:{src:ppSrc(v.kullanicilar), alt:'PP'}});
+        const nick = el('div', {className:'visitor-nick', textContent:v.kullanicilar?.kullanici_adi||'Anonim'}); 
+        const time = el('div', {className:'visitor-time', textContent:timeAgo(v.ziyaret_tarihi)});
+        item.appendChild(pp);
+        item.appendChild(nick);
+        item.appendChild(time);
+        visSec.appendChild(item);
+      });
+    }
+  } else {
+    const locked = el('div', {className:'visitors-locked'});
+    locked.appendChild(el('div', {className:'visitors-locked-icon', textContent:'👑'}));
+    locked.appendChild(el('div', {className:'visitors-locked-text', textContent:'Profil ziyaretçilerini görmek için Abone veya Premium olun.'}));
+    const upgBtn = el('button', {className:'mc-btn mc-gold mc-sm', textContent:'Abone Ol'});
+    locked.appendChild(upgBtn);
+    visSec.appendChild(locked);
+  }
+  wrap.appendChild(visSec);
+
+  container.appendChild(wrap);
+}
+
+// ===== RIGHT PANEL =====
+async function renderRightPanel() {
+  const rp = document.getElementById('rightPanel');
+  rp.innerHTML = '';
+
+  // Hakkında
+  const aboutCard = el('div', {className:'right-card'});
+  const aboutTitle = el('div', {className:'right-card-title', textContent:'ℹ️ Hakkında'});
+  aboutCard.appendChild(aboutTitle);
+
+  const infos = [
+    {icon:'📅', label:'Katıldı', val:formatDate(profileUser.kayit_tarihi)},
+    {icon:'🎂', label:'Yaş', val:profileUser.yas?profileUser.yas+' yaş':null},
+    {icon:'⚔️', label:'Kategori', val:profileUser.kategori?(profileUser.kategori + (profileUser.alt_kategori?' / '+profileUser.alt_kategori:'')):null},
+    {icon:'💬', label:'Discord', val:profileUser.discord||null},
+  ];
+
+  infos.forEach(i => {
+    if (!i.val) return;
+    const row = el('div', {className:'right-info-item'});
+    const ico = el('span', {textContent:i.icon});
+    const txt = el('span');
+    txt.innerHTML = `${i.label}: <strong>${i.val}</strong>`;
+    row.appendChild(ico);
+    row.appendChild(txt);
+    aboutCard.appendChild(row);
+  });
+
+  if (profileUser.profil_gizli) {
+    const privRow = el('div', {className:'right-info-item'});
+    privRow.appendChild(el('span', {textContent:'🔒'}));
+    const pt = el('span', {style:{color:'var(--text-dim)'}});
+    pt.textContent = 'Gizli Hesap';
+    privRow.appendChild(pt);
+    aboutCard.appendChild(privRow);
+  }
+  rp.appendChild(aboutCard);
+
+  // Klan Card
+  if (profileUser.klan_tag) {
+    const { data: klan } = await sb.from('klanlar').select('*').eq('tag', profileUser.klan_tag).single();
+    if (klan) {
+      const klanCard = el('div', {className:'right-card'});
+      const klanTitle = el('div', {className:'right-card-title', textContent:'🛡️ Klan'});
+      klanCard.appendChild(klanTitle);
+
+      const inner = el('div', {className:'klan-card-inner'});
+      inner.addEventListener('click', () => { window.location.href=`klanlar.html?tag=${klan.tag}`; });
+
+      const logo = el('img', {className:'klan-logo', attrs:{src:klan.logo_url||'https://ui-avatars.com/api/?name='+encodeURIComponent(klan.isim)+'&background=1a1a1a&color=39ff14', alt:klan.isim}});
+      const kInfo = el('div');
+      const kName = el('div', {className:'klan-name', textContent:klan.isim});
+      const kTag = el('div', {className:'klan-tag-small', textContent:'['+klan.tag+']'});
+      const kUye = el('div', {className:'klan-uye', textContent:(klan.uye_sayisi||0)+' üye'});
+      kInfo.appendChild(kName);
+      kInfo.appendChild(kTag);
+      kInfo.appendChild(kUye);
+      inner.appendChild(logo);
+      inner.appendChild(kInfo);
+      klanCard.appendChild(inner);
+      rp.appendChild(klanCard);
+    }
+  }
+
+  // Sunucular Card
+  const hasServers = profileUser.desteklened_sunucu || (Array.isArray(profileUser.favori_sunucular) && profileUser.favori_sunucular.length);
+  if (hasServers) {
+    const srvCard = el('div', {className:'right-card'});
+    const srvTitle = el('div', {className:'right-card-title', textContent:'🖥️ Sunucular'});
+    srvCard.appendChild(srvTitle);
+
+    const srvList = el('div', {className:'server-list'});
+
+    if (profileUser.desteklened_sunucu) {
+      const srv = SERVERS.find(s => s.ip === profileUser.desteklened_sunucu);
+      const item = el('div', {className:'server-item'});
+      const logo = el('img', {className:'server-logo', attrs:{src:serverLogo(profileUser.desteklened_sunucu), alt:srv?.name||profileUser.desteklened_sunucu}});
+      logo.onerror = function() { this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=24'; };
+      const name = el('span', {className:'server-name', textContent:srv?.name||profileUser.desteklened_sunucu});
+      const activeLbl = el('span', {className:'server-active-label', textContent:'Aktif'});
+      item.appendChild(logo);
+      item.appendChild(name);
+      item.appendChild(activeLbl);
+      srvList.appendChild(item);
+    }
+
+    if (Array.isArray(profileUser.favori_sunucular)) {
+      profileUser.favori_sunucular.forEach(ip => {
+        if (ip === profileUser.desteklened_sunucu) return;
+        const srv2 = SERVERS.find(s => s.ip === ip);
+        const item2 = el('div', {className:'server-item'});
+        const logo2 = el('img', {className:'server-logo', attrs:{src:serverLogo(ip), alt:srv2?.name||ip}});
+        logo2.onerror = function() { this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=24'; };
+        const name2 = el('span', {className:'server-name', textContent:srv2?.name||ip});
+        item2.appendChild(logo2);
+        item2.appendChild(name2);
+        srvList.appendChild(item2);
+      });
+    }
+
+    srvCard.appendChild(srvList);
+    rp.appendChild(srvCard);
+  }
+}
+
+// Start
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>İlan Ver — LOBBY.GG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Montserrat', sans-serif; background: #050505; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; }
+
+    /* CANVAS */
+    #bgCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+    /* NAV */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,5,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid #1a1a1a; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 52px; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-links a { color: #aaa; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; letter-spacing: 0.3px; }
+    .nav-links a:hover, .nav-links a.active { color: #39ff14; background: rgba(57,255,20,0.08); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-bell { width: 36px; height: 36px; border-radius: 50%; background: #111; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.2s; position: relative; }
+    .nav-bell:hover { border-color: #39ff14; }
+    .nav-bell .notif-dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ff1a3c; border-radius: 50%; border: 1px solid #050505; }
+    .nav-lcoin { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #2a2a2a; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 700; color: #FFD700; cursor: pointer; transition: all 0.2s; }
+    .nav-lcoin:hover { border-color: #FFD700; }
+    .nav-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #2a2a2a; cursor: pointer; object-fit: cover; transition: all 0.2s; background: #1a1a1a; }
+    .nav-avatar:hover { border-color: #39ff14; }
+    .nav-login-btn { background: #39ff14; color: #050505; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
+    .nav-login-btn:hover { background: #2de010; }
+
+    /* MAIN */
+    .main-content { position: relative; z-index: 1; padding-top: 64px; min-height: 100vh; }
+    .page-container { max-width: 800px; margin: 0 auto; padding: 48px 24px 100px; }
+
+    /* PAGE HEADER */
+    .page-header { text-align: center; margin-bottom: 48px; }
+    .page-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: #39ff14; text-transform: uppercase; margin-bottom: 12px; }
+    .page-title { font-size: 40px; font-weight: 900; color: #fff; margin-bottom: 10px; }
+    .page-title span { color: #39ff14; }
+    .page-subtitle { font-size: 14px; color: #666; }
+
+    /* PROGRESS DOTS */
+    .progress-wrap { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 48px; }
+    .progress-step { display: flex; align-items: center; }
+    .progress-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #555; transition: all 0.35s; background: #0d0d0d; position: relative; z-index: 1; cursor: default; }
+    .progress-dot.active { border-color: #39ff14; color: #39ff14; box-shadow: 0 0 16px rgba(57,255,20,0.35); }
+    .progress-dot.done { border-color: #39ff14; background: #39ff14; color: #050505; }
+    .progress-line { width: 48px; height: 2px; background: #1a1a1a; transition: background 0.35s; }
+    .progress-line.done { background: #39ff14; }
+    .progress-label { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 700; color: #555; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; }
+    .progress-dot.active .progress-label, .progress-dot.done .progress-label { color: #39ff14; }
+
+    /* FORM CARD */
+    .form-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 20px; padding: 40px; }
+
+    /* STEP TITLE */
+    .step-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+    .step-subtitle { font-size: 13px; color: #666; margin-bottom: 32px; line-height: 1.5; }
+
+    /* CATEGORY CARDS */
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+    .cat-card { background: #111; border: 2px solid #1a1a1a; border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .cat-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
+    .cat-card.selected { transform: translateY(-2px); }
+    .cat-card.selected.pvp { border-color: #ff1a3c; background: rgba(255,26,60,0.08); box-shadow: 0 0 20px rgba(255,26,60,0.15); }
+    .cat-card.selected.icerik { border-color: #b933ff; background: rgba(185,51,255,0.08); box-shadow: 0 0 20px rgba(185,51,255,0.15); }
+    .cat-card.selected.developer { border-color: #00d4ff; background: rgba(0,212,255,0.08); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+    .cat-card.selected.builder { border-color: #ffa500; background: rgba(255,165,0,0.08); box-shadow: 0 0 20px rgba(255,165,0,0.15); }
+    .cat-card.selected.yonetici { border-color: #FFD700; background: rgba(255,215,0,0.08); box-shadow: 0 0 20px rgba(255,215,0,0.15); }
+    .cat-card-icon { font-size: 36px; }
+    .cat-card-name { font-size: 12px; font-weight: 800; color: #bbb; letter-spacing: 0.5px; }
+    .cat-card.selected .cat-card-name { color: #fff; }
+
+    /* ALT KATEGORI CHIPS */
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { background: #111; border: 1px solid #2a2a2a; border-radius: 50px; padding: 8px 18px; font-size: 12px; font-weight: 700; color: #777; cursor: pointer; transition: all 0.2s; font-family: 'Montserrat', sans-serif; }
+    .chip:hover { border-color: #39ff14; color: #39ff14; }
+    .chip.selected { background: rgba(57,255,20,0.12); border-color: #39ff14; color: #39ff14; }
+
+    /* FORM FIELDS */
+    .field-group { margin-bottom: 24px; }
+    .field-label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; color: #aaa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+    .field-counter { font-size: 11px; color: #555; font-weight: 600; text-transform: none; letter-spacing: 0; }
+    .field-counter.warn { color: #ffa500; }
+    .field-counter.danger { color: #ff1a3c; }
+    .form-input { width: 100%; background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #e0e0e0; font-family: 'Montserrat', sans-serif; outline: none; transition: all 0.2s; resize: none; }
+    .form-input:focus { border-color: #39ff14; box-shadow: 0 0 12px rgba(57,255,20,0.1); }
+    .form-input::placeholder { color: #444; }
+    .form-input.error { border-color: #ff1a3c; }
+    .field-error { font-size: 11px; color: #ff1a3c; font-weight: 600; margin-top: 6px; display: none; }
+    .field-error.show { display: block; }
+
+    /* PRICE SECTION */
+    .price-toggle { display: flex; gap: 12px; margin-bottom: 16px; }
+    .price-option { flex: 1; background: #111; border: 2px solid #1a1a1a; border-radius: 12px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .price-option:hover { border-color: #2a2a2a; }
+    .price-option.selected { border-color: #39ff14; background: rgba(57,255,20,0.08); }
+    .price-option-icon { font-size: 20px; margin-bottom: 4px; }
+    .price-option-label { font-size: 12px; font-weight: 800; color: #aaa; }
+    .price-option.selected .price-option-label { color: #39ff14; }
+    .price-input-wrap { display: flex; gap: 12px; align-items: center; }
+    .price-input-wrap input { flex: 1; }
+    .anlasmali-check { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px 16px; background: #111; border: 1px solid #2a2a2a; border-radius: 10px; transition: all 0.2s; }
+    .anlasmali-check:hover { border-color: #00d4ff; }
+    .anlasmali-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: #00d4ff; cursor: pointer; }
+    .anlasmali-check span { font-size: 13px; font-weight: 700; color: #aaa; }
+    .anlasmali-check:has(input:checked) { border-color: #00d4ff; background: rgba(0,212,255,0.08); }
+    .anlasmali-check:has(input:checked) span { color: #00d4ff; }
+
+    /* CONTACT */
+    .contact-note { background: rgba(57,255,20,0.06); border: 1px solid rgba(57,255,20,0.15); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #888; margin-bottom: 20px; }
+    .contact-note strong { color: #39ff14; }
+    .input-prefix-wrap { position: relative; }
+    .input-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #555; font-weight: 700; pointer-events: none; }
+    .input-prefix-wrap .form-input { padding-left: 40px; }
+
+    /* UPLOAD ZONE */
+    .upload-zone { border: 2px dashed #2a2a2a; border-radius: 14px; padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; background: #111; }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: #39ff14; background: rgba(57,255,20,0.04); }
+    .upload-zone input[type="file"] { display: none; }
+    .upload-icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-title { font-size: 15px; font-weight: 800; color: #bbb; margin-bottom: 6px; }
+    .upload-sub { font-size: 12px; color: #555; }
+    .upload-preview { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; display: none; margin-top: 16px; border: 1px solid #2a2a2a; }
+    .upload-preview.show { display: block; }
+    .upload-remove { display: none; margin-top: 12px; }
+    .upload-remove.show { display: block; }
+    .skip-link { text-align: center; margin-top: 16px; }
+    .skip-link a { font-size: 13px; color: #555; text-decoration: underline; cursor: pointer; transition: color 0.2s; }
+    .skip-link a:hover { color: #aaa; }
+
+    /* PREVIEW CARD */
+    .preview-container { margin-bottom: 32px; }
+    .preview-label { font-size: 11px; font-weight: 700; color: #555; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; }
+    .preview-card { background: #111; border: 1px solid #2a2a2a; border-radius: 16px; overflow: hidden; max-width: 400px; margin: 0 auto; }
+    .preview-banner { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; }
+    .preview-banner img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-badges { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+    .preview-body { padding: 14px; }
+    .preview-title-el { font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .preview-desc-el { font-size: 11px; color: #777; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; }
+    .preview-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1a1a1a; padding: 10px 14px; }
+    .preview-nick { font-size: 11px; font-weight: 700; color: #bbb; }
+
+    /* PENDING NOTE */
+    .pending-note { background: rgba(255,165,0,0.08); border: 1px solid rgba(255,165,0,0.25); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 12px; align-items: flex-start; }
+    .pending-note-icon { font-size: 20px; flex-shrink: 0; }
+    .pending-note-text { font-size: 13px; color: #999; line-height: 1.6; }
+    .pending-note-text strong { color: #ffa500; }
+
+    /* BUTTONS */
+    .btn-row { display: flex; gap: 12px; margin-top: 32px; }
+    .btn-back { flex: 1; background: #111; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 24px; font-size: 14px; font-weight: 700; color: #aaa; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
+    .btn-back:hover { border-color: #555; color: #fff; }
+    .btn-next { flex: 2; background: #39ff14; border: none; border-radius: 12px; padding: 14px 24px; font-size: 14px; font-weight: 800; color: #050505; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.25s; box-shadow: 0 0 20px rgba(57,255,20,0.25); letter-spacing: 0.5px; }
+    .btn-next:hover { background: #2de010; box-shadow: 0 0 32px rgba(57,255,20,0.4); transform: translateY(-1px); }
+    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-publish { flex: 1; background: #39ff14; border: none; border-radius: 12px; padding: 16px 24px; font-size: 16px; font-weight: 900; color: #050505; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.25s; box-shadow: 0 0 24px rgba(57,255,20,0.3); letter-spacing: 0.5px; width: 100%; }
+    .btn-publish:hover { background: #2de010; box-shadow: 0 0 40px rgba(57,255,20,0.5); transform: translateY(-2px); }
+    .btn-publish:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* LOGIN GATE */
+    .login-gate { text-align: center; padding: 80px 24px; }
+    .login-gate-icon { font-size: 64px; margin-bottom: 20px; }
+    .login-gate-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 12px; }
+    .login-gate-text { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.6; }
+    .login-gate-btn { background: #39ff14; color: #050505; border: none; border-radius: 12px; padding: 14px 32px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; box-shadow: 0 0 24px rgba(57,255,20,0.3); }
+    .login-gate-btn:hover { background: #2de010; transform: translateY(-2px); }
+
+    /* CAT BADGE for preview */
+    .cat-badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
+    .cat-badge.pvp { background: rgba(255,26,60,0.2); color: #ff1a3c; border: 1px solid rgba(255,26,60,0.4); }
+    .cat-badge.icerik { background: rgba(185,51,255,0.2); color: #b933ff; border: 1px solid rgba(185,51,255,0.4); }
+    .cat-badge.developer { background: rgba(0,212,255,0.2); color: #00d4ff; border: 1px solid rgba(0,212,255,0.4); }
+    .cat-badge.builder { background: rgba(255,165,0,0.2); color: #ffa500; border: 1px solid rgba(255,165,0,0.4); }
+    .cat-badge.yonetici { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.4); }
+    .price-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
+    .price-badge.free { background: rgba(57,255,20,0.12); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); }
+    .price-badge.paid { background: rgba(255,215,0,0.12); color: #FFD700; border: 1px solid rgba(255,215,0,0.3); }
+    .price-badge.anlasmali { background: rgba(0,212,255,0.12); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0d0d0d; border: 1px solid #39ff14; border-radius: 12px; padding: 14px 20px; font-size: 14px; font-weight: 700; color: #39ff14; box-shadow: 0 8px 32px rgba(57,255,20,0.2); transform: translateY(80px); opacity: 0; transition: all 0.35s; max-width: 320px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-color: #ff1a3c; color: #ff1a3c; box-shadow: 0 8px 32px rgba(255,26,60,0.2); }
+
+    /* STEP ANIMATION */
+    .step-panel { display: none; animation: stepIn 0.3s ease; }
+    .step-panel.active { display: block; }
+    @keyframes stepIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* SPINNER */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(5,5,5,0.4); border-top-color: #050505; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="lobbyx.html" class="nav-logo">
+    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+  </a>
+  <div class="nav-links">
+    <a href="lobbyx.html">Ana Sayfa</a>
+    <a href="ilanlar.html" class="active">İlanlar</a>
+    <a href="klanlar.html">Klanlar</a>
+    <a href="kesfet.html">Keşfet</a>
+  </div>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<!-- MAIN -->
+<div class="main-content">
+  <div class="page-container" id="pageContainer">
+    <!-- Will be rendered by JS -->
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ─── CANVAS ───────────────────────────────────────────────────────────────
+  (function() {
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, beams = [], logos = [], logoImg = new Image();
+    logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    function makeBeam() { return { x: Math.random() * W, y: -200, len: 150 + Math.random() * 200, speed: 0.4 + Math.random() * 0.6, alpha: 0.03 + Math.random() * 0.06, width: 1 + Math.random() * 2 }; }
+    function makeLogo() { return { x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, alpha: 0.02 + Math.random() * 0.04, size: 60 + Math.random() * 80 }; }
+    function init() { resize(); beams = Array.from({length: 10}, makeBeam); logos = Array.from({length: 5}, makeLogo); }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      beams.forEach(b => {
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(Math.PI / 4);
+        const g = ctx.createLinearGradient(0, 0, 0, b.len);
+        g.addColorStop(0, `rgba(57,255,20,0)`); g.addColorStop(0.5, `rgba(57,255,20,${b.alpha})`); g.addColorStop(1, `rgba(57,255,20,0)`);
+        ctx.fillStyle = g; ctx.fillRect(-b.width / 2, 0, b.width, b.len); ctx.restore();
+        b.y += b.speed; if (b.y > H + 300) { Object.assign(b, makeBeam()); b.y = -200; }
+      });
+      logos.forEach(l => {
+        if (logoImg.complete) { ctx.save(); ctx.globalAlpha = l.alpha; ctx.drawImage(logoImg, l.x - l.size/2, l.y - l.size/4, l.size, l.size/2); ctx.restore(); }
+        l.x += l.vx; l.y += l.vy;
+        if (l.x < -100) l.x = W + 100; if (l.x > W + 100) l.x = -100;
+        if (l.y < -100) l.y = H + 100; if (l.y > H + 100) l.y = -100;
+      });
+      requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize', () => { resize(); beams = Array.from({length: 10}, makeBeam); });
+    init(); draw();
+  })();
+
+  // ─── DATA ─────────────────────────────────────────────────────────────────
+  const CATEGORIES = [
+    { id: 'PvP', label: 'PvP', icon: '⚔️', cls: 'pvp', color: '#ff1a3c',
+      alts: ['Faction', 'KitPvP', 'SkyWars', 'BedWars', 'SMP', 'Practice', 'Diğer'] },
+    { id: 'İçerik', label: 'İçerik', icon: '🎬', cls: 'icerik', color: '#b933ff',
+      alts: ['YouTube', 'Twitch', 'TikTok', 'Video Editing', 'Thumbnail', 'Script', 'Diğer'] },
+    { id: 'Developer', label: 'Developer', icon: '💻', cls: 'developer', color: '#00d4ff',
+      alts: ['Plugin', 'Bot', 'Web', 'Skript', 'Konfigürasyon', 'API', 'Diğer'] },
+    { id: 'Builder', label: 'Builder', icon: '🏗️', cls: 'builder', color: '#ffa500',
+      alts: ['Spawn', 'Harita', 'Hub', 'Dekor', 'Mimari', 'Mağaza', 'Diğer'] },
+    { id: 'Yönetici', label: 'Yönetici', icon: '👑', cls: 'yonetici', color: '#FFD700',
+      alts: ['Admin', 'Moderatör', 'Helper', 'Event Manager', 'Sosyal Medya', 'Diğer'] },
+  ];
+
+  const CAT_GRADIENT = {
+    PvP: 'linear-gradient(135deg, #1a0008, #3d0015)',
+    'İçerik': 'linear-gradient(135deg, #140020, #2d0050)',
+    Developer: 'linear-gradient(135deg, #001a20, #003040)',
+    Builder: 'linear-gradient(135deg, #1a1000, #3d2800)',
+    'Yönetici': 'linear-gradient(135deg, #1a1500, #3d3000)',
+  };
+
+  // ─── STATE ────────────────────────────────────────────────────────────────
+  let currentUser = null;
+  let userProfile = null;
+  let currentStep = 1;
+  const TOTAL_STEPS = 6;
+
+  const formData = {
+    kategori: '',
+    alt_kategori: '',
+    baslik: '',
+    aciklama: '',
+    fiyat: '',
+    fiyatTuru: 'free', // free | paid | anlasmali
+    discord: '',
+    email: '',
+    bannerUrl: '',
+    bannerFile: null,
+  };
+
+  // ─── NAV ──────────────────────────────────────────────────────────────────
+  async function buildNav() {
+    const { data: { session } } = await sb.auth.getSession();
+    currentUser = session ? session.user : null;
+    const navRight = document.getElementById('navRight');
+    navRight.innerHTML = '';
+
+    const bell = document.createElement('div');
+    bell.className = 'nav-bell';
+    bell.textContent = '🔔';
+    const dot = document.createElement('span');
+    dot.className = 'notif-dot';
+    bell.appendChild(dot);
+    navRight.appendChild(bell);
+
+    if (currentUser) {
+      const lcoin = document.createElement('div');
+      lcoin.className = 'nav-lcoin';
+      const coinSpan = document.createElement('span');
+      coinSpan.textContent = '🪙';
+      lcoin.appendChild(coinSpan);
+      const coinTxt = document.createTextNode('—');
+      lcoin.appendChild(coinTxt);
+      navRight.appendChild(lcoin);
+
+      const avatar = document.createElement('img');
+      avatar.className = 'nav-avatar';
+      avatar.src = 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
+      avatar.alt = 'Profil';
+      avatar.addEventListener('click', () => { window.location.href = 'profil.html'; });
+      navRight.appendChild(avatar);
+
+      const { data: ku } = await sb.from('kullanicilar').select('lcoin, avatar_url, kullanici_adi, email, discord').eq('id', currentUser.id).single();
+      if (ku) {
+        userProfile = ku;
+        coinTxt.textContent = (ku.lcoin || 0).toLocaleString('tr-TR');
+        if (ku.avatar_url) avatar.src = ku.avatar_url;
+        formData.email = ku.email || currentUser.email || '';
+        formData.discord = ku.discord || '';
+      } else {
+        formData.email = currentUser.email || '';
+      }
+    } else {
+      const loginBtn = document.createElement('button');
+      loginBtn.className = 'nav-login-btn';
+      loginBtn.textContent = 'Giriş Yap';
+      loginBtn.addEventListener('click', () => { window.location.href = 'giris.html'; });
+      navRight.appendChild(loginBtn);
+    }
+  }
+
+  // ─── TOAST ────────────────────────────────────────────────────────────────
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '') + ' show';
+    setTimeout(() => { t.classList.remove('show'); }, 4000);
+  }
+
+  // ─── PROGRESS BAR ─────────────────────────────────────────────────────────
+  const STEP_LABELS = ['Kategori', 'Alt Kat.', 'Detaylar', 'İletişim', 'Görsel', 'Yayınla'];
+
+  function buildProgressBar(container) {
+    const wrap = document.createElement('div');
+    wrap.className = 'progress-wrap';
+    wrap.id = 'progressWrap';
+
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const stepEl = document.createElement('div');
+      stepEl.className = 'progress-step';
+
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot';
+      dot.id = 'pdot' + i;
+      dot.style.position = 'relative';
+
+      const numSpan = document.createElement('span');
+      numSpan.textContent = i < currentStep ? '✓' : i;
+      dot.appendChild(numSpan);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'progress-label';
+      lbl.textContent = STEP_LABELS[i - 1];
+      dot.appendChild(lbl);
+
+      stepEl.appendChild(dot);
+
+      if (i < TOTAL_STEPS) {
+        const line = document.createElement('div');
+        line.className = 'progress-line';
+        line.id = 'pline' + i;
+        stepEl.appendChild(line);
+      }
+
+      wrap.appendChild(stepEl);
+    }
+
+    container.appendChild(wrap);
+  }
+
+  function updateProgress() {
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const dot = document.getElementById('pdot' + i);
+      if (!dot) continue;
+      dot.className = 'progress-dot';
+      if (i < currentStep) { dot.className = 'progress-dot done'; dot.querySelector('span').textContent = '✓'; }
+      else if (i === currentStep) { dot.className = 'progress-dot active'; dot.querySelector('span').textContent = i; }
+      else { dot.querySelector('span').textContent = i; }
+
+      if (i < TOTAL_STEPS) {
+        const line = document.getElementById('pline' + i);
+        if (line) line.className = 'progress-line' + (i < currentStep ? ' done' : '');
+      }
+    }
+  }
+
+  // ─── PAGE BUILDER ─────────────────────────────────────────────────────────
+  function renderPage() {
+    const container = document.getElementById('pageContainer');
+    container.innerHTML = '';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'page-header';
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'page-eyebrow';
+    eyebrow.textContent = 'İlan Panosu';
+    const title = document.createElement('h1');
+    title.className = 'page-title';
+    const span1 = document.createTextNode('İlan ');
+    const span2 = document.createElement('span');
+    span2.textContent = 'Ver';
+    title.appendChild(span1);
+    title.appendChild(span2);
+    const sub = document.createElement('p');
+    sub.className = 'page-subtitle';
+    sub.textContent = 'Topluluğa katıl, ekip kur, harika projeler yarat.';
+    header.appendChild(eyebrow);
+    header.appendChild(title);
+    header.appendChild(sub);
+    container.appendChild(header);
+
+    if (!currentUser) {
+      renderLoginGate(container);
+      return;
+    }
+
+    buildProgressBar(container);
+    updateProgress();
+
+    const card = document.createElement('div');
+    card.className = 'form-card';
+    card.id = 'formCard';
+    container.appendChild(card);
+
+    renderStep(card);
+  }
+
+  function renderLoginGate(container) {
+    const gate = document.createElement('div');
+    gate.className = 'login-gate';
+    const ico = document.createElement('div');
+    ico.className = 'login-gate-icon';
+    ico.textContent = '🔐';
+    const title = document.createElement('div');
+    title.className = 'login-gate-title';
+    title.textContent = 'Giriş Yapman Gerekiyor';
+    const txt = document.createElement('div');
+    txt.className = 'login-gate-text';
+    txt.textContent = 'İlan vermek için LOBBY.GG hesabına giriş yapman gerekiyor. Ücretsiz hesap oluşturabilirsin!';
+    const btn = document.createElement('button');
+    btn.className = 'login-gate-btn';
+    btn.textContent = '🚀 Giriş Yap / Kayıt Ol';
+    btn.addEventListener('click', () => { window.location.href = 'giris.html?next=ilan-ver.html'; });
+    gate.appendChild(ico);
+    gate.appendChild(title);
+    gate.appendChild(txt);
+    gate.appendChild(btn);
+    container.appendChild(gate);
+  }
+
+  function renderStep(card) {
+    card.innerHTML = '';
+    switch (currentStep) {
+      case 1: renderStep1(card); break;
+      case 2: renderStep2(card); break;
+      case 3: renderStep3(card); break;
+      case 4: renderStep4(card); break;
+      case 5: renderStep5(card); break;
+      case 6: renderStep6(card); break;
+    }
+  }
+
+  // ─── STEP 1 — KATEGORİ ───────────────────────────────────────────────────
+  function renderStep1(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = '📂 Kategori Seç';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'İlanını hangi kategoride yayınlamak istiyorsun?';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    const grid = document.createElement('div');
+    grid.className = 'cat-grid';
+
+    CATEGORIES.forEach(cat => {
+      const catCard = document.createElement('div');
+      catCard.className = 'cat-card' + (formData.kategori === cat.id ? ' selected ' + cat.cls : '');
+      catCard.dataset.cat = cat.id;
+      catCard.dataset.cls = cat.cls;
+
+      const ico = document.createElement('div');
+      ico.className = 'cat-card-icon';
+      ico.textContent = cat.icon;
+      const name = document.createElement('div');
+      name.className = 'cat-card-name';
+      name.textContent = cat.label;
+
+      catCard.appendChild(ico);
+      catCard.appendChild(name);
+
+      catCard.addEventListener('click', () => {
+        formData.kategori = cat.id;
+        formData.alt_kategori = '';
+        document.querySelectorAll('.cat-card').forEach(c => {
+          c.className = 'cat-card';
+        });
+        catCard.className = 'cat-card selected ' + cat.cls;
+      });
+
+      grid.appendChild(catCard);
+    });
+
+    panel.appendChild(grid);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', () => { window.location.href = 'ilanlar.html'; });
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.textContent = 'Devam Et →';
+    nextBtn.addEventListener('click', () => {
+      if (!formData.kategori) { showToast('Lütfen bir kategori seç!', true); return; }
+      goNext();
+    });
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(nextBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── STEP 2 — ALT KATEGORİ ───────────────────────────────────────────────
+  function renderStep2(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const catDef = CATEGORIES.find(c => c.id === formData.kategori);
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = (catDef ? catDef.icon + ' ' : '') + 'Alt Kategori';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'İlanını daha iyi tanımlamak için alt kategori seç.';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    const chipGrid = document.createElement('div');
+    chipGrid.className = 'chip-grid';
+
+    (catDef ? catDef.alts : []).forEach(alt => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (formData.alt_kategori === alt ? ' selected' : '');
+      chip.textContent = alt;
+      chip.addEventListener('click', () => {
+        formData.alt_kategori = alt;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+      });
+      chipGrid.appendChild(chip);
+    });
+
+    panel.appendChild(chipGrid);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', goPrev);
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.textContent = 'Devam Et →';
+    nextBtn.addEventListener('click', () => {
+      if (!formData.alt_kategori) { showToast('Lütfen bir alt kategori seç!', true); return; }
+      goNext();
+    });
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(nextBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── STEP 3 — DETAYLAR ────────────────────────────────────────────────────
+  function renderStep3(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = '📝 İlan Detayları';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'İlanının başlığını ve açıklamasını yaz.';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    // Başlık
+    const baslikGroup = document.createElement('div');
+    baslikGroup.className = 'field-group';
+    const baslikLabel = document.createElement('div');
+    baslikLabel.className = 'field-label';
+    const baslikLabelText = document.createTextNode('Başlık');
+    baslikLabel.appendChild(baslikLabelText);
+    const baslikCounter = document.createElement('span');
+    baslikCounter.className = 'field-counter';
+    baslikCounter.textContent = (formData.baslik.length) + '/80';
+    baslikLabel.appendChild(baslikCounter);
+    baslikGroup.appendChild(baslikLabel);
+
+    const baslikInput = document.createElement('input');
+    baslikInput.type = 'text';
+    baslikInput.className = 'form-input';
+    baslikInput.placeholder = 'Örn: Faction sunucusu için PvP oyuncusu arıyorum';
+    baslikInput.value = formData.baslik;
+    baslikInput.maxLength = 80;
+    baslikInput.addEventListener('input', () => {
+      formData.baslik = baslikInput.value;
+      const len = baslikInput.value.length;
+      baslikCounter.textContent = len + '/80';
+      baslikCounter.className = 'field-counter' + (len > 70 ? ' warn' : '') + (len >= 80 ? ' danger' : '');
+      baslikError.classList.remove('show');
+    });
+    baslikGroup.appendChild(baslikInput);
+
+    const baslikError = document.createElement('div');
+    baslikError.className = 'field-error';
+    baslikError.textContent = 'Başlık en az 10, en fazla 80 karakter olmalı.';
+    baslikGroup.appendChild(baslikError);
+    panel.appendChild(baslikGroup);
+
+    // Açıklama
+    const aciklamaGroup = document.createElement('div');
+    aciklamaGroup.className = 'field-group';
+    const aciklamaLabel = document.createElement('div');
+    aciklamaLabel.className = 'field-label';
+    const aciklamaLabelText = document.createTextNode('Açıklama');
+    aciklamaLabel.appendChild(aciklamaLabelText);
+    const aciklamaCounter = document.createElement('span');
+    aciklamaCounter.className = 'field-counter';
+    aciklamaCounter.textContent = (formData.aciklama.length) + '/500';
+    aciklamaLabel.appendChild(aciklamaCounter);
+    aciklamaGroup.appendChild(aciklamaLabel);
+
+    const aciklamaTA = document.createElement('textarea');
+    aciklamaTA.className = 'form-input';
+    aciklamaTA.rows = 6;
+    aciklamaTA.placeholder = 'İlanını detaylı açıkla: ne arıyorsun, ne sunuyorsun, şartların neler...';
+    aciklamaTA.value = formData.aciklama;
+    aciklamaTA.maxLength = 500;
+    aciklamaTA.addEventListener('input', () => {
+      formData.aciklama = aciklamaTA.value;
+      const len = aciklamaTA.value.length;
+      aciklamaCounter.textContent = len + '/500';
+      aciklamaCounter.className = 'field-counter' + (len > 450 ? ' warn' : '') + (len >= 500 ? ' danger' : '');
+      aciklamaError.classList.remove('show');
+    });
+    aciklamaGroup.appendChild(aciklamaTA);
+
+    const aciklamaError = document.createElement('div');
+    aciklamaError.className = 'field-error';
+    aciklamaError.textContent = 'Açıklama en az 30, en fazla 500 karakter olmalı.';
+    aciklamaGroup.appendChild(aciklamaError);
+    panel.appendChild(aciklamaGroup);
+
+    // Fiyat
+    const fiyatGroup = document.createElement('div');
+    fiyatGroup.className = 'field-group';
+    const fiyatLabel = document.createElement('div');
+    fiyatLabel.className = 'field-label';
+    fiyatLabel.appendChild(document.createTextNode('Ücret'));
+    fiyatGroup.appendChild(fiyatLabel);
+
+    const priceToggle = document.createElement('div');
+    priceToggle.className = 'price-toggle';
+
+    const priceOpts = [
+      { id: 'free', icon: '🟢', label: 'Ücretsiz' },
+      { id: 'paid', icon: '🟡', label: 'Ücretli' },
+      { id: 'anlasmali', icon: '🤝', label: 'Anlaşmalı' },
+    ];
+
+    const priceInputWrap = document.createElement('div');
+    priceInputWrap.className = 'price-input-wrap';
+    priceInputWrap.style.display = formData.fiyatTuru === 'paid' ? 'flex' : 'none';
+
+    const priceInput = document.createElement('input');
+    priceInput.type = 'number';
+    priceInput.className = 'form-input';
+    priceInput.placeholder = 'Miktar (₺)';
+    priceInput.min = '1';
+    priceInput.value = formData.fiyat || '';
+    priceInput.addEventListener('input', () => { formData.fiyat = priceInput.value; });
+    priceInputWrap.appendChild(priceInput);
+
+    priceOpts.forEach(opt => {
+      const optEl = document.createElement('div');
+      optEl.className = 'price-option' + (formData.fiyatTuru === opt.id ? ' selected' : '');
+      const optIco = document.createElement('div');
+      optIco.className = 'price-option-icon';
+      optIco.textContent = opt.icon;
+      const optLbl = document.createElement('div');
+      optLbl.className = 'price-option-label';
+      optLbl.textContent = opt.label;
+      optEl.appendChild(optIco);
+      optEl.appendChild(optLbl);
+      optEl.addEventListener('click', () => {
+        formData.fiyatTuru = opt.id;
+        document.querySelectorAll('.price-option').forEach(o => o.classList.remove('selected'));
+        optEl.classList.add('selected');
+        priceInputWrap.style.display = opt.id === 'paid' ? 'flex' : 'none';
+        if (opt.id !== 'paid') { formData.fiyat = opt.id === 'free' ? '0' : 'Anlaşmalı'; }
+      });
+      priceToggle.appendChild(optEl);
+    });
+
+    fiyatGroup.appendChild(priceToggle);
+    fiyatGroup.appendChild(priceInputWrap);
+    panel.appendChild(fiyatGroup);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', goPrev);
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.textContent = 'Devam Et →';
+    nextBtn.addEventListener('click', () => {
+      const baslikVal = baslikInput.value.trim();
+      const aciklamaVal = aciklamaTA.value.trim();
+      let hasError = false;
+      if (baslikVal.length < 10 || baslikVal.length > 80) {
+        baslikError.classList.add('show');
+        baslikInput.classList.add('error');
+        hasError = true;
+      }
+      if (aciklamaVal.length < 30 || aciklamaVal.length > 500) {
+        aciklamaError.classList.add('show');
+        aciklamaTA.classList.add('error');
+        hasError = true;
+      }
+      if (hasError) { showToast('Lütfen hataları düzelt!', true); return; }
+      formData.baslik = baslikVal;
+      formData.aciklama = aciklamaVal;
+      if (formData.fiyatTuru === 'free') formData.fiyat = '0';
+      if (formData.fiyatTuru === 'anlasmali') formData.fiyat = 'Anlaşmalı';
+      if (formData.fiyatTuru === 'paid' && !priceInput.value) { showToast('Fiyat gir!', true); return; }
+      goNext();
+    });
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(nextBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── STEP 4 — İLETİŞİM ───────────────────────────────────────────────────
+  function renderStep4(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = '📬 İletişim Bilgileri';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'Seni bulmak isteyenler nasıl ulaşsın?';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    const note = document.createElement('div');
+    note.className = 'contact-note';
+    const noteStr = document.createElement('strong');
+    noteStr.textContent = 'En az biri gerekli:';
+    note.appendChild(noteStr);
+    note.appendChild(document.createTextNode(' Discord kullanıcı adı veya e-posta adresi.'));
+    panel.appendChild(note);
+
+    // Discord
+    const discordGroup = document.createElement('div');
+    discordGroup.className = 'field-group';
+    const discordLabel = document.createElement('div');
+    discordLabel.className = 'field-label';
+    discordLabel.textContent = 'Discord Kullanıcı Adı';
+    discordGroup.appendChild(discordLabel);
+    const discordWrap = document.createElement('div');
+    discordWrap.className = 'input-prefix-wrap';
+    const discordPrefix = document.createElement('div');
+    discordPrefix.className = 'input-prefix';
+    discordPrefix.textContent = '💬';
+    discordWrap.appendChild(discordPrefix);
+    const discordInput = document.createElement('input');
+    discordInput.type = 'text';
+    discordInput.className = 'form-input';
+    discordInput.placeholder = 'kullanici_adi#0000 veya kullanici_adi';
+    discordInput.value = formData.discord || '';
+    discordInput.addEventListener('input', () => { formData.discord = discordInput.value.trim(); });
+    discordWrap.appendChild(discordInput);
+    discordGroup.appendChild(discordWrap);
+    const discordError = document.createElement('div');
+    discordError.className = 'field-error';
+    discordError.textContent = 'En az Discord veya e-posta gerekli.';
+    discordGroup.appendChild(discordError);
+    panel.appendChild(discordGroup);
+
+    // Email
+    const emailGroup = document.createElement('div');
+    emailGroup.className = 'field-group';
+    const emailLabel = document.createElement('div');
+    emailLabel.className = 'field-label';
+    emailLabel.textContent = 'E-posta Adresi';
+    emailGroup.appendChild(emailLabel);
+    const emailWrap = document.createElement('div');
+    emailWrap.className = 'input-prefix-wrap';
+    const emailPrefix = document.createElement('div');
+    emailPrefix.className = 'input-prefix';
+    emailPrefix.textContent = '✉️';
+    emailWrap.appendChild(emailPrefix);
+    const emailInput = document.createElement('input');
+    emailInput.type = 'email';
+    emailInput.className = 'form-input';
+    emailInput.placeholder = 'ornek@email.com';
+    emailInput.value = formData.email || '';
+    emailInput.addEventListener('input', () => { formData.email = emailInput.value.trim(); });
+    emailWrap.appendChild(emailInput);
+    emailGroup.appendChild(emailWrap);
+    panel.appendChild(emailGroup);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', goPrev);
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.textContent = 'Devam Et →';
+    nextBtn.addEventListener('click', () => {
+      const disc = discordInput.value.trim();
+      const mail = emailInput.value.trim();
+      if (!disc && !mail) {
+        discordError.classList.add('show');
+        discordInput.classList.add('error');
+        emailInput.classList.add('error');
+        showToast('En az bir iletişim bilgisi gir!', true);
+        return;
+      }
+      formData.discord = disc;
+      formData.email = mail;
+      goNext();
+    });
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(nextBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── STEP 5 — BANNER ──────────────────────────────────────────────────────
+  function renderStep5(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = '🖼️ Banner Görsel';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'İlanın için bir banner görseli yükle. (isteğe bağlı)';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    const uploadZone = document.createElement('div');
+    uploadZone.className = 'upload-zone';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    uploadZone.appendChild(fileInput);
+
+    const uploadContent = document.createElement('div');
+    uploadContent.id = 'uploadContent';
+
+    const uploadIco = document.createElement('div');
+    uploadIco.className = 'upload-icon';
+    uploadIco.textContent = '📁';
+    const uploadTitle = document.createElement('div');
+    uploadTitle.className = 'upload-title';
+    uploadTitle.textContent = 'Dosya sürükle & bırak';
+    const uploadSub = document.createElement('div');
+    uploadSub.className = 'upload-sub';
+    uploadSub.textContent = 'veya tıkla — PNG, JPG (max 5MB)';
+    uploadContent.appendChild(uploadIco);
+    uploadContent.appendChild(uploadTitle);
+    uploadContent.appendChild(uploadSub);
+    uploadZone.appendChild(uploadContent);
+
+    const preview = document.createElement('img');
+    preview.className = 'upload-preview';
+    preview.alt = 'Banner önizleme';
+    if (formData.bannerUrl) {
+      preview.src = formData.bannerUrl;
+      preview.classList.add('show');
+      uploadContent.style.display = 'none';
+    }
+    uploadZone.appendChild(preview);
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    function handleFile(file) {
+      if (file.size > 5 * 1024 * 1024) { showToast('Dosya 5MB\'dan büyük olamaz!', true); return; }
+      formData.bannerFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        formData.bannerUrl = e.target.result;
+        preview.src = e.target.result;
+        preview.classList.add('show');
+        uploadContent.style.display = 'none';
+        removeBtn.classList.add('show');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    panel.appendChild(uploadZone);
+
+    const removeBtn = document.createElement('div');
+    removeBtn.className = 'upload-remove' + (formData.bannerFile ? ' show' : '');
+    const removeBtnEl = document.createElement('button');
+    removeBtnEl.className = 'btn-back';
+    removeBtnEl.style.width = '100%';
+    removeBtnEl.textContent = '🗑️ Görseli Kaldır';
+    removeBtnEl.addEventListener('click', () => {
+      formData.bannerFile = null;
+      formData.bannerUrl = '';
+      preview.src = '';
+      preview.classList.remove('show');
+      uploadContent.style.display = 'block';
+      removeBtn.classList.remove('show');
+    });
+    removeBtn.appendChild(removeBtnEl);
+    panel.appendChild(removeBtn);
+
+    const skipLink = document.createElement('div');
+    skipLink.className = 'skip-link';
+    const skipA = document.createElement('a');
+    skipA.textContent = 'Görsel eklemeden devam et →';
+    skipA.addEventListener('click', () => {
+      formData.bannerFile = null;
+      formData.bannerUrl = '';
+      goNext();
+    });
+    skipLink.appendChild(skipA);
+    panel.appendChild(skipLink);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', goPrev);
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn-next';
+    nextBtn.textContent = 'Önizle →';
+    nextBtn.addEventListener('click', () => { goNext(); });
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(nextBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── STEP 6 — ÖNİZLEME ───────────────────────────────────────────────────
+  function renderStep6(card) {
+    const panel = document.createElement('div');
+    panel.className = 'step-panel active';
+
+    const title = document.createElement('div');
+    title.className = 'step-title';
+    title.textContent = '🚀 Önizleme & Yayınla';
+    const sub = document.createElement('div');
+    sub.className = 'step-subtitle';
+    sub.textContent = 'İlanın yayınlanmadan önce admin onayına gönderilecek.';
+    panel.appendChild(title);
+    panel.appendChild(sub);
+
+    // Preview card
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'preview-container';
+    const previewLbl = document.createElement('div');
+    previewLbl.className = 'preview-label';
+    previewLbl.textContent = '📋 İlan Önizleme';
+    previewContainer.appendChild(previewLbl);
+
+    const previewCard = document.createElement('div');
+    previewCard.className = 'preview-card';
+
+    const catDef = CATEGORIES.find(c => c.id === formData.kategori);
+
+    // Banner
+    const pvBanner = document.createElement('div');
+    pvBanner.className = 'preview-banner';
+    pvBanner.style.position = 'relative';
+
+    if (formData.bannerUrl) {
+      const pvImg = document.createElement('img');
+      pvImg.src = formData.bannerUrl;
+      pvImg.style.width = '100%'; pvImg.style.height = '100%'; pvImg.style.objectFit = 'cover'; pvImg.style.position = 'absolute'; pvImg.style.inset = '0';
+      pvBanner.appendChild(pvImg);
+    } else {
+      pvBanner.style.background = CAT_GRADIENT[formData.kategori] || '#111';
+      const pvIco = document.createElement('span');
+      pvIco.textContent = catDef ? catDef.icon : '📋';
+      pvIco.style.fontSize = '40px'; pvIco.style.opacity = '0.4';
+      pvBanner.appendChild(pvIco);
+    }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(17,17,17,0.85) 100%)';
+    pvBanner.appendChild(overlay);
+
+    const pvBadges = document.createElement('div');
+    pvBadges.className = 'preview-badges';
+    const pvCatBadge = document.createElement('span');
+    const catMap = { PvP: 'pvp', 'İçerik': 'icerik', Developer: 'developer', Builder: 'builder', 'Yönetici': 'yonetici' };
+    pvCatBadge.className = 'cat-badge ' + (catMap[formData.kategori] || '');
+    pvCatBadge.textContent = (catDef ? catDef.icon + ' ' : '') + formData.kategori;
+    pvBadges.appendChild(pvCatBadge);
+    pvBanner.appendChild(pvBadges);
+    previewCard.appendChild(pvBanner);
+
+    // Body
+    const pvBody = document.createElement('div');
+    pvBody.className = 'preview-body';
+    const pvTitle = document.createElement('div');
+    pvTitle.className = 'preview-title-el';
+    pvTitle.textContent = formData.baslik || 'İlan Başlığı';
+    pvBody.appendChild(pvTitle);
+    const pvDesc = document.createElement('div');
+    pvDesc.className = 'preview-desc-el';
+    pvDesc.textContent = formData.aciklama || 'Açıklama burada görünecek.';
+    pvBody.appendChild(pvDesc);
+
+    const pvPriceBadge = document.createElement('span');
+    if (!formData.fiyat || formData.fiyat == '0' || formData.fiyat === 'Ücretsiz') {
+      pvPriceBadge.className = 'price-badge free'; pvPriceBadge.textContent = '✅ Ücretsiz';
+    } else if (formData.fiyat === 'Anlaşmalı') {
+      pvPriceBadge.className = 'price-badge anlasmali'; pvPriceBadge.textContent = '🤝 Anlaşmalı';
+    } else {
+      pvPriceBadge.className = 'price-badge paid'; pvPriceBadge.textContent = '💰 ' + formData.fiyat + ' ₺';
+    }
+    pvBody.appendChild(pvPriceBadge);
+    previewCard.appendChild(pvBody);
+
+    // Footer
+    const pvFooter = document.createElement('div');
+    pvFooter.className = 'preview-footer';
+    const pvNick = document.createElement('div');
+    pvNick.className = 'preview-nick';
+    pvNick.textContent = (userProfile ? userProfile.kullanici_adi : (currentUser ? currentUser.email : 'Sen'));
+    pvFooter.appendChild(pvNick);
+    const pvContact = document.createElement('div');
+    pvContact.style.cssText = 'display:flex;gap:6px;';
+    if (formData.discord) {
+      const pvD = document.createElement('span');
+      pvD.style.cssText = 'font-size:16px;';
+      pvD.textContent = '💬';
+      pvContact.appendChild(pvD);
+    }
+    if (formData.email) {
+      const pvE = document.createElement('span');
+      pvE.style.cssText = 'font-size:16px;';
+      pvE.textContent = '✉️';
+      pvContact.appendChild(pvE);
+    }
+    pvFooter.appendChild(pvContact);
+    previewCard.appendChild(pvFooter);
+    previewContainer.appendChild(previewCard);
+    panel.appendChild(previewContainer);
+
+    // Pending note
+    const pendingNote = document.createElement('div');
+    pendingNote.className = 'pending-note';
+    const pendingIcon = document.createElement('div');
+    pendingIcon.className = 'pending-note-icon';
+    pendingIcon.textContent = '⏳';
+    const pendingText = document.createElement('div');
+    pendingText.className = 'pending-note-text';
+    const pendingStrong = document.createElement('strong');
+    pendingStrong.textContent = 'Admin onayı gerekiyor.';
+    pendingText.appendChild(pendingStrong);
+    pendingText.appendChild(document.createTextNode(' İlanın yayınlanmadan önce ekibimiz tarafından incelenecek. Genellikle 24 saat içinde onaylanır.'));
+    pendingNote.appendChild(pendingIcon);
+    pendingNote.appendChild(pendingText);
+    panel.appendChild(pendingNote);
+
+    // Publish button
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+    const backBtn = document.createElement('button');
+    backBtn.className = 'btn-back';
+    backBtn.textContent = '← Geri';
+    backBtn.addEventListener('click', goPrev);
+    const publishBtn = document.createElement('button');
+    publishBtn.className = 'btn-next';
+    publishBtn.textContent = '🚀 Yayınla';
+    publishBtn.addEventListener('click', () => submitIlan(publishBtn));
+    btnRow.appendChild(backBtn);
+    btnRow.appendChild(publishBtn);
+    panel.appendChild(btnRow);
+    card.appendChild(panel);
+  }
+
+  // ─── SUBMIT ───────────────────────────────────────────────────────────────
+  async function submitIlan(btn) {
+    if (!currentUser) { showToast('Giriş yapman gerekiyor!', true); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '';
+    const spinner = document.createElement('span');
+    spinner.className = 'spinner';
+    btn.appendChild(spinner);
+    btn.appendChild(document.createTextNode(' Yayınlanıyor...'));
+
+    let bannerUrl = '';
+
+    // Upload image if exists
+    if (formData.bannerFile) {
+      const ext = formData.bannerFile.name.split('.').pop();
+      const fileName = `ilanlar/${currentUser.id}_${Date.now()}.${ext}`;
+      const { data: upData, error: upErr } = await sb.storage.from('images').upload(fileName, formData.bannerFile, { upsert: true });
+      if (upErr) { console.error(upErr); showToast('Görsel yüklenemedi, devam ediliyor...', true); }
+      else {
+        const { data: urlData } = sb.storage.from('images').getPublicUrl(fileName);
+        bannerUrl = urlData.publicUrl;
+      }
+    }
+
+    const nick = userProfile ? userProfile.kullanici_adi : (currentUser.email ? currentUser.email.split('@')[0] : 'kullanici');
+    const fiyatValue = formData.fiyatTuru === 'free' ? 0 : (formData.fiyatTuru === 'anlasmali' ? 'Anlaşmalı' : formData.fiyat);
+
+    const { error } = await sb.from('ilanlar').insert({
+      kullanici_id: currentUser.id,
+      kullanici_nick: nick,
+      baslik: formData.baslik,
+      kategori: formData.kategori,
+      alt_kategori: formData.alt_kategori,
+      aciklama: formData.aciklama,
+      fiyat: fiyatValue,
+      discord: formData.discord || null,
+      email: formData.email || null,
+      durum: 'beklemede',
+      one_cikan: false,
+      banner_url: bannerUrl || null,
+    });
+
+    if (error) {
+      console.error(error);
+      btn.disabled = false;
+      btn.textContent = '🚀 Yayınla';
+      showToast('Hata: ' + (error.message || 'İlan gönderilemedi'), true);
+      return;
+    }
+
+    // Success
+    btn.textContent = '✅ Gönderildi!';
+    showToast('✅ İlanın admin onayı bekliyor!');
+    setTimeout(() => {
+      window.location.href = 'ilanlar.html?success=1';
+    }, 1800);
+  }
+
+  // ─── NAVIGATION ───────────────────────────────────────────────────────────
+  function goNext() {
+    if (currentStep < TOTAL_STEPS) {
+      currentStep++;
+      updateProgress();
+      renderStep(document.getElementById('formCard'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function goPrev() {
+    if (currentStep > 1) {
+      currentStep--;
+      updateProgress();
+      renderStep(document.getElementById('formCard'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // ─── INIT ─────────────────────────────────────────────────────────────────
+  async function init() {
+    await buildNav();
+    renderPage();
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klanlar — LOBBY.GG</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ── Page Layout ── */
+    .page-wrapper { padding-top: var(--nav-h); }
+    .main-content { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      padding: 60px 20px 50px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(57,255,20,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.2);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+    .hero-title {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .hero-title span { color: var(--accent); }
+    .hero-sub {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 32px;
+      font-weight: 600;
+    }
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 32px;
+      position: relative;
+    }
+    .hero-stat + .hero-stat::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      height: 60%;
+      width: 1px;
+      background: var(--border-thin);
+    }
+    .hero-stat-val {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .hero-stat-val.accent { color: var(--accent); }
+    .hero-stat-val.gold { color: var(--gold); }
+    .hero-stat-val.blue { color: var(--blue); }
+    .hero-stat-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+    .hero-actions { display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 0 24px;
+      flex-wrap: wrap;
+    }
+    .filter-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .filter-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    .filter-search {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 9px 14px 9px 36px;
+      transition: border-color var(--transition);
+    }
+    .filter-search:focus { border-color: var(--accent); outline: none; }
+    .filter-search::placeholder { color: var(--text-dim); }
+    .filter-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 12px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      min-width: 140px;
+    }
+    .filter-select:focus { border-color: var(--accent); outline: none; }
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .filter-tab {
+      padding: 7px 14px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-tab:hover { border-color: var(--border-hover); color: var(--text-1); }
+    .filter-tab.active {
+      background: rgba(57,255,20,0.1);
+      border-color: rgba(57,255,20,0.4);
+      color: var(--accent);
+    }
+    .filter-tab.active.pro {
+      background: rgba(185,51,255,0.1);
+      border-color: rgba(185,51,255,0.4);
+      color: var(--purple);
+    }
+    .filter-tab.active.elite {
+      background: rgba(255,215,0,0.1);
+      border-color: rgba(255,215,0,0.4);
+      color: var(--gold);
+    }
+
+    /* ── Section Header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .section-count {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-dim);
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: 3px;
+      padding: 2px 7px;
+    }
+
+    /* ── Leaderboard ── */
+    .leaderboard-section { margin-bottom: 50px; }
+    .podium-wrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px 0 0;
+    }
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 260px;
+      cursor: pointer;
+    }
+    .podium-item:hover .podium-card { transform: translateY(-4px); }
+    .podium-card {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      padding: 18px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .podium-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+    .podium-1 {
+      background: #0d0d0d;
+      border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(255,215,0,0.15), 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .podium-1::before { background: var(--gold); }
+    .podium-2 {
+      background: #0d0d0d;
+      border-color: #aaaaaa;
+      box-shadow: 0 0 16px rgba(170,170,170,0.1), 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .podium-2::before { background: #aaa; }
+    .podium-3 {
+      background: #0d0d0d;
+      border-color: #cd7f32;
+      box-shadow: 0 0 16px rgba(205,127,50,0.1), 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .podium-3::before { background: #cd7f32; }
+    .podium-rank-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .podium-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      border: 2px solid transparent;
+    }
+    .podium-logo-placeholder {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 900;
+      border: 2px solid transparent;
+    }
+    .podium-1 .podium-logo, .podium-1 .podium-logo-placeholder { border-color: var(--gold); }
+    .podium-2 .podium-logo, .podium-2 .podium-logo-placeholder { border-color: #aaa; }
+    .podium-3 .podium-logo, .podium-3 .podium-logo-placeholder { border-color: #cd7f32; }
+    .podium-1-wrap .podium-logo { width: 72px; height: 72px; }
+    .podium-1-wrap .podium-logo-placeholder { width: 72px; height: 72px; font-size: 28px; }
+    .podium-name {
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .podium-tag {
+      font-size: 10px;
+      font-weight: 800;
+      opacity: 0.7;
+    }
+    .podium-votes {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .podium-1 .podium-votes { color: var(--gold); }
+    .podium-2 .podium-votes { color: #aaa; }
+    .podium-3 .podium-votes { color: #cd7f32; }
+    .podium-1-wrap { order: 2; }
+    .podium-2-wrap { order: 1; }
+    .podium-3-wrap { order: 3; }
+    .podium-step {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 900;
+    }
+    .podium-step-1 { height: 60px; background: linear-gradient(180deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)); border-top: 3px solid var(--gold); }
+    .podium-step-2 { height: 40px; background: linear-gradient(180deg, rgba(170,170,170,0.1), rgba(170,170,170,0.03)); border-top: 3px solid #aaa; }
+    .podium-step-3 { height: 28px; background: linear-gradient(180deg, rgba(205,127,50,0.1), rgba(205,127,50,0.03)); border-top: 3px solid #cd7f32; }
+    .podium-1-wrap .podium-card { padding: 22px 18px 18px; }
+
+    /* ── Clan Grid ── */
+    .clan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .clan-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .clan-grid { grid-template-columns: 1fr; } }
+
+    /* ── Clan Card ── */
+    .clan-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-thin);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .clan-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .clan-banner {
+      height: 80px;
+      width: 100%;
+      position: relative;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .clan-banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .clan-banner-gradient {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .clan-banner-noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    .clan-logo-wrap {
+      position: absolute;
+      bottom: -20px;
+      left: 14px;
+      z-index: 2;
+    }
+    .clan-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      border: 3px solid var(--bg-card);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .clan-logo-placeholder {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      border: 3px solid var(--bg-card);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .clan-body {
+      padding: 28px 14px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .clan-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .clan-name-group { display: flex; flex-direction: column; gap: 3px; }
+    .clan-name {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .clan-tag {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .clan-abonelik {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .abonelik-free {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      color: var(--text-3);
+    }
+    .abonelik-pro {
+      background: rgba(185,51,255,0.12);
+      border: 1px solid rgba(185,51,255,0.3);
+      color: var(--purple);
+    }
+    .abonelik-elite {
+      background: rgba(255,215,0,0.12);
+      border: 1px solid rgba(255,215,0,0.35);
+      color: var(--gold);
+    }
+    .clan-server-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .clan-server-logo {
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--border);
+    }
+    .clan-server-logo-placeholder {
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .clan-server-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .clan-desc {
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .clan-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid var(--border-thin);
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .clan-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-2);
+    }
+    .clan-stat-icon { font-size: 12px; }
+    .clan-stat-val { color: var(--text-1); font-weight: 900; }
+    .clan-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .clan-actions .mc-btn { flex: 1; justify-content: center; }
+    .mc-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── Featured glow on top border ── */
+    .clan-card.featured {
+      position: relative;
+    }
+    .clan-card.featured::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      pointer-events: none;
+    }
+
+    /* ── Skeleton Loader ── */
+    .skeleton {
+      background: linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%);
+      background-size: 200% 100%;
+      animation: skeleton-anim 1.4s infinite;
+      border-radius: 4px;
+    }
+    @keyframes skeleton-anim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      height: 280px;
+    }
+    .skeleton-banner { height: 80px; }
+    .skeleton-body { padding: 32px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Loading State ── */
+    .grid-loading {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .grid-loading { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 580px) { .grid-loading { grid-template-columns: 1fr; } }
+
+    /* ── Create Modal ── */
+    #modal-create { display: none; }
+    #modal-create.open { display: flex; }
+    .modal { max-width: 540px; }
+    .modal-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tag-check {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-top: 4px;
+      height: 14px;
+    }
+    .tag-check.ok { color: var(--accent); }
+    .tag-check.err { color: var(--red); }
+    .tag-check.checking { color: var(--text-dim); }
+    .color-field-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-input-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border);
+      padding: 2px;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .color-input-preview::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input-preview::-webkit-color-swatch { border: none; border-radius: 2px; }
+    .color-hex-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 9px 12px;
+    }
+    .color-hex-input:focus { border-color: var(--accent); outline: none; }
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .upload-zone:hover { border-color: var(--accent); background: rgba(57,255,20,0.03); }
+    .upload-zone.has-file { border-color: var(--accent); border-style: solid; }
+    .upload-zone-icon { font-size: 24px; margin-bottom: 6px; }
+    .upload-zone-text { font-size: 11px; font-weight: 700; color: var(--text-2); }
+    .upload-zone-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+    .upload-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      margin: 0 auto 8px;
+      border: 2px solid var(--border);
+      display: none;
+    }
+    .char-counter {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: right;
+      margin-top: 2px;
+    }
+    .modal-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(57,255,20,0.05);
+      border: 1px solid rgba(57,255,20,0.15);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ── Notification toast ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: toast-in 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 300px;
+    }
+    .toast.success { border-left: 3px solid var(--accent); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    .toast.info    { border-left: 3px solid var(--blue); }
+    .toast.gold    { border-left: 3px solid var(--gold); }
+    @keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+    /* ── No results ── */
+    .no-results {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+      text-align: center;
+      gap: 10px;
+    }
+    .no-results-icon { font-size: 40px; opacity: 0.4; }
+    .no-results-title { font-size: 13px; font-weight: 900; text-transform: uppercase; color: var(--text-3); }
+
+    /* ── Load More ── */
+    .load-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas-bg"></canvas>
+
+<div class="page-wrapper">
+
+  <!-- ═══════ NAV ═══════ -->
+  <nav class="nav" id="nav"></nav>
+
+  <div class="main-content">
+
+    <!-- ═══════ HERO ═══════ -->
+    <section class="hero" id="hero-section">
+      <!-- built by JS -->
+    </section>
+
+    <!-- ═══════ LEADERBOARD ═══════ -->
+    <section class="leaderboard-section" id="leaderboard-section">
+      <!-- built by JS -->
+    </section>
+
+    <!-- ═══════ FILTER BAR ═══════ -->
+    <div class="filter-bar" id="filter-bar">
+      <!-- built by JS -->
+    </div>
+
+    <!-- ═══════ CLAN GRID ═══════ -->
+    <div class="section-header" id="grid-header">
+      <div class="section-title">Tüm Klanlar</div>
+      <div class="section-count" id="grid-count">—</div>
+    </div>
+    <div id="clan-grid" class="clan-grid"></div>
+    <div class="load-more-wrap" id="load-more-wrap" style="display:none;">
+      <button class="mc-btn mc-gray mc-lg" id="load-more-btn">Daha Fazla Yükle</button>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /page-wrapper -->
+
+<!-- ═══════ CREATE CLAN MODAL ═══════ -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal" id="modal-create-inner">
+    <!-- built by JS -->
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── Supabase ── */
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── Servers ── */
+const SERVERS = [
+  {name:'HanedanMC', ip:'play.hanedanmc.com'},
+  {name:'ChickenNW', ip:'oyna.chickennw.com'},
+  {name:'BLOKYA', ip:'oyna.blokya.com'},
+  {name:'DugeCraft', ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC', ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+  {name:'SOULCRAFT', ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC', ip:'atlantikmc.com'},
+  {name:'NAVELYA', ip:'navelya.net'},
+  {name:'CRAFTLUNA', ip:'play.craftluna.net'},
+  {name:'Melonya', ip:'melonya.net'},
+  {name:'Rush Craft', ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft', ip:'play.reborncraft.pw'},
+  {name:'LuneCraft', ip:'mc.lunecraft.net'},
+  {name:'SimitSMP', ip:'simitsmp.net'},
+  {name:'MC4FUN', ip:'play.mc4fun.net'},
+  {name:'İmibiyum', ip:'play.imibiyum.com'}
+];
+
+/* ── State ── */
+let currentUser = null;
+let allClans = [];
+let filteredClans = [];
+let votedTodaySet = new Set(); // klan tags voted today
+let filterState = { search: '', server: '', sort: 'vote', abonelik: 'all' };
+let PAGE = 0;
+const PAGE_SIZE = 9;
+let tagCheckTimer = null;
+let logoFile = null;
+
+/* ══════════════════════════════════════
+   CANVAS ANIMATION
+══════════════════════════════════════ */
+(function initCanvas() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* beams */
+  const beams = Array.from({length: 6}, () => ({
+    x: Math.random() * 1200,
+    y: -200,
+    w: Math.random() * 120 + 40,
+    speed: Math.random() * 0.3 + 0.1,
+    alpha: Math.random() * 0.04 + 0.01
+  }));
+
+  /* logos */
+  const logoImg = new Image();
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  const logos = Array.from({length: 5}, () => ({
+    x: Math.random() * 1200,
+    y: Math.random() * 800,
+    size: Math.random() * 60 + 30,
+    speedX: (Math.random() - 0.5) * 0.15,
+    speedY: (Math.random() - 0.5) * 0.1,
+    alpha: Math.random() * 0.04 + 0.01,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.003
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, W, H);
+
+    /* Beams */
+    beams.forEach(b => {
+      b.x += b.speed;
+      if (b.x > W + 300) b.x = -300;
+      ctx.save();
+      ctx.translate(b.x, 0);
+      ctx.rotate(Math.PI / 5);
+      const g = ctx.createLinearGradient(0, 0, 0, H * 1.5);
+      g.addColorStop(0, `rgba(57,255,20,0)`);
+      g.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      g.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.5})`);
+      g.addColorStop(1, `rgba(57,255,20,0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(-b.w / 2, -200, b.w, H * 2);
+      ctx.restore();
+    });
+
+    /* Logos */
+    logos.forEach(l => {
+      l.x += l.speedX;
+      l.y += l.speedY;
+      l.rot += l.rotSpeed;
+      if (l.x > W + 80) l.x = -80;
+      if (l.x < -80) l.x = W + 80;
+      if (l.y > H + 80) l.y = -80;
+      if (l.y < -80) l.y = H + 80;
+      if (logoImg.complete) {
+        ctx.save();
+        ctx.globalAlpha = l.alpha;
+        ctx.translate(l.x, l.y);
+        ctx.rotate(l.rot);
+        ctx.drawImage(logoImg, -l.size / 2, -l.size / 2, l.size, l.size);
+        ctx.restore();
+      }
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ══════════════════════════════════════
+   NAV
+══════════════════════════════════════ */
+function buildNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+
+  /* Logo */
+  const logoLink = document.createElement('a');
+  logoLink.href = 'lobbyx.html';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoImg.className = 'nav-logo';
+  logoLink.appendChild(logoImg);
+  nav.appendChild(logoLink);
+
+  /* Links */
+  const links = document.createElement('div');
+  links.className = 'nav-links';
+  const navItems = [
+    { label: 'Ana Sayfa', href: 'lobbyx.html', icon: '🏠' },
+    { label: 'İlanlar',   href: 'ilanlar.html', icon: '📋' },
+    { label: 'Klanlar',   href: 'klanlar.html', icon: '⚔️', active: true },
+    { label: 'Keşfet',   href: 'kesfet.html', icon: '🔍' },
+  ];
+  navItems.forEach(item => {
+    const a = document.createElement('a');
+    a.href = item.href;
+    a.className = 'nav-link' + (item.active ? ' active' : '');
+    const icon = document.createElement('span');
+    icon.textContent = item.icon;
+    const label = document.createElement('span');
+    label.textContent = item.label;
+    a.appendChild(icon);
+    a.appendChild(label);
+    links.appendChild(a);
+  });
+  nav.appendChild(links);
+
+  /* Right */
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  /* Bell */
+  const bell = document.createElement('button');
+  bell.className = 'nav-bell';
+  bell.innerHTML = '🔔';
+  const bellBadge = document.createElement('div');
+  bellBadge.className = 'nav-bell-badge';
+  bellBadge.id = 'nav-bell-badge';
+  bellBadge.style.display = 'none';
+  bell.appendChild(bellBadge);
+  right.appendChild(bell);
+
+  /* LCoin */
+  const lcoin = document.createElement('div');
+  lcoin.className = 'nav-lcoin';
+  lcoin.innerHTML = '<span class="nav-lcoin-icon">🪙</span><span id="nav-lcoin-val">—</span>';
+  right.appendChild(lcoin);
+
+  /* Avatar */
+  const avatarWrap = document.createElement('a');
+  avatarWrap.href = 'profil.html';
+  avatarWrap.className = 'nav-avatar';
+  const avatarImg = document.createElement('img');
+  avatarImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  avatarImg.alt = 'Profil';
+  avatarImg.id = 'nav-avatar-img';
+  avatarWrap.appendChild(avatarImg);
+  right.appendChild(avatarWrap);
+
+  nav.appendChild(right);
+}
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+function buildHero(stats) {
+  const hero = document.getElementById('hero-section');
+  hero.innerHTML = '';
+
+  const eyebrow = document.createElement('div');
+  eyebrow.className = 'hero-eyebrow';
+  eyebrow.textContent = '⚔️  Klan Sistemi';
+  hero.appendChild(eyebrow);
+
+  const title = document.createElement('h1');
+  title.className = 'hero-title';
+  const titleNormal = document.createElement('span');
+  titleNormal.textContent = 'LOBBYGG ';
+  const titleAccent = document.createElement('span');
+  titleAccent.textContent = 'KLANLAR';
+  title.appendChild(titleNormal);
+  title.appendChild(titleAccent);
+  hero.appendChild(title);
+
+  const sub = document.createElement('p');
+  sub.className = 'hero-sub';
+  sub.textContent = 'En güçlü klanları keşfet, oy ver veya kendi klanını oluştur!';
+  hero.appendChild(sub);
+
+  /* Stats */
+  const statsWrap = document.createElement('div');
+  statsWrap.className = 'hero-stats';
+
+  const statData = [
+    { val: stats.total, label: 'Toplam Klan', cls: 'accent' },
+    { val: stats.members, label: 'Toplam Üye', cls: 'blue' },
+    { val: stats.thisWeek, label: 'Bu Hafta Yeni', cls: 'gold' },
+  ];
+  statData.forEach(s => {
+    const st = document.createElement('div');
+    st.className = 'hero-stat';
+    const val = document.createElement('div');
+    val.className = 'hero-stat-val ' + s.cls;
+    val.textContent = fmtNum(s.val);
+    const label = document.createElement('div');
+    label.className = 'hero-stat-label';
+    label.textContent = s.label;
+    st.appendChild(val);
+    st.appendChild(label);
+    statsWrap.appendChild(st);
+  });
+  hero.appendChild(statsWrap);
+
+  /* Actions */
+  const actions = document.createElement('div');
+  actions.className = 'hero-actions';
+  const createBtn = document.createElement('button');
+  createBtn.className = 'mc-btn mc-green mc-lg';
+  createBtn.textContent = '⚔️  Klan Oluştur';
+  createBtn.addEventListener('click', openCreateModal);
+  actions.appendChild(createBtn);
+  hero.appendChild(actions);
+}
+
+/* ══════════════════════════════════════
+   LEADERBOARD
+══════════════════════════════════════ */
+function buildLeaderboard(top3) {
+  const section = document.getElementById('leaderboard-section');
+  section.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.textContent = '🏆  Vote Liderboard';
+  header.appendChild(title);
+  section.appendChild(header);
+
+  if (!top3.length) {
+    const empty = document.createElement('div');
+    empty.className = 'no-results';
+    empty.innerHTML = '<div class="no-results-icon">🏆</div><div class="no-results-title">Henüz klan yok</div>';
+    section.appendChild(empty);
+    return;
+  }
+
+  const podium = document.createElement('div');
+  podium.className = 'podium-wrap';
+
+  const medals = ['🥇', '🥈', '🥉'];
+  const stepClasses = ['podium-step-1', 'podium-step-2', 'podium-step-3'];
+  const cardClasses = ['podium-1', 'podium-2', 'podium-3'];
+  const wrapClasses = ['podium-1-wrap', 'podium-2-wrap', 'podium-3-wrap'];
+
+  top3.forEach((clan, i) => {
+    const rank = i + 1;
+    const wrap = document.createElement('div');
+    wrap.className = 'podium-item ' + wrapClasses[i];
+
+    const card = document.createElement('div');
+    card.className = 'podium-card ' + cardClasses[i];
+    card.addEventListener('click', () => { window.location.href = `klan.html?tag=${encodeURIComponent(clan.tag)}`; });
+
+    /* rank badge */
+    const rankBadge = document.createElement('div');
+    rankBadge.className = 'podium-rank-badge';
+    rankBadge.textContent = medals[i];
+    card.appendChild(rankBadge);
+
+    /* logo */
+    if (clan.logo_url) {
+      const img = document.createElement('img');
+      img.className = 'podium-logo';
+      img.src = clan.logo_url;
+      img.alt = clan.isim;
+      img.onerror = function() {
+        this.replaceWith(createLogoPlaceholder(clan, i === 0 ? 72 : 60));
+      };
+      card.appendChild(img);
+    } else {
+      card.appendChild(createLogoPlaceholder(clan, i === 0 ? 72 : 60));
+    }
+
+    /* name */
+    const name = document.createElement('div');
+    name.className = 'podium-name';
+    name.textContent = clan.isim;
+    name.style.color = clan.renk || '#fff';
+    card.appendChild(name);
+
+    const tag = document.createElement('div');
+    tag.className = 'podium-tag';
+    tag.textContent = '[' + clan.tag + ']';
+    tag.style.color = clan.renk || 'var(--text-3)';
+    card.appendChild(tag);
+
+    /* votes */
+    const votes = document.createElement('div');
+    votes.className = 'podium-votes';
+    votes.innerHTML = '🟡 ' + fmtNum(clan.vote_sayisi || 0) + ' Vote';
+    card.appendChild(votes);
+
+    wrap.appendChild(card);
+
+    /* step */
+    const step = document.createElement('div');
+    step.className = 'podium-step ' + stepClasses[i];
+    step.textContent = rank;
+    wrap.appendChild(step);
+
+    podium.appendChild(wrap);
+  });
+
+  section.appendChild(podium);
+}
+
+function createLogoPlaceholder(clan, size = 52) {
+  const el = document.createElement('div');
+  el.className = size > 52 ? 'podium-logo-placeholder' : 'clan-logo-placeholder';
+  el.style.width = size + 'px';
+  el.style.height = size + 'px';
+  el.style.background = clan.renk ? hexToGradient(clan.renk) : 'var(--border)';
+  el.style.color = '#fff';
+  el.textContent = (clan.isim || '?')[0].toUpperCase();
+  return el;
+}
+
+function hexToGradient(hex) {
+  return `linear-gradient(135deg, ${hex}55, ${hex}22)`;
+}
+
+/* ══════════════════════════════════════
+   FILTER BAR
+══════════════════════════════════════ */
+function buildFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  bar.innerHTML = '';
+
+  /* Search */
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'filter-search-wrap';
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'filter-search-icon';
+  searchIcon.textContent = '🔍';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Klan ara...';
+  searchInput.className = 'filter-search';
+  searchInput.addEventListener('input', () => {
+    filterState.search = searchInput.value.trim().toLowerCase();
+    applyFilters();
+  });
+  searchWrap.appendChild(searchIcon);
+  searchWrap.appendChild(searchInput);
+  bar.appendChild(searchWrap);
+
+  /* Server filter */
+  const serverSel = document.createElement('select');
+  serverSel.className = 'filter-select';
+  const allOpt = document.createElement('option');
+  allOpt.value = '';
+  allOpt.textContent = '🌐 Tüm Sunucular';
+  serverSel.appendChild(allOpt);
+  SERVERS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.ip;
+    opt.textContent = s.name;
+    serverSel.appendChild(opt);
+  });
+  serverSel.addEventListener('change', () => {
+    filterState.server = serverSel.value;
+    applyFilters();
+  });
+  bar.appendChild(serverSel);
+
+  /* Sort */
+  const sortSel = document.createElement('select');
+  sortSel.className = 'filter-select';
+  const sortOpts = [
+    { value: 'vote', label: '🟡 En Fazla Vote' },
+    { value: 'new',  label: '🆕 Yeni' },
+    { value: 'uye',  label: '👥 Üye Sayısı' },
+  ];
+  sortOpts.forEach(so => {
+    const opt = document.createElement('option');
+    opt.value = so.value;
+    opt.textContent = so.label;
+    sortSel.appendChild(opt);
+  });
+  sortSel.addEventListener('change', () => {
+    filterState.sort = sortSel.value;
+    applyFilters();
+  });
+  bar.appendChild(sortSel);
+
+  /* Abonelik tabs */
+  const tabsWrap = document.createElement('div');
+  tabsWrap.className = 'filter-tabs';
+  const tabDefs = [
+    { key: 'all',   label: 'Tümü',    extraCls: '' },
+    { key: 'pro',   label: '⭐ Pro',   extraCls: 'pro' },
+    { key: 'elite', label: '👑 Elite', extraCls: 'elite' },
+  ];
+  const tabEls = [];
+  tabDefs.forEach(td => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-tab' + (td.key === 'all' ? ' active' : '');
+    btn.dataset.key = td.key;
+    btn.dataset.extra = td.extraCls;
+    btn.textContent = td.label;
+    btn.addEventListener('click', () => {
+      tabEls.forEach(t => {
+        t.classList.remove('active', 'pro', 'elite');
+      });
+      btn.classList.add('active');
+      if (td.extraCls) btn.classList.add(td.extraCls);
+      filterState.abonelik = td.key;
+      applyFilters();
+    });
+    tabEls.push(btn);
+    tabsWrap.appendChild(btn);
+  });
+  bar.appendChild(tabsWrap);
+}
+
+/* ══════════════════════════════════════
+   FILTER / SORT LOGIC
+══════════════════════════════════════ */
+function applyFilters() {
+  let result = [...allClans];
+
+  if (filterState.search) {
+    const q = filterState.search;
+    result = result.filter(c =>
+      (c.isim || '').toLowerCase().includes(q) ||
+      (c.tag  || '').toLowerCase().includes(q) ||
+      (c.aciklama || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (filterState.server) {
+    result = result.filter(c => c.desteklened_sunucu === filterState.server);
+  }
+
+  if (filterState.abonelik !== 'all') {
+    result = result.filter(c => (c.abonelik || '').toLowerCase() === filterState.abonelik);
+  }
+
+  if (filterState.sort === 'vote') {
+    result.sort((a, b) => (b.vote_sayisi || 0) - (a.vote_sayisi || 0));
+  } else if (filterState.sort === 'new') {
+    result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  } else if (filterState.sort === 'uye') {
+    result.sort((a, b) => (b.uye_sayisi || 0) - (a.uye_sayisi || 0));
+  }
+
+  filteredClans = result;
+  PAGE = 0;
+  renderGrid();
+}
+
+/* ══════════════════════════════════════
+   GRID RENDER
+══════════════════════════════════════ */
+function renderGrid() {
+  const grid = document.getElementById('clan-grid');
+  const countEl = document.getElementById('grid-count');
+  const lmWrap = document.getElementById('load-more-wrap');
+  grid.innerHTML = '';
+
+  countEl.textContent = filteredClans.length + ' klan';
+
+  if (!filteredClans.length) {
+    const noR = document.createElement('div');
+    noR.className = 'no-results';
+    const icon = document.createElement('div');
+    icon.className = 'no-results-icon';
+    icon.textContent = '⚔️';
+    const t = document.createElement('div');
+    t.className = 'no-results-title';
+    t.textContent = 'Klan bulunamadı';
+    noR.appendChild(icon);
+    noR.appendChild(t);
+    grid.appendChild(noR);
+    lmWrap.style.display = 'none';
+    return;
+  }
+
+  const slice = filteredClans.slice(0, (PAGE + 1) * PAGE_SIZE);
+  slice.forEach(clan => {
+    grid.appendChild(buildClanCard(clan));
+  });
+
+  if (filteredClans.length > (PAGE + 1) * PAGE_SIZE) {
+    lmWrap.style.display = 'flex';
+  } else {
+    lmWrap.style.display = 'none';
+  }
+}
+
+/* ══════════════════════════════════════
+   CLAN CARD
+══════════════════════════════════════ */
+function buildClanCard(clan) {
+  const card = document.createElement('div');
+  card.className = 'clan-card';
+  if (clan.abonelik === 'elite') card.classList.add('featured');
+
+  /* Dynamic border from renk */
+  const renk = clan.renk || '#2a2a2a';
+  card.style.borderColor = renk + '44';
+  card.addEventListener('mouseenter', () => {
+    card.style.borderColor = renk + 'aa';
+    card.style.boxShadow = `0 12px 40px ${renk}22, 0 4px 16px rgba(0,0,0,0.5)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.borderColor = renk + '44';
+    card.style.boxShadow = '';
+  });
+
+  /* Top colored line */
+  if (clan.abonelik === 'elite' || clan.abonelik === 'pro') {
+    const topLine = document.createElement('div');
+    topLine.style.cssText = `position:absolute;top:0;left:0;right:0;height:2px;background:${renk};z-index:3;`;
+    card.appendChild(topLine);
+  }
+
+  /* Banner */
+  const banner = document.createElement('div');
+  banner.className = 'clan-banner';
+
+  if (clan.banner_url) {
+    const bannerImg = document.createElement('img');
+    bannerImg.className = 'clan-banner-img';
+    bannerImg.src = clan.banner_url;
+    bannerImg.alt = '';
+    bannerImg.onerror = function() {
+      this.replaceWith(buildBannerGradient(renk));
+    };
+    banner.appendChild(bannerImg);
+  } else {
+    banner.appendChild(buildBannerGradient(renk));
+  }
+
+  /* Logo overlay */
+  const logoWrap = document.createElement('div');
+  logoWrap.className = 'clan-logo-wrap';
+  if (clan.logo_url) {
+    const logoImg = document.createElement('img');
+    logoImg.className = 'clan-logo';
+    logoImg.src = clan.logo_url;
+    logoImg.alt = clan.isim;
+    logoImg.onerror = function() {
+      this.replaceWith(buildCardLogoPlaceholder(clan));
+    };
+    logoWrap.appendChild(logoImg);
+  } else {
+    logoWrap.appendChild(buildCardLogoPlaceholder(clan));
+  }
+  banner.appendChild(logoWrap);
+  card.appendChild(banner);
+
+  /* Body */
+  const body = document.createElement('div');
+  body.className = 'clan-body';
+
+  /* Header row */
+  const headerRow = document.createElement('div');
+  headerRow.className = 'clan-header-row';
+
+  const nameGroup = document.createElement('div');
+  nameGroup.className = 'clan-name-group';
+
+  const clanName = document.createElement('div');
+  clanName.className = 'clan-name';
+  clanName.textContent = clan.isim || 'İsimsiz Klan';
+  nameGroup.appendChild(clanName);
+
+  const clanTag = document.createElement('div');
+  clanTag.className = 'clan-tag';
+  clanTag.style.color = renk;
+  clanTag.textContent = '[' + (clan.tag || '???') + ']';
+  nameGroup.appendChild(clanTag);
+  headerRow.appendChild(nameGroup);
+
+  /* Abonelik badge */
+  const abBadge = buildAbonelikBadge(clan.abonelik);
+  headerRow.appendChild(abBadge);
+  body.appendChild(headerRow);
+
+  /* Active server */
+  if (clan.desteklened_sunucu) {
+    const srv = SERVERS.find(s => s.ip === clan.desteklened_sunucu);
+    if (srv) {
+      const serverRow = document.createElement('div');
+      serverRow.className = 'clan-server-row';
+      const srvLogo = document.createElement('img');
+      srvLogo.className = 'clan-server-logo';
+      srvLogo.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
+      srvLogo.alt = srv.name;
+      srvLogo.onerror = function() {
+        const ph = document.createElement('div');
+        ph.className = 'clan-server-logo-placeholder';
+        ph.textContent = '🎮';
+        this.replaceWith(ph);
+      };
+      const srvName = document.createElement('div');
+      srvName.className = 'clan-server-name';
+      srvName.textContent = srv.name;
+      serverRow.appendChild(srvLogo);
+      serverRow.appendChild(srvName);
+      body.appendChild(serverRow);
+    }
+  }
+
+  /* Description */
+  if (clan.aciklama) {
+    const desc = document.createElement('div');
+    desc.className = 'clan-desc';
+    desc.textContent = clan.aciklama;
+    body.appendChild(desc);
+  }
+
+  /* Stats row */
+  const statsRow = document.createElement('div');
+  statsRow.className = 'clan-stats-row';
+
+  const statUye = document.createElement('div');
+  statUye.className = 'clan-stat';
+  statUye.innerHTML = '<span class="clan-stat-icon">👥</span><span class="clan-stat-val">' + fmtNum(clan.uye_sayisi || 0) + '</span><span> Üye</span>';
+
+  const statVote = document.createElement('div');
+  statVote.className = 'clan-stat';
+  statVote.innerHTML = '<span class="clan-stat-icon">🟡</span><span class="clan-stat-val">' + fmtNum(clan.vote_sayisi || 0) + '</span><span> Vote</span>';
+
+  statsRow.appendChild(statUye);
+  statsRow.appendChild(statVote);
+  body.appendChild(statsRow);
+
+  /* Actions */
+  const actions = document.createElement('div');
+  actions.className = 'clan-actions';
+
+  const votedToday = votedTodaySet.has(clan.tag);
+  const voteBtn = document.createElement('button');
+
+  if (votedToday) {
+    voteBtn.className = 'mc-btn mc-gray mc-sm';
+    voteBtn.textContent = '✅ Oy Kullandın';
+    voteBtn.disabled = true;
+  } else {
+    voteBtn.className = 'mc-btn mc-gold mc-sm';
+    voteBtn.textContent = '🟡 Oy Ver';
+    voteBtn.dataset.klanTag = clan.tag;
+    voteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleVote(clan, voteBtn, statVote);
+    });
+  }
+
+  const gorBtn = document.createElement('a');
+  gorBtn.className = 'mc-btn mc-gray mc-sm';
+  gorBtn.href = `klan.html?tag=${encodeURIComponent(clan.tag)}`;
+  gorBtn.textContent = 'Klanı Gör';
+  gorBtn.addEventListener('click', e => e.stopPropagation());
+
+  actions.appendChild(voteBtn);
+  actions.appendChild(gorBtn);
+  body.appendChild(actions);
+
+  card.appendChild(body);
+
+  /* Card click = navigate */
+  card.addEventListener('click', () => {
+    window.location.href = `klan.html?tag=${encodeURIComponent(clan.tag)}`;
+  });
+
+  return card;
+}
+
+function buildBannerGradient(renk) {
+  const div = document.createElement('div');
+  div.className = 'clan-banner-gradient';
+  div.style.background = `linear-gradient(135deg, ${renk}33 0%, ${renk}11 50%, #0d0d0d 100%)`;
+  const noise = document.createElement('div');
+  noise.className = 'clan-banner-noise';
+  div.appendChild(noise);
+  return div;
+}
+
+function buildCardLogoPlaceholder(clan) {
+  const el = document.createElement('div');
+  el.className = 'clan-logo-placeholder';
+  el.style.background = clan.renk ? hexToGradient(clan.renk) : 'var(--border)';
+  el.style.color = '#fff';
+  el.textContent = (clan.isim || '?')[0].toUpperCase();
+  return el;
+}
+
+function buildAbonelikBadge(abonelik) {
+  const badge = document.createElement('div');
+  badge.className = 'clan-abonelik';
+  if (!abonelik || abonelik === 'ucretsiz' || abonelik === 'free' || abonelik === '') {
+    badge.className += ' abonelik-free';
+    badge.textContent = 'Ücretsiz';
+  } else if (abonelik.toLowerCase() === 'pro') {
+    badge.className += ' abonelik-pro';
+    badge.textContent = '⭐ Pro';
+  } else if (abonelik.toLowerCase() === 'elite') {
+    badge.className += ' abonelik-elite';
+    badge.textContent = '👑 Elite';
+  } else {
+    badge.className += ' abonelik-free';
+    badge.textContent = abonelik;
+  }
+  return badge;
+}
+
+/* ══════════════════════════════════════
+   VOTE HANDLER
+══════════════════════════════════════ */
+async function handleVote(clan, btn, statEl) {
+  if (!currentUser) {
+    toast('Oy vermek için giriş yapmalısın!', 'error');
+    return;
+  }
+  if (votedTodaySet.has(clan.tag)) {
+    toast('Bugün zaten oy kullandın!', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Kaydediliyor...';
+
+  try {
+    /* Insert vote */
+    const { error: voteErr } = await db.from('klan_voteler').insert({
+      klan_id: clan.tag,
+      kullanici_id: currentUser.id,
+      son_vote: new Date().toISOString()
+    });
+
+    if (voteErr) {
+      if (voteErr.code === '23505') {
+        toast('Bugün zaten oy kullandın!', 'error');
+        votedTodaySet.add(clan.tag);
+        btn.className = 'mc-btn mc-gray mc-sm';
+        btn.textContent = '✅ Oy Kullandın';
+        return;
+      }
+      throw voteErr;
+    }
+
+    /* Increment vote_sayisi */
+    const { error: incErr } = await db.rpc('increment_vote', { klan_tag: clan.tag });
+    if (incErr) {
+      /* fallback manual increment */
+      await db.from('klanlar').update({ vote_sayisi: (clan.vote_sayisi || 0) + 1 }).eq('tag', clan.tag);
+    }
+
+    clan.vote_sayisi = (clan.vote_sayisi || 0) + 1;
+    votedTodaySet.add(clan.tag);
+
+    btn.className = 'mc-btn mc-gray mc-sm';
+    btn.textContent = '✅ Oy Kullandın';
+    btn.disabled = true;
+
+    /* Update stat display */
+    const valEl = statEl.querySelector('.clan-stat-val');
+    if (valEl) valEl.textContent = fmtNum(clan.vote_sayisi);
+
+    toast('🟡 Oyun kaydedildi! +1 Vote', 'gold');
+  } catch (err) {
+    console.error(err);
+    toast('Bir hata oluştu: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.className = 'mc-btn mc-gold mc-sm';
+    btn.textContent = '🟡 Oy Ver';
+  }
+}
+
+/* ══════════════════════════════════════
+   CREATE CLAN MODAL
+══════════════════════════════════════ */
+function buildCreateModal() {
+  const inner = document.getElementById('modal-create-inner');
+  inner.innerHTML = '';
+
+  /* Header */
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const title = document.createElement('div');
+  title.className = 'modal-title';
+  title.textContent = '⚔️  Klan Oluştur';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = '✕';
+  closeBtn.addEventListener('click', closeCreateModal);
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  inner.appendChild(header);
+
+  /* Body */
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  const form = document.createElement('div');
+  form.className = 'modal-form';
+
+  /* Note */
+  const note = document.createElement('div');
+  note.className = 'modal-note';
+  note.textContent = '✅  Klan oluşturma ücretsiz! Hemen klanını oluştur.';
+  form.appendChild(note);
+
+  /* Row: Tag + Name */
+  const row1 = document.createElement('div');
+  row1.className = 'form-row';
+
+  /* Tag */
+  const tagGroup = document.createElement('div');
+  tagGroup.className = 'input-group';
+  const tagLabel = document.createElement('label');
+  tagLabel.className = 'input-label';
+  tagLabel.textContent = 'Klan Tag *';
+  const tagInput = document.createElement('input');
+  tagInput.type = 'text';
+  tagInput.className = 'input-field';
+  tagInput.placeholder = 'TAG (2-8 harf)';
+  tagInput.maxLength = 8;
+  tagInput.id = 'create-tag';
+  tagInput.style.textTransform = 'uppercase';
+  const tagCheck = document.createElement('div');
+  tagCheck.className = 'tag-check';
+  tagCheck.id = 'tag-check';
+  tagInput.addEventListener('input', () => {
+    const val = tagInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    tagInput.value = val;
+    checkTagAvailability(val, tagCheck);
+  });
+  tagGroup.appendChild(tagLabel);
+  tagGroup.appendChild(tagInput);
+  tagGroup.appendChild(tagCheck);
+  row1.appendChild(tagGroup);
+
+  /* Name */
+  const nameGroup = document.createElement('div');
+  nameGroup.className = 'input-group';
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'input-label';
+  nameLabel.textContent = 'Klan İsmi *';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'input-field';
+  nameInput.placeholder = 'Klan İsmi (3-40 karakter)';
+  nameInput.maxLength = 40;
+  nameInput.id = 'create-name';
+  nameGroup.appendChild(nameLabel);
+  nameGroup.appendChild(nameInput);
+  row1.appendChild(nameGroup);
+  form.appendChild(row1);
+
+  /* Description */
+  const descGroup = document.createElement('div');
+  descGroup.className = 'input-group';
+  const descLabel = document.createElement('label');
+  descLabel.className = 'input-label';
+  descLabel.textContent = 'Açıklama';
+  const descInput = document.createElement('textarea');
+  descInput.className = 'input-field';
+  descInput.placeholder = 'Klanınız hakkında kısaca bilgi...';
+  descInput.maxLength = 200;
+  descInput.rows = 3;
+  descInput.id = 'create-desc';
+  descInput.style.resize = 'vertical';
+  const descCounter = document.createElement('div');
+  descCounter.className = 'char-counter';
+  descCounter.textContent = '0 / 200';
+  descInput.addEventListener('input', () => {
+    descCounter.textContent = descInput.value.length + ' / 200';
+  });
+  descGroup.appendChild(descLabel);
+  descGroup.appendChild(descInput);
+  descGroup.appendChild(descCounter);
+  form.appendChild(descGroup);
+
+  /* Row: Color + Server */
+  const row2 = document.createElement('div');
+  row2.className = 'form-row';
+
+  /* Color */
+  const colorGroup = document.createElement('div');
+  colorGroup.className = 'input-group';
+  const colorLabel = document.createElement('label');
+  colorLabel.className = 'input-label';
+  colorLabel.textContent = 'Renk';
+  const colorWrap = document.createElement('div');
+  colorWrap.className = 'color-field-wrap';
+  const colorPicker = document.createElement('input');
+  colorPicker.type = 'color';
+  colorPicker.className = 'color-input-preview';
+  colorPicker.value = '#FFD700';
+  colorPicker.id = 'create-color';
+  const colorHex = document.createElement('input');
+  colorHex.type = 'text';
+  colorHex.className = 'color-hex-input';
+  colorHex.value = '#FFD700';
+  colorHex.maxLength = 7;
+  colorHex.id = 'create-color-hex';
+  colorPicker.addEventListener('input', () => { colorHex.value = colorPicker.value; });
+  colorHex.addEventListener('input', () => {
+    const v = colorHex.value;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) colorPicker.value = v;
+  });
+  colorWrap.appendChild(colorPicker);
+  colorWrap.appendChild(colorHex);
+  colorGroup.appendChild(colorLabel);
+  colorGroup.appendChild(colorWrap);
+  row2.appendChild(colorGroup);
+
+  /* Server */
+  const srvGroup = document.createElement('div');
+  srvGroup.className = 'input-group';
+  const srvLabel = document.createElement('label');
+  srvLabel.className = 'input-label';
+  srvLabel.textContent = 'Aktif Sunucu';
+  const srvSel = document.createElement('select');
+  srvSel.className = 'select-field';
+  srvSel.id = 'create-server';
+  const noSrv = document.createElement('option');
+  noSrv.value = '';
+  noSrv.textContent = '— Sunucu Seç —';
+  srvSel.appendChild(noSrv);
+  SERVERS.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.ip;
+    opt.textContent = s.name;
+    srvSel.appendChild(opt);
+  });
+  srvGroup.appendChild(srvLabel);
+  srvGroup.appendChild(srvSel);
+  row2.appendChild(srvGroup);
+  form.appendChild(row2);
+
+  /* Logo Upload */
+  const logoGroup = document.createElement('div');
+  logoGroup.className = 'input-group';
+  const logoLabel = document.createElement('label');
+  logoLabel.className = 'input-label';
+  logoLabel.textContent = 'Klan Logosu';
+  const uploadZone = document.createElement('div');
+  uploadZone.className = 'upload-zone';
+  uploadZone.id = 'logo-upload-zone';
+  const uploadPreview = document.createElement('img');
+  uploadPreview.className = 'upload-preview';
+  uploadPreview.id = 'logo-preview';
+  const uploadIcon = document.createElement('div');
+  uploadIcon.className = 'upload-zone-icon';
+  uploadIcon.textContent = '📁';
+  const uploadText = document.createElement('div');
+  uploadText.className = 'upload-zone-text';
+  uploadText.textContent = 'Logo yükle';
+  const uploadSub = document.createElement('div');
+  uploadSub.className = 'upload-zone-sub';
+  uploadSub.textContent = 'PNG, JPG, GIF — max 2MB';
+  uploadZone.appendChild(uploadPreview);
+  uploadZone.appendChild(uploadIcon);
+  uploadZone.appendChild(uploadText);
+  uploadZone.appendChild(uploadSub);
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  fileInput.id = 'create-logo-input';
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast('Dosya 2MB\'dan küçük olmalı!', 'error'); return; }
+    logoFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadPreview.src = e.target.result;
+      uploadPreview.style.display = 'block';
+      uploadZone.classList.add('has-file');
+      uploadText.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+  });
+  uploadZone.addEventListener('click', () => fileInput.click());
+  logoGroup.appendChild(logoLabel);
+  logoGroup.appendChild(uploadZone);
+  logoGroup.appendChild(fileInput);
+  form.appendChild(logoGroup);
+
+  body.appendChild(form);
+  inner.appendChild(body);
+
+  /* Footer */
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'mc-btn mc-gray';
+  cancelBtn.textContent = 'İptal';
+  cancelBtn.addEventListener('click', closeCreateModal);
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'mc-btn mc-green';
+  submitBtn.id = 'create-submit-btn';
+  submitBtn.textContent = '⚔️  Klan Oluştur';
+  submitBtn.addEventListener('click', () => handleCreateClan({
+    tagInput, nameInput, descInput, colorPicker, srvSel, submitBtn
+  }));
+  footer.appendChild(cancelBtn);
+  footer.appendChild(submitBtn);
+  inner.appendChild(footer);
+}
+
+function openCreateModal() {
+  if (!currentUser) {
+    toast('Klan oluşturmak için giriş yapmalısın!', 'error');
+    return;
+  }
+  buildCreateModal();
+  const overlay = document.getElementById('modal-create');
+  overlay.classList.add('open');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCreateModal() {
+  const overlay = document.getElementById('modal-create');
+  overlay.classList.remove('open');
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  logoFile = null;
+}
+
+document.getElementById('modal-create').addEventListener('click', function(e) {
+  if (e.target === this) closeCreateModal();
+});
+
+/* ── Tag Availability Check ── */
+async function checkTagAvailability(tag, checkEl) {
+  if (!tag || tag.length < 2) {
+    checkEl.textContent = '';
+    return;
+  }
+  if (tagCheckTimer) clearTimeout(tagCheckTimer);
+  checkEl.className = 'tag-check checking';
+  checkEl.textContent = '⏳ Kontrol ediliyor...';
+  tagCheckTimer = setTimeout(async () => {
+    const { data, error } = await db.from('klanlar').select('tag').eq('tag', tag).maybeSingle();
+    if (error) { checkEl.textContent = ''; return; }
+    if (data) {
+      checkEl.className = 'tag-check err';
+      checkEl.textContent = '✗ Bu tag kullanılıyor';
+    } else {
+      checkEl.className = 'tag-check ok';
+      checkEl.textContent = '✓ Kullanılabilir!';
+    }
+  }, 500);
+}
+
+/* ── Handle Create ── */
+async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, srvSel, submitBtn }) {
+  const tag = tagInput.value.trim().toUpperCase();
+  const name = nameInput.value.trim();
+  const desc = descInput.value.trim();
+  const renk = colorPicker.value;
+  const server = srvSel.value;
+
+  if (tag.length < 2 || tag.length > 8) { toast('Tag 2-8 karakter olmalı!', 'error'); return; }
+  if (name.length < 3 || name.length > 40) { toast('İsim 3-40 karakter olmalı!', 'error'); return; }
+
+  /* Check tag uniqueness */
+  const { data: existing } = await db.from('klanlar').select('tag').eq('tag', tag).maybeSingle();
+  if (existing) { toast('Bu tag kullanılıyor!', 'error'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Oluşturuluyor...';
+
+  try {
+    let logoUrl = null;
+
+    /* Upload logo if provided */
+    if (logoFile) {
+      const ext = logoFile.name.split('.').pop();
+      const path = `klan-logo/${tag}-${Date.now()}.${ext}`;
+      const { error: upErr } = await db.storage.from('uploads').upload(path, logoFile, { upsert: true });
+      if (!upErr) {
+        const { data: urlData } = db.storage.from('uploads').getPublicUrl(path);
+        logoUrl = urlData.publicUrl;
+      }
+    }
+
+    const { error: insertErr } = await db.from('klanlar').insert({
+      tag,
+      isim: name,
+      kurucu_id: currentUser.id,
+      aciklama: desc || null,
+      renk,
+      logo_url: logoUrl,
+      desteklened_sunucu: server || null,
+      uye_sayisi: 1,
+      vote_sayisi: 0,
+      abonelik: 'ucretsiz'
+    });
+
+    if (insertErr) throw insertErr;
+
+    /* Update user klan_tag */
+    await db.from('kullanicilar').update({ klan_tag: tag }).eq('id', currentUser.id);
+
+    toast('🎉 Klan başarıyla oluşturuldu!', 'success');
+    closeCreateModal();
+
+    /* Reload clans */
+    await loadClans();
+    applyFilters();
+  } catch (err) {
+    console.error(err);
+    toast('Hata: ' + err.message, 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '⚔️  Klan Oluştur';
+  }
+}
+
+/* ══════════════════════════════════════
+   DATA LOADING
+══════════════════════════════════════ */
+async function loadCurrentUser() {
+  try {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) return;
+    currentUser = user;
+
+    /* Load profile */
+    const { data: profile } = await db.from('kullanicilar').select('*').eq('id', user.id).maybeSingle();
+    if (profile) {
+      const lcoinEl = document.getElementById('nav-lcoin-val');
+      if (lcoinEl) lcoinEl.textContent = fmtNum(profile.lcoin || 0);
+      const avatarEl = document.getElementById('nav-avatar-img');
+      if (avatarEl && profile.avatar_url) avatarEl.src = profile.avatar_url;
+    }
+
+    /* Load voted today */
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { data: votes } = await db.from('klan_voteler')
+      .select('klan_id')
+      .eq('kullanici_id', user.id)
+      .gte('son_vote', today.toISOString());
+    if (votes) votes.forEach(v => votedTodaySet.add(v.klan_id));
+
+    /* Load unread notifications */
+    const { count } = await db.from('bildirimler')
+      .select('*', { count: 'exact', head: true })
+      .eq('alici_id', user.id)
+      .eq('okundu', false);
+    if (count > 0) {
+      const badge = document.getElementById('nav-bell-badge');
+      if (badge) { badge.style.display = 'flex'; badge.textContent = count > 9 ? '9+' : count; }
+    }
+  } catch (e) {
+    console.error('User load error:', e);
+  }
+}
+
+async function loadClans() {
+  const { data, error } = await db.from('klanlar').select('*');
+  if (error) {
+    console.error(error);
+    toast('Klanlar yüklenirken hata oluştu', 'error');
+    return;
+  }
+  allClans = data || [];
+}
+
+async function loadStats() {
+  const { count: total } = await db.from('klanlar').select('*', { count: 'exact', head: true });
+
+  /* Members: sum uye_sayisi */
+  let members = 0;
+  allClans.forEach(c => { members += (c.uye_sayisi || 0); });
+
+  /* This week new */
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { count: thisWeek } = await db.from('klanlar')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', oneWeekAgo);
+
+  return { total: total || 0, members, thisWeek: thisWeek || 0 };
+}
+
+/* ══════════════════════════════════════
+   SKELETON LOADER
+══════════════════════════════════════ */
+function showSkeletons() {
+  const grid = document.getElementById('clan-grid');
+  grid.className = 'grid-loading';
+  grid.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const sk = document.createElement('div');
+    sk.className = 'skeleton-card';
+    const skBanner = document.createElement('div');
+    skBanner.className = 'skeleton-banner skeleton';
+    const skBody = document.createElement('div');
+    skBody.className = 'skeleton-body';
+    for (let j = 0; j < 4; j++) {
+      const line = document.createElement('div');
+      line.className = 'skeleton';
+      line.style.height = j === 0 ? '18px' : '12px';
+      line.style.width = j === 0 ? '60%' : (j === 1 ? '40%' : '80%');
+      skBody.appendChild(line);
+    }
+    sk.appendChild(skBanner);
+    sk.appendChild(skBody);
+    grid.appendChild(sk);
+  }
+}
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+function fmtNum(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+async function init() {
+  buildNav();
+  buildFilterBar();
+  showSkeletons();
+
+  await loadCurrentUser();
+  await loadClans();
+
+  const stats = await loadStats();
+  buildHero(stats);
+
+  /* Top 3 for leaderboard */
+  const sorted = [...allClans].sort((a, b) => (b.vote_sayisi || 0) - (a.vote_sayisi || 0));
+  buildLeaderboard(sorted.slice(0, 3));
+
+  /* Reset grid class */
+  const grid = document.getElementById('clan-grid');
+  grid.className = 'clan-grid';
+
+  /* Apply default sort */
+  applyFilters();
+
+  /* Load more */
+  document.getElementById('load-more-btn').addEventListener('click', () => {
+    PAGE++;
+    const grid = document.getElementById('clan-grid');
+    const slice = filteredClans.slice(0, (PAGE + 1) * PAGE_SIZE);
+    slice.forEach((clan, i) => {
+      if (i >= PAGE * PAGE_SIZE) grid.appendChild(buildClanCard(clan));
+    });
+    if (filteredClans.length <= (PAGE + 1) * PAGE_SIZE) {
+      document.getElementById('load-more-wrap').style.display = 'none';
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>

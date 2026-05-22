@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bildirimler – LOBBY.GG</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ── Page Layout ── */
+    .page-content {
+      padding-top: calc(var(--nav-h) + 32px);
+      padding-bottom: 60px;
+    }
+    .notif-col {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ── Page Header ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title {
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-1);
+    }
+    .page-title span {
+      color: var(--accent);
+    }
+
+    /* ── Tab Bar ── */
+    .notif-tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--border-thin);
+      margin-bottom: 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .notif-tabs::-webkit-scrollbar { display: none; }
+
+    .ntab {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 14px;
+      border: none;
+      background: none;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      position: relative;
+    }
+    .ntab:hover { color: var(--text-2); }
+    .ntab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .ntab-count {
+      background: var(--red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 8px;
+      line-height: 14px;
+      min-width: 16px;
+      text-align: center;
+    }
+    .ntab-count.hidden { display: none; }
+
+    /* ── Notification List ── */
+    .notif-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Notification Item ── */
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-thin);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s;
+      border-radius: 4px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .notif-item:hover { background: rgba(255,255,255,0.03); }
+    .notif-item.unread { background: rgba(57,255,20,0.03); }
+    .notif-item.unread:hover { background: rgba(57,255,20,0.06); }
+
+    /* Unread accent dot */
+    .notif-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ── Sender Avatar ── */
+    .notif-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .notif-avatar-ph {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text-2);
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .notif-avatar-sys {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(57,255,20,0.1);
+      border: 2px solid rgba(57,255,20,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── Notification Body ── */
+    .notif-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .notif-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+    .notif-text strong {
+      color: var(--text-1);
+      font-weight: 800;
+    }
+    .notif-text .notif-preview {
+      color: var(--text-3);
+      font-style: italic;
+    }
+    .notif-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    /* ── Unread dot (right side) ── */
+    .notif-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 6px;
+      box-shadow: 0 0 6px var(--accent-glow);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Slide-in animation for new items ── */
+    @keyframes notif-slide-in {
+      from { opacity: 0; transform: translateX(-12px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .notif-new { animation: notif-slide-in 0.35s ease; }
+
+    /* ── İstekler Tab ── */
+    .request-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-thin);
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .request-item:hover { background: rgba(255,255,255,0.02); }
+    .request-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .request-nick {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+    .request-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+    .request-time {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    .request-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-accept {
+      padding: 5px 12px;
+      font-size: 10px;
+    }
+    .btn-reject {
+      padding: 5px 12px;
+      font-size: 10px;
+    }
+
+    /* ── Ayarlar Tab ── */
+    .settings-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .settings-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-thin);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-2);
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-thin);
+      transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:hover { background: rgba(255,255,255,0.02); }
+    .settings-label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .settings-label-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .settings-label-sub {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+    .settings-saved-badge {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.4s;
+      text-transform: uppercase;
+    }
+    .settings-saved-badge.show { opacity: 1; }
+
+    /* ── Tümünü Okundu Butonu ── */
+    .mark-all-btn {
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.2);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 7px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mark-all-btn:hover {
+      background: rgba(57,255,20,0.15);
+      border-color: rgba(57,255,20,0.4);
+    }
+
+    /* ── Login Gate ── */
+    .login-gate {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .login-gate-icon { font-size: 48px; opacity: 0.3; }
+    .login-gate-title {
+      font-size: 16px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-2);
+    }
+    .login-gate-sub { font-size: 12px; color: var(--text-dim); }
+
+    /* ── Loading ── */
+    .notif-loading {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    /* ── Tab Panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .page-title { font-size: 15px; }
+      .notif-item { padding: 12px 10px; }
+      .request-actions { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Canvas Background -->
+<canvas id="canvas-bg"></canvas>
+
+<div class="page-wrapper">
+  <!-- Navigation -->
+  <nav class="nav" id="main-nav"></nav>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="page-content">
+    <div class="notif-col">
+
+      <!-- Login Gate (hidden by default, shown if not logged in) -->
+      <div id="login-gate" style="display:none;"></div>
+
+      <!-- Main Content (shown when logged in) -->
+      <div id="notif-main" style="display:none;">
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1 class="page-title">Bildirimler <span id="unread-header-count"></span></h1>
+          <button class="mark-all-btn" id="mark-all-btn"></button>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="notif-tabs" id="notif-tabs"></div>
+
+        <!-- Tab Panels -->
+        <div id="panel-tumu"       class="tab-panel active"></div>
+        <div id="panel-takip"      class="tab-panel"></div>
+        <div id="panel-etkilesim"  class="tab-panel"></div>
+        <div id="panel-istekler"   class="tab-panel"></div>
+        <div id="panel-ayarlar"    class="tab-panel"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════
+   SUPABASE CONFIG
+═══════════════════════════════════════ */
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ═══════════════════════════════════════
+   CANVAS BACKGROUND
+═══════════════════════════════════════ */
+(function initCanvas() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams, logos, raf;
+
+  const LOGO_SRC = 'https://i.imgur.com/6l08Y4k.png';
+  const logoImg = new Image();
+  logoImg.src = LOGO_SRC;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    initBeams();
+    initLogos();
+  }
+
+  function initBeams() {
+    beams = Array.from({length: 6}, (_, i) => ({
+      x: (W / 6) * i,
+      y: -200,
+      w: 1.5 + Math.random() * 2,
+      speed: 0.4 + Math.random() * 0.6,
+      opacity: 0.04 + Math.random() * 0.06,
+      len: 300 + Math.random() * 200
+    }));
+  }
+
+  function initLogos() {
+    logos = Array.from({length: 5}, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      size: 60 + Math.random() * 60,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: (Math.random() - 0.5) * 0.3,
+      opacity: 0.02 + Math.random() * 0.03,
+      angle: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.002
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Beams
+    beams.forEach(b => {
+      b.y += b.speed;
+      b.x += b.speed * 0.6;
+      if (b.y > H + 300) { b.y = -300; b.x = Math.random() * W; }
+
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(Math.PI / 4);
+      const grad = ctx.createLinearGradient(0, 0, 0, b.len);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(0.5, `rgba(57,255,20,${b.opacity})`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.w / 2, 0, b.w, b.len);
+      ctx.restore();
+    });
+
+    // Logos
+    if (logoImg.complete && logoImg.naturalWidth > 0) {
+      logos.forEach(l => {
+        l.x += l.speedX;
+        l.y += l.speedY;
+        l.angle += l.rotSpeed;
+        if (l.x < -l.size) l.x = W + l.size;
+        if (l.x > W + l.size) l.x = -l.size;
+        if (l.y < -l.size) l.y = H + l.size;
+        if (l.y > H + l.size) l.y = -l.size;
+        ctx.save();
+        ctx.globalAlpha = l.opacity;
+        ctx.translate(l.x, l.y);
+        ctx.rotate(l.angle);
+        ctx.drawImage(logoImg, -l.size / 2, -l.size / 4, l.size, l.size * 0.4);
+        ctx.restore();
+      });
+    }
+
+    raf = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+/* ═══════════════════════════════════════
+   TOAST HELPER
+═══════════════════════════════════════ */
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', gold: '⭐' };
+  const ico = document.createElement('span');
+  ico.textContent = icons[type] || 'ℹ️';
+  const txt = document.createElement('span');
+  txt.textContent = msg;
+  toast.appendChild(ico);
+  toast.appendChild(txt);
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'opacity 0.3s';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 320);
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════
+   TIME HELPER
+═══════════════════════════════════════ */
+function relativeTime(ts) {
+  if (!ts) return '';
+  const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+  if (diff < 60) return 'az önce';
+  if (diff < 3600) return `${Math.floor(diff / 60)}d önce`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}s önce`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}g önce`;
+  return new Date(ts).toLocaleDateString('tr-TR');
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION BUILDER
+═══════════════════════════════════════ */
+let currentUser = null;
+let currentProfile = null;
+let unreadCount = 0;
+let bellBadgeEl = null;
+
+function buildNav() {
+  const nav = document.getElementById('main-nav');
+  nav.innerHTML = '';
+
+  // Logo
+  const logoA = document.createElement('a');
+  logoA.href = 'lobbyx.html';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.className = 'nav-logo';
+  logoImg.alt = 'LOBBY.GG';
+  logoA.appendChild(logoImg);
+  nav.appendChild(logoA);
+
+  // Links
+  const links = [
+    { label: 'Ana Sayfa', href: 'lobbyx.html' },
+    { label: 'İlanlar',   href: 'ilanlar.html' },
+    { label: 'Klanlar',   href: 'klanlar.html' },
+    { label: 'Keşfet',    href: 'kesfet.html'  }
+  ];
+  const linksWrap = document.createElement('div');
+  linksWrap.className = 'nav-links';
+  links.forEach(l => {
+    const a = document.createElement('a');
+    a.href = l.href;
+    a.className = 'nav-link';
+    const sp = document.createElement('span');
+    sp.textContent = l.label;
+    a.appendChild(sp);
+    linksWrap.appendChild(a);
+  });
+  nav.appendChild(linksWrap);
+
+  // Right
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  // Bell
+  const bellA = document.createElement('a');
+  bellA.href = 'bildirimler.html';
+  bellA.className = 'nav-bell';
+  bellA.style.textDecoration = 'none';
+  const bellIcon = document.createElement('span');
+  bellIcon.textContent = '🔔';
+  bellBadgeEl = document.createElement('span');
+  bellBadgeEl.className = 'nav-bell-badge hidden';
+  bellA.appendChild(bellIcon);
+  bellA.appendChild(bellBadgeEl);
+  right.appendChild(bellA);
+
+  // LCoin
+  const lcoin = document.createElement('div');
+  lcoin.className = 'nav-lcoin';
+  const lcoinIcon = document.createElement('span');
+  lcoinIcon.className = 'nav-lcoin-icon';
+  lcoinIcon.textContent = '🪙';
+  const lcoinAmt = document.createElement('span');
+  lcoinAmt.id = 'nav-lcoin-amount';
+  lcoinAmt.textContent = currentProfile ? currentProfile.lcoin ?? 0 : '—';
+  lcoin.appendChild(lcoinIcon);
+  lcoin.appendChild(lcoinAmt);
+  right.appendChild(lcoin);
+
+  // Avatar
+  if (currentUser) {
+    const avatarA = document.createElement('a');
+    avatarA.href = 'profil.html';
+    avatarA.className = 'nav-avatar';
+    const avatarImg = document.createElement('img');
+    avatarImg.src = currentProfile?.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${currentUser.id}`;
+    avatarImg.alt = 'Profil';
+    avatarA.appendChild(avatarImg);
+    right.appendChild(avatarA);
+  } else {
+    const loginBtn = document.createElement('a');
+    loginBtn.href = 'giris.html';
+    loginBtn.className = 'mc-btn mc-green mc-sm';
+    loginBtn.textContent = 'Giriş Yap';
+    right.appendChild(loginBtn);
+  }
+
+  nav.appendChild(right);
+}
+
+function updateBellBadge(count) {
+  unreadCount = count;
+  if (!bellBadgeEl) return;
+  if (count <= 0) {
+    bellBadgeEl.classList.add('hidden');
+    bellBadgeEl.textContent = '';
+  } else {
+    bellBadgeEl.classList.remove('hidden');
+    bellBadgeEl.textContent = count > 99 ? '99+' : count;
+  }
+
+  // Also update header count
+  const hc = document.getElementById('unread-header-count');
+  if (hc) {
+    hc.textContent = count > 0 ? `(${count})` : '';
+    hc.style.color = 'var(--accent)';
+    hc.style.fontSize = '14px';
+  }
+}
+
+/* ═══════════════════════════════════════
+   NOTIFICATION TYPE CONFIG
+═══════════════════════════════════════ */
+const NOTIF_CONFIG = {
+  takip:        { icon: '♦',  color: 'var(--accent)',  text: (n) => `${n._sender_nick || 'Birisi'} seni takip etmeye başladı`,                           link: () => `profil.html?id=${n.gonderen_id}` },
+  takip_istegi: { icon: '👤', color: 'var(--blue)',    text: (n) => `${n._sender_nick || 'Birisi'} sana takip isteği gönderdi`,                           link: () => `bildirimler.html` },
+  takip_kabul:  { icon: '✔',  color: 'var(--accent)',  text: (n) => `${n._sender_nick || 'Birisi'} takip isteğini kabul etti`,                           link: () => `profil.html?id=${n.gonderen_id}` },
+  begeni:       { icon: '❤',  color: 'var(--red)',     text: (n) => `${n._sender_nick || 'Birisi'} dropunu beğendi`,                                      link: (n) => `drop.html?id=${n.link?.split('=')[1] || ''}` },
+  yorum:        { icon: '💬', color: 'var(--purple)',  text: (n) => `${n._sender_nick || 'Birisi'} dropuna yorum yaptı`,                                  link: (n) => n.link || 'kesfet.html' },
+  mesaj:        { icon: '✉️', color: 'var(--blue)',    text: (n) => `${n._sender_nick || 'Birisi'} sana mesaj gönderdi`,                                  link: (n) => `mesajlar.html?id=${n.gonderen_id}` },
+  sistem:       { icon: 'ℹ️', color: 'var(--text-2)', text: (n) => n.icerik || 'Sistem bildirimi',                                                        link: () => '#' }
+};
+
+function getNotifText(n) {
+  const cfg = NOTIF_CONFIG[n.tip];
+  if (!cfg) return n.icerik || 'Bildirim';
+  let base = typeof cfg.text === 'function' ? cfg.text(n) : cfg.text;
+
+  // Yorum preview
+  if (n.tip === 'yorum' && n.icerik) {
+    const preview = n.icerik.length > 40 ? n.icerik.substring(0, 40) + '…' : n.icerik;
+    base += `: "${preview}"`;
+  }
+  return base;
+}
+
+function getNotifLink(n) {
+  const cfg = NOTIF_CONFIG[n.tip];
+  if (!cfg) return n.link || '#';
+  return typeof cfg.link === 'function' ? cfg.link(n) : (n.link || '#');
+}
+
+/* ═══════════════════════════════════════
+   BUILD NOTIFICATION ITEM (DOM)
+═══════════════════════════════════════ */
+function buildNotifItem(n, isNew = false) {
+  const cfg = NOTIF_CONFIG[n.tip] || NOTIF_CONFIG['sistem'];
+  const href = getNotifLink(n);
+
+  const item = document.createElement('a');
+  item.href = href;
+  item.className = 'notif-item' + (n.okundu ? '' : ' unread') + (isNew ? ' notif-new' : '');
+  item.dataset.id = n.id;
+
+  // Mark as read on click
+  item.addEventListener('click', async () => {
+    if (!n.okundu) {
+      await sb.from('bildirimler').update({ okundu: true }).eq('id', n.id);
+      item.classList.remove('unread');
+      const dot = item.querySelector('.notif-dot');
+      if (dot) dot.remove();
+      item.style.removeProperty('--unread-indicator');
+      updateBellBadge(Math.max(0, unreadCount - 1));
+    }
+  });
+
+  // Avatar
+  if (n.tip === 'sistem' || !n.gonderen_id) {
+    const sysAv = document.createElement('div');
+    sysAv.className = 'notif-avatar-sys';
+    sysAv.textContent = '🔔';
+    item.appendChild(sysAv);
+  } else if (n._sender_avatar) {
+    const img = document.createElement('img');
+    img.className = 'notif-avatar';
+    img.src = n._sender_avatar;
+    img.alt = n._sender_nick || '';
+    img.onerror = function() {
+      const ph = document.createElement('div');
+      ph.className = 'notif-avatar-ph';
+      ph.textContent = (n._sender_nick || '?')[0].toUpperCase();
+      img.parentNode.replaceChild(ph, img);
+    };
+    item.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'notif-avatar-ph';
+    ph.textContent = (n._sender_nick || '?')[0].toUpperCase();
+    item.appendChild(ph);
+  }
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'notif-body';
+
+  const textEl = document.createElement('p');
+  textEl.className = 'notif-text';
+
+  // Icon span
+  const iconSpan = document.createElement('span');
+  iconSpan.textContent = cfg.icon + ' ';
+  iconSpan.style.color = cfg.color;
+  textEl.appendChild(iconSpan);
+
+  // Nick bold
+  if (n._sender_nick && n.tip !== 'sistem') {
+    const nickSpan = document.createElement('strong');
+    nickSpan.textContent = n._sender_nick + ' ';
+    textEl.appendChild(nickSpan);
+  }
+
+  // Action text
+  const actionText = getNotifText(n);
+  // Strip nick from beginning since we render it separately
+  let displayText = actionText;
+  if (n._sender_nick && n.tip !== 'sistem') {
+    displayText = actionText.replace(n._sender_nick + ' ', '');
+  }
+
+  // Handle yorum preview with italic
+  if (n.tip === 'yorum' && n.icerik) {
+    const colonIdx = displayText.indexOf(':');
+    if (colonIdx !== -1) {
+      const before = displayText.substring(0, colonIdx + 1);
+      const preview = displayText.substring(colonIdx + 1).trim();
+      const beforeSpan = document.createElement('span');
+      beforeSpan.textContent = before + ' ';
+      const previewSpan = document.createElement('span');
+      previewSpan.className = 'notif-preview';
+      previewSpan.textContent = preview;
+      textEl.appendChild(beforeSpan);
+      textEl.appendChild(previewSpan);
+    } else {
+      const t = document.createTextNode(displayText);
+      textEl.appendChild(t);
+    }
+  } else {
+    const t = document.createTextNode(displayText);
+    textEl.appendChild(t);
+  }
+
+  body.appendChild(textEl);
+
+  const timeEl = document.createElement('p');
+  timeEl.className = 'notif-time';
+  timeEl.textContent = relativeTime(n.created_at);
+  body.appendChild(timeEl);
+
+  item.appendChild(body);
+
+  // Unread dot (right side)
+  if (!n.okundu) {
+    const dot = document.createElement('div');
+    dot.className = 'notif-dot';
+    item.appendChild(dot);
+  }
+
+  return item;
+}
+
+/* ═══════════════════════════════════════
+   EMPTY STATE BUILDER
+═══════════════════════════════════════ */
+function buildEmptyState(icon, title, sub) {
+  const div = document.createElement('div');
+  div.className = 'empty-state';
+  const iconEl = document.createElement('div');
+  iconEl.className = 'empty-state-icon';
+  iconEl.textContent = icon;
+  const titleEl = document.createElement('div');
+  titleEl.className = 'empty-state-title';
+  titleEl.textContent = title;
+  const subEl = document.createElement('div');
+  subEl.className = 'empty-state-sub';
+  subEl.textContent = sub;
+  div.appendChild(iconEl);
+  div.appendChild(titleEl);
+  div.appendChild(subEl);
+  return div;
+}
+
+function buildLoadingSpinner() {
+  const wrap = document.createElement('div');
+  wrap.className = 'notif-loading';
+  const sp = document.createElement('div');
+  sp.className = 'spinner';
+  wrap.appendChild(sp);
+  return wrap;
+}
+
+/* ═══════════════════════════════════════
+   DATA FETCHING – NOTIFICATIONS
+═══════════════════════════════════════ */
+let allNotifications = [];
+let senderCache = {};
+
+async function fetchSenderInfo(senderId) {
+  if (!senderId) return null;
+  if (senderCache[senderId]) return senderCache[senderId];
+  const { data } = await sb.from('kullanicilar')
+    .select('id, kullanici_adi, avatar_url, abonelik, kategori')
+    .eq('id', senderId)
+    .single();
+  if (data) senderCache[senderId] = data;
+  return data || null;
+}
+
+async function fetchNotifications() {
+  if (!currentUser) return [];
+  const { data, error } = await sb
+    .from('bildirimler')
+    .select('*')
+    .eq('alici_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) { console.error(error); return []; }
+
+  // Enrich with sender info
+  const enriched = await Promise.all((data || []).map(async n => {
+    if (n.gonderen_id) {
+      const sender = await fetchSenderInfo(n.gonderen_id);
+      n._sender_nick   = sender?.kullanici_adi || null;
+      n._sender_avatar = sender?.avatar_url    || null;
+      n._sender_abone  = sender?.abonelik      || null;
+      n._sender_cat    = sender?.kategori      || null;
+    }
+    return n;
+  }));
+
+  return enriched;
+}
+
+/* ═══════════════════════════════════════
+   RENDER NOTIFICATIONS LIST
+═══════════════════════════════════════ */
+function renderNotifList(panelEl, items, emptyIcon, emptyTitle, emptySub) {
+  panelEl.innerHTML = '';
+  if (!items || items.length === 0) {
+    panelEl.appendChild(buildEmptyState(emptyIcon, emptyTitle, emptySub));
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'notif-list';
+  items.forEach(n => list.appendChild(buildNotifItem(n)));
+  panelEl.appendChild(list);
+}
+
+function renderAllPanels() {
+  const all        = allNotifications;
+  const takip      = all.filter(n => ['takip', 'takip_kabul'].includes(n.tip));
+  const etkilesim  = all.filter(n => ['begeni', 'yorum', 'mesaj'].includes(n.tip));
+
+  renderNotifList(
+    document.getElementById('panel-tumu'),
+    all, '🔕', 'Bildirim yok', 'Henüz hiçbir bildirim almadın.'
+  );
+  renderNotifList(
+    document.getElementById('panel-takip'),
+    takip, '👥', 'Takip bildirimi yok', 'Seni takip eden veya takip isteğini kabul eden biri olmadı.'
+  );
+  renderNotifList(
+    document.getElementById('panel-etkilesim'),
+    etkilesim, '❤️', 'Etkileşim yok', 'Drop beğenisi veya yorumu almadın.'
+  );
+}
+
+/* ═══════════════════════════════════════
+   ISTEKLER TAB
+═══════════════════════════════════════ */
+async function loadIsteklerTab() {
+  const panel = document.getElementById('panel-istekler');
+  panel.innerHTML = '';
+  panel.appendChild(buildLoadingSpinner());
+
+  const { data, error } = await sb
+    .from('takip_istekleri')
+    .select('*')
+    .eq('alici_id', currentUser.id)
+    .eq('durum', 'beklemede')
+    .order('created_at', { ascending: false });
+
+  panel.innerHTML = '';
+
+  if (error || !data || data.length === 0) {
+    panel.appendChild(buildEmptyState('🏩', 'Bekleyen istek yok', 'Şu an onay bekleyen takip isteğin yok.'));
+    return;
+  }
+
+  const list = document.createElement('div');
+
+  for (const req of data) {
+    const sender = await fetchSenderInfo(req.gonderen_id);
+    if (!sender) continue;
+
+    const row = document.createElement('div');
+    row.className = 'request-item';
+    row.dataset.reqId = req.id;
+
+    // Avatar
+    const avatarA = document.createElement('a');
+    avatarA.href = `profil.html?id=${sender.id}`;
+    if (sender.avatar_url) {
+      const img = document.createElement('img');
+      img.className = 'notif-avatar';
+      img.src = sender.avatar_url;
+      img.alt = sender.kullanici_adi;
+      avatarA.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'notif-avatar-ph';
+      ph.textContent = (sender.kullanici_adi || '?')[0].toUpperCase();
+      avatarA.appendChild(ph);
+    }
+    row.appendChild(avatarA);
+
+    // Info
+    const info = document.createElement('div');
+    info.className = 'request-info';
+
+    const nickA = document.createElement('a');
+    nickA.href = `profil.html?id=${sender.id}`;
+    nickA.className = 'request-nick';
+    nickA.style.textDecoration = 'none';
+    nickA.style.color = 'inherit';
+    nickA.textContent = sender.kullanici_adi || 'Bilinmiyor';
+    info.appendChild(nickA);
+
+    const meta = document.createElement('div');
+    meta.className = 'request-meta';
+
+    // Category badge
+    if (sender.kategori) {
+      const catMap = {
+        'pvp': 'b-pvp', 'icerik': 'b-icerik', 'developer': 'b-developer',
+        'builder': 'b-builder', 'yonetici': 'b-yonetici-cat'
+      };
+      const badge = document.createElement('span');
+      badge.className = `badge b-cat ${catMap[sender.kategori] || 'b-diger'}`;
+      badge.textContent = sender.kategori.toUpperCase();
+      meta.appendChild(badge);
+    }
+
+    // Abonelik badge
+    if (sender.abonelik && sender.abonelik !== 'uye') {
+      const abMap = { 'abone': 'b-abone', 'premium': 'b-premium', 'admin': 'b-admin' };
+      const ab = document.createElement('span');
+      ab.className = `badge ${abMap[sender.abonelik] || 'b-uye'}`;
+      ab.textContent = sender.abonelik.toUpperCase();
+      meta.appendChild(ab);
+    }
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'request-time';
+    timeEl.textContent = relativeTime(req.created_at);
+    meta.appendChild(timeEl);
+    info.appendChild(meta);
+    row.appendChild(info);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'request-actions';
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'mc-btn mc-green btn-accept';
+    acceptBtn.textContent = 'Kabul';
+    acceptBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleAcceptRequest(req, row);
+    });
+
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'mc-btn mc-red btn-reject';
+    rejectBtn.textContent = 'Reddet';
+    rejectBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleRejectRequest(req, row);
+    });
+
+    actions.appendChild(acceptBtn);
+    actions.appendChild(rejectBtn);
+    row.appendChild(actions);
+    list.appendChild(row);
+  }
+
+  panel.appendChild(list);
+  if (list.children.length === 0) {
+    panel.innerHTML = '';
+    panel.appendChild(buildEmptyState('🏩', 'Bekleyen istek yok', 'Şu an onay bekleyen takip isteğin yok.'));
+  }
+}
+
+async function handleAcceptRequest(req, rowEl) {
+  const btns = rowEl.querySelectorAll('button');
+  btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+
+  // Insert into takipler
+  const { error: insErr } = await sb.from('takipler').insert({
+    takip_eden_id: req.gonderen_id,
+    takip_edilen_id: currentUser.id
+  });
+
+  if (insErr && insErr.code !== '23505') { // ignore unique violation
+    showToast('Bir hata oluştu', 'error');
+    btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+    return;
+  }
+
+  // Update request status
+  await sb.from('takip_istekleri').update({ durum: 'kabul' }).eq('id', req.id);
+
+  // Update takipci_sayisi for currentUser
+  if (currentProfile) {
+    const newCount = (currentProfile.takipci_sayisi || 0) + 1;
+    await sb.from('kullanicilar').update({ takipci_sayisi: newCount }).eq('id', currentUser.id);
+    currentProfile.takipci_sayisi = newCount;
+  }
+
+  // Update takip_sayisi for sender
+  const sender = await fetchSenderInfo(req.gonderen_id);
+  if (sender) {
+    await sb.from('kullanicilar').update({ takip_sayisi: (sender.takip_sayisi || 0) + 1 }).eq('id', req.gonderen_id);
+  }
+
+  // Add notification for sender
+  await sb.from('bildirimler').insert({
+    alici_id: req.gonderen_id,
+    gonderen_id: currentUser.id,
+    tip: 'takip_kabul',
+    icerik: `${currentProfile?.kullanici_adi || 'Birisi'} takip isteğini kabul etti`,
+    link: `profil.html?id=${currentUser.id}`,
+    okundu: false
+  });
+
+  // Animate out
+  rowEl.style.transition = 'opacity 0.3s, transform 0.3s';
+  rowEl.style.opacity = '0';
+  rowEl.style.transform = 'translateX(20px)';
+  setTimeout(() => rowEl.remove(), 320);
+
+  showToast('Takip isteği kabul edildi ✔', 'success');
+  updateIsteklerCount();
+}
+
+async function handleRejectRequest(req, rowEl) {
+  const btns = rowEl.querySelectorAll('button');
+  btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+
+  await sb.from('takip_istekleri').update({ durum: 'red' }).eq('id', req.id);
+
+  rowEl.style.transition = 'opacity 0.3s, transform 0.3s';
+  rowEl.style.opacity = '0';
+  rowEl.style.transform = 'translateX(-20px)';
+  setTimeout(() => rowEl.remove(), 320);
+
+  showToast('İstek reddedildi', 'info');
+  updateIsteklerCount();
+}
+
+async function updateIsteklerCount() {
+  const { count } = await sb
+    .from('takip_istekleri')
+    .select('*', { count: 'exact', head: true })
+    .eq('alici_id', currentUser.id)
+    .eq('durum', 'beklemede');
+
+  const tabEl = document.querySelector('.ntab[data-tab="istekler"]');
+  if (!tabEl) return;
+  let badge = tabEl.querySelector('.ntab-count');
+  if (!badge) return;
+  if (count && count > 0) {
+    badge.textContent = count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+/* ═══════════════════════════════════════
+   AYARLAR TAB
+═══════════════════════════════════════ */
+let notifSettings = {
+  takip_bildirimi:  true,
+  begeni_bildirimi: true,
+  yorum_bildirimi:  true,
+  mesaj_bildirimi:  true
+};
+
+async function loadAyarlarTab() {
+  const panel = document.getElementById('panel-ayarlar');
+  panel.innerHTML = '';
+
+  // Fetch existing settings
+  const { data } = await sb
+    .from('bildirim_ayarlari')
+    .select('*')
+    .eq('kullanici_id', currentUser.id)
+    .single();
+
+  if (data) {
+    notifSettings.takip_bildirimi  = data.takip_bildirimi  ?? true;
+    notifSettings.begeni_bildirimi = data.begeni_bildirimi ?? true;
+    notifSettings.yorum_bildirimi  = data.yorum_bildirimi  ?? true;
+    notifSettings.mesaj_bildirimi  = data.mesaj_bildirimi  ?? true;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'settings-card';
+
+  const header = document.createElement('div');
+  header.className = 'settings-header';
+  header.textContent = '⚙️ Bildirim Tercihleri';
+  card.appendChild(header);
+
+  const rows = [
+    { key: 'takip_bildirimi',  title: 'Takip Bildirimleri',   sub: 'Biri seni takip ettiğinde bildirim al' },
+    { key: 'begeni_bildirimi', title: 'Beğeni Bildirimleri',  sub: 'Drop beğenisi aldığında bildirim al' },
+    { key: 'yorum_bildirimi',  title: 'Yorum Bildirimleri',   sub: 'Dropuna yorum yapıldığında bildirim al' },
+    { key: 'mesaj_bildirimi',  title: 'Mesaj Bildirimleri',   sub: 'Yeni mesaj aldığında bildirim al' }
+  ];
+
+  const savedBadge = document.createElement('div');
+  savedBadge.className = 'settings-saved-badge';
+  savedBadge.id = 'settings-saved-badge';
+  savedBadge.textContent = '✓ Kaydedildi';
+
+  rows.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'settings-row';
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'settings-label';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'settings-label-title';
+    titleEl.textContent = row.title;
+
+    const subEl = document.createElement('div');
+    subEl.className = 'settings-label-sub';
+    subEl.textContent = row.sub;
+
+    labelDiv.appendChild(titleEl);
+    labelDiv.appendChild(subEl);
+    rowEl.appendChild(labelDiv);
+
+    // Toggle
+    const toggle = document.createElement('div');
+    toggle.className = 'toggle' + (notifSettings[row.key] ? ' on' : '');
+    toggle.dataset.key = row.key;
+    toggle.addEventListener('click', async () => {
+      notifSettings[row.key] = !notifSettings[row.key];
+      if (notifSettings[row.key]) {
+        toggle.classList.add('on');
+      } else {
+        toggle.classList.remove('on');
+      }
+      await saveNotifSettings();
+    });
+    rowEl.appendChild(toggle);
+    card.appendChild(rowEl);
+  });
+
+  // Saved badge row
+  const savedRow = document.createElement('div');
+  savedRow.style.cssText = 'padding:12px 20px;display:flex;justify-content:flex-end;border-top:1px solid var(--border-thin);';
+  savedRow.appendChild(savedBadge);
+  card.appendChild(savedRow);
+
+  panel.appendChild(card);
+}
+
+async function saveNotifSettings() {
+  await sb.from('bildirim_ayarlari').upsert({
+    kullanici_id:     currentUser.id,
+    takip_bildirimi:  notifSettings.takip_bildirimi,
+    begeni_bildirimi: notifSettings.begeni_bildirimi,
+    yorum_bildirimi:  notifSettings.yorum_bildirimi,
+    mesaj_bildirimi:  notifSettings.mesaj_bildirimi
+  }, { onConflict: 'kullanici_id' });
+
+  const badge = document.getElementById('settings-saved-badge');
+  if (badge) {
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 2000);
+  }
+}
+
+/* ═══════════════════════════════════════
+   TABS SYSTEM
+═══════════════════════════════════════ */
+let activeTab = 'tumu';
+
+const TAB_DEFS = [
+  { id: 'tumu',      label: 'Tümü',       icon: '🔔', panel: 'panel-tumu',      hasCount: false },
+  { id: 'takip',     label: 'Takip',      icon: '👥', panel: 'panel-takip',     hasCount: false },
+  { id: 'etkilesim', label: 'Etkileşim',  icon: '❤️', panel: 'panel-etkilesim', hasCount: false },
+  { id: 'istekler',  label: 'İstekler',   icon: '📬', panel: 'panel-istekler',  hasCount: true  },
+  { id: 'ayarlar',   label: 'Ayarlar',    icon: '⚙️', panel: 'panel-ayarlar',   hasCount: false }
+];
+
+function buildTabs() {
+  const tabsEl = document.getElementById('notif-tabs');
+  tabsEl.innerHTML = '';
+
+  TAB_DEFS.forEach(tab => {
+    const btn = document.createElement('button');
+    btn.className = 'ntab' + (tab.id === activeTab ? ' active' : '');
+    btn.dataset.tab = tab.id;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.textContent = tab.icon;
+    btn.appendChild(iconSpan);
+
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = tab.label;
+    btn.appendChild(labelSpan);
+
+    if (tab.hasCount) {
+      const cnt = document.createElement('span');
+      cnt.className = 'ntab-count hidden';
+      btn.appendChild(cnt);
+    }
+
+    btn.addEventListener('click', () => switchTab(tab.id));
+    tabsEl.appendChild(btn);
+  });
+
+  // Load counts
+  updateIsteklerCount();
+}
+
+async function switchTab(tabId) {
+  if (activeTab === tabId) return;
+  activeTab = tabId;
+
+  // Update button states
+  document.querySelectorAll('.ntab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+
+  // Hide all panels
+  TAB_DEFS.forEach(t => {
+    const p = document.getElementById(t.panel);
+    if (p) p.classList.remove('active');
+  });
+
+  // Show target panel
+  const targetDef = TAB_DEFS.find(t => t.id === tabId);
+  if (!targetDef) return;
+  const panel = document.getElementById(targetDef.panel);
+  if (panel) panel.classList.add('active');
+
+  // Lazy load for istekler and ayarlar
+  if (tabId === 'istekler') {
+    await loadIsteklerTab();
+  } else if (tabId === 'ayarlar') {
+    await loadAyarlarTab();
+  }
+}
+
+/* ═══════════════════════════════════════
+   MARK ALL AS READ
+═══════════════════════════════════════ */
+function buildMarkAllBtn() {
+  const btn = document.getElementById('mark-all-btn');
+  const ico = document.createElement('span');
+  ico.textContent = '✓';
+  const lbl = document.createElement('span');
+  lbl.textContent = 'Tümünü Okundu İşaret';
+  btn.appendChild(ico);
+  btn.appendChild(lbl);
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+
+    const { error } = await sb
+      .from('bildirimler')
+      .update({ okundu: true })
+      .eq('alici_id', currentUser.id)
+      .eq('okundu', false);
+
+    if (error) {
+      showToast('Bir hata oluştu', 'error');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      return;
+    }
+
+    // Update local state
+    allNotifications = allNotifications.map(n => ({ ...n, okundu: true }));
+
+    // Remove unread styles from DOM
+    document.querySelectorAll('.notif-item.unread').forEach(el => {
+      el.classList.remove('unread');
+      const dot = el.querySelector('.notif-dot');
+      if (dot) dot.remove();
+    });
+
+    updateBellBadge(0);
+    showToast('Tüm bildirimler okundu işaretlendi ✔', 'success');
+
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
+}
+
+/* ═══════════════════════════════════════
+   REALTIME SUBSCRIPTION
+═══════════════════════════════════════ */
+function subscribeRealtime() {
+  if (!currentUser) return;
+
+  sb.channel('bildirimler-channel')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'bildirimler',
+      filter: `alici_id=eq.${currentUser.id}`
+    }, async (payload) => {
+      const newN = payload.new;
+
+      // Enrich with sender
+      if (newN.gonderen_id) {
+        const sender = await fetchSenderInfo(newN.gonderen_id);
+        newN._sender_nick   = sender?.kullanici_adi || null;
+        newN._sender_avatar = sender?.avatar_url    || null;
+        newN._sender_abone  = sender?.abonelik      || null;
+        newN._sender_cat    = sender?.kategori      || null;
+      }
+
+      // Prepend to allNotifications
+      allNotifications.unshift(newN);
+
+      // Update unread count
+      updateBellBadge(unreadCount + 1);
+
+      // Inject into visible list panels
+      const tumuList = document.querySelector('#panel-tumu .notif-list');
+      if (tumuList) {
+        const item = buildNotifItem(newN, true);
+        tumuList.insertBefore(item, tumuList.firstChild);
+        // Remove empty state if present
+        const empty = document.querySelector('#panel-tumu .empty-state');
+        if (empty) empty.remove();
+      } else if (activeTab === 'tumu') {
+        // Was empty, rebuild
+        renderAllPanels();
+      }
+
+      // Takip panel
+      if (['takip', 'takip_kabul'].includes(newN.tip)) {
+        const takipList = document.querySelector('#panel-takip .notif-list');
+        if (takipList) {
+          takipList.insertBefore(buildNotifItem(newN, true), takipList.firstChild);
+        }
+      }
+
+      // Etkilesim panel
+      if (['begeni', 'yorum', 'mesaj'].includes(newN.tip)) {
+        const etkList = document.querySelector('#panel-etkilesim .notif-list');
+        if (etkList) {
+          etkList.insertBefore(buildNotifItem(newN, true), etkList.firstChild);
+        }
+      }
+
+      // Istekler tab count
+      if (newN.tip === 'takip_istegi') {
+        updateIsteklerCount();
+        if (activeTab === 'istekler') {
+          await loadIsteklerTab();
+        }
+      }
+
+      showToast('Yeni bildirim var 🔔', 'info');
+    })
+    .subscribe();
+}
+
+/* ═══════════════════════════════════════
+   LOGIN GATE
+═══════════════════════════════════════ */
+function showLoginGate() {
+  document.getElementById('login-gate').style.display = 'block';
+  document.getElementById('notif-main').style.display = 'none';
+
+  const gate = document.getElementById('login-gate');
+  gate.innerHTML = '';
+
+  const div = document.createElement('div');
+  div.className = 'login-gate';
+
+  const ico = document.createElement('div');
+  ico.className = 'login-gate-icon';
+  ico.textContent = '🔔';
+  div.appendChild(ico);
+
+  const title = document.createElement('div');
+  title.className = 'login-gate-title';
+  title.textContent = 'Bildirimlerini görmek için giriş yap';
+  div.appendChild(title);
+
+  const sub = document.createElement('div');
+  sub.className = 'login-gate-sub';
+  sub.textContent = 'Takip, beğeni ve mesaj bildirimlerini takip etmek için hesabına giriş yapman gerekiyor.';
+  div.appendChild(sub);
+
+  const btn = document.createElement('a');
+  btn.href = 'giris.html';
+  btn.className = 'mc-btn mc-green mc-lg';
+  btn.style.marginTop = '8px';
+  btn.textContent = '🎮 Giriş Yap';
+  div.appendChild(btn);
+
+  gate.appendChild(div);
+}
+
+/* ═══════════════════════════════════════
+   MAIN INIT
+═══════════════════════════════════════ */
+async function init() {
+  // Check auth
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session?.user || null;
+
+  if (currentUser) {
+    const { data: profile } = await sb
+      .from('kullanicilar')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+    currentProfile = profile;
+  }
+
+  buildNav();
+
+  if (!currentUser) {
+    showLoginGate();
+    return;
+  }
+
+  // Show main content
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('notif-main').style.display = 'block';
+
+  // Build static parts
+  buildMarkAllBtn();
+  buildTabs();
+
+  // Show loading in panels
+  const loadPanel = (id) => {
+    const p = document.getElementById(id);
+    if (p) {
+      p.innerHTML = '';
+      p.appendChild(buildLoadingSpinner());
+    }
+  };
+  loadPanel('panel-tumu');
+  loadPanel('panel-takip');
+  loadPanel('panel-etkilesim');
+
+  // Fetch notifications
+  allNotifications = await fetchNotifications();
+
+  // Count unread
+  const unread = allNotifications.filter(n => !n.okundu).length;
+  updateBellBadge(unread);
+
+  // Render panels
+  renderAllPanels();
+
+  // Realtime
+  subscribeRealtime();
+}
+
+init();
+</script>
+</body>
+</html>
