@@ -281,22 +281,22 @@
       text-decoration: none;
     }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-green {
+    .mc-green {
       background: var(--accent);
       color: #000;
       box-shadow: 0 0 20px rgba(57,255,20,0.3);
     }
-    .btn-green:not(:disabled):hover {
+    .mc-green:not(:disabled):hover {
       background: #50ff2a;
       box-shadow: 0 0 30px rgba(57,255,20,0.5);
       transform: translateY(-1px);
     }
-    .btn-discord {
+    .mc-discord {
       background: var(--discord);
       color: #fff;
       box-shadow: 0 4px 15px rgba(88,101,242,0.3);
     }
-    .btn-discord:hover {
+    .mc-discord:hover {
       background: #6b77f5;
       transform: translateY(-1px);
     }
@@ -307,7 +307,7 @@
     }
     .btn-ghost:hover { border-color: var(--border); color: var(--text); }
 
-    .btn-sm {
+    .mc-sm {
       width: auto;
       padding: 9px 16px;
       font-size: 13px;
@@ -873,43 +873,43 @@ function clearAndAppend(containerId, child) {
 ================================================================ */
 function buildStaticButtons() {
   // Login submit
-  const btnLogin = makeBtn('Giriş Yap', 'btn-green');
+  const btnLogin = makeBtn('Giriş Yap', 'mc-green');
   btnLogin.addEventListener('click', handleLogin);
   clearAndAppend('btn-login-wrap', btnLogin);
 
   // Google login
-  const btnGoogle = el('button', { class: 'btn btn-discord' });
+  const btnGoogle = el('button', { class: 'btn mc-discord' });
   btnGoogle.appendChild(document.createTextNode('G — Google ile Giriş Yap'));
   btnGoogle.addEventListener('click', handleGoogleAuth);
   clearAndAppend('btn-google-login-wrap', btnGoogle);
 
   // Step0 next
-  const btnS0 = makeBtn('İleri →', 'btn-green', 'btn-s0-next', true);
+  const btnS0 = makeBtn('İleri →', 'mc-green', 'btn-s0-next', true);
   btnS0.addEventListener('click', () => goStep(1));
   clearAndAppend('btn-step0-next', btnS0);
 
   // Step1 next
-  const btnS1 = makeBtn('Devam Et', 'btn-green');
+  const btnS1 = makeBtn('Devam Et', 'mc-green');
   btnS1.addEventListener('click', handleRegister);
   clearAndAppend('btn-step1-next', btnS1);
 
   // Step1 back
-  const btnS1b = makeBtn('← Geri', 'btn-ghost btn-sm');
+  const btnS1b = makeBtn('← Geri', 'btn-ghost mc-sm');
   btnS1b.addEventListener('click', () => goStep(0));
   clearAndAppend('btn-step1-back', btnS1b);
 
   // Step1 Google
-  const btnGR = el('button', { class: 'btn btn-discord' });
+  const btnGR = el('button', { class: 'btn mc-discord' });
   btnGR.appendChild(document.createTextNode('G — Google ile Kayıt Ol'));
   btnGR.addEventListener('click', handleGoogleAuth);
   clearAndAppend('btn-google-reg-wrap', btnGR);
 
   // Step2 back / next
-  const btnS2b = makeBtn('←', 'btn-ghost btn-sm');
+  const btnS2b = makeBtn('←', 'btn-ghost mc-sm');
   btnS2b.addEventListener('click', () => goStep(1));
   clearAndAppend('btn-step2-back', btnS2b);
 
-  const btnS2n = makeBtn('İleri →', 'btn-green');
+  const btnS2n = makeBtn('İleri →', 'mc-green');
   btnS2n.addEventListener('click', () => {
     if (!state.role) { showToast('Lütfen bir rol seç!'); return; }
     goStep(3);
@@ -917,20 +917,20 @@ function buildStaticButtons() {
   clearAndAppend('btn-step2-next', btnS2n);
 
   // Step3 back / skip / next
-  const btnS3b = makeBtn('←', 'btn-ghost btn-sm');
+  const btnS3b = makeBtn('←', 'btn-ghost mc-sm');
   btnS3b.addEventListener('click', () => goStep(2));
   clearAndAppend('btn-step3-back', btnS3b);
 
-  const btnS3sk = makeBtn('Geç', 'btn-ghost btn-sm');
+  const btnS3sk = makeBtn('Geç', 'btn-ghost mc-sm');
   btnS3sk.addEventListener('click', () => finalizeRegistration());
   clearAndAppend('btn-step3-skip', btnS3sk);
 
-  const btnS3n = makeBtn('Tamamla ✓', 'btn-green');
+  const btnS3n = makeBtn('Tamamla ✓', 'mc-green');
   btnS3n.addEventListener('click', () => finalizeRegistration());
   clearAndAppend('btn-step3-next', btnS3n);
 
   // Step4 goto profile
-  const btnP = makeBtn('Profilime Git →', 'btn-green');
+  const btnP = makeBtn('Profilime Git →', 'mc-green');
   btnP.addEventListener('click', () => {
     window.location.href = 'profil.html?nick=' + encodeURIComponent(state.nick);
   });

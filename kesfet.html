@@ -1297,7 +1297,7 @@
 
     const viewBtn = document.createElement('a');
     viewBtn.href = `profil.html?id=${p.id}`;
-    viewBtn.className = 'btn btn-green btn-sm';
+    viewBtn.className = 'btn mc-green mc-sm';
     viewBtn.textContent = 'Profili Gör';
     footer.appendChild(viewBtn);
 
@@ -1627,7 +1627,7 @@
     const wrap = document.getElementById('load-more-wrap');
     wrap.innerHTML = '';
     const btn = document.createElement('button');
-    btn.className = 'btn btn-gray';
+    btn.className = 'btn mc-gray';
     btn.textContent = 'Daha Fazla Göster';
     btn.addEventListener('click', () => {
       wrap.innerHTML = '';
@@ -1847,7 +1847,7 @@
     const isSelf = currentUser && currentUser.id === p.id;
 
     const btn = document.createElement('button');
-    btn.className = isSelf ? 'btn btn-gray btn-sm' : (isFollowing ? 'btn btn-gray btn-sm' : 'btn btn-green btn-sm');
+    btn.className = isSelf ? 'btn mc-gray mc-sm' : (isFollowing ? 'btn mc-gray mc-sm' : 'btn mc-green mc-sm');
     btn.textContent = isSelf ? 'Sen' : (isFollowing ? '✓ Takiptesin' : '+ Takip Et');
     btn.disabled = isSelf;
     btn.dataset.playerId = p.id;
@@ -1873,11 +1873,11 @@
     // Optimistic update
     if (isFollowing) {
       followingSet.delete(playerId);
-      btn.className = 'btn btn-green btn-sm';
+      btn.className = 'btn mc-green mc-sm';
       btn.textContent = '+ Takip Et';
     } else {
       followingSet.add(playerId);
-      btn.className = 'btn btn-gray btn-sm';
+      btn.className = 'btn mc-gray mc-sm';
       btn.textContent = '✓ Takiptesin';
     }
 
@@ -1908,11 +1908,11 @@
       // Revert
       if (isFollowing) {
         followingSet.add(playerId);
-        btn.className = 'btn btn-gray btn-sm';
+        btn.className = 'btn mc-gray mc-sm';
         btn.textContent = '✓ Takiptesin';
       } else {
         followingSet.delete(playerId);
-        btn.className = 'btn btn-green btn-sm';
+        btn.className = 'btn mc-green mc-sm';
         btn.textContent = '+ Takip Et';
       }
       toast('İşlem sırasında hata oluştu.', 'error');

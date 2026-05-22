@@ -205,7 +205,20 @@ a.nav-bell { display: flex; }
 /* =====================
    Minecraft Buttons
    ===================== */
-.mc-btn {
+.mc-btn,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn),
+.btn, 
+.load-more-btn, 
+.back-btn, 
+.sidebar-new-btn, 
+.btn-accept, 
+.btn-reject, 
+.btn-back, 
+.btn-next, 
+.btn-publish,
+.btn-s,
+.btn-full,
+.btn-full-cancel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -230,128 +243,8 @@ a.nav-bell { display: flex; }
   text-decoration: none;
 }
 
-.mc-btn:hover {
-  background-color: var(--btn-hover, #595959) !important;
-  filter: brightness(1.05) !important;
-}
-
-.mc-btn:active {
-  transform: translateY(2px) !important;
-  box-shadow: inset 0 2px 0 var(--btn-light, #6f6f6f), inset 0 -2px 0 var(--btn-dark, #262626) !important;
-}
-
-.mc-btn:disabled {
-  --btn-bg: #555555;
-  --btn-light: #777777;
-  --btn-dark: #333333;
-  --btn-text: #aaaaaa;
-  cursor: not-allowed;
-  pointer-events: none;
-  opacity: 0.8;
-}
-
-/* Minecraft Button Colors */
-.mc-green {
-  --btn-bg: #4c7e2b;
-  --btn-light: #86af49;
-  --btn-dark: #2c4e1b;
-  --btn-text: #ffffff;
-  --btn-hover: #5c8e32;
-}
-
-.mc-red {
-  --btn-bg: #7d1e1e;
-  --btn-light: #b83232;
-  --btn-dark: #3a0909;
-  --btn-text: #ffffff;
-  --btn-hover: #8a2222;
-}
-
-.mc-gray {
-  --btn-bg: #4c4c4c;
-  --btn-light: #6f6f6f;
-  --btn-dark: #262626;
-  --btn-text: #ffffff;
-  --btn-hover: #595959;
-}
-
-.mc-blue {
-  --btn-bg: #1d4d8c;
-  --btn-light: #3a6fb3;
-  --btn-dark: #0d274a;
-  --btn-text: #ffffff;
-  --btn-hover: #2b5fa3;
-}
-
-.mc-gold {
-  --btn-bg: #ffbc2c;
-  --btn-light: #ffd83b;
-  --btn-dark: #c88c0c;
-  --btn-text: #111111;
-  --btn-hover: #ffd13b;
-}
-
-.mc-purple {
-  --btn-bg: #4a1a8a;
-  --btn-light: #7832b8;
-  --btn-dark: #1e0939;
-  --btn-text: #ffffff;
-  --btn-hover: #5f26ac;
-}
-
-.mc-discord {
-  --btn-bg: #4752c4;
-  --btn-light: #5865f2;
-  --btn-dark: #2f358a;
-  --btn-text: #ffffff;
-  --btn-hover: #525ed9;
-}
-
-.mc-sm { padding: 5px 10px; font-size: 9px; }
-.mc-lg { padding: 11px 20px; font-size: 12px; }
-.mc-xl { padding: 14px 28px; font-size: 14px; }
-
-.btn-sm { padding: 6px 12px !important; font-size: 11px !important; }
-.btn-lg { padding: 12px 24px !important; font-size: 14px !important; }
-.btn-xl { padding: 14px 28px !important; font-size: 15px !important; }
-
-
-/* =====================
-   Modern Rounded Buttons
-   ===================== */
-button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn),
-.btn, 
-.load-more-btn, 
-.back-btn, 
-.sidebar-new-btn, 
-.btn-accept, 
-.btn-reject, 
-.btn-back, 
-.btn-next, 
-.btn-publish,
-.btn-s,
-.btn-full,
-.btn-full-cancel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border-radius: var(--radius); /* 8px */
-  padding: 10px 18px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 1px solid var(--border);
-  background: var(--border-thin);
-  color: var(--text-1);
-  transition: all var(--transition);
-  cursor: pointer;
-  font-family: var(--font);
-  text-decoration: none;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover,
+.mc-btn:hover,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover,
 .btn:hover, 
 .load-more-btn:hover, 
 .back-btn:hover, 
@@ -364,13 +257,14 @@ button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-de
 .btn-s:hover, 
 .btn-full:hover, 
 .btn-full-cancel:hover {
-  background: var(--border);
-  border-color: var(--accent);
-  color: var(--text-1);
-  filter: none !important;
+  background-color: var(--btn-hover, #595959) !important;
+  filter: brightness(1.05) !important;
+  border-color: #000000 !important;
+  color: var(--btn-text, #ffffff) !important;
 }
 
-button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):active,
+.mc-btn:active,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):active,
 .btn:active,
 .load-more-btn:active, 
 .back-btn:active, 
@@ -383,10 +277,12 @@ button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-de
 .btn-s:active, 
 .btn-full:active, 
 .btn-full-cancel:active {
-  transform: scale(0.98) !important;
+  transform: translateY(2px) !important;
+  box-shadow: inset 0 2px 0 var(--btn-light, #6f6f6f), inset 0 -2px 0 var(--btn-dark, #262626) !important;
 }
 
-button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabled,
+.mc-btn:disabled,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabled,
 .btn:disabled, 
 .load-more-btn:disabled, 
 .back-btn:disabled, 
@@ -399,95 +295,84 @@ button:not(.mc-btn):not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-de
 .btn-s:disabled, 
 .btn-full:disabled, 
 .btn-full-cancel:disabled {
-  background: var(--bg-card) !important;
-  border-color: var(--border-thin) !important;
-  color: var(--text-dim) !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-  opacity: 0.6 !important;
+  --btn-bg: #555555;
+  --btn-light: #777777;
+  --btn-dark: #333333;
+  --btn-text: #aaaaaa;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.8;
 }
 
-/* Modern Button Colors */
-.btn-green, .btn-next, .btn-publish, .btn-accept, button.green {
-  background: rgba(57, 255, 20, 0.1) !important;
-  border-color: rgba(57, 255, 20, 0.3) !important;
-  color: var(--accent) !important;
-}
-.btn-green:hover, .btn-next:hover, .btn-publish:hover, .btn-accept:hover, button.green:hover {
-  background: rgba(57, 255, 20, 0.2) !important;
-  border-color: var(--accent) !important;
+/* Minecraft Button Colors */
+.mc-green, .btn-green, .btn-next, .btn-publish, .btn-s-green, .btn-full-green, .btn-accept, button.green {
+  --btn-bg: #4c7e2b;
+  --btn-light: #86af49;
+  --btn-dark: #2c4e1b;
+  --btn-text: #ffffff;
+  --btn-hover: #5c8e32;
 }
 
-.btn-red, .btn-reject, button.red {
-  background: rgba(255, 26, 60, 0.1) !important;
-  border-color: rgba(255, 26, 60, 0.3) !important;
-  color: var(--red) !important;
-}
-.btn-red:hover, .btn-reject:hover, button.red:hover {
-  background: rgba(255, 26, 60, 0.2) !important;
-  border-color: var(--red) !important;
+.mc-red, .btn-red, .btn-reject, .btn-s-red, button.red {
+  --btn-bg: #7d1e1e;
+  --btn-light: #b83232;
+  --btn-dark: #3a0909;
+  --btn-text: #ffffff;
+  --btn-hover: #8a2222;
 }
 
-.btn-blue, button.blue {
-  background: rgba(0, 212, 255, 0.1) !important;
-  border-color: rgba(0, 212, 255, 0.3) !important;
-  color: var(--blue) !important;
-}
-.btn-blue:hover, button.blue:hover {
-  background: rgba(0, 212, 255, 0.2) !important;
-  border-color: var(--blue) !important;
+.mc-gray, .btn-gray, .btn-back, .btn-full-cancel, .load-more-btn, .back-btn, .btn-s-gray, button.gray {
+  --btn-bg: #4c4c4c;
+  --btn-light: #6f6f6f;
+  --btn-dark: #262626;
+  --btn-text: #ffffff;
+  --btn-hover: #595959;
 }
 
-.btn-gold, button.gold {
-  background: rgba(255, 215, 0, 0.1) !important;
-  border-color: rgba(255, 215, 0, 0.3) !important;
-  color: var(--gold) !important;
-}
-.btn-gold:hover, button.gold:hover {
-  background: rgba(255, 215, 0, 0.2) !important;
-  border-color: var(--gold) !important;
+.mc-blue, .btn-blue, .btn-s-blue, button.blue {
+  --btn-bg: #1d4d8c;
+  --btn-light: #3a6fb3;
+  --btn-dark: #0d274a;
+  --btn-text: #ffffff;
+  --btn-hover: #2b5fa3;
 }
 
-.btn-purple, button.purple {
-  background: rgba(185, 51, 255, 0.1) !important;
-  border-color: rgba(185, 51, 255, 0.3) !important;
-  color: var(--purple) !important;
-}
-.btn-purple:hover, button.purple:hover {
-  background: rgba(185, 51, 255, 0.2) !important;
-  border-color: var(--purple) !important;
+.mc-gold, .btn-gold, .btn-s-gold, button.gold {
+  --btn-bg: #ffbc2c;
+  --btn-light: #ffd83b;
+  --btn-dark: #c88c0c;
+  --btn-text: #111111;
+  --btn-hover: #ffd13b;
 }
 
-.btn-discord, button.discord {
-  background: rgba(88, 101, 242, 0.1) !important;
-  border-color: rgba(88, 101, 242, 0.3) !important;
-  color: var(--discord) !important;
-}
-.btn-discord:hover, button.discord:hover {
-  background: rgba(88, 101, 242, 0.2) !important;
-  border-color: var(--discord) !important;
+.mc-purple, .btn-purple, button.purple {
+  --btn-bg: #4a1a8a;
+  --btn-light: #7832b8;
+  --btn-dark: #1e0939;
+  --btn-text: #ffffff;
+  --btn-hover: #5f26ac;
 }
 
-.btn-gray, .btn-back, .btn-full-cancel, .load-more-btn, .back-btn, button.gray {
-  background: var(--bg-card) !important;
-  border-color: var(--border) !important;
-  color: var(--text-2) !important;
-}
-.btn-gray:hover, .btn-back:hover, .btn-full-cancel:hover, .load-more-btn:hover, .back-btn:hover, button.gray:hover {
-  background: var(--border-thin) !important;
-  border-color: var(--text-3) !important;
-  color: var(--text-1) !important;
+.mc-discord, .btn-discord, button.discord {
+  --btn-bg: #4752c4;
+  --btn-light: #5865f2;
+  --btn-dark: #2f358a;
+  --btn-text: #ffffff;
+  --btn-hover: #525ed9;
 }
 
 .btn-ghost, button.ghost {
-  background: transparent !important;
-  border-color: transparent !important;
-  color: var(--text-2) !important;
+  --btn-bg: transparent;
+  --btn-light: rgba(255,255,255,0.1);
+  --btn-dark: rgba(0,0,0,0.25);
+  --btn-text: var(--text-2);
+  --btn-hover: rgba(255,255,255,0.05);
 }
-.btn-ghost:hover, button.ghost:hover {
-  background: var(--border-thin) !important;
-  color: var(--text-1) !important;
-}
+
+.mc-sm, .btn-sm { padding: 5px 10px; font-size: 9px; }
+.mc-lg, .btn-lg { padding: 11px 20px; font-size: 12px; }
+.mc-xl, .btn-xl { padding: 14px 28px; font-size: 14px; }
+
 
 /* =====================
    Badge / Rozet Sistemi

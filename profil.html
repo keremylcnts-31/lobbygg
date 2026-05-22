@@ -1408,14 +1408,14 @@ async function init() {
       const ico = el('div', {className:'empty-state-icon', textContent:'🔒', style:{fontSize:'40px', marginBottom:'10px'}});
       const tit = el('div', {className:'empty-state-title', textContent:'Giriş Yapmalısınız', style:{fontSize:'18px', fontWeight:'900', color:'var(--text-1)', marginBottom:'8px'}});
       const sub = el('div', {style:{fontSize:'13px', color:'var(--text-2)', marginBottom:'20px', maxWidth:'300px'}}, 'Kendi profilinizi görmek ve özelleştirmek için lütfen giriş yapın veya kayıt olun.');
-      const btn = el('button', {className:'btn btn-green', textContent:'Giriş Yap / Kayıt Ol'});
+      const btn = el('button', {className:'btn mc-green', textContent:'Giriş Yap / Kayıt Ol'});
       btn.addEventListener('click', () => { window.location.href = 'giris.html'; });
       er.appendChild(ico); er.appendChild(tit); er.appendChild(sub); er.appendChild(btn);
     } else {
       const ico = el('div', {className:'empty-state-icon', textContent:'😕', style:{fontSize:'40px', marginBottom:'10px'}});
       const tit = el('div', {className:'empty-state-title', textContent:'Kullanıcı Bulunamadı', style:{fontSize:'18px', fontWeight:'900', color:'var(--text-1)', marginBottom:'8px'}});
       const sub = el('div', {style:{fontSize:'13px', color:'var(--text-2)', marginBottom:'20px', maxWidth:'300px'}}, 'Aradığınız oyuncu sistemde kayıtlı olmayabilir.');
-      const btn = el('button', {className:'btn btn-gray', textContent:'Keşfet\'e Git'});
+      const btn = el('button', {className:'btn mc-gray', textContent:'Keşfet\'e Git'});
       btn.addEventListener('click', () => { window.location.href = 'kesfet.html'; });
       er.appendChild(ico); er.appendChild(tit); er.appendChild(sub); er.appendChild(btn);
     }
@@ -1604,9 +1604,9 @@ function renderProfileHeader() {
 
   if (isOwnProfile) {
     const row = el('div', {className:'profile-actions-row'});
-    const editBtn = el('button', {className:'btn btn-gray', textContent:'Profili Düzenle'});
+    const editBtn = el('button', {className:'btn mc-gray', textContent:'Profili Düzenle'});
     editBtn.addEventListener('click', () => switchTab('ozellestir'));
-    const msgBtn = el('button', {className:'btn btn-blue', textContent:'💬 Mesajlar'});
+    const msgBtn = el('button', {className:'btn mc-blue', textContent:'💬 Mesajlar'});
     msgBtn.addEventListener('click', () => { window.location.href='mesajlar.html'; });
     row.appendChild(editBtn);
     row.appendChild(msgBtn);
@@ -1660,25 +1660,25 @@ function buildFollowBtn() {
   const btn = el('button', {className:'btn'});
 
   if (followStatus === 'following') {
-    btn.className = 'btn btn-gray';
+    btn.className = 'btn mc-gray';
     btn.textContent = 'Takibi Bırak';
     btn.addEventListener('click', () => unfollowUser(btn));
   } else if (followStatus === 'pending') {
-    btn.className = 'btn btn-gold';
+    btn.className = 'btn mc-gold';
     btn.textContent = '⏳ İstek Bekliyor';
     btn.disabled = true;
   } else if (followStatus === 'received') {
     // They sent me a request
-    btn.className = 'btn btn-blue';
+    btn.className = 'btn mc-blue';
     btn.textContent = '👁 Takip İsteğin Var';
     btn.addEventListener('click', () => { switchTab('hesap'); });
   } else {
     if (profileUser.profil_gizli) {
-      btn.className = 'btn btn-blue';
+      btn.className = 'btn mc-blue';
       btn.textContent = '🔒 İstek Gönder';
       btn.addEventListener('click', () => sendFollowRequest(btn));
     } else {
-      btn.className = 'btn btn-green';
+      btn.className = 'btn mc-green';
       btn.textContent = '+ Takip Et';
       btn.addEventListener('click', () => followUser(btn));
     }
@@ -1701,7 +1701,7 @@ function buildMsgBtn() {
     return lb;
   }
 
-  const btn = el('button', {className:'btn btn-blue', textContent:'💬 Mesaj'});
+  const btn = el('button', {className:'btn mc-blue', textContent:'💬 Mesaj'});
   btn.addEventListener('click', () => {
     window.location.href = `mesajlar.html?user=${profileUser.id}`;
   });
@@ -1755,7 +1755,7 @@ async function followUser(btn) {
   await sb.from('kullanicilar').update({takip_sayisi:(currentUser.takip_sayisi||0)+1}).eq('id', currentUser.id);
   await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'takip', icerik:currentUser.kullanici_adi+' sizi takip etmeye başladı.', link:`profil.html?id=${currentUser.id}`});
   followStatus = 'following';
-  btn.className = 'btn btn-gray';
+  btn.className = 'btn mc-gray';
   btn.textContent = 'Takibi Bırak';
   btn.disabled = false;
   btn.removeEventListener('click', ()=>{});
@@ -1775,12 +1775,12 @@ async function unfollowUser(btn) {
   profileUser.takipci_sayisi = Math.max(0,(profileUser.takipci_sayisi||1)-1);
 
   if (profileUser.profil_gizli) {
-    btn.className = 'btn btn-blue';
+    btn.className = 'btn mc-blue';
     btn.textContent = '🔒 İstek Gönder';
     btn.disabled = false;
     btn.addEventListener('click', () => sendFollowRequest(btn));
   } else {
-    btn.className = 'btn btn-green';
+    btn.className = 'btn mc-green';
     btn.textContent = '+ Takip Et';
     btn.disabled = false;
     btn.addEventListener('click', () => followUser(btn));
@@ -1795,7 +1795,7 @@ async function sendFollowRequest(btn) {
   await sb.from('takip_istekleri').insert({gonderen_id:currentUser.id, alici_id:profileUser.id, durum:'bekliyor'});
   await sb.from('bildirimler').insert({alici_id:profileUser.id, gonderen_id:currentUser.id, tip:'takip_istegi', icerik:currentUser.kullanici_adi+' takip isteği gönderdi.', link:`profil.html?id=${currentUser.id}`});
   followStatus = 'pending';
-  btn.className = 'btn btn-gold';
+  btn.className = 'btn mc-gold';
   btn.textContent = '⏳ İstek Bekliyor';
   btn.disabled = true;
   toast('Takip isteği gönderildi!', 'gold');
@@ -1877,10 +1877,10 @@ function renderMainContent() {
     let reqBtn;
     if (currentUser) {
       if (followStatus === 'pending') {
-        reqBtn = el('button', {className:'btn btn-gold', textContent:'⏳ İstek Bekliyor'});
+        reqBtn = el('button', {className:'btn mc-gold', textContent:'⏳ İstek Bekliyor'});
         reqBtn.disabled = true;
       } else {
-        reqBtn = el('button', {className:'btn btn-green', textContent:'🔒 Takip İsteği Gönder'});
+        reqBtn = el('button', {className:'btn mc-green', textContent:'🔒 Takip İsteği Gönder'});
         reqBtn.addEventListener('click', () => sendFollowRequest(reqBtn));
       }
     }
@@ -1992,7 +1992,7 @@ function buildDropComposer() {
     imgPreview.style.display = 'none';
   });
 
-  const postBtn = el('button', {className:'btn btn-green', textContent:'📤 Paylaş'});
+  const postBtn = el('button', {className:'btn mc-green', textContent:'📤 Paylaş'});
   postBtn.addEventListener('click', async () => {
     const text = ta.value.trim();
     if (!text && !selectedImgFile) { toast('Bir şeyler yaz!', 'error'); return; }
@@ -2382,7 +2382,7 @@ async function renderIlanlarTab(container) {
 
     const actDiv = el('div', {className:'ilan-card-actions'});
     if (ilan.discord) {
-      const dc = el('button', {className:'btn btn-blue btn-sm', textContent:'💬 Discord'});
+      const dc = el('button', {className:'btn mc-blue mc-sm', textContent:'💬 Discord'});
       dc.addEventListener('click', () => window.open(`https://discord.com/users/${ilan.discord}`, '_blank'));
       actDiv.appendChild(dc);
     }
@@ -2445,19 +2445,19 @@ async function renderFollowList(container, type) {
 
     if (currentUser && u.id !== currentUser.id) {
       const isFollowingU = myFollowingIds.has(u.id);
-      const fBtn = el('button', {className:`btn btn-sm ${isFollowingU?'btn-gray':'btn-green'}`, textContent:isFollowingU?'Takip Ediliyor':'Takip Et'});
+      const fBtn = el('button', {className:`btn mc-sm ${isFollowingU?'mc-gray':'mc-green'}`, textContent:isFollowingU?'Takip Ediliyor':'Takip Et'});
       let fw = isFollowingU;
       fBtn.addEventListener('click', async () => {
         fBtn.disabled = true;
         if (fw) {
           await sb.from('takipler').delete().eq('takip_eden_id',currentUser.id).eq('takip_edilen_id',u.id);
-          fBtn.className = 'btn btn-sm btn-green';
+          fBtn.className = 'btn mc-sm mc-green';
           fBtn.textContent = 'Takip Et';
           fw = false;
           myFollowingIds.delete(u.id);
         } else {
           await sb.from('takipler').insert({takip_eden_id:currentUser.id, takip_edilen_id:u.id});
-          fBtn.className = 'btn btn-sm btn-gray';
+          fBtn.className = 'btn mc-sm mc-gray';
           fBtn.textContent = 'Takip Ediliyor';
           fw = true;
           myFollowingIds.add(u.id);
@@ -2493,7 +2493,7 @@ function renderOzellestirTab(container) {
 
   const ppBtns = el('div', {style:{display:'flex', flexDirection:'column', gap:'8px'}});
   const ppUploadInput = el('input', {attrs:{type:'file', accept:'image/*', id:'ppUploadFile', style:'display:none'}});
-  const ppUploadLabel = el('label', {className:'btn btn-blue', attrs:{for:'ppUploadFile', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
+  const ppUploadLabel = el('label', {className:'btn mc-blue', attrs:{for:'ppUploadFile', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
   ppUploadLabel.textContent = '📷 Fotoğraf Yükle';
 
   const gifNote = el('div', {style:{fontSize:'10px', color:'var(--text-dim)'}});
@@ -2516,7 +2516,7 @@ function renderOzellestirTab(container) {
     toast('Fotoğraf seçildi. Kaydet butonuna bas.', 'info');
   });
 
-  const ppRemoveBtn = el('button', {className:'btn btn-red', textContent:'🗑️ Kaldır'});
+  const ppRemoveBtn = el('button', {className:'btn mc-red', textContent:'🗑️ Kaldır'});
   ppRemoveBtn.addEventListener('click', async () => {
     await sb.from('kullanicilar').update({avatar_url:null}).eq('id', currentUser.id);
     ppPreviewImg.src = ppSrc({kullanici_adi:currentUser.kullanici_adi});
@@ -2657,7 +2657,7 @@ function renderOzellestirTab(container) {
   const bannerUploadWrap = el('div', {style:{marginBottom:'10px'}});
   if (['abone','premium'].includes(profileUser.abonelik)) {
     const bannerFileInput = el('input', {attrs:{type:'file', accept:'image/*', id:'bannerFileInput', style:'display:none'}});
-    const bannerUploadLabel = el('label', {className:'btn btn-blue', attrs:{for:'bannerFileInput', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
+    const bannerUploadLabel = el('label', {className:'btn mc-blue', attrs:{for:'bannerFileInput', style:'display:inline-flex;align-items:center;gap:6px;cursor:pointer;'}});
     bannerUploadLabel.textContent = '🖼️ Görsel Yükle';
     bannerFileInput.addEventListener('change', (e) => {
       const f = e.target.files[0];
@@ -2817,7 +2817,7 @@ function renderOzellestirTab(container) {
   wrap.appendChild(sunucuSec);
 
   // Save Button
-  const saveBtn = el('button', {className:'btn btn-green btn-lg', style:{width:'100%', marginTop:'8px'}});
+  const saveBtn = el('button', {className:'btn mc-green mc-lg', style:{width:'100%', marginTop:'8px'}});
   saveBtn.textContent = '💾 Değişiklikleri Kaydet';
   saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
@@ -2927,7 +2927,7 @@ async function renderHesapTab(container) {
   });
   privSec.appendChild(radioGroup);
 
-  const savePrivBtn = el('button', {className:'btn btn-green', style:{marginTop:'14px'}});
+  const savePrivBtn = el('button', {className:'btn mc-green', style:{marginTop:'14px'}});
   savePrivBtn.textContent = '💾 Gizlilik Kaydet';
   savePrivBtn.addEventListener('click', async () => {
     savePrivBtn.disabled = true;
@@ -2986,7 +2986,7 @@ async function renderHesapTab(container) {
       info.appendChild(nick);
       const actDiv = el('div', {className:'req-item-actions'});
 
-      const acceptBtn = el('button', {className:'btn btn-green btn-sm', textContent:'Kabul'});
+      const acceptBtn = el('button', {className:'btn mc-green mc-sm', textContent:'Kabul'});
       acceptBtn.addEventListener('click', async () => {
         acceptBtn.disabled = true;
         const senderId = req.kullanicilar?.id;
@@ -3004,7 +3004,7 @@ async function renderHesapTab(container) {
         toast('Takip isteği kabul edildi!', 'success');
       });
 
-      const rejectBtn = el('button', {className:'btn btn-red btn-sm', textContent:'Reddet'});
+      const rejectBtn = el('button', {className:'btn mc-red mc-sm', textContent:'Reddet'});
       rejectBtn.addEventListener('click', async () => {
         await sb.from('takip_istekleri').delete().eq('id', req.id);
         document.getElementById(`req-${req.id}`)?.remove();
@@ -3066,7 +3066,7 @@ async function renderHesapTab(container) {
     const locked = el('div', {className:'visitors-locked'});
     locked.appendChild(el('div', {className:'visitors-locked-icon', textContent:'👑'}));
     locked.appendChild(el('div', {className:'visitors-locked-text', textContent:'Profil ziyaretçilerini görmek için Abone veya Premium olun.'}));
-    const upgBtn = el('button', {className:'btn btn-gold btn-sm', textContent:'Abone Ol'});
+    const upgBtn = el('button', {className:'btn mc-gold mc-sm', textContent:'Abone Ol'});
     locked.appendChild(upgBtn);
     visSec.appendChild(locked);
   }

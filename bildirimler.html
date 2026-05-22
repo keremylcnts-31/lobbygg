@@ -621,7 +621,7 @@ function buildNav() {
   } else {
     const loginBtn = document.createElement('a');
     loginBtn.href = 'giris.html';
-    loginBtn.className = 'btn btn-green btn-sm';
+    loginBtn.className = 'btn mc-green mc-sm';
     loginBtn.textContent = 'Giriş Yap';
     right.appendChild(loginBtn);
   }
@@ -1002,7 +1002,7 @@ async function loadIsteklerTab() {
     actions.className = 'request-actions';
 
     const acceptBtn = document.createElement('button');
-    acceptBtn.className = 'btn btn-green btn-accept';
+    acceptBtn.className = 'btn mc-green btn-accept';
     acceptBtn.textContent = 'Kabul';
     acceptBtn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -1010,7 +1010,7 @@ async function loadIsteklerTab() {
     });
 
     const rejectBtn = document.createElement('button');
-    rejectBtn.className = 'btn btn-red btn-reject';
+    rejectBtn.className = 'btn mc-red btn-reject';
     rejectBtn.textContent = 'Reddet';
     rejectBtn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -1447,7 +1447,7 @@ function showLoginGate() {
 
   const btn = document.createElement('a');
   btn.href = 'giris.html';
-  btn.className = 'btn btn-green btn-lg';
+  btn.className = 'btn mc-green mc-lg';
   btn.style.marginTop = '8px';
   btn.textContent = '🎮 Giriş Yap';
   div.appendChild(btn);

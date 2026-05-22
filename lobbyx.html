@@ -914,7 +914,7 @@
         <div style="font-size:48px;margin-bottom:12px;">🌐</div>
         <div style="font-size:15px;font-weight:800;color:var(--text-2);margin-bottom:8px;">Henüz kimseyi takip etmiyorsun</div>
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Keşfet sekmesine geç veya aşağıdaki önerilere göz at!</div>
-        <button class="btn btn-green" id="goto-kesif-btn">🌎 Keşfet'e Git</button>
+        <button class="mc-btn mc-green" id="goto-kesif-btn">🌎 Keşfet'e Git</button>
       </div>
 
       <!-- Feed -->
@@ -1226,7 +1226,7 @@ function buildNav() {
   } else {
     const loginBtn = document.createElement('a');
     loginBtn.href = 'login.html';
-    loginBtn.className = 'btn btn-green btn-sm';
+    loginBtn.className = 'btn mc-green mc-sm';
     loginBtn.textContent = 'Giriş Yap';
     right.appendChild(loginBtn);
   }
@@ -1300,7 +1300,7 @@ function buildLeftSidebar() {
 
   // Drop Share button
   const shareBtn = document.createElement('button');
-  shareBtn.className = 'btn btn-green drop-share-btn';
+  shareBtn.className = 'btn mc-green drop-share-btn';
   shareBtn.textContent = '✏️ Drop Paylaş';
   shareBtn.addEventListener('click', () => {
     const composer = document.getElementById('composer-textarea');
@@ -1360,9 +1360,9 @@ async function buildRightSidebar() {
       info.appendChild(cat);
 
       const followBtn = document.createElement('button');
-      followBtn.className = 'btn btn-green btn-sm suggest-follow-btn';
+      followBtn.className = 'btn mc-green mc-sm suggest-follow-btn';
       followBtn.textContent = followedUsers.has(u.id) ? '✓ Takip' : 'Takip Et';
-      if (followedUsers.has(u.id)) followBtn.classList.replace('btn-green', 'btn-gray');
+      if (followedUsers.has(u.id)) followBtn.classList.replace('mc-green', 'mc-gray');
 
       followBtn.addEventListener('click', async () => {
         if (!currentUser) { showToast('Takip etmek için giriş yap!', 'error'); return; }
@@ -1592,7 +1592,7 @@ function buildComposer() {
     txt.textContent = 'Drop paylaşmak için giriş yap!';
     const btn = document.createElement('a');
     btn.href = 'login.html';
-    btn.className = 'btn btn-green';
+    btn.className = 'btn mc-green';
     btn.textContent = '🚪 Giriş Yap';
     overlay.appendChild(txt);
     overlay.appendChild(btn);
@@ -1697,7 +1697,7 @@ function buildComposer() {
   right.className = 'composer-right';
 
   const sendBtn = document.createElement('button');
-  sendBtn.className = 'btn btn-green';
+  sendBtn.className = 'btn mc-green';
   sendBtn.textContent = '🚀 Gönder';
   sendBtn.addEventListener('click', () => submitDrop(textarea, fileInput, imgPreview, previewImg));
 
@@ -2522,12 +2522,12 @@ async function toggleFollow(userId, btn, nick) {
         .eq('takip_edilen_id', userId);
       followedUsers.delete(userId);
       btn.textContent = 'Takip Et';
-      btn.classList.replace('btn-gray', 'btn-green');
+      btn.classList.replace('mc-gray', 'mc-green');
     } else {
       await sb.from('takipler').insert({ takip_eden_id: currentUser.id, takip_edilen_id: userId });
       followedUsers.add(userId);
       btn.textContent = '✓ Takip';
-      btn.classList.replace('btn-green', 'btn-gray');
+      btn.classList.replace('mc-green', 'mc-gray');
       showToast(`${nick} takip edildi!`, 'success');
     }
   } catch (e) { showToast('Hata oluştu!', 'error'); }

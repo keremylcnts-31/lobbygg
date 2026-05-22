@@ -396,7 +396,7 @@
       } else {
         const loginBtn = document.createElement('a');
         loginBtn.href = 'giris.html';
-        loginBtn.className = 'btn btn-green';
+        loginBtn.className = 'btn mc-green';
         loginBtn.textContent = 'Giriş Yap';
         right.appendChild(loginBtn);
       }
@@ -508,7 +508,7 @@
         discordBtn.href = `https://discord.com/users/${ilan.discord}`;
         discordBtn.target = '_blank';
         discordBtn.rel = 'noopener';
-        discordBtn.className = 'btn btn-discord';
+        discordBtn.className = 'btn mc-discord';
         discordBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;';
         discordBtn.innerHTML = '💬 Discord ile İletişim';
         contactBlock.appendChild(discordBtn);
@@ -517,7 +517,7 @@
       if (ilan.email) {
         const emailBtn = document.createElement('a');
         emailBtn.href = `mailto:${ilan.email}`;
-        emailBtn.className = 'btn btn-blue';
+        emailBtn.className = 'btn mc-blue';
         emailBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;';
         emailBtn.innerHTML = '✉️ E-posta Gönder';
         contactBlock.appendChild(emailBtn);
@@ -596,7 +596,7 @@
         <div class="ilan-detay-card" style="text-align:center;padding:48px 24px;">
           <div style="font-size:48px;margin-bottom:16px;">😕</div>
           <div style="font-size:18px;font-weight:900;color:var(--text-1);margin-bottom:8px;">${msg}</div>
-          <a href="ilanlar.html" class="btn btn-gray" style="display:inline-block;margin-top:16px;text-decoration:none;">← İlanlara Dön</a>
+          <a href="ilanlar.html" class="mc-btn mc-gray" style="display:inline-block;margin-top:16px;text-decoration:none;">← İlanlara Dön</a>
         </div>
       `;
       sideCol.innerHTML = '';
