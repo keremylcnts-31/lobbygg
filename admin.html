@@ -2136,7 +2136,7 @@ async function init() {
   // Fetch user
   const { data: user, error: userErr } = await db.from('kullanicilar')
     .select('*')
-    .eq('id', session.user.id)
+    .eq('email', session.user.email)
     .single();
 
   if (userErr || !user) {

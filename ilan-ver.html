@@ -309,6 +309,14 @@
   async function buildNav() {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session ? session.user : null;
+    if (currentUser) {
+      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, kullanici_adi, email, discord').eq('email', currentUser.email).maybeSingle();
+      if (ku) {
+        currentUser = { ...session.user, id: ku.id };
+        userProfile = ku;
+      }
+    }
+
     const navRight = document.getElementById('navRight');
     navRight.innerHTML = '';
 
@@ -326,27 +334,19 @@
       const coinSpan = document.createElement('span');
       coinSpan.textContent = '🪙';
       lcoin.appendChild(coinSpan);
-      const coinTxt = document.createTextNode('—');
+      const coinTxt = document.createTextNode(userProfile ? (userProfile.lcoin || 0).toLocaleString('tr-TR') : '—');
       lcoin.appendChild(coinTxt);
       navRight.appendChild(lcoin);
 
       const avatar = document.createElement('img');
       avatar.className = 'nav-avatar';
-      avatar.src = 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
+      avatar.src = (userProfile && userProfile.avatar_url) ? userProfile.avatar_url : 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
       avatar.alt = 'Profil';
       avatar.addEventListener('click', () => { window.location.href = 'profil.html'; });
       navRight.appendChild(avatar);
 
-      const { data: ku } = await sb.from('kullanicilar').select('lcoin, avatar_url, kullanici_adi, email, discord').eq('id', currentUser.id).single();
-      if (ku) {
-        userProfile = ku;
-        coinTxt.textContent = (ku.lcoin || 0).toLocaleString('tr-TR');
-        if (ku.avatar_url) avatar.src = ku.avatar_url;
-        formData.email = ku.email || currentUser.email || '';
-        formData.discord = ku.discord || '';
-      } else {
-        formData.email = currentUser.email || '';
-      }
+      formData.email = (userProfile && userProfile.email) ? userProfile.email : (currentUser.email || '');
+      formData.discord = (userProfile && userProfile.discord) ? userProfile.discord : '';
     } else {
       const loginBtn = document.createElement('button');
       loginBtn.className = 'nav-login-btn';

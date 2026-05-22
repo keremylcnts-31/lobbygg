@@ -1042,14 +1042,18 @@
       currentUser = session.user;
       // Fetch profile
       const { data: profile } = await sb.from('kullanicilar')
-        .select('kullanici_adi, avatar_url, lcoin')
-        .eq('id', currentUser.id)
-        .single();
+        .select('id, kullanici_adi, avatar_url, lcoin')
+        .eq('email', currentUser.email)
+        .maybeSingle();
       if (profile) {
+        currentUser = { ...session.user, id: profile.id };
         const navAvatar = document.getElementById('nav-avatar-img');
         if (profile.avatar_url && navAvatar) navAvatar.src = profile.avatar_url;
         const lcoinEl = document.getElementById('nav-lcoin-val');
         if (lcoinEl) lcoinEl.textContent = (profile.lcoin || 0).toLocaleString('tr-TR');
+      } else {
+        window.location.href = 'giris.html';
+        return;
       }
       // Load following
       const { data: follows } = await sb.from('takipler')

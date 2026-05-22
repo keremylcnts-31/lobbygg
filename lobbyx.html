@@ -1810,7 +1810,7 @@ async function loadDrops(append = false) {
 
   try {
     let query = sb.from('droplar')
-      .select(`*, kullanicilar(id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti)`)
+      .select('*')
       .order('created_at', { ascending: false })
       .range(dropOffset, dropOffset + DROP_LIMIT - 1);
 
@@ -1826,6 +1826,22 @@ async function loadDrops(append = false) {
 
     const { data: drops, error } = await query;
     if (error) throw error;
+
+    if (drops && drops.length > 0) {
+      const authorIds = [...new Set(drops.map(d => d.kullanici_id).filter(id => id !== null))];
+      if (authorIds.length > 0) {
+        const { data: authors, error: authorError } = await sb.from('kullanicilar')
+          .select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti')
+          .in('id', authorIds);
+        if (!authorError && authors) {
+          const authorMap = {};
+          authors.forEach(a => { authorMap[a.id] = a; });
+          drops.forEach(d => {
+            d.kullanicilar = authorMap[d.kullanici_id] || null;
+          });
+        }
+      }
+    }
 
     document.getElementById('feed-loading').innerHTML = '';
     document.getElementById('following-empty').classList.remove('visible');
@@ -2206,10 +2222,26 @@ async function loadComments(dropId, section) {
   // Load comments from DB
   try {
     const { data: comments } = await sb.from('drop_yorumlar')
-      .select(`*, kullanicilar(id, kullanici_adi, avatar_url)`)
+      .select('*')
       .eq('drop_id', dropId)
       .order('created_at', { ascending: false })
       .limit(3);
+
+    if (comments && comments.length > 0) {
+      const userIds = [...new Set(comments.map(c => c.kullanici_id).filter(id => id !== null))];
+      if (userIds.length > 0) {
+        const { data: users } = await sb.from('kullanicilar')
+          .select('id, kullanici_adi, avatar_url')
+          .in('id', userIds);
+        if (users) {
+          const userMap = {};
+          users.forEach(u => { userMap[u.id] = u; });
+          comments.forEach(c => {
+            c.kullanicilar = userMap[c.kullanici_id] || null;
+          });
+        }
+      }
+    }
 
     if (!comments || comments.length === 0) {
       const emptyEl = document.createElement('div');
@@ -2230,9 +2262,26 @@ async function loadComments(dropId, section) {
       seeAll.addEventListener('click', async () => {
         seeAll.remove();
         const { data: allComments } = await sb.from('drop_yorumlar')
-          .select(`*, kullanicilar(id, kullanici_adi, avatar_url)`)
+          .select('*')
           .eq('drop_id', dropId)
           .order('created_at', { ascending: true });
+
+        if (allComments && allComments.length > 0) {
+          const userIds = [...new Set(allComments.map(c => c.kullanici_id).filter(id => id !== null))];
+          if (userIds.length > 0) {
+            const { data: users } = await sb.from('kullanicilar')
+              .select('id, kullanici_adi, avatar_url')
+              .in('id', userIds);
+            if (users) {
+              const userMap = {};
+              users.forEach(u => { userMap[u.id] = u; });
+              allComments.forEach(c => {
+                c.kullanicilar = userMap[c.kullanici_id] || null;
+              });
+            }
+          }
+        }
+
         section.innerHTML = '';
         section.appendChild(inputRow);
         (allComments || []).forEach(c => {
@@ -2441,9 +2490,25 @@ document.getElementById('new-drops-pill').addEventListener('click', async () => 
 
   try {
     const { data: newDrops } = await sb.from('droplar')
-      .select(`*, kullanicilar(id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti)`)
+      .select('*')
       .in('id', ids)
       .order('created_at', { ascending: false });
+
+    if (newDrops && newDrops.length > 0) {
+      const authorIds = [...new Set(newDrops.map(d => d.kullanici_id).filter(id => id !== null))];
+      if (authorIds.length > 0) {
+        const { data: authors } = await sb.from('kullanicilar')
+          .select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti')
+          .in('id', authorIds);
+        if (authors) {
+          const authorMap = {};
+          authors.forEach(a => { authorMap[a.id] = a; });
+          newDrops.forEach(d => {
+            d.kullanicilar = authorMap[d.kullanici_id] || null;
+          });
+        }
+      }
+    }
 
     const feed = document.getElementById('drop-feed');
     (newDrops || []).forEach(drop => {
@@ -2511,13 +2576,18 @@ async function init() {
   // Check session
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    currentUser = session.user;
     const { data: profile } = await sb.from('kullanicilar')
       .select('*')
-      .eq('id', currentUser.id)
-      .single();
-    currentProfile = profile;
-    await loadFollowedUsers();
+      .eq('email', session.user.email)
+      .maybeSingle();
+    if (profile) {
+      currentUser = { ...session.user, id: profile.id };
+      currentProfile = profile;
+      await loadFollowedUsers();
+    } else {
+      window.location.href = 'giris.html';
+      return;
+    }
   }
 
   buildNav();

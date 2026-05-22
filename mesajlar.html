@@ -1011,8 +1011,12 @@ function buildNav(user) {
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (session && session.user) {
-    const { data } = await sb.from('kullanicilar').select('*').eq('id', session.user.id).single();
-    currentUser = data || { id: session.user.id, kullanici_adi: session.user.email, lcoin: 0 };
+    const { data } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
+    if (!data) {
+      window.location.href = 'giris.html';
+      return;
+    }
+    currentUser = data;
   } else {
     // Demo mode — create a fake local user
     currentUser = { id: 'demo-user-' + Math.random().toString(36).slice(2), kullanici_adi: 'Sen', lcoin: 0, avatar_url: null };

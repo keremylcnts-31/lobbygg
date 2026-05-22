@@ -1368,12 +1368,15 @@ async function init() {
 
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    const { data: u } = await sb.from('kullanicilar').select('*').eq('id', session.user.id).single();
-    currentUser = u;
+    const { data: u } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
     if (u) {
+      currentUser = u;
       document.getElementById('navLcoin').textContent = (u.lcoin||0).toLocaleString();
       const navAvImg = document.querySelector('#navAvatar img');
       if (navAvImg) navAvImg.src = ppSrc(u);
+    } else {
+      window.location.href = 'giris.html';
+      return;
     }
   }
 
@@ -2133,10 +2136,26 @@ function buildDropCard(drop, isLiked) {
 async function loadComments(dropId, panel, cntEl, drop) {
   panel.innerHTML = '';
   const { data: comments } = await sb.from('drop_yorumlar')
-    .select('*, kullanicilar(kullanici_adi, avatar_url)')
+    .select('*')
     .eq('drop_id', dropId)
     .order('created_at', {ascending:true})
     .limit(20);
+
+  if (comments && comments.length > 0) {
+    const userIds = [...new Set(comments.map(c => c.kullanici_id).filter(id => id !== null))];
+    if (userIds.length > 0) {
+      const { data: users } = await sb.from('kullanicilar')
+        .select('id, kullanici_adi, avatar_url')
+        .in('id', userIds);
+      if (users) {
+        const userMap = {};
+        users.forEach(u => { userMap[u.id] = u; });
+        comments.forEach(c => {
+          c.kullanicilar = userMap[c.kullanici_id] || null;
+        });
+      }
+    }
+  }
 
   if (comments && comments.length) {
     comments.forEach(c => {
@@ -2833,9 +2852,23 @@ async function renderHesapTab(container) {
   wrap.appendChild(reqSec);
 
   const { data: requests } = await sb.from('takip_istekleri')
-    .select('*, kullanicilar!gonderen_id(id, kullanici_adi, avatar_url)')
+    .select('*')
     .eq('alici_id', currentUser.id)
     .eq('durum', 'bekliyor');
+
+  if (requests && requests.length) {
+    const gonderenIds = [...new Set(requests.map(r => r.gonderen_id))];
+    const { data: uList } = await sb.from('kullanicilar')
+      .select('id, kullanici_adi, avatar_url')
+      .in('id', gonderenIds);
+    const senderProfiles = {};
+    if (uList) {
+      uList.forEach(u => { senderProfiles[u.id] = u; });
+    }
+    requests.forEach(req => {
+      req.kullanicilar = senderProfiles[req.gonderen_id] || null;
+    });
+  }
 
   reqLoading.remove();
 
@@ -2893,10 +2926,24 @@ async function renderHesapTab(container) {
 
   if (['abone','premium'].includes(profileUser.abonelik)) {
     const { data: visitors } = await sb.from('profil_ziyaretciler')
-      .select('*, kullanicilar!ziyaretci_id(id, kullanici_adi, avatar_url)')
+      .select('*')
       .eq('profil_id', currentUser.id)
       .order('ziyaret_tarihi', {ascending:false})
       .limit(10);
+
+    if (visitors && visitors.length) {
+      const ziyaretciIds = [...new Set(visitors.map(v => v.ziyaretci_id))];
+      const { data: uList } = await sb.from('kullanicilar')
+        .select('id, kullanici_adi, avatar_url')
+        .in('id', ziyaretciIds);
+      const visitorProfiles = {};
+      if (uList) {
+        uList.forEach(u => { visitorProfiles[u.id] = u; });
+      }
+      visitors.forEach(v => {
+        v.kullanicilar = visitorProfiles[v.ziyaretci_id] || null;
+      });
+    }
 
     if (!visitors || !visitors.length) {
       const noV = el('div', {style:{fontSize:'12px',color:'var(--text-dim)',padding:'12px 0'}});

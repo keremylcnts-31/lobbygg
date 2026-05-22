@@ -360,6 +360,15 @@
   async function buildNav() {
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session ? session.user : null;
+    let kuProfile = null;
+    if (currentUser) {
+      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url').eq('email', currentUser.email).maybeSingle();
+      if (ku) {
+        currentUser = { ...session.user, id: ku.id };
+        kuProfile = ku;
+      }
+    }
+
     const navRight = document.getElementById('navRight');
     navRight.innerHTML = '';
 
@@ -377,22 +386,16 @@
       const coinSpan = document.createElement('span');
       coinSpan.textContent = '🪙';
       lcoin.appendChild(coinSpan);
-      const coinText = document.createTextNode('—');
+      const coinText = document.createTextNode(kuProfile ? (kuProfile.lcoin || 0).toLocaleString('tr-TR') : '—');
       lcoin.appendChild(coinText);
       navRight.appendChild(lcoin);
 
       const avatar = document.createElement('img');
       avatar.className = 'nav-avatar';
-      avatar.src = currentUser.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
+      avatar.src = (kuProfile && kuProfile.avatar_url) ? kuProfile.avatar_url : (currentUser.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id);
       avatar.alt = 'Profil';
       avatar.addEventListener('click', () => { window.location.href = 'profil.html'; });
       navRight.appendChild(avatar);
-
-      const { data: ku } = await sb.from('kullanicilar').select('lcoin, avatar_url').eq('id', currentUser.id).single();
-      if (ku) {
-        coinText.textContent = (ku.lcoin || 0).toLocaleString('tr-TR');
-        if (ku.avatar_url) avatar.src = ku.avatar_url;
-      }
     } else {
       const loginBtn = document.createElement('button');
       loginBtn.className = 'nav-login-btn';

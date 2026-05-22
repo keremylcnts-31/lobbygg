@@ -1283,7 +1283,6 @@ async function finalizeRegistration() {
   }
 
   const record = {
-    id: user.id,
     kullanici_adi: state.nick,
     email: state.email || user.email,
     abonelik: 'uye',
@@ -1294,15 +1293,14 @@ async function finalizeRegistration() {
     lcoin: 5
   };
 
-  const { error } = await db.from('kullanicilar').insert(record);
+  const { data: insertedProfile, error } = await db.from('kullanicilar')
+    .upsert(record, { onConflict: 'email' })
+    .select('id')
+    .maybeSingle();
 
-  if (error) {
-    // Possibly duplicate, try upsert
-    const { error: upsertErr } = await db.from('kullanicilar').upsert(record, { onConflict: 'id' });
-    if (upsertErr) {
-      showToast('Profil kaydedilemedi: ' + upsertErr.message);
-      return;
-    }
+  if (error || !insertedProfile) {
+    showToast('Profil kaydedilemedi: ' + (error ? error.message : 'Bilinmeyen hata'));
+    return;
   }
 
   showToast('Hesap oluşturuldu!', 'success');
@@ -1316,7 +1314,7 @@ async function checkSession() {
   const { data: { session } } = await db.auth.getSession();
   if (session) {
     // Check if user has profile
-    const { data } = await db.from('kullanicilar').select('kullanici_adi').eq('id', session.user.id).maybeSingle();
+    const { data } = await db.from('kullanicilar').select('kullanici_adi').eq('email', session.user.email).maybeSingle();
     if (data && data.kullanici_adi) {
       window.location.href = 'lobbyx.html';
       return;
@@ -1324,8 +1322,10 @@ async function checkSession() {
   }
   // Hide loading
   const overlay = document.getElementById('load-overlay');
-  overlay.classList.add('hidden');
-  setTimeout(() => overlay.remove(), 400);
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => overlay.remove(), 400);
+  }
 }
 
 /* ================================================================

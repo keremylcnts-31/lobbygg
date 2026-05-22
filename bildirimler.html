@@ -1467,9 +1467,14 @@ async function init() {
     const { data: profile } = await sb
       .from('kullanicilar')
       .select('*')
-      .eq('id', currentUser.id)
-      .single();
-    currentProfile = profile;
+      .eq('email', currentUser.email)
+      .maybeSingle();
+    if (profile) {
+      currentUser = { ...session.user, id: profile.id };
+      currentProfile = profile;
+    } else {
+      currentUser = null;
+    }
   }
 
   buildNav();

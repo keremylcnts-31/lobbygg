@@ -1951,8 +1951,9 @@ async function loadCurrentUser() {
     currentUser = user;
 
     /* Load profile */
-    const { data: profile } = await db.from('kullanicilar').select('*').eq('id', user.id).maybeSingle();
+    const { data: profile } = await db.from('kullanicilar').select('*').eq('email', user.email).maybeSingle();
     if (profile) {
+      currentUser = { ...user, id: profile.id };
       const lcoinEl = document.getElementById('nav-lcoin-val');
       if (lcoinEl) lcoinEl.textContent = fmtNum(profile.lcoin || 0);
       const avatarEl = document.getElementById('nav-avatar-img');
@@ -1964,14 +1965,14 @@ async function loadCurrentUser() {
     today.setHours(0, 0, 0, 0);
     const { data: votes } = await db.from('klan_voteler')
       .select('klan_id')
-      .eq('kullanici_id', user.id)
+      .eq('kullanici_id', profile.id)
       .gte('son_vote', today.toISOString());
     if (votes) votes.forEach(v => votedTodaySet.add(v.klan_id));
 
     /* Load unread notifications */
     const { count } = await db.from('bildirimler')
       .select('*', { count: 'exact', head: true })
-      .eq('alici_id', user.id)
+      .eq('alici_id', profile.id)
       .eq('okundu', false);
     if (count > 0) {
       const badge = document.getElementById('nav-bell-badge');
