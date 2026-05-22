@@ -15,6 +15,10 @@
     /* Banner */
     .banner-wrap {
       border-radius: 0;
+      overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+      height: 280px;
       max-height: 280px;
     }
     .banner-canvas-mini { width: 100%; height: 100%; display: block; }
@@ -1342,12 +1346,12 @@ function buildNav() {
 
   const navRight = el('div', {className:'nav-right'});
 
-  const bell = el('div', {className:'nav-bell'});
-  bell.textContent = '🔔';
+  const bell = el('a', {className:'nav-bell', attrs:{href:'bildirimler.html', title:'Bildirimler'}});
+  bell.innerHTML = '🔔';
   navRight.appendChild(bell);
 
   const lcoin = el('div', {className:'nav-lcoin'});
-  const lcoinIco = el('span', {className:'nav-lcoin-icon', textContent:'🪙'});
+  const lcoinIco = el('span', {className:'nav-lcoin-icon'});
   const lcoinVal = el('span', {id:'navLcoin', textContent:'0'});
   lcoin.appendChild(lcoinIco);
   lcoin.appendChild(lcoinVal);
@@ -2161,11 +2165,108 @@ async function loadComments(dropId, panel, cntEl, drop) {
     comments.forEach(c => {
       const item = el('div', {className:'comment-item'});
       const pp = el('img', {className:'comment-pp', attrs:{src:ppSrc(c.kullanicilar), alt:'PP'}});
+      if (c.kullanici_id) {
+        pp.style.cursor = 'pointer';
+        pp.addEventListener('click', () => { window.location.href = `profil.html?id=${c.kullanici_id}`; });
+      }
+
       const bubble = el('div', {className:'comment-bubble'});
       const nick = el('div', {className:'comment-nick', textContent:c.kullanicilar?.kullanici_adi||'Anonim'});
+      if (c.kullanici_id) {
+        nick.style.cursor = 'pointer';
+        nick.addEventListener('click', () => { window.location.href = `profil.html?id=${c.kullanici_id}`; });
+      }
+
       const txt = el('div', {className:'comment-text', textContent:c.yorum});
       bubble.appendChild(nick);
       bubble.appendChild(txt);
+
+      // Actions row (Like, Reply, Delete)
+      const actionRow = el('div', {style:{display:'flex', alignItems:'center', gap:'8px', marginTop:'4px'}});
+
+      // --- Like Button ---
+      const likeBtn = el('button', {className:'comment-like-btn'});
+      const likeKey = `comment_liked_${c.id}`;
+      const countKey = `comment_like_count_${c.id}`;
+
+      let isLiked = localStorage.getItem(likeKey) === 'true';
+      let likeCountVal = parseInt(localStorage.getItem(countKey));
+      if (isNaN(likeCountVal)) {
+        likeCountVal = c.begeni_sayisi || 0;
+        localStorage.setItem(countKey, likeCountVal);
+      }
+      if (isLiked) {
+        likeBtn.classList.add('liked');
+      }
+      likeBtn.innerHTML = `❤️ ${likeCountVal}`;
+
+      likeBtn.addEventListener('click', async () => {
+        if (!currentUser) { toast('Beğenmek için giriş yap!', 'error'); return; }
+        isLiked = !isLiked;
+        if (isLiked) {
+          likeBtn.classList.add('liked');
+          likeCountVal++;
+          localStorage.setItem(likeKey, 'true');
+        } else {
+          likeBtn.classList.remove('liked');
+          likeCountVal = Math.max(0, likeCountVal - 1);
+          localStorage.removeItem(likeKey);
+        }
+        localStorage.setItem(countKey, likeCountVal);
+        likeBtn.innerHTML = `❤️ ${likeCountVal}`;
+        try {
+          await sb.from('drop_yorumlar').update({ begeni_sayisi: likeCountVal }).eq('id', c.id);
+        } catch(err) { console.error(err); }
+      });
+      actionRow.appendChild(likeBtn);
+
+      // --- Reply Button ---
+      if (currentUser) {
+        const replyBtn = el('button', {className:'comment-del-btn', textContent:'💬 Yanıtla'});
+        replyBtn.addEventListener('click', () => {
+          const inputEl = panel.querySelector('.comment-input');
+          if (inputEl) {
+            inputEl.value = `@${c.kullanicilar?.kullanici_adi || 'Anonim'} ` + inputEl.value;
+            inputEl.focus();
+          }
+        });
+        actionRow.appendChild(replyBtn);
+      }
+
+      // --- Delete Button ---
+      if (currentUser && (c.kullanici_id === currentUser.id || drop.kullanici_id === currentUser.id)) {
+        const delBtn = el('button', {className:'comment-del-btn', textContent:'🗑️ Sil'});
+        delBtn.addEventListener('click', async () => {
+          try {
+            await sb.from('drop_yorumlar').delete().eq('id', c.id);
+            // Update comments count in UI and DB
+            const newCount = Math.max(0, (drop.yorum_sayisi || 0) - 1);
+            drop.yorum_sayisi = newCount;
+            if (cntEl) cntEl.textContent = newCount;
+            await sb.from('droplar').update({ yorum_sayisi: newCount }).eq('id', dropId);
+            
+            item.style.opacity = '0';
+            item.style.transition = 'opacity 0.3s';
+            setTimeout(() => {
+              item.remove();
+              if (panel.querySelectorAll('.comment-item').length === 0) {
+                panel.innerHTML = '';
+                const noC = el('div', {className:'text-dim', style:{fontSize:'12px', marginBottom:'8px'}, textContent:'Henüz yorum yok.'});
+                panel.appendChild(noC);
+                // rebuild input row
+                if (currentUser) {
+                  loadComments(dropId, panel, cntEl, drop);
+                }
+              }
+            }, 300);
+            toast('Yorum silindi', 'success');
+          } catch(err) { toast('Silinemedi', 'error'); }
+        });
+        actionRow.appendChild(delBtn);
+      }
+
+      bubble.appendChild(actionRow);
+
       item.appendChild(pp);
       item.appendChild(bubble);
       panel.appendChild(item);
@@ -2730,7 +2831,7 @@ function renderOzellestirTab(container) {
       aktif_cerceve: selectedFrame || profileUser.aktif_cerceve,
       pp_sekil: selectedShape || profileUser.pp_sekil,
       banner_renk: savedBannerColor || profileUser.banner_renk,
-      desteklened_sunucu: selectedDestServer,
+      desteklenen_sunucu: selectedDestServer,
       favori_sunucular: selectedFavServers
     };
 

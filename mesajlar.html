@@ -986,14 +986,15 @@ function buildNav(user) {
   const right = nav.appendChild(document.createElement('div'));
   right.className = 'nav-right';
 
-  const bell = document.createElement('button');
+  const bell = document.createElement('a');
+  bell.href = 'bildirimler.html';
   bell.className = 'nav-bell';
   bell.innerHTML = '🔔';
   right.appendChild(bell);
 
   const lcoin = document.createElement('div');
   lcoin.className = 'nav-lcoin';
-  lcoin.innerHTML = '<span class="nav-lcoin-icon">🪙</span><span>' + (user ? (user.lcoin || 0) : '—') + '</span>';
+  lcoin.innerHTML = '<span class="nav-lcoin-icon"></span><span>' + (user ? (user.lcoin || 0) : '—') + '</span>';
   right.appendChild(lcoin);
 
   const av = document.createElement('div');

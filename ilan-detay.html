@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>İlan Detay — LOBBY.GG</title>
+  <meta name="description" content="LOBBY.GG ilan detay sayfası. Minecraft topluluğu ilanlarını incele, iletişime geç." />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .badge-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .badge-price.free  { background: rgba(57,255,20,0.12); color: var(--accent); border: 1px solid rgba(57,255,20,0.25); }
+    .badge-price.paid  { background: rgba(255,215,0,0.12); color: var(--gold); border: 1px solid rgba(255,215,0,0.25); }
+    .badge-price.deal  { background: rgba(0,212,255,0.12); color: var(--blue); border: 1px solid rgba(0,212,255,0.25); }
+
+    .badge-cat {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .contact-block { display: flex; flex-direction: column; gap: 10px; }
+
+    .back-btn-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 16px) 16px 0;
+    }
+    .back-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-thin);
+      background: var(--bg-card);
+      transition: all 0.2s;
+    }
+    .back-btn-link:hover { color: var(--text-1); border-color: var(--border); }
+
+    .ilan-detay-body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 16px 80px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .ilan-detay-body { grid-template-columns: 1fr; } }
+
+    .ilan-detay-main { display: flex; flex-direction: column; gap: 16px; }
+    .ilan-detay-sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: calc(var(--nav-h) + 16px); }
+
+    .ilan-detay-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .ilan-detay-hero {
+      width: 100%;
+      max-height: 360px;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: var(--bg-card2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ilan-detay-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ilan-detay-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--text-1);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .ilan-detay-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .ilan-detay-desc {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .ilan-owner-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-thin);
+      background: var(--bg-card2);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .ilan-owner-card:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.03); }
+
+    .ilan-owner-pp {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .ilan-owner-name {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text-1);
+    }
+    .ilan-owner-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+
+    .card-section-label {
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    .similar-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-thin);
+      background: var(--bg-card2);
+      cursor: pointer;
+      transition: border-color 0.2s;
+      text-decoration: none;
+    }
+    .similar-card:hover { border-color: var(--border-hover); }
+    .similar-card-title { font-size: 13px; font-weight: 700; color: var(--text-1); line-height: 1.3; }
+    .similar-card-meta { display: flex; gap: 6px; align-items: center; }
+
+    .ilan-price-big {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .ilan-price-sub { font-size: 11px; color: var(--text-3); margin-bottom: 16px; }
+
+    .share-btn {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .share-btn:hover { color: var(--text-1); border-color: var(--border-hover); }
+
+    .skel-block {
+      background: linear-gradient(90deg, #111 0%, #1a1a1a 50%, #111 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas-bg"></canvas>
+  <div class="page-wrapper">
+    <nav class="nav" id="nav"></nav>
+
+    <div class="back-btn-wrap">
+      <a href="ilanlar.html" class="back-btn-link">← İlanlara Dön</a>
+    </div>
+
+    <div class="ilan-detay-body" id="pageBody">
+      <!-- Skeleton loading -->
+      <div class="ilan-detay-main" id="mainCol">
+        <div class="skel-block" style="height:300px;"></div>
+        <div class="ilan-detay-card">
+          <div class="skel-block" style="height:28px;width:60%;margin-bottom:12px;"></div>
+          <div class="skel-block" style="height:16px;margin-bottom:8px;"></div>
+          <div class="skel-block" style="height:16px;width:80%;margin-bottom:8px;"></div>
+          <div class="skel-block" style="height:16px;width:60%;"></div>
+        </div>
+      </div>
+      <div class="ilan-detay-sidebar" id="sideCol">
+        <div class="ilan-detay-card skel-block" style="height:160px;"></div>
+        <div class="ilan-detay-card skel-block" style="height:120px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const CAT_COLORS = { PvP: '#ff1a3c', 'İçerik': '#b933ff', Developer: '#00d4ff', Builder: '#ffa500', 'Yönetici': '#FFD700' };
+    const CAT_ICONS  = { PvP: '⚔️', 'İçerik': '🎬', Developer: '💻', Builder: '🏗️', 'Yönetici': '👑' };
+
+    let currentUser = null;
+    let currentProfile = null;
+    let ilan = null;
+
+    // ── Canvas Background ──────────────────────────────────────
+    (function() {
+      const canvas = document.getElementById('canvas-bg');
+      const ctx = canvas.getContext('2d');
+      let W, H, beams = [];
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      for (let i = 0; i < 5; i++) {
+        beams.push({ x: Math.random()*W, y: Math.random()*H, angle: Math.random()*Math.PI*2, speed: 0.3+Math.random()*0.5, width: 80+Math.random()*120, alpha: 0.03+Math.random()*0.04 });
+      }
+      (function draw() {
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#050505';
+        ctx.fillRect(0,0,W,H);
+        beams.forEach(b => {
+          ctx.save();
+          ctx.translate(b.x,b.y);
+          ctx.rotate(b.angle);
+          const g = ctx.createLinearGradient(-b.width/2,0,b.width/2,0);
+          g.addColorStop(0,'transparent');
+          g.addColorStop(0.5,`rgba(57,255,20,${b.alpha})`);
+          g.addColorStop(1,'transparent');
+          ctx.fillStyle=g;
+          ctx.fillRect(-b.width/2,-H,b.width,H*2);
+          ctx.restore();
+          b.x+=Math.cos(b.angle)*b.speed;
+          b.y+=Math.sin(b.angle)*b.speed;
+          if(b.x>W+200)b.x=-200;
+          if(b.y>H+200)b.y=-200;
+        });
+        requestAnimationFrame(draw);
+      })();
+    })();
+
+    // ── Helpers ──────────────────────────────────────────────────
+    function showToast(msg, type='success') {
+      const t = document.createElement('div');
+      const clr = {success:'var(--accent)',error:'var(--red)',info:'var(--blue)',gold:'var(--gold)'}[type]||'var(--accent)';
+      t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid ${clr};color:${clr};padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;z-index:9999;animation:fadeInUp 0.3s ease;`;
+      t.textContent=msg;
+      document.body.appendChild(t);
+      setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},2500);
+    }
+
+    function avatarSrc(url, nick) {
+      if (url) return url;
+      return `https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(nick||'?')}`;
+    }
+
+    function formatPrice(ilan) {
+      if (ilan.fiyat_turu === 'free') return 'Ücretsiz';
+      if (ilan.fiyat_turu === 'anlasmali') return 'Anlaşmalı';
+      if (ilan.fiyat && ilan.fiyat !== '0') return ilan.fiyat;
+      return 'Belirtilmemiş';
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+      if (diff < 60) return 'Az önce';
+      if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
+      if (diff < 86400) return Math.floor(diff/3600) + ' sa önce';
+      return Math.floor(diff/86400) + ' gün önce';
+    }
+
+    function badgeCat(cat) {
+      const color = CAT_COLORS[cat] || '#888';
+      const icon  = CAT_ICONS[cat]  || '📌';
+      const span = document.createElement('span');
+      span.className = 'badge-cat';
+      span.style.cssText = `background:${color}22;color:${color};border:1px solid ${color}44;`;
+      span.textContent = `${icon} ${cat}`;
+      return span;
+    }
+
+    function badgePrice(ilan) {
+      const span = document.createElement('span');
+      span.className = 'badge-price';
+      if (ilan.fiyat_turu === 'free') { span.classList.add('free'); span.textContent = '🟢 Ücretsiz'; }
+      else if (ilan.fiyat_turu === 'anlasmali') { span.classList.add('deal'); span.textContent = '🤝 Anlaşmalı'; }
+      else { span.classList.add('paid'); span.textContent = '💰 Ücretli'; }
+      return span;
+    }
+
+    // ── Nav ────────────────────────────────────────────────────
+    function buildNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = '';
+
+      const logoA = document.createElement('a');
+      logoA.href = 'lobbyx.html';
+      const logoImg = document.createElement('img');
+      logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+      logoImg.className = 'nav-logo';
+      logoImg.alt = 'LOBBY.GG';
+      logoA.appendChild(logoImg);
+      nav.appendChild(logoA);
+
+      const links = document.createElement('div');
+      links.className = 'nav-links';
+      [
+        {label:'Ana Sayfa', href:'lobbyx.html'},
+        {label:'İlanlar', href:'ilanlar.html'},
+        {label:'Klanlar', href:'klanlar.html'},
+        {label:'Keşfet', href:'kesfet.html'}
+      ].forEach(l => {
+        const a = document.createElement('a');
+        a.className = 'nav-link' + (l.href==='ilanlar.html'?' active':'');
+        a.href = l.href;
+        a.textContent = l.label;
+        links.appendChild(a);
+      });
+      nav.appendChild(links);
+
+      const right = document.createElement('div');
+      right.className = 'nav-right';
+
+      const bell = document.createElement('a');
+      bell.href = 'bildirimler.html';
+      bell.className = 'nav-bell';
+      bell.title = 'Bildirimler';
+      bell.innerHTML = '🔔';
+      right.appendChild(bell);
+
+      if (currentUser && currentProfile) {
+        const lcoin = document.createElement('div');
+        lcoin.className = 'nav-lcoin';
+        const coinIco = document.createElement('span');
+        coinIco.className = 'nav-lcoin-icon';
+        const coinAmt = document.createElement('span');
+        coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+        lcoin.appendChild(coinIco);
+        lcoin.appendChild(coinAmt);
+        right.appendChild(lcoin);
+
+        const avWrap = document.createElement('a');
+        avWrap.href = 'profil.html';
+        avWrap.className = 'nav-avatar';
+        const avImg = document.createElement('img');
+        avImg.src = avatarSrc(currentProfile.avatar_url, currentProfile.kullanici_adi);
+        avImg.alt = 'Profil';
+        avWrap.appendChild(avImg);
+        right.appendChild(avWrap);
+      } else {
+        const loginBtn = document.createElement('a');
+        loginBtn.href = 'giris.html';
+        loginBtn.className = 'mc-btn mc-green';
+        loginBtn.textContent = 'Giriş Yap';
+        right.appendChild(loginBtn);
+      }
+      nav.appendChild(right);
+    }
+
+    // ── Main Render ────────────────────────────────────────────
+    function renderPage() {
+      const mainCol = document.getElementById('mainCol');
+      const sideCol = document.getElementById('sideCol');
+      mainCol.innerHTML = '';
+      sideCol.innerHTML = '';
+
+      const owner = ilan._owner || {};
+
+      // ── Hero Image ──
+      if (ilan.banner_url || ilan.gorsel_url) {
+        const hero = document.createElement('div');
+        hero.className = 'ilan-detay-hero';
+        const img = document.createElement('img');
+        img.src = ilan.banner_url || ilan.gorsel_url;
+        img.alt = ilan.baslik;
+        hero.appendChild(img);
+        mainCol.appendChild(hero);
+      }
+
+      // ── Main Card ──
+      const mainCard = document.createElement('div');
+      mainCard.className = 'ilan-detay-card fade-in-up';
+
+      const title = document.createElement('div');
+      title.className = 'ilan-detay-title';
+      title.textContent = ilan.baslik || 'İlan';
+      mainCard.appendChild(title);
+
+      const meta = document.createElement('div');
+      meta.className = 'ilan-detay-meta';
+      meta.appendChild(badgeCat(ilan.kategori));
+      meta.appendChild(badgePrice(ilan));
+      const timeSpan = document.createElement('span');
+      timeSpan.style.cssText = 'font-size:11px;color:var(--text-dim);';
+      timeSpan.textContent = '🕐 ' + timeAgo(ilan.created_at);
+      meta.appendChild(timeSpan);
+      if (ilan.one_cikan) {
+        const featBadge = document.createElement('span');
+        featBadge.style.cssText = 'background:rgba(255,215,0,0.12);color:var(--gold);border:1px solid rgba(255,215,0,0.25);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:800;';
+        featBadge.textContent = '⭐ Öne Çıkan';
+        meta.appendChild(featBadge);
+      }
+      mainCard.appendChild(meta);
+
+      const desc = document.createElement('div');
+      desc.className = 'ilan-detay-desc';
+      desc.textContent = ilan.aciklama || 'Açıklama bulunmuyor.';
+      mainCard.appendChild(desc);
+
+      mainCol.appendChild(mainCard);
+
+      // ── Owner Card ──
+      const ownerCard = document.createElement('div');
+      ownerCard.className = 'ilan-detay-card fade-in-up';
+      const ownerLabel = document.createElement('div');
+      ownerLabel.className = 'card-section-label';
+      ownerLabel.textContent = '👤 İlan Sahibi';
+      ownerCard.appendChild(ownerLabel);
+
+      const ownerLink = document.createElement('a');
+      ownerLink.href = `profil.html?id=${ilan.kullanici_id}`;
+      ownerLink.className = 'ilan-owner-card';
+      const ownerPP = document.createElement('img');
+      ownerPP.className = 'ilan-owner-pp';
+      ownerPP.src = avatarSrc(owner.avatar_url, owner.kullanici_adi);
+      ownerPP.alt = owner.kullanici_adi || 'Kullanıcı';
+      const ownerInfo = document.createElement('div');
+      const ownerName = document.createElement('div');
+      ownerName.className = 'ilan-owner-name';
+      ownerName.textContent = owner.kullanici_adi || 'Anonim';
+      const ownerSub = document.createElement('div');
+      ownerSub.className = 'ilan-owner-sub';
+      ownerSub.textContent = owner.kategori ? `${owner.kategori} ${owner.alt_kategori ? '• '+owner.alt_kategori : ''}` : 'LOBBY.GG Üyesi';
+      ownerInfo.appendChild(ownerName);
+      ownerInfo.appendChild(ownerSub);
+      ownerLink.appendChild(ownerPP);
+      ownerLink.appendChild(ownerInfo);
+      ownerCard.appendChild(ownerLink);
+      mainCol.appendChild(ownerCard);
+
+      // ── SIDEBAR ──
+
+      // Price + Contact
+      const priceCard = document.createElement('div');
+      priceCard.className = 'ilan-detay-card fade-in-up';
+
+      const priceBig = document.createElement('div');
+      priceBig.className = 'ilan-price-big';
+      priceBig.textContent = formatPrice(ilan);
+      priceCard.appendChild(priceBig);
+
+      const priceSub = document.createElement('div');
+      priceSub.className = 'ilan-price-sub';
+      priceSub.textContent = 'Fiyat bilgisi';
+      priceCard.appendChild(priceSub);
+
+      const contactBlock = document.createElement('div');
+      contactBlock.className = 'contact-block';
+
+      if (ilan.discord) {
+        const discordBtn = document.createElement('a');
+        discordBtn.href = `https://discord.com/users/${ilan.discord}`;
+        discordBtn.target = '_blank';
+        discordBtn.rel = 'noopener';
+        discordBtn.className = 'mc-btn mc-discord';
+        discordBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;';
+        discordBtn.innerHTML = '💬 Discord ile İletişim';
+        contactBlock.appendChild(discordBtn);
+      }
+
+      if (ilan.email) {
+        const emailBtn = document.createElement('a');
+        emailBtn.href = `mailto:${ilan.email}`;
+        emailBtn.className = 'mc-btn mc-blue';
+        emailBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;';
+        emailBtn.innerHTML = '✉️ E-posta Gönder';
+        contactBlock.appendChild(emailBtn);
+      }
+
+      if (!ilan.discord && !ilan.email) {
+        const noContact = document.createElement('div');
+        noContact.style.cssText = 'font-size:12px;color:var(--text-dim);text-align:center;padding:12px 0;';
+        noContact.textContent = 'İletişim bilgisi paylaşılmamış.';
+        contactBlock.appendChild(noContact);
+      }
+
+      priceCard.appendChild(contactBlock);
+
+      // Share
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'share-btn';
+      shareBtn.innerHTML = '🔗 İlanı Paylaş';
+      shareBtn.style.marginTop = '12px';
+      shareBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(window.location.href).then(() => showToast('Link kopyalandı! 🔗', 'success'));
+      });
+      priceCard.appendChild(shareBtn);
+
+      sideCol.appendChild(priceCard);
+
+      // Similar listings
+      loadSimilar(ilan.kategori, ilan.id).then(similars => {
+        if (!similars || similars.length === 0) return;
+        const simCard = document.createElement('div');
+        simCard.className = 'ilan-detay-card fade-in-up';
+        const simLabel = document.createElement('div');
+        simLabel.className = 'card-section-label';
+        simLabel.textContent = '📌 Benzer İlanlar';
+        simCard.appendChild(simLabel);
+
+        const simList = document.createElement('div');
+        simList.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+        similars.slice(0,4).forEach(s => {
+          const link = document.createElement('a');
+          link.href = `ilan-detay.html?id=${s.id}`;
+          link.className = 'similar-card';
+          const stitle = document.createElement('div');
+          stitle.className = 'similar-card-title';
+          stitle.textContent = s.baslik;
+          const smeta = document.createElement('div');
+          smeta.className = 'similar-card-meta';
+          smeta.appendChild(badgePrice(s));
+          link.appendChild(stitle);
+          link.appendChild(smeta);
+          simList.appendChild(link);
+        });
+
+        simCard.appendChild(simList);
+        sideCol.appendChild(simCard);
+      });
+    }
+
+    async function loadSimilar(category, excludeId) {
+      try {
+        const { data } = await sb.from('ilanlar')
+          .select('id, baslik, fiyat, fiyat_turu, kategori')
+          .eq('kategori', category)
+          .eq('durum', 'onaylandi')
+          .neq('id', excludeId)
+          .limit(4);
+        return data || [];
+      } catch { return []; }
+    }
+
+    function showError(msg) {
+      const mainCol = document.getElementById('mainCol');
+      const sideCol = document.getElementById('sideCol');
+      mainCol.innerHTML = `
+        <div class="ilan-detay-card" style="text-align:center;padding:48px 24px;">
+          <div style="font-size:48px;margin-bottom:16px;">😕</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text-1);margin-bottom:8px;">${msg}</div>
+          <a href="ilanlar.html" class="mc-btn mc-gray" style="display:inline-block;margin-top:16px;text-decoration:none;">← İlanlara Dön</a>
+        </div>
+      `;
+      sideCol.innerHTML = '';
+    }
+
+    // ── Init ────────────────────────────────────────────────────
+    async function init() {
+      // Auth
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        const { data: profile } = await sb.from('kullanicilar')
+          .select('*')
+          .eq('email', session.user.email)
+          .maybeSingle();
+        if (profile) {
+          currentUser = { ...session.user, id: profile.id };
+          currentProfile = profile;
+        }
+      }
+
+      buildNav();
+
+      // Load ilan
+      const params = new URLSearchParams(window.location.search);
+      const ilanId = params.get('id');
+
+      if (!ilanId) {
+        showError('İlan bulunamadı.');
+        return;
+      }
+
+      try {
+        const { data: ilanData, error } = await sb.from('ilanlar')
+          .select('*')
+          .eq('id', ilanId)
+          .single();
+
+        if (error || !ilanData) {
+          showError('Bu ilan bulunamadı veya kaldırılmış.');
+          return;
+        }
+
+        ilan = ilanData;
+
+        // Set page title
+        document.title = `${ilan.baslik} — LOBBY.GG`;
+
+        // Load owner profile
+        if (ilan.kullanici_id) {
+          const { data: ownerData } = await sb.from('kullanicilar')
+            .select('id, kullanici_adi, avatar_url, kategori, alt_kategori, abonelik')
+            .eq('id', ilan.kullanici_id)
+            .maybeSingle();
+          ilan._owner = ownerData || {};
+        } else {
+          ilan._owner = {};
+        }
+
+        renderPage();
+
+      } catch(e) {
+        console.error(e);
+        showError('Yükleme sırasında hata oluştu.');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

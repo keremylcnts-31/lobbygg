@@ -946,7 +946,9 @@ function buildNav() {
   right.className = 'nav-right';
 
   /* Bell */
-  const bell = document.createElement('button');
+  const bell = document.createElement('a');
+  bell.href = 'bildirimler.html';
+  bell.title = 'Bildirimler';
   bell.className = 'nav-bell';
   bell.innerHTML = '🔔';
   const bellBadge = document.createElement('div');
@@ -959,7 +961,7 @@ function buildNav() {
   /* LCoin */
   const lcoin = document.createElement('div');
   lcoin.className = 'nav-lcoin';
-  lcoin.innerHTML = '<span class="nav-lcoin-icon">🪙</span><span id="nav-lcoin-val">—</span>';
+  lcoin.innerHTML = '<span class="nav-lcoin-icon"></span><span id="nav-lcoin-val">—</span>';
   right.appendChild(lcoin);
 
   /* Avatar */

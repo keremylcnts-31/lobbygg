@@ -1193,10 +1193,11 @@ function buildNav() {
 
   if (currentUser && currentProfile) {
     // Bell
-    const bell = document.createElement('div');
+    const bell = document.createElement('a');
     bell.className = 'nav-bell';
-    bell.textContent = '🔔';
-    bell.style.cursor = 'pointer';
+    bell.href = 'bildirimler.html';
+    bell.title = 'Bildirimler';
+    bell.innerHTML = '🔔';
     right.appendChild(bell);
 
     // LCoin
@@ -1204,7 +1205,6 @@ function buildNav() {
     lcoin.className = 'nav-lcoin';
     const coinIcon = document.createElement('span');
     coinIcon.className = 'nav-lcoin-icon';
-    coinIcon.textContent = '🪙';
     const coinAmt = document.createElement('span');
     coinAmt.id = 'nav-lcoin-amount';
     coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
@@ -1775,14 +1775,8 @@ async function submitDrop(textarea, fileInput, imgPreview, previewImg) {
     previewImg.src = '';
     fileInput.value = '';
 
-    // Prepend new drop to feed
-    if (newDrop) {
-      const enriched = { ...newDrop, kullanicilar: currentProfile };
-      const card = buildDropCard(enriched);
-      card.classList.add('new-drop');
-      const feed = document.getElementById('drop-feed');
-      feed.insertBefore(card, feed.firstChild);
-    }
+    // Reload drops to sync feed
+    await loadDrops(false);
 
   } catch (e) {
     console.error(e);
@@ -2071,6 +2065,7 @@ function buildDropCard(drop) {
   commentIcon.className = 'drop-action-icon';
   commentIcon.textContent = '💬';
   const commentCount = document.createElement('span');
+  commentCount.className = 'comment-count';
   commentCount.textContent = drop.yorum_sayisi || 0;
   commentBtn.appendChild(commentIcon);
   commentBtn.appendChild(commentCount);
@@ -2112,6 +2107,7 @@ function buildDropCard(drop) {
   // --- Comments Section ---
   const commentSection = document.createElement('div');
   commentSection.className = 'drop-comments';
+  commentSection.dataset.ownerId = drop.kullanici_id;
   card.appendChild(commentSection);
 
   return card;
@@ -2201,12 +2197,15 @@ async function loadComments(dropId, section) {
       }).select().single();
 
       if (newComment) {
-        const commentEl = buildCommentItem({ ...newComment, kullanicilar: currentProfile });
+        const newCount = (parseInt(section.dataset.commentCount || 0) + 1);
+        section.dataset.commentCount = newCount;
+        const commentEl = buildCommentItem({ ...newComment, kullanicilar: currentProfile }, dropId, section, Number(section.dataset.ownerId));
         section.insertBefore(commentEl, inputRow);
         // Update count
         const countEl = document.querySelector(`[data-drop-id="${dropId}"] .comment-count`);
-        // Update yorum_sayisi
-        await sb.from('droplar').update({ yorum_sayisi: (parseInt(section.dataset.commentCount || 0) + 1) }).eq('id', dropId);
+        if (countEl) countEl.textContent = newCount;
+        // Update yorum_sayisi in DB
+        await sb.from('droplar').update({ yorum_sayisi: newCount }).eq('id', dropId);
       }
     } catch (e) { showToast('Yorum gönderilemedi', 'error'); }
   };
@@ -2284,16 +2283,18 @@ async function loadComments(dropId, section) {
 
         section.innerHTML = '';
         section.appendChild(inputRow);
+        const dropOwnerId = Number(section.dataset.ownerId);
         (allComments || []).forEach(c => {
-          const el = buildCommentItem(c);
+          const el = buildCommentItem(c, dropId, section, dropOwnerId);
           section.insertBefore(el, inputRow);
         });
       });
       section.insertBefore(seeAll, inputRow);
     }
 
+    const dropOwnerId = Number(section.dataset.ownerId);
     comments.reverse().forEach(comment => {
-      const el = buildCommentItem(comment);
+      const el = buildCommentItem(comment, dropId, section, dropOwnerId);
       section.insertBefore(el, inputRow);
     });
 
@@ -2305,18 +2306,27 @@ async function loadComments(dropId, section) {
 // =============================================
 // BUILD COMMENT ITEM
 // =============================================
-function buildCommentItem(comment) {
+function buildCommentItem(comment, dropId, commentsList, dropOwnerId) {
   const user = comment.kullanicilar || {};
   const item = document.createElement('div');
   item.className = 'comment-item';
 
   const av = createAvatar(user.avatar_url, user.kullanici_adi, 28);
+  if (user.id) {
+    av.style.cursor = 'pointer';
+    av.addEventListener('click', () => { window.location.href = `profil.html?id=${user.id}`; });
+  }
+
   const body = document.createElement('div');
   body.className = 'comment-body';
 
   const nick = document.createElement('div');
   nick.className = 'comment-nick';
   nick.textContent = user.kullanici_adi || 'Anonim';
+  if (user.id) {
+    nick.style.cursor = 'pointer';
+    nick.addEventListener('click', () => { window.location.href = `profil.html?id=${user.id}`; });
+  }
 
   const text = document.createElement('div');
   text.className = 'comment-text';
@@ -2325,9 +2335,44 @@ function buildCommentItem(comment) {
   const likeRow = document.createElement('div');
   likeRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:4px;';
 
+  // --- Like Button logic using localStorage and DB update ---
   const likeBtn = document.createElement('button');
   likeBtn.className = 'comment-like-btn';
-  likeBtn.innerHTML = `❤️ ${comment.begeni_sayisi || 0}`;
+
+  const likeKey = `comment_liked_${comment.id}`;
+  const countKey = `comment_like_count_${comment.id}`;
+
+  let isLiked = localStorage.getItem(likeKey) === 'true';
+  let likeCountVal = parseInt(localStorage.getItem(countKey));
+  if (isNaN(likeCountVal)) {
+    likeCountVal = comment.begeni_sayisi || 0;
+    localStorage.setItem(countKey, likeCountVal);
+  }
+
+  if (isLiked) {
+    likeBtn.classList.add('liked');
+  }
+  likeBtn.innerHTML = `❤️ ${likeCountVal}`;
+
+  likeBtn.addEventListener('click', async () => {
+    if (!currentUser) { showToast('Beğenmek için giriş yap!', 'error'); return; }
+    isLiked = !isLiked;
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+      likeCountVal++;
+      localStorage.setItem(likeKey, 'true');
+    } else {
+      likeBtn.classList.remove('liked');
+      likeCountVal = Math.max(0, likeCountVal - 1);
+      localStorage.removeItem(likeKey);
+    }
+    localStorage.setItem(countKey, likeCountVal);
+    likeBtn.innerHTML = `❤️ ${likeCountVal}`;
+
+    try {
+      await sb.from('drop_yorumlar').update({ begeni_sayisi: likeCountVal }).eq('id', comment.id);
+    } catch(e) { console.error(e); }
+  });
 
   const timeEl = document.createElement('span');
   timeEl.style.cssText = 'font-size:10px;color:var(--text-dim);';
@@ -2335,6 +2380,52 @@ function buildCommentItem(comment) {
 
   likeRow.appendChild(likeBtn);
   likeRow.appendChild(timeEl);
+
+  // Reply button (mentioning the user)
+  if (currentUser) {
+    const replyBtn = document.createElement('button');
+    replyBtn.className = 'comment-del-btn'; // same style class for action buttons
+    replyBtn.innerHTML = '💬 Yanıtla';
+    replyBtn.addEventListener('click', () => {
+      const inputEl = commentsList.querySelector('.comment-input');
+      if (inputEl) {
+        inputEl.value = `@${user.kullanici_adi || 'Anonim'} ` + inputEl.value;
+        inputEl.focus();
+      }
+    });
+    likeRow.appendChild(replyBtn);
+  }
+
+  // Delete button (own comments OR drop owner)
+  if (currentUser && (comment.kullanici_id === currentUser.id || dropOwnerId === currentUser.id)) {
+    const delBtn = document.createElement('button');
+    delBtn.className = 'comment-del-btn';
+    delBtn.innerHTML = '🗑️ Sil';
+    delBtn.addEventListener('click', async () => {
+      try {
+        await sb.from('drop_yorumlar').delete().eq('id', comment.id);
+        
+        // Update count on delete
+        const currentCount = parseInt(commentsList.dataset.commentCount || 0);
+        const newCount = Math.max(0, currentCount - 1);
+        commentsList.dataset.commentCount = newCount;
+        
+        // Update comment count element
+        const countEl = document.querySelector(`[data-drop-id="${dropId}"] .comment-count`);
+        if (countEl) countEl.textContent = newCount;
+        
+        // Update DB
+        await sb.from('droplar').update({ yorum_sayisi: newCount }).eq('id', dropId);
+
+        item.style.opacity = '0';
+        item.style.transition = 'opacity 0.3s';
+        setTimeout(() => item.remove(), 300);
+        showToast('Yorum silindi', 'success');
+      } catch(e) { showToast('Silinemedi', 'error'); }
+    });
+    likeRow.appendChild(delBtn);
+  }
+
   body.appendChild(nick);
   body.appendChild(text);
   body.appendChild(likeRow);

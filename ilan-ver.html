@@ -156,22 +156,15 @@
 
     /* BUTTONS */
     .btn-row { display: flex; gap: 12px; margin-top: 32px; }
-    .btn-back { flex: 1; background: #111; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 24px; font-size: 14px; font-weight: 700; color: #aaa; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
-    .btn-back:hover { border-color: #555; color: #fff; }
-    .btn-next { flex: 2; background: #39ff14; border: none; border-radius: 12px; padding: 14px 24px; font-size: 14px; font-weight: 800; color: #050505; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.25s; box-shadow: 0 0 20px rgba(57,255,20,0.25); letter-spacing: 0.5px; }
-    .btn-next:hover { background: #2de010; box-shadow: 0 0 32px rgba(57,255,20,0.4); transform: translateY(-1px); }
-    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-    .btn-publish { flex: 1; background: #39ff14; border: none; border-radius: 12px; padding: 16px 24px; font-size: 16px; font-weight: 900; color: #050505; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.25s; box-shadow: 0 0 24px rgba(57,255,20,0.3); letter-spacing: 0.5px; width: 100%; }
-    .btn-publish:hover { background: #2de010; box-shadow: 0 0 40px rgba(57,255,20,0.5); transform: translateY(-2px); }
-    .btn-publish:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-back { flex: 1; padding: 11px 20px; font-size: 12px; }
+    .btn-next { flex: 2; padding: 11px 20px; font-size: 12px; }
 
     /* LOGIN GATE */
     .login-gate { text-align: center; padding: 80px 24px; }
     .login-gate-icon { font-size: 64px; margin-bottom: 20px; }
     .login-gate-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 12px; }
     .login-gate-text { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.6; }
-    .login-gate-btn { background: #39ff14; color: #050505; border: none; border-radius: 12px; padding: 14px 32px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; box-shadow: 0 0 24px rgba(57,255,20,0.3); }
-    .login-gate-btn:hover { background: #2de010; transform: translateY(-2px); }
+    .login-gate-btn { padding: 12px 24px; font-size: 13px; }
 
     /* CAT BADGE for preview */
     .cat-badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -320,7 +313,9 @@
     const navRight = document.getElementById('navRight');
     navRight.innerHTML = '';
 
-    const bell = document.createElement('div');
+    const bell = document.createElement('a');
+    bell.href = 'bildirimler.html';
+    bell.title = 'Bildirimler';
     bell.className = 'nav-bell';
     bell.textContent = '🔔';
     const dot = document.createElement('span');
@@ -332,7 +327,7 @@
       const lcoin = document.createElement('div');
       lcoin.className = 'nav-lcoin';
       const coinSpan = document.createElement('span');
-      coinSpan.textContent = '🪙';
+      coinSpan.className = 'nav-lcoin-icon';
       lcoin.appendChild(coinSpan);
       const coinTxt = document.createTextNode(userProfile ? (userProfile.lcoin || 0).toLocaleString('tr-TR') : '—');
       lcoin.appendChild(coinTxt);
@@ -476,7 +471,7 @@
     txt.className = 'login-gate-text';
     txt.textContent = 'İlan vermek için LOBBY.GG hesabına giriş yapman gerekiyor. Ücretsiz hesap oluşturabilirsin!';
     const btn = document.createElement('button');
-    btn.className = 'login-gate-btn';
+    btn.className = 'login-gate-btn mc-green';
     btn.textContent = '🚀 Giriş Yap / Kayıt Ol';
     btn.addEventListener('click', () => { window.location.href = 'giris.html?next=ilan-ver.html'; });
     gate.appendChild(ico);

@@ -188,7 +188,7 @@
     <div class="hero-eyebrow">Topluluk İlanları</div>
     <h1 class="hero-title">İlan <span>Panosu</span></h1>
     <p class="hero-subtitle">Minecraft topluluğunda takım ara, iş bul, yeteneklerini sergile.</p>
-    <a href="ilan-ver.html" class="hero-btn">
+    <a href="ilan-ver.html" class="mc-btn mc-green mc-lg" style="box-shadow: 0 0 24px rgba(57, 255, 20, 0.35) !important;">
       <span>✨</span> İlan Ver
     </a>
     <div class="hero-stats">
@@ -372,7 +372,9 @@
     const navRight = document.getElementById('navRight');
     navRight.innerHTML = '';
 
-    const bell = document.createElement('div');
+    const bell = document.createElement('a');
+    bell.href = 'bildirimler.html';
+    bell.title = 'Bildirimler';
     bell.className = 'nav-bell';
     bell.textContent = '🔔';
     const dot = document.createElement('span');
@@ -384,7 +386,7 @@
       const lcoin = document.createElement('div');
       lcoin.className = 'nav-lcoin';
       const coinSpan = document.createElement('span');
-      coinSpan.textContent = '🪙';
+      coinSpan.className = 'nav-lcoin-icon';
       lcoin.appendChild(coinSpan);
       const coinText = document.createTextNode(kuProfile ? (kuProfile.lcoin || 0).toLocaleString('tr-TR') : '—');
       lcoin.appendChild(coinText);
@@ -626,8 +628,9 @@
     footer.appendChild(contactWrap);
     card.appendChild(footer);
 
-    card.addEventListener('click', () => {
-      // Future: open detail modal
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-contact-btn')) return;
+      window.location.href = `ilan-detay.html?id=${ilan.id}`;
     });
 
     setTimeout(() => card.classList.add('visible'), 50);
