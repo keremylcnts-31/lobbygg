@@ -3130,8 +3130,8 @@ async function renderBasvurular() {
     btnDet.textContent = '👁 İncele';
     btnDet.onclick = () => {
       openModal(box => {
-        box.innerHTML = \`<div class="modal-title">Başvuru İncele</div>
-        <div style="font-size:12px;color:var(--text);margin-bottom:12px;"><strong>Kullanıcı:</strong> \${(b.kullanicilar && b.kullanicilar.kullanici_adi) ? b.kullanicilar.kullanici_adi : b.kullanici_id}<br><strong>Departman:</strong> \${b.departman}<br><strong>Yaş:</strong> \${b.yas || '-'}<br><strong>Neden:</strong> \${b.neden || '-'}<br><strong>Tecrübe:</strong> \${b.tecrube || '-'}</div>\`;
+        box.innerHTML = `<div class="modal-title">Başvuru İncele</div>
+        <div style="font-size:12px;color:var(--text);margin-bottom:12px;"><strong>Kullanıcı:</strong> ${(b.kullanicilar && b.kullanicilar.kullanici_adi) ? b.kullanicilar.kullanici_adi : b.kullanici_id}<br><strong>Departman:</strong> ${b.departman}<br><strong>Yaş:</strong> ${b.yas || '-'}<br><strong>Neden:</strong> ${b.neden || '-'}<br><strong>Tecrübe:</strong> ${b.tecrube || '-'}</div>`;
         const mAct = document.createElement('div'); mAct.className = 'modal-actions'; mAct.style.marginTop = '20px';
         const cBtn = document.createElement('button'); cBtn.className = 'btn-full-cancel'; cBtn.textContent = 'Kapat'; cBtn.onclick = closeModal;
         mAct.appendChild(cBtn); box.appendChild(mAct);
@@ -3185,7 +3185,7 @@ async function renderSunucular() {
   addBtn.textContent = '+ Yeni Sunucu Ekle';
   addBtn.onclick = () => {
     openModal(box => {
-      box.innerHTML = \`
+      box.innerHTML = `
         <div class="modal-title">Yeni Sunucu</div>
         <div class="modal-field"><label class="modal-label">Sunucu Adı</label><input type="text" id="s_ad" class="modal-input"></div>
         <div class="modal-field"><label class="modal-label">IP / Adres</label><input type="text" id="s_ip" class="modal-input"></div>
@@ -3193,7 +3193,7 @@ async function renderSunucular() {
           <button class="btn-full-cancel" onclick="closeModal()">İptal</button>
           <button class="btn-full btn-full-green" id="s_save">Kaydet</button>
         </div>
-      \`;
+      `;
       document.getElementById('s_save').onclick = async () => {
         const ad = document.getElementById('s_ad').value;
         const ip = document.getElementById('s_ip').value;

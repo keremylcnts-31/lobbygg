@@ -1,766 +1,490 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Günlük Çark - LOBBY.GG</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LOBBY.GG - Şans Çarkı</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        :root {
-            --bg-dark: #0f1016;
-            --bg-panel: #1a1c23;
-            --primary: #ffd700;
-            --primary-hover: #ffea00;
-            --text-light: #e0e0e0;
-            --text-muted: #8b8d99;
-            --gold-gradient: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-        }
+  <style>
+    .cark-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 40px) 20px 80px;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      animation: fade-in-up 0.5s ease-out;
+    }
+    
+    @media (max-width: 800px) {
+      .cark-page { flex-direction: column; }
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
+    /* Left Side: The Wheel */
+    .cark-container {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 100px rgba(255,215,0,0.05);
+    }
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
+    .cark-container::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
 
-        /* Navbar */
-        header {
-            background-color: rgba(26, 28, 35, 0.95);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    .cark-title {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--gold);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.5);
+      margin-bottom: 5px;
+      z-index: 1;
+    }
 
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: var(--gold-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-            letter-spacing: 2px;
-        }
+    .cark-subtitle {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: 40px;
+      z-index: 1;
+    }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 600;
-        }
+    /* The Wheel */
+    .wheel-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      z-index: 2;
+      filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7));
+    }
 
-        .lcoin-balance {
-            background: rgba(255, 215, 0, 0.1);
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    .wheel-pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 50px;
+      background: var(--red);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      z-index: 10;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    }
 
-        /* Main Container */
-        .container {
-            display: flex;
-            flex: 1;
-            padding: 40px 5%;
-            gap: 40px;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid #222;
+      position: relative;
+      overflow: hidden;
+      transition: transform 5s cubic-bezier(0.1, 1.2, 0.2, 1); /* Spining easing */
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 0 4px #b8860b;
+      background: #111;
+    }
 
-        @media (max-width: 992px) {
-            .container {
-                flex-direction: column;
-            }
-        }
+    .wheel-segment {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 50%;
+      height: 50%;
+      transform-origin: 0% 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      border-left: 2px solid rgba(0,0,0,0.5);
+    }
+    
+    .segment-content {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      transform: rotate(22.5deg); /* Half of segment angle (45) */
+      font-weight: 900;
+      font-size: 14px;
+      color: #000;
+      white-space: nowrap;
+      text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+    }
 
-        /* Left Side: Wheel */
-        .wheel-section {
-            flex: 2;
-            background: var(--bg-panel);
-            border-radius: 20px;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(255, 215, 0, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-        }
+    /* Segment Colors */
+    .seg-0 { background: #FFD700; transform: rotate(0deg) skewY(-45deg); }
+    .seg-1 { background: #DAA520; transform: rotate(45deg) skewY(-45deg); }
+    .seg-2 { background: #FFD700; transform: rotate(90deg) skewY(-45deg); }
+    .seg-3 { background: #DAA520; transform: rotate(135deg) skewY(-45deg); }
+    .seg-4 { background: #FFD700; transform: rotate(180deg) skewY(-45deg); }
+    .seg-5 { background: #DAA520; transform: rotate(225deg) skewY(-45deg); }
+    .seg-6 { background: #FFD700; transform: rotate(270deg) skewY(-45deg); }
+    .seg-7 { background: #DAA520; transform: rotate(315deg) skewY(-45deg); }
 
-        .wheel-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 60%);
-            z-index: 0;
-            pointer-events: none;
-        }
+    .wheel-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: #222;
+      border: 4px solid var(--gold);
+      border-radius: 50%;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
 
-        .wheel-header {
-            text-align: center;
-            margin-bottom: 30px;
-            z-index: 1;
-        }
+    .spin-actions {
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 320px;
+      z-index: 2;
+    }
 
-        .wheel-title {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-        }
+    .hak-text {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    
+    .hak-text span {
+      color: var(--gold);
+      font-size: 18px;
+    }
 
-        .wheel-subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
+    /* Right Side: Leaderboard */
+    .leaderboard-container {
+      width: 350px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
 
-        .wheel-container {
-            position: relative;
-            width: 400px;
-            height: 400px;
-            margin: 20px 0 40px;
-            z-index: 1;
-        }
+    @media (max-width: 800px) {
+      .leaderboard-container { width: 100%; }
+    }
 
-        @media (max-width: 500px) {
-            .wheel-container {
-                width: 300px;
-                height: 300px;
-            }
-        }
+    .lb-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-thin);
+    }
+    .lb-header h2 {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-1);
+      margin: 0;
+    }
+    
+    .lb-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-        .wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 8px solid #2a2d38;
-            box-shadow: 0 0 20px rgba(255,215,0,0.2), inset 0 0 20px rgba(0,0,0,0.8);
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0.15, 1);
-            position: relative;
-            overflow: hidden;
-            background: #222;
-        }
+    .lb-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card2);
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-thin);
+      transition: all 0.2s;
+    }
+    .lb-item:hover {
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.03);
+    }
 
-        .pointer {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid var(--primary);
-            z-index: 10;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
-        }
+    .lb-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
 
-        .pointer::after {
-            content: '';
-            position: absolute;
-            top: -40px;
-            left: -15px;
-            width: 30px;
-            height: 10px;
-            background: #fff;
-            border-radius: 5px;
-            z-index: 11;
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            z-index: 1;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .spins-left {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .spins-count {
-            color: var(--primary);
-            font-size: 1.4rem;
-        }
-
-        button {
-            width: 100%;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-spin {
-            background: var(--gold-gradient);
-            color: #000;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-        }
-
-        .btn-spin:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
-        }
-
-        .btn-spin:disabled {
-            background: #444;
-            color: #888;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-buy {
-            background: rgba(255, 215, 0, 0.1);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .btn-buy:hover {
-            background: rgba(255, 215, 0, 0.2);
-        }
-
-        /* Right Side: Leaderboard */
-        .leaderboard-section {
-            flex: 1;
-            background: var(--bg-panel);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255, 215, 0, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .leaderboard-title {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            padding-bottom: 15px;
-        }
-
-        .leaderboard-title i {
-            font-size: 1.8rem;
-        }
-
-        .winner-list {
-            list-style: none;
-            overflow-y: auto;
-            flex: 1;
-            max-height: 500px;
-            padding-right: 5px;
-        }
-
-        .winner-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .winner-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 215, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        .winner-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: background 0.3s;
-            border-radius: 8px;
-            margin-bottom: 5px;
-        }
-
-        .winner-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .winner-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: #333;
-            margin-right: 15px;
-            border: 2px solid rgba(255, 215, 0, 0.5);
-            object-fit: cover;
-        }
-
-        .winner-details {
-            flex: 1;
-        }
-
-        .winner-name {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .winner-prize {
-            color: var(--primary);
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .winner-time {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
-        /* Modal / Result overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .modal-content {
-            background: var(--bg-panel);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
-            transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-
-        .modal-title {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .modal-prize {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 25px;
-            color: #fff;
-        }
-
-        .modal-close {
-            background: var(--gold-gradient);
-            color: #000;
-            padding: 10px 30px;
-            border: none;
-            border-radius: 25px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        
-        /* Confetti Canvas */
-        #confetti {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 999;
-        }
-
-    </style>
+    .lb-info {
+      flex: 1;
+    }
+    .lb-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 2px;
+    }
+    .lb-reward {
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .lb-time {
+      font-size: 10px;
+      color: var(--text-3);
+    }
+  </style>
 </head>
 <body>
+  <canvas id="canvas-bg"></canvas>
+  
+  <div class="page-wrapper">
+    <nav class="nav" id="nav"></nav>
 
-    <header>
-        <a href="#" class="logo">LOBBY.GG</a>
-        <div class="user-info">
-            <div class="lcoin-balance">
-                <span id="user-lcoin">1250</span> LCoin
-            </div>
-            <span>Oyuncu123</span>
-        </div>
-    </header>
+    <div class="cark-page">
+      
+      <!-- WHEEL SECTION -->
+      <div class="cark-container">
+        <div class="cark-title">Şans Çarkı</div>
+        <div class="cark-subtitle">Efsanevi ödüller seni bekliyor!</div>
 
-    <canvas id="confetti"></canvas>
-
-    <div class="container">
-        <!-- Wheel Section -->
-        <div class="wheel-section">
-            <div class="wheel-header">
-                <h1 class="wheel-title">Günlük Çark</h1>
-                <p class="wheel-subtitle">Şansını dene, efsanevi ödülleri kazan!</p>
-            </div>
-
-            <div class="wheel-container">
-                <div class="pointer"></div>
-                <canvas id="wheelCanvas" class="wheel" width="400" height="400"></canvas>
-            </div>
-
-            <div class="controls">
-                <div class="spins-left">Kalan Hak: <span class="spins-count" id="spinCount">1</span></div>
-                <button id="spinBtn" class="btn-spin">ÇEVİR</button>
-                <button id="buyBtn" class="btn-buy">50 LCOIN İLE 5 HAK AL</button>
-            </div>
+        <div class="wheel-wrapper">
+          <div class="wheel-pointer"></div>
+          <div class="wheel" id="wheel">
+            <!-- 8 Segments (45 deg each) -->
+            <div class="wheel-segment seg-0"><div class="segment-content">10 LCoin</div></div>
+            <div class="wheel-segment seg-1"><div class="segment-content">Öne Çıkarma</div></div>
+            <div class="wheel-segment seg-2"><div class="segment-content">20 LCoin</div></div>
+            <div class="wheel-segment seg-3"><div class="segment-content">Öne Çıkarma</div></div>
+            <div class="wheel-segment seg-4"><div class="segment-content">50 LCoin</div></div>
+            <div class="wheel-segment seg-5"><div class="segment-content">Öne Çıkarma</div></div>
+            <div class="wheel-segment seg-6"><div class="segment-content">100 LCoin</div></div>
+            <div class="wheel-segment seg-7"><div class="segment-content">Öne Çıkarma</div></div>
+          </div>
+          <div class="wheel-center">🎡</div>
         </div>
 
-        <!-- Leaderboard Section -->
-        <div class="leaderboard-section">
-            <h2 class="leaderboard-title">🏆 En Çok Kazananlar</h2>
-            <ul class="winner-list" id="winnerList">
-                <!-- Populated by JS -->
-            </ul>
+        <div class="spin-actions">
+          <div class="hak-text">Kalan Çevirme Hakkı: <span id="spinCount">1</span></div>
+          <button class="btn mc-gold mc-xl" id="btnSpin" style="width: 100%;">ÇARK'I ÇEVİR</button>
+          <button class="btn mc-gray" id="btnBuySpins" style="width: 100%;">
+            <span class="lcoin-icon" style="width:14px;height:14px;font-size:10px;">L</span> 50 Karşılığında +5 Hak Al
+          </button>
         </div>
+      </div>
+
+      <!-- LEADERBOARD SECTION -->
+      <div class="leaderboard-container">
+        <div class="lb-header">
+          <span style="font-size:20px;">🏆</span>
+          <h2>En Çok Kazananlar</h2>
+        </div>
+        <div class="lb-list" id="lbList">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
     </div>
+  </div>
 
-    <!-- Win Modal -->
-    <div class="modal-overlay" id="winModal">
-        <div class="modal-content">
-            <div class="modal-icon">🎉</div>
-            <h2 class="modal-title">Tebrikler!</h2>
-            <div class="modal-prize" id="winPrizeText">250 LCoin</div>
-            <button class="modal-close" onclick="closeModal()">Harika!</button>
+  <script>
+    const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentProfile = null;
+    let spinRights = 1;
+    let isSpinning = false;
+    let currentRotation = 0;
+
+    // The segments
+    // Angle ranges from top center (pointer). Segment 0 is at 0-45 deg.
+    const segments = [
+      { name: "10 LCoin", type: "lcoin", val: 10 },
+      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
+      { name: "20 LCoin", type: "lcoin", val: 20 },
+      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
+      { name: "50 LCoin", type: "lcoin", val: 50 },
+      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
+      { name: "100 LCoin", type: "lcoin", val: 100 },
+      { name: "2 Gün Öne Çıkarma", type: "item", val: 2 }
+    ];
+
+    async function buildNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = `
+        <a href="lobbyx.html"><img src="https://i.hizliresim.com/6c4wdx4.png" alt="LOBBY.GG Logo" class="nav-logo"></a>
+        <div class="nav-links">
+          <a href="lobbyx.html" class="nav-link">🏠 Ana Sayfa</a>
+          <a href="ilanlar.html" class="nav-link">📜 İlanlar</a>
+          <a href="kesfet.html" class="nav-link">🌍 Keşfet</a>
+          <a href="market.html" class="nav-link">💎 Mağaza</a>
         </div>
-    </div>
+        <div class="nav-right" id="navRight">
+          <a href="giris.html" class="btn mc-green mc-sm">Giriş Yap</a>
+        </div>
+      `;
 
-    <script>
-        const prizes = [
-            { text: "10 LCoin", color: "#1e212b", textColor: "#ffd700", value: "10 LCoin" },
-            { text: "20 LCoin", color: "#2a2d38", textColor: "#fff", value: "20 LCoin" },
-            { text: "50 LCoin", color: "#1e212b", textColor: "#ffd700", value: "50 LCoin" },
-            { text: "100 LCoin", color: "#2a2d38", textColor: "#fff", value: "100 LCoin" },
-            { text: "250 LCoin", color: "#ffd700", textColor: "#000", value: "250 LCoin", isSpecial: true },
-            { text: "1 Gün Öne Çıkarma", color: "#1e212b", textColor: "#ffd700", value: "1 Günlük Öne Çıkarma" },
-            { text: "10 LCoin", color: "#2a2d38", textColor: "#fff", value: "10 LCoin" },
-            { text: "2 Gün Öne Çıkarma", color: "#ffd700", textColor: "#000", value: "2 Günlük Öne Çıkarma", isSpecial: true }
-        ];
-
-        const canvas = document.getElementById("wheelCanvas");
-        const ctx = canvas.getContext("2d");
-        const spinBtn = document.getElementById("spinBtn");
-        const buyBtn = document.getElementById("buyBtn");
-        const spinCountEl = document.getElementById("spinCount");
-        const lcoinEl = document.getElementById("user-lcoin");
-        const winModal = document.getElementById("winModal");
-        const winPrizeText = document.getElementById("winPrizeText");
-        const winnerList = document.getElementById("winnerList");
-
-        let spinCount = 1;
-        let lcoin = 1250;
-        let currentRotation = 0;
-        let isSpinning = false;
-        
-        const numSlices = prizes.length;
-        const sliceAngle = (2 * Math.PI) / numSlices;
-
-        function drawWheel() {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = canvas.width / 2;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < numSlices; i++) {
-                const startAngle = i * sliceAngle - sliceAngle / 2 - Math.PI / 2;
-                const endAngle = startAngle + sliceAngle;
-
-                // Draw Slice
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = prizes[i].color;
-                ctx.fill();
-                
-                // Border
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255,215,0,0.2)";
-                ctx.stroke();
-
-                // Draw Text
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + sliceAngle / 2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = prizes[i].textColor;
-                ctx.font = prizes[i].isSpecial ? "bold 16px Montserrat" : "600 16px Montserrat";
-                
-                // Shadow for text
-                if (prizes[i].isSpecial) {
-                    ctx.shadowColor = "rgba(0,0,0,0.5)";
-                    ctx.shadowBlur = 4;
-                }
-
-                ctx.fillText(prizes[i].text, radius - 30, 6);
-                ctx.restore();
-            }
-            
-            // Draw center circle
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-            ctx.fillStyle = "#1a1c23";
-            ctx.fill();
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = "#ffd700";
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
-            ctx.fillStyle = "#ffd700";
-            ctx.fill();
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        const { data: profile } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
+        if (profile) {
+          currentProfile = profile;
+          document.getElementById('navRight').innerHTML = `
+            <a href="profil.html" class="nav-lcoin"><span class="lcoin-icon">L</span> ${profile.lcoin || 0}</a>
+            <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
+              <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
+            </a>
+          `;
         }
+      }
+    }
 
-        drawWheel();
-
-        // Spin Logic
-        spinBtn.addEventListener("click", () => {
-            if (isSpinning || spinCount <= 0) return;
-            
-            isSpinning = true;
-            spinCount--;
-            updateUI();
-            
-            // Random prize
-            const prizeIndex = Math.floor(Math.random() * numSlices);
-            
-            // Calculate rotation
-            // We want the chosen slice to be at the top (-90 degrees / 270 degrees)
-            // Each slice is 360/numSlices degrees
-            const sliceDeg = 360 / numSlices;
-            // Target angle to land the center of the chosen slice at the top
-            const targetRotation = (360 - (prizeIndex * sliceDeg)) + (360 * 5); // 5 extra spins
-            
-            // Add a small random offset within the slice so it doesn't always land dead center
-            const randomOffset = (Math.random() * (sliceDeg - 4)) - ((sliceDeg - 4) / 2);
-            
-            currentRotation += (targetRotation - (currentRotation % 360)) + randomOffset;
-            
-            canvas.style.transform = `rotate(${currentRotation}deg)`;
-            
-            setTimeout(() => {
-                isSpinning = false;
-                showWin(prizes[prizeIndex].value);
-            }, 5000); // matches CSS transition
-        });
-
-        // Buy Spins
-        buyBtn.addEventListener("click", () => {
-            if (lcoin >= 50) {
-                lcoin -= 50;
-                spinCount += 5;
-                updateUI();
-                
-                // Small animation on button
-                buyBtn.style.transform = "scale(0.95)";
-                setTimeout(() => buyBtn.style.transform = "scale(1)", 150);
-            } else {
-                alert("Yeterli LCoin bulunmuyor.");
-            }
-        });
-
-        function updateUI() {
-            spinCountEl.innerText = spinCount;
-            lcoinEl.innerText = lcoin;
-            
-            if (spinCount <= 0) {
-                spinBtn.disabled = true;
-            } else {
-                spinBtn.disabled = false;
-            }
+    function initCanvas() {
+      const cvs = document.getElementById('canvas-bg');
+      const ctx = cvs.getContext('2d');
+      let w, h;
+      let beams = [];
+      function resize() {
+        w = cvs.width = window.innerWidth;
+        h = cvs.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+      
+      class Beam {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * w;
+          this.y = h + Math.random() * 100;
+          this.len = Math.random() * 200 + 100;
+          this.speed = Math.random() * 2 + 0.5;
+          this.width = Math.random() * 3 + 1;
+          this.opacity = Math.random() * 0.5 + 0.1;
         }
-
-        function showWin(prize) {
-            winPrizeText.innerText = prize;
-            winModal.classList.add("active");
-            fireConfetti();
-            addWinnerToLeaderboard("Sen", prize, "Şimdi");
-            
-            // Update balance if LCoin won
-            if(prize.includes("LCoin")) {
-                const amount = parseInt(prize);
-                if(!isNaN(amount)) {
-                    lcoin += amount;
-                    updateUI();
-                }
-            }
+        update() {
+          this.y -= this.speed;
+          if (this.y + this.len < 0) this.reset();
         }
-
-        function closeModal() {
-            winModal.classList.remove("active");
-            stopConfetti();
+        draw() {
+          const grad = ctx.createLinearGradient(0, this.y, 0, this.y + this.len);
+          grad.addColorStop(0, `rgba(57,255,20,0)`);
+          grad.addColorStop(0.5, `rgba(57,255,20,${this.opacity})`);
+          grad.addColorStop(1, `rgba(57,255,20,0)`);
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(this.x, this.y + this.len);
+          ctx.lineWidth = this.width;
+          ctx.strokeStyle = grad;
+          ctx.stroke();
         }
+      }
+      for (let i=0; i<15; i++) beams.push(new Beam());
+      function animate() {
+        ctx.clearRect(0,0,w,h);
+        beams.forEach(b => { b.update(); b.draw(); });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
 
-        // Leaderboard population
-        const mockWinners = [
-            { name: "ProGamer_99", prize: "250 LCoin", time: "2 dk önce" },
-            { name: "NoobMaster", prize: "2 Günlük Öne Çıkarma", time: "15 dk önce" },
-            { name: "xX_Slayer_Xx", prize: "100 LCoin", time: "1 saat önce" },
-            { name: "ElitOyuncu", prize: "50 LCoin", time: "2 saat önce" },
-            { name: "CemK", prize: "1 Günlük Öne Çıkarma", time: "3 saat önce" },
-            { name: "Kral_Tr", prize: "10 LCoin", time: "4 saat önce" },
-            { name: "Viper23", prize: "250 LCoin", time: "5 saat önce" },
-            { name: "GhostRider", prize: "20 LCoin", time: "6 saat önce" },
-        ];
+    function generateLeaderboard() {
+      // Mock leaderboard for visual presentation
+      const list = document.getElementById('lbList');
+      const winners = [
+        { name: 'ProGamer_99', win: '100 LCoin', time: '10 dk önce', color: 'gold' },
+        { name: 'CraftMaster', win: '2 Gün Öne Çıkarma', time: '1 saat önce', color: 'text-1' },
+        { name: 'SlayerX', win: '50 LCoin', time: '2 saat önce', color: 'gold' },
+        { name: 'Yusuf_TR', win: '1 Gün Öne Çıkarma', time: '5 saat önce', color: 'text-1' },
+        { name: 'Ayse_Girl', win: '20 LCoin', time: '8 saat önce', color: 'gold' }
+      ];
 
-        function renderLeaderboard() {
-            winnerList.innerHTML = "";
-            mockWinners.forEach(w => {
-                addWinnerToLeaderboard(w.name, w.prize, w.time, false);
-            });
-        }
+      list.innerHTML = winners.map(w => `
+        <div class="lb-item">
+          <img src="https://api.dicebear.com/7.x/minecraft/svg?seed=${w.name}" class="lb-avatar">
+          <div class="lb-info">
+            <div class="lb-name">${w.name}</div>
+            <div class="lb-reward" style="color:var(--${w.color})">${w.win}</div>
+          </div>
+          <div class="lb-time">${w.time}</div>
+        </div>
+      `).join('');
+    }
 
-        function addWinnerToLeaderboard(name, prize, time, prepend = true) {
-            const li = document.createElement("li");
-            li.className = "winner-item";
-            // Random placeholder avatar based on name length
-            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
-            
-            li.innerHTML = `
-                <img src="${avatarUrl}" alt="Avatar" class="winner-avatar">
-                <div class="winner-details">
-                    <div class="winner-name">${name}</div>
-                    <div class="winner-prize">${prize}</div>
-                </div>
-                <div class="winner-time">${time}</div>
-            `;
-            
-            if (prepend) {
-                winnerList.prepend(li);
-                // Highlight new entry
-                li.style.background = "rgba(255, 215, 0, 0.2)";
-                setTimeout(() => {
-                    li.style.background = "";
-                }, 2000);
-            } else {
-                winnerList.appendChild(li);
-            }
-        }
+    document.getElementById('btnBuySpins').addEventListener('click', () => {
+      if (!currentProfile) return alert('Lütfen giriş yapın!');
+      if (currentProfile.lcoin < 50) return alert('Yetersiz LCoin!');
+      // In real scenario, subtract from DB.
+      spinRights += 5;
+      document.getElementById('spinCount').textContent = spinRights;
+      alert('5 Hak satın alındı!');
+    });
 
-        renderLeaderboard();
-        updateUI();
+    document.getElementById('btnSpin').addEventListener('click', () => {
+      if (!currentProfile) return alert('Lütfen giriş yapın!');
+      if (spinRights <= 0) return alert('Çevirme hakkınız kalmadı! Satın alabilirsiniz.');
+      if (isSpinning) return;
 
-        // Confetti implementation (Simple version)
-        const confettiCanvas = document.getElementById('confetti');
-        const cCtx = confettiCanvas.getContext('2d');
-        let confettiParticles = [];
-        let confettiAnimationId;
+      isSpinning = true;
+      spinRights--;
+      document.getElementById('spinCount').textContent = spinRights;
 
-        function resizeConfetti() {
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeConfetti);
-        resizeConfetti();
+      // Random segment (0 to 7)
+      const targetSegment = Math.floor(Math.random() * 8);
+      // Segment 0 is at 0-45deg. To land pointer in middle of segment 0, we need to rotate 
+      // wheel such that segment 0 is at top. Actually segment 0 is top-right (0-45deg from top center)
+      // To bring segment center to top (-22.5 deg relative to its own start).
+      
+      const spins = 5; // number of full rotations
+      const baseRotation = spins * 360;
+      // segment angle size
+      const segAngle = 360 / 8;
+      // offset to put pointer in middle of segment
+      const offset = (targetSegment * segAngle) + (segAngle / 2);
+      
+      // We want to rotate backwards (or forwards) so that `offset` aligns with top (which is 0deg).
+      // If wheel rotates clockwise, segment N moves right. To bring it to top, we subtract offset.
+      const totalRotation = currentRotation + baseRotation + (360 - offset) - (currentRotation % 360);
+      
+      const wheel = document.getElementById('wheel');
+      wheel.style.transform = `rotate(${totalRotation}deg)`;
 
-        function fireConfetti() {
-            confettiParticles = [];
-            const colors = ['#ffd700', '#ffea00', '#ffffff', '#bf953f'];
-            
-            for(let i=0; i<150; i++) {
-                confettiParticles.push({
-                    x: Math.random() * confettiCanvas.width,
-                    y: Math.random() * confettiCanvas.height - confettiCanvas.height,
-                    w: Math.random() * 10 + 5,
-                    h: Math.random() * 10 + 5,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    speedY: Math.random() * 3 + 2,
-                    speedX: (Math.random() - 0.5) * 2,
-                    rot: Math.random() * 360,
-                    rotSpeed: (Math.random() - 0.5) * 10
-                });
-            }
-            
-            animateConfetti();
-        }
+      setTimeout(() => {
+        isSpinning = false;
+        currentRotation = totalRotation;
+        const reward = segments[targetSegment];
+        alert(`Tebrikler! ${reward.name} kazandınız! Ödülünüz "Hediyelerim" sekmesine eklendi.`);
+      }, 5000);
+    });
 
-        function animateConfetti() {
-            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            
-            let active = false;
-            confettiParticles.forEach(p => {
-                p.y += p.speedY;
-                p.x += p.speedX;
-                p.rot += p.rotSpeed;
-                
-                if (p.y < confettiCanvas.height) {
-                    active = true;
-                }
-                
-                cCtx.save();
-                cCtx.translate(p.x, p.y);
-                cCtx.rotate(p.rot * Math.PI / 180);
-                cCtx.fillStyle = p.color;
-                cCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-                cCtx.restore();
-            });
-            
-            if(active) {
-                confettiAnimationId = requestAnimationFrame(animateConfetti);
-            }
-        }
-
-        function stopConfetti() {
-            cancelAnimationFrame(confettiAnimationId);
-            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            confettiParticles = [];
-        }
-
-    </script>
+    buildNav();
+    initCanvas();
+    generateLeaderboard();
+  </script>
 </body>
 </html>
