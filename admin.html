@@ -1004,6 +1004,7 @@ function buildNav(user) {
 
   const logoA = document.createElement('a');
   logoA.href = 'lobbyx.html';
+  logoA.className = 'nav-logo';
   const logoImg = document.createElement('img');
   logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
   logoImg.alt = 'LOBBY.GG';
@@ -1074,13 +1075,13 @@ function buildSidebar() {
   const role = currentUser.abonelik;
   let allowedSections = [];
   if (role === 'yonetici' || role === 'kurucu') {
-    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'ayarlar'];
+    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'ayarlar', 'kilavuz'];
   } else if (role === 'admin') {
-    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek'];
+    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'kilavuz'];
   } else if (role === 'moderator') {
-    allowedSections = ['ilanlar'];
+    allowedSections = ['ilanlar', 'kilavuz'];
   } else if (role === 'rehber') {
-    allowedSections = ['destek'];
+    allowedSections = ['destek', 'kilavuz'];
   }
 
   const allSections = [
@@ -1090,7 +1091,8 @@ function buildSidebar() {
     { id: 'klanlar',   icon: '🛡️', label: 'Klanlar' },
     { id: 'stats',     icon: '📈', label: 'İstatistikler' },
     { id: 'destek',    icon: '📞', label: 'Destek Talepleri' },
-    { id: 'ayarlar',   icon: '⚙️', label: 'Sistem Ayarları' }
+    { id: 'ayarlar',   icon: '⚙️', label: 'Sistem Ayarları' },
+    { id: 'kilavuz',   icon: '📚', label: 'Yetkili Kılavuzu' }
   ];
 
   const sectionsToRender = allSections.filter(sec => allowedSections.includes(sec.id));
@@ -1549,7 +1551,14 @@ async function renderUsers() {
         banBtn.textContent = u.abonelik === 'banned' ? '🔓 Kaldır' : '🚫 Ban';
         banBtn.addEventListener('click', () => banUser(u, banBtn, loadUsers));
 
+        // LCoin / Bakiye Aktar
+        const lcoinBtn = document.createElement('button');
+        lcoinBtn.className = 'btn-s btn-s-green';
+        lcoinBtn.textContent = '🪙 Bakiye';
+        lcoinBtn.addEventListener('click', () => openLcoinModal(u, loadUsers));
+
         actGrp.appendChild(rozetBtn);
+        actGrp.appendChild(lcoinBtn);
         actGrp.appendChild(abBtn);
         actGrp.appendChild(profilBtn);
         actGrp.appendChild(banBtn);
@@ -1642,6 +1651,70 @@ function openRozetModal(user) {
       else { toast('Rozet güncellendi!', 'success'); closeModal(); }
       confirm.disabled = false;
       confirm.textContent = 'Kaydet';
+    });
+
+    actions.appendChild(cancel);
+    actions.appendChild(confirm);
+    box.appendChild(actions);
+  });
+}
+
+function openLcoinModal(user, onDone) {
+  openModal(box => {
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = `🪙 Bakiye Yönetimi — ${user.kullanici_adi}`;
+    box.appendChild(title);
+
+    const sub = document.createElement('div');
+    sub.className = 'modal-sub';
+    sub.textContent = `Mevcut Bakiye: ${(user.lcoin || 0).toLocaleString()} LCoin`;
+    box.appendChild(sub);
+
+    const field = document.createElement('div');
+    field.className = 'modal-field';
+    const lbl = document.createElement('label');
+    lbl.className = 'modal-label';
+    lbl.textContent = 'Eklenecek / Çıkarılacak Miktar (Örn: 500 veya -200)';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'modal-input';
+    input.placeholder = '0';
+    field.appendChild(lbl);
+    field.appendChild(input);
+    box.appendChild(field);
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    const cancel = document.createElement('button');
+    cancel.className = 'btn-full-cancel';
+    cancel.textContent = 'İptal';
+    cancel.addEventListener('click', closeModal);
+
+    const confirm = document.createElement('button');
+    confirm.className = 'btn-full btn-full-green';
+    confirm.textContent = 'İşlemi Tamamla';
+    confirm.addEventListener('click', async () => {
+      const diff = parseInt(input.value);
+      if (isNaN(diff) || diff === 0) {
+        toast('Geçerli bir miktar girin.');
+        return;
+      }
+      
+      confirm.disabled = true;
+      confirm.textContent = '...';
+      const newBalance = Math.max(0, (user.lcoin || 0) + diff);
+      
+      const { error } = await db.from('kullanicilar').update({ lcoin: newBalance }).eq('id', user.id);
+      if (error) { toast('Hata: ' + error.message); }
+      else { 
+        toast(`Bakiye güncellendi! Yeni: ${newBalance} LCoin`, 'success'); 
+        closeModal(); 
+        if (onDone) onDone();
+      }
+      confirm.disabled = false;
+      confirm.textContent = 'İşlemi Tamamla';
     });
 
     actions.appendChild(cancel);
@@ -1902,6 +1975,12 @@ async function renderIlanlar() {
       const actGrp = document.createElement('div');
       actGrp.className = 'btn-action-group';
 
+      const detailBtn = document.createElement('button');
+      detailBtn.className = 'btn-s btn-s-blue';
+      detailBtn.textContent = '👁 İncele';
+      detailBtn.addEventListener('click', () => openIlanInceleModal(il));
+      actGrp.appendChild(detailBtn);
+
       if (ilanTab !== 'onaylandi') {
         const approveBtn = document.createElement('button');
         approveBtn.className = 'btn-s btn-s-green';
@@ -1978,6 +2057,106 @@ async function renderIlanlar() {
   }
 
   loadIlanlar();
+}
+
+function openIlanInceleModal(ilanData) {
+  openModal(async (box) => {
+    box.innerHTML = '';
+    const loading = makeSpin();
+    box.appendChild(loading);
+
+    // Fetch full data
+    const { data: fullIlan, error } = await db.from('ilanlar').select('*').eq('id', ilanData.id).single();
+    box.innerHTML = '';
+
+    if (error || !fullIlan) {
+      toast('İlan detayları alınamadı');
+      closeModal();
+      return;
+    }
+
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.style.borderBottom = '1px solid var(--border-thin)';
+    title.style.paddingBottom = '12px';
+    title.style.marginBottom = '16px';
+    title.textContent = `👁 İlan İnceleme: #${fullIlan.id}`;
+    box.appendChild(title);
+
+    const wrap = document.createElement('div');
+    wrap.style.display = 'grid';
+    wrap.style.gridTemplateColumns = '1fr 1fr';
+    wrap.style.gap = '12px';
+    wrap.style.marginBottom = '20px';
+    wrap.style.fontSize = '12px';
+    wrap.style.color = 'var(--text-2)';
+
+    const fields = [
+      ['Başlık', fullIlan.baslik],
+      ['Satıcı Nick', fullIlan.kullanici_nick],
+      ['Kategori', fullIlan.kategori + (fullIlan.alt_kategori ? ` / ${fullIlan.alt_kategori}` : '')],
+      ['Fiyat', (fullIlan.fiyat || 0).toLocaleString() + ' LCoin'],
+      ['Teslimat', fullIlan.teslimat_suresi],
+      ['Stok', fullIlan.stok],
+      ['Durum', fullIlan.durum],
+      ['Tarih', formatDate(fullIlan.tarih)],
+      ['Öne Çıkan', fullIlan.one_cikan ? 'Evet' : 'Hayır']
+    ];
+
+    fields.forEach(([lbl, val]) => {
+      const f = document.createElement('div');
+      f.innerHTML = `<strong style="color:#fff;">${lbl}:</strong> ${val}`;
+      wrap.appendChild(f);
+    });
+
+    const descLbl = document.createElement('div');
+    descLbl.style.fontWeight = '900';
+    descLbl.style.color = '#fff';
+    descLbl.style.marginBottom = '4px';
+    descLbl.textContent = 'Açıklama:';
+    
+    const descBox = document.createElement('div');
+    descBox.style.background = 'var(--bg-card2)';
+    descBox.style.padding = '12px';
+    descBox.style.borderRadius = 'var(--radius)';
+    descBox.style.border = '1px solid var(--border-thin)';
+    descBox.style.whiteSpace = 'pre-wrap';
+    descBox.style.marginBottom = '20px';
+    descBox.style.maxHeight = '200px';
+    descBox.style.overflowY = 'auto';
+    descBox.textContent = fullIlan.aciklama || 'Açıklama yok.';
+
+    box.appendChild(wrap);
+    box.appendChild(descLbl);
+    box.appendChild(descBox);
+
+    if (fullIlan.resim_url) {
+      const imgLbl = document.createElement('div');
+      imgLbl.style.fontWeight = '900';
+      imgLbl.style.color = '#fff';
+      imgLbl.style.marginBottom = '4px';
+      imgLbl.textContent = 'Görsel:';
+      const img = document.createElement('img');
+      img.src = fullIlan.resim_url;
+      img.style.width = '100%';
+      img.style.maxHeight = '200px';
+      img.style.objectFit = 'contain';
+      img.style.borderRadius = 'var(--radius)';
+      img.style.marginBottom = '20px';
+      img.style.border = '1px solid var(--border-thin)';
+      box.appendChild(imgLbl);
+      box.appendChild(img);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn-full-cancel';
+    closeBtn.textContent = 'Kapat';
+    closeBtn.addEventListener('click', closeModal);
+    actions.appendChild(closeBtn);
+    box.appendChild(actions);
+  });
 }
 
 /* ================================================================
@@ -2781,6 +2960,107 @@ function buildPageHeader(icon, title, subtitle) {
   titleWrap.appendChild(subEl);
   header.appendChild(titleWrap);
   return header;
+}
+
+/* ================================================================
+   SECTION: YETKİLİ KILAVUZU
+================================================================ */
+function renderKilavuz() {
+  const content = document.getElementById('content');
+  const header = buildPageHeader('📚', 'Yetkili Kılavuzu', 'LOBBY.GG Ekip ve Departman Hiyerarşisi');
+  content.appendChild(header);
+
+  const wrapper = document.createElement('div');
+  wrapper.style.padding = '0 24px 60px';
+  wrapper.style.display = 'flex';
+  wrapper.style.flexDirection = 'column';
+  wrapper.style.gap = '24px';
+
+  const depts = [
+    {
+      title: 'Destek Ekibi | Yardım Departmanı',
+      desc: 'Bu departmandaki yetkililer platform içerisinde bulunan yardım/destek talepleriyle ilgilenirler.',
+      reqs: 'Yetkili olabilmek için sistem mekaniklerine hakim olmak ve iletişim becerisi yüksek olmak gerekmektedir.',
+      roles: [
+        { label: '📞 Rehber', class: 'bp-uye' },
+        { label: '📞 Usta Rehber', class: 'bp-abone' },
+        { label: '📞 Destek Şefi', class: 'bp-admin' }
+      ]
+    },
+    {
+      title: 'Moderatör Ekibi | Moderasyon Departmanı',
+      desc: 'Bu departmandaki yetkililer platform içerisindeki ilan onay/ret süreçleri, şikayetler ve içerik denetimi ile ilgilenirler.',
+      reqs: 'Tarafsız karar verebilme yeteneği, platform kurallarına (TOS) %100 hakimiyet şarttır.',
+      roles: [
+        { label: '🛡️ Moderatör', class: 'bp-premium' },
+        { label: '🛡️ Süper Moderatör', class: 'bp-banned' },
+        { label: '🛡️ Moderatör Şefi', class: 'bp-yonetici' }
+      ]
+    },
+    {
+      title: 'Yönetim Ekibi | Üst Yönetim Departmanı',
+      desc: 'Platformun teknik sorunları, ödeme işlemleri, bakiye yönetimi ve üst düzey sistem ayarlamalarını gerçekleştirirler.',
+      reqs: 'Kurucu heyeti tarafından doğrudan seçilen ve sistemin tüm veritabanı akışına hakim kişilerdir.',
+      roles: [
+        { label: '🔑 Admin', class: 'bp-admin' },
+        { label: '👑 Yönetici', class: 'bp-yonetici' },
+        { label: '🚀 Kurucu', class: 'bp-yonetici' }
+      ]
+    }
+  ];
+
+  depts.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'panel-card';
+    
+    const h = document.createElement('div');
+    h.style.fontSize = '18px';
+    h.style.fontWeight = '900';
+    h.style.color = 'var(--accent)';
+    h.style.marginBottom = '16px';
+    h.style.borderBottom = '1px solid var(--border-thin)';
+    h.style.paddingBottom = '8px';
+    h.textContent = d.title;
+    card.appendChild(h);
+
+    const b1 = document.createElement('div');
+    b1.innerHTML = `<span style="font-weight:900;color:#fff;">İşleyiş »</span> <span style="color:var(--text-2); font-size:13px;">${d.desc}</span>`;
+    b1.style.marginBottom = '12px';
+    card.appendChild(b1);
+
+    const b2 = document.createElement('div');
+    b2.innerHTML = `<span style="font-weight:900;color:#fff;">Şartlar »</span> <span style="color:var(--text-2); font-size:13px;">${d.reqs}</span>`;
+    b2.style.marginBottom = '20px';
+    card.appendChild(b2);
+
+    const b3 = document.createElement('div');
+    b3.style.fontWeight = '900';
+    b3.style.color = '#fff';
+    b3.style.marginBottom = '8px';
+    b3.textContent = 'Görünüm »';
+    card.appendChild(b3);
+
+    const roleBox = document.createElement('div');
+    roleBox.style.display = 'flex';
+    roleBox.style.gap = '8px';
+    roleBox.style.flexWrap = 'wrap';
+    roleBox.style.background = 'var(--bg-card2)';
+    roleBox.style.padding = '12px';
+    roleBox.style.borderRadius = 'var(--radius)';
+    roleBox.style.border = '1px solid var(--border-thin)';
+
+    d.roles.forEach(r => {
+      const rp = document.createElement('span');
+      rp.className = 'badge-pill ' + r.class;
+      rp.textContent = r.label;
+      roleBox.appendChild(rp);
+    });
+
+    card.appendChild(roleBox);
+    wrapper.appendChild(card);
+  });
+
+  content.appendChild(wrapper);
 }
 
 /* ================================================================
