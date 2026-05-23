@@ -1044,7 +1044,8 @@ function buildNav(user) {
     yonetici: '👑 Yönetici',
     admin: '🔑 Admin',
     moderator: '🛡️ Moderatör',
-    rehber: '📞 Rehber'
+    rehber: '📞 Rehber',
+    kurucu: '🚀 Kurucu'
   };
   roleEl.textContent = roleNames[user.abonelik] || 'Yetkili';
   info.appendChild(nickEl);
@@ -1072,7 +1073,7 @@ function buildSidebar() {
 
   const role = currentUser.abonelik;
   let allowedSections = [];
-  if (role === 'yonetici') {
+  if (role === 'yonetici' || role === 'kurucu') {
     allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'ayarlar'];
   } else if (role === 'admin') {
     allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek'];
@@ -2807,7 +2808,7 @@ async function init() {
   }
 
   // Access control
-  const allowedRoles = ['yonetici', 'admin', 'moderator', 'rehber'];
+  const allowedRoles = ['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'];
   if (!allowedRoles.includes(user.abonelik)) {
     window.location.href = 'lobbyx.html';
     return;
