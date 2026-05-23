@@ -1622,6 +1622,14 @@ function renderProfileHeader() {
       row.appendChild(adminBtn);
     }
     
+    // ÇIKIŞ YAP
+    const logoutBtn = el('button', {className:'btn mc-red', textContent:'🚪 Çıkış Yap'});
+    logoutBtn.addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'giris.html';
+    });
+    row.appendChild(logoutBtn);
+    
     actions.appendChild(row);
   } else if (currentUser) {
     const row = el('div', {className:'profile-actions-row'});
