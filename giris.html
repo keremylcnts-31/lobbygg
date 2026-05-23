@@ -990,7 +990,6 @@ const ROLES = [
   { key: 'content',  icon: '🎬',  name: 'İçerik Üreticisi' },
   { key: 'dev',      icon: '💻',  name: 'Developer' },
   { key: 'builder',  icon: '🏗️',  name: 'Builder' },
-  { key: 'admin',    icon: '👑',  name: 'Sunucu Yöneticisi' },
   { key: 'other',    icon: '🎮',  name: 'Diğer' }
 ];
 
@@ -999,7 +998,6 @@ const SUBROLES = {
   content: ['Kick','YouTube','Twitch','TikTok','Instagram'],
   dev:     ['Plugin Dev','Skripter','Web Dev'],
   builder: [],
-  admin:   [],
   other:   []
 };
 
@@ -1282,14 +1280,22 @@ async function finalizeRegistration() {
     return;
   }
 
+  const ROLE_DB_MAP = {
+    pvp: 'PvP',
+    content: 'İçerik Üretici',
+    dev: 'Developer',
+    builder: 'Builder',
+    other: 'Diğer'
+  };
+
   const record = {
     kullanici_adi: state.nick,
     email: state.email || user.email,
     abonelik: 'uye',
     kayit_tarihi: new Date().toLocaleDateString('tr-TR'),
-    kategori: state.role,
+    kategori: ROLE_DB_MAP[state.role] || 'Diğer',
     alt_kategori: state.subRole,
-    desteklened_sunucu: state.server,
+    desteklenen_sunucu: state.server,
     lcoin: 5
   };
 

@@ -451,10 +451,10 @@
 
         // Server HTML
         let serverHtml = '';
-        if (u.desteklened_sunucu) {
-          const srv = SERVERS.find(s => s.ip === u.desteklened_sunucu);
-          const srvName = srv ? srv.name : u.desteklened_sunucu;
-          const srvLogo = `https://api.mcsrvstat.us/icon/${u.desteklened_sunucu}`;
+        if (u.desteklenen_sunucu) {
+          const srv = SERVERS.find(s => s.ip === u.desteklenen_sunucu);
+          const srvName = srv ? srv.name : u.desteklenen_sunucu;
+          const srvLogo = `https://api.mcsrvstat.us/icon/${u.desteklenen_sunucu}`;
           serverHtml = `
             <div class="pc-server-row">
               <img src="${srvLogo}" class="pc-server-logo-img" onerror="this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=24'" alt="Server">
@@ -468,7 +468,7 @@
         if (u.discord) {
           discordBtnHtml = `
             <button class="btn mc-discord" style="width: 100%; justify-content: center; font-size: 11px;" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${u.discord}'); alert('Discord kullanıcı adı kopyalandı: ${u.discord}')">
-              <span style="font-size: 14px; margin-right: 6px;">💬</span> ${u.discord}
+              <img src="discord-icon.jpg" style="width: 14px; height: 14px; object-fit: cover; border-radius: 3px; margin-right: 6px; display: inline-block; vertical-align: middle;" /> ${u.discord}
             </button>
           `;
         }

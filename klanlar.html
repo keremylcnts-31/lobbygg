@@ -1261,7 +1261,7 @@ function applyFilters() {
   }
 
   if (filterState.server) {
-    result = result.filter(c => c.desteklened_sunucu === filterState.server);
+    result = result.filter(c => c.desteklenen_sunucu === filterState.server);
   }
 
   if (filterState.abonelik !== 'all') {
@@ -1411,8 +1411,8 @@ function buildClanCard(clan) {
   body.appendChild(headerRow);
 
   /* Active server */
-  if (clan.desteklened_sunucu) {
-    const srv = SERVERS.find(s => s.ip === clan.desteklened_sunucu);
+  if (clan.desteklenen_sunucu) {
+    const srv = SERVERS.find(s => s.ip === clan.desteklenen_sunucu);
     if (srv) {
       const serverRow = document.createElement('div');
       serverRow.className = 'clan-server-row';
@@ -1920,7 +1920,7 @@ async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, s
       aciklama: desc || null,
       renk,
       logo_url: logoUrl,
-      desteklened_sunucu: server || null,
+      desteklenen_sunucu: server || null,
       uye_sayisi: 1,
       vote_sayisi: 0
     });

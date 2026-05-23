@@ -1594,7 +1594,7 @@ function renderProfileHeader() {
   statsRow.appendChild(sep2);
 
   const lcoinStat = el('div', {className:'profile-lcoin-stat'});
-  const lcoinIcon = el('span', {className:'lcoin-icon', textContent:'L'});
+  const lcoinIcon = el('span', {className:'nav-lcoin-icon'});
   lcoinStat.appendChild(lcoinIcon);
   lcoinStat.appendChild(el('strong', {textContent:(profileUser.lcoin||0).toLocaleString()}));
   lcoinStat.appendChild(document.createTextNode(' LCoin'));
@@ -2886,7 +2886,11 @@ function renderOzellestirTab(container) {
     {id:'neon-green',label:'Neon Yeşil',color:'#39ff14', premium:true},
     {id:'neon-blue', label:'Neon Mavi', color:'#00d4ff', premium:true},
     {id:'rainbow',   label:'Gökkuşağı', color:'linear-gradient(135deg,red,yellow,green,blue,purple)', premium:true},
-    {id:'glass',     label:'Cam',       color:'rgba(255,255,255,0.3)', premium:true}
+    {id:'glass',     label:'Cam',       color:'rgba(255,255,255,0.3)', premium:true},
+    {id:'crown',     label:'👑 Altın Taç', color:'#FFD700', premium:true},
+    {id:'fire',      label:'🔥 Nether Ateşi', color:'#ff4500', premium:true},
+    {id:'ender',     label:'🔮 Ender Gözü', color:'#b933ff', premium:true},
+    {id:'diamond',   label:'💎 Elmas Işıltısı', color:'#00d4ff', premium:true}
   ];
   selectedFrame = profileUser.aktif_cerceve || 'none';
 
@@ -2902,6 +2906,10 @@ function renderOzellestirTab(container) {
     if (f.id === 'neon-green') { framePP.style.boxShadow = '0 0 10px rgba(57,255,20,0.5)'; }
     if (f.id === 'neon-blue') { framePP.style.boxShadow = '0 0 10px rgba(0,212,255,0.5)'; }
     if (f.id === 'rainbow') { framePP.style.borderColor = '#ff0000'; framePP.style.animation = 'rainbow-border 3s linear infinite'; }
+    if (f.id === 'crown') { framePP.style.borderColor = '#FFD700'; framePP.style.boxShadow = '0 0 10px rgba(255,215,0,0.5)'; }
+    if (f.id === 'fire') { framePP.style.borderColor = '#ff4500'; framePP.style.boxShadow = '0 0 10px rgba(255,69,0,0.5)'; }
+    if (f.id === 'ender') { framePP.style.borderColor = '#b933ff'; framePP.style.boxShadow = '0 0 10px rgba(185,51,255,0.5)'; }
+    if (f.id === 'diamond') { framePP.style.borderColor = '#00d4ff'; framePP.style.boxShadow = '0 0 10px rgba(0,212,255,0.5)'; }
 
     const lbl = el('div', {className:'frame-opt-label', textContent:f.label});
 
@@ -3034,6 +3042,9 @@ function renderOzellestirTab(container) {
   const katRow = el('div', {style:{display:'flex',gap:'10px',flexWrap:'wrap'}});
   const katSelect = el('select', {className:'select-field', style:{flex:'1',minWidth:'140px'}});
   Object.keys(KATEGORI_MAP).forEach(k => {
+    if (k === 'Yönetici' && !['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'].includes(profileUser.abonelik) && profileUser.kategori !== 'Yönetici') {
+      return;
+    }
     const opt2 = el('option', {textContent:k, attrs:{value:k}});
     if (profileUser.kategori === k) opt2.selected = true;
     katSelect.appendChild(opt2);
@@ -3069,7 +3080,7 @@ function renderOzellestirTab(container) {
   const destLabel = el('div', {className:'input-label', style:{marginBottom:'8px'}, textContent:'AKTİF / DESTEKLEDİĞİN SUNUCU'});
   sunucuSec.appendChild(destLabel);
 
-  selectedDestServer = profileUser.desteklened_sunucu || null;
+  selectedDestServer = profileUser.desteklenen_sunucu || null;
   const destGrid = el('div', {className:'server-picker-grid'});
 
   SERVERS.forEach(srv => {
@@ -3133,7 +3144,7 @@ function renderOzellestirTab(container) {
       aktif_cerceve: selectedFrame || profileUser.aktif_cerceve,
       pp_sekil: selectedShape || profileUser.pp_sekil,
       banner_renk: savedBannerColor || profileUser.banner_renk,
-      desteklened_sunucu: selectedDestServer,
+      desteklenen_sunucu: selectedDestServer,
       favori_sunucular: selectedFavServers
     };
 
@@ -3442,7 +3453,7 @@ async function renderRightPanel() {
   }
 
   // Sunucular Card
-  const hasServers = profileUser.desteklened_sunucu || (Array.isArray(profileUser.favori_sunucular) && profileUser.favori_sunucular.length);
+  const hasServers = profileUser.desteklenen_sunucu || (Array.isArray(profileUser.favori_sunucular) && profileUser.favori_sunucular.length);
   if (hasServers) {
     const srvCard = el('div', {className:'right-card'});
     const srvTitle = el('div', {className:'right-card-title', textContent:'🖥️ Sunucular'});
@@ -3450,12 +3461,12 @@ async function renderRightPanel() {
 
     const srvList = el('div', {className:'server-list'});
 
-    if (profileUser.desteklened_sunucu) {
-      const srv = SERVERS.find(s => s.ip === profileUser.desteklened_sunucu);
+    if (profileUser.desteklenen_sunucu) {
+      const srv = SERVERS.find(s => s.ip === profileUser.desteklenen_sunucu);
       const item = el('div', {className:'server-item'});
-      const logo = el('img', {className:'server-logo', attrs:{src:serverLogo(profileUser.desteklened_sunucu), alt:srv?.name||profileUser.desteklened_sunucu}});
+      const logo = el('img', {className:'server-logo', attrs:{src:serverLogo(profileUser.desteklenen_sunucu), alt:srv?.name||profileUser.desteklenen_sunucu}});
       logo.onerror = function() { this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=24'; };
-      const name = el('span', {className:'server-name', textContent:srv?.name||profileUser.desteklened_sunucu});
+      const name = el('span', {className:'server-name', textContent:srv?.name||profileUser.desteklenen_sunucu});
       const activeLbl = el('span', {className:'server-active-label', textContent:'Aktif'});
       item.appendChild(logo);
       item.appendChild(name);
@@ -3465,7 +3476,7 @@ async function renderRightPanel() {
 
     if (Array.isArray(profileUser.favori_sunucular)) {
       profileUser.favori_sunucular.forEach(ip => {
-        if (ip === profileUser.desteklened_sunucu) return;
+        if (ip === profileUser.desteklenen_sunucu) return;
         const srv2 = SERVERS.find(s => s.ip === ip);
         const item2 = el('div', {className:'server-item'});
         const logo2 = el('img', {className:'server-logo', attrs:{src:serverLogo(ip), alt:srv2?.name||ip}});

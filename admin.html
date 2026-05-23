@@ -2094,9 +2094,9 @@ function openIlanInceleModal(ilanData) {
     title.textContent = `👁 İlan İnceleme: #${fullIlan.id}`;
     box.appendChild(title);
 
-    if (fullIlan.resim_url) {
+    if (fullIlan.banner_url || fullIlan.resim_url) {
       const img = document.createElement('img');
-      img.src = fullIlan.resim_url;
+      img.src = fullIlan.banner_url || fullIlan.resim_url;
       img.style.width = '100%';
       img.style.maxHeight = '350px';
       img.style.objectFit = 'cover';
@@ -2441,14 +2441,14 @@ async function renderStats() {
 
   // Sunucu popülerliği
   const { data: srvData } = await db.from('kullanicilar')
-    .select('desteklened_sunucu')
-    .not('desteklened_sunucu', 'is', null);
+    .select('desteklenen_sunucu')
+    .not('desteklenen_sunucu', 'is', null);
 
   srvBody.innerHTML = '';
   if (srvData && srvData.length > 0) {
     const counts = {};
     srvData.forEach(r => {
-      if (r.desteklened_sunucu) counts[r.desteklened_sunucu] = (counts[r.desteklened_sunucu] || 0) + 1;
+      if (r.desteklenen_sunucu) counts[r.desteklenen_sunucu] = (counts[r.desteklenen_sunucu] || 0) + 1;
     });
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
     const max = sorted[0]?.[1] || 1;
@@ -3420,7 +3420,7 @@ async function renderDroplar() {
     const tdStats = document.createElement('td');
     tdStats.style.fontSize = '12px';
     tdStats.style.color = 'var(--muted)';
-    tdStats.textContent = \`❤️ \${d.begeni_sayisi || 0}   💬 \${d.yorum_sayisi || 0}\`;
+    tdStats.textContent = `❤️ ${d.begeni_sayisi || 0}   💬 ${d.yorum_sayisi || 0}`;
     tr.appendChild(tdStats);
 
     const tdTarih = document.createElement('td');
