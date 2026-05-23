@@ -24,13 +24,13 @@
       animation: fade-in-up 0.5s ease-out;
     }
     
-    @media (max-width: 800px) {
+    @media (max-width: 850px) {
       .cark-page { flex-direction: column; }
     }
 
     /* Left Side: The Wheel */
     .cark-container {
-      flex: 1;
+      flex: 1.2;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
@@ -40,129 +40,56 @@
       align-items: center;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 100px rgba(255,215,0,0.05);
-    }
-
-    .cark-container::before {
-      content: '';
-      position: absolute;
-      top: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
-      z-index: 0;
-      pointer-events: none;
+      box-shadow: inset 0 0 100px rgba(255,215,0,0.03);
     }
 
     .cark-title {
-      font-size: 36px;
+      font-size: 32px;
       font-weight: 900;
       color: var(--gold);
       text-transform: uppercase;
-      text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.5);
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.4);
       margin-bottom: 5px;
       z-index: 1;
     }
 
     .cark-subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-2);
-      margin-bottom: 40px;
+      margin-bottom: 30px;
       z-index: 1;
     }
 
-    /* The Wheel */
+    /* The Wheel Wrapper */
     .wheel-wrapper {
       position: relative;
-      width: 320px;
-      height: 320px;
+      width: 360px;
+      height: 360px;
       z-index: 2;
       filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7));
+      margin-bottom: 20px;
     }
 
     .wheel-pointer {
       position: absolute;
-      top: -20px;
+      top: -15px;
       left: 50%;
       transform: translateX(-50%);
-      width: 40px;
-      height: 50px;
+      width: 36px;
+      height: 44px;
       background: var(--red);
       clip-path: polygon(50% 100%, 0 0, 100% 0);
       z-index: 10;
       filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
     }
 
-    .wheel {
+    #wheelCanvas {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      border: 8px solid #222;
-      position: relative;
-      overflow: hidden;
-      transition: transform 5s cubic-bezier(0.1, 1.2, 0.2, 1); /* Spining easing */
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 0 4px #b8860b;
-      background: #111;
-    }
-
-    .wheel-segment {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      width: 50%;
-      height: 50%;
-      transform-origin: 0% 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      border-left: 2px solid rgba(0,0,0,0.5);
-    }
-    
-    .segment-content {
-      position: absolute;
-      left: 20px;
-      bottom: 20px;
-      transform: rotate(22.5deg); /* Half of segment angle (45) */
-      font-weight: 900;
-      font-size: 14px;
-      color: #000;
-      white-space: nowrap;
-      text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
-    }
-
-    /* Segment Colors */
-    .seg-0 { background: #FFD700; transform: rotate(0deg) skewY(-45deg); }
-    .seg-1 { background: #DAA520; transform: rotate(45deg) skewY(-45deg); }
-    .seg-2 { background: #FFD700; transform: rotate(90deg) skewY(-45deg); }
-    .seg-3 { background: #DAA520; transform: rotate(135deg) skewY(-45deg); }
-    .seg-4 { background: #FFD700; transform: rotate(180deg) skewY(-45deg); }
-    .seg-5 { background: #DAA520; transform: rotate(225deg) skewY(-45deg); }
-    .seg-6 { background: #FFD700; transform: rotate(270deg) skewY(-45deg); }
-    .seg-7 { background: #DAA520; transform: rotate(315deg) skewY(-45deg); }
-
-    .wheel-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60px;
-      height: 60px;
-      background: #222;
-      border: 4px solid var(--gold);
-      border-radius: 50%;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: block;
     }
 
     .spin-actions {
-      margin-top: 50px;
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -183,80 +110,123 @@
       font-size: 18px;
     }
 
-    /* Right Side: Leaderboard */
-    .leaderboard-container {
-      width: 350px;
+    /* Right Side: Leaderboard & Recent Wins */
+    .right-sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+    }
+
+    .leaderboard-container, .recent-wins-container {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 24px;
     }
 
-    @media (max-width: 800px) {
-      .leaderboard-container { width: 100%; }
-    }
-
-    .lb-header {
+    .lb-header, .rw-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border-thin);
     }
-    .lb-header h2 {
-      font-size: 18px;
+    .lb-header h2, .rw-header h2 {
+      font-size: 16px;
       font-weight: 900;
       color: var(--text-1);
       margin: 0;
-    }
-    
-    .lb-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .lb-item {
+    .lb-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 15px;
+    }
+    
+    .lb-tab {
+      flex: 1;
+      padding: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .lb-list, .rw-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    /* Scrollbar */
+    .lb-list::-webkit-scrollbar, .rw-list::-webkit-scrollbar { width: 4px; }
+    .lb-list::-webkit-scrollbar-thumb, .rw-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .lb-item, .rw-item {
       display: flex;
       align-items: center;
       gap: 12px;
       background: var(--bg-card2);
-      padding: 12px;
+      padding: 10px 12px;
       border-radius: var(--radius);
       border: 1px solid var(--border-thin);
       transition: all 0.2s;
     }
-    .lb-item:hover {
+    .lb-item:hover, .rw-item:hover {
       border-color: var(--border-hover);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.02);
     }
 
-    .lb-avatar {
-      width: 40px;
-      height: 40px;
+    .lb-rank {
+      font-size: 14px;
+      font-weight: 900;
+      width: 24px;
+      color: var(--text-3);
+      text-align: center;
+    }
+    .rank-1 { color: #ffd700; font-size: 18px; }
+    .rank-2 { color: #c0c0c0; font-size: 16px; }
+    .rank-3 { color: #cd7f32; font-size: 15px; }
+
+    .lb-avatar, .rw-avatar {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid var(--border);
     }
 
-    .lb-info {
+    .lb-info, .rw-info {
       flex: 1;
+      min-width: 0;
     }
-    .lb-name {
-      font-size: 13px;
+    .lb-name, .rw-name {
+      font-size: 12px;
       font-weight: 800;
       color: var(--text-1);
       margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .lb-reward {
+    .lb-reward, .rw-reward {
       font-size: 11px;
       color: var(--gold);
       font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .lb-time {
+    .lb-time, .rw-time {
       font-size: 10px;
-      color: var(--text-3);
+      color: var(--text-dim);
     }
   </style>
 </head>
@@ -265,48 +235,61 @@
   
   <div class="page-wrapper">
     <nav class="nav" id="nav"></nav>
+    <div class="toast-container" id="toast-container"></div>
 
     <div class="cark-page">
       
       <!-- WHEEL SECTION -->
       <div class="cark-container">
         <div class="cark-title">Şans Çarkı</div>
-        <div class="cark-subtitle">Efsanevi ödüller seni bekliyor!</div>
+        <div class="cark-subtitle">LOBBY.GG'ye özel efsanevi LCoin ödülleri!</div>
 
         <div class="wheel-wrapper">
           <div class="wheel-pointer"></div>
-          <div class="wheel" id="wheel">
-            <!-- 8 Segments (45 deg each) -->
-            <div class="wheel-segment seg-0"><div class="segment-content">10 LCoin</div></div>
-            <div class="wheel-segment seg-1"><div class="segment-content">Öne Çıkarma</div></div>
-            <div class="wheel-segment seg-2"><div class="segment-content">20 LCoin</div></div>
-            <div class="wheel-segment seg-3"><div class="segment-content">Öne Çıkarma</div></div>
-            <div class="wheel-segment seg-4"><div class="segment-content">50 LCoin</div></div>
-            <div class="wheel-segment seg-5"><div class="segment-content">Öne Çıkarma</div></div>
-            <div class="wheel-segment seg-6"><div class="segment-content">100 LCoin</div></div>
-            <div class="wheel-segment seg-7"><div class="segment-content">Öne Çıkarma</div></div>
-          </div>
-          <div class="wheel-center">🎡</div>
+          <canvas id="wheelCanvas" width="380" height="380"></canvas>
         </div>
 
         <div class="spin-actions">
-          <div class="hak-text">Kalan Çevirme Hakkı: <span id="spinCount">1</span></div>
-          <button class="btn mc-gold mc-xl" id="btnSpin" style="width: 100%;">ÇARK'I ÇEVİR</button>
-          <button class="btn mc-gray" id="btnBuySpins" style="width: 100%;">
-            <span class="lcoin-icon" style="width:14px;height:14px;font-size:10px;">L</span> 50 Karşılığında +5 Hak Al
+          <div class="hak-text">Çevirme Hakkın: <span id="spinCount">Yükleniyor...</span></div>
+          <button class="btn mc-gold mc-xl" id="btnSpin" style="width: 100%;" disabled>Yükleniyor...</button>
+          <button class="btn mc-gray" id="btnBuySpins" style="width: 100%;" disabled>
+            <span class="nav-lcoin-icon" style="transform: scale(0.9); margin-right: 4px; display: inline-block; vertical-align: middle;"></span>
+            50 Karşılığında +5 Hak Al
           </button>
         </div>
       </div>
 
-      <!-- LEADERBOARD SECTION -->
-      <div class="leaderboard-container">
-        <div class="lb-header">
-          <span style="font-size:20px;">🏆</span>
-          <h2>En Çok Kazananlar</h2>
+      <!-- RIGHT PANEL: LEADERBOARD & RECENT -->
+      <div class="right-sidebar">
+        
+        <!-- LEADERBOARD -->
+        <div class="leaderboard-container">
+          <div class="lb-header">
+            <h2>🏆 En Çok Kazananlar</h2>
+          </div>
+          
+          <div class="lb-tabs">
+            <button class="btn mc-green lb-tab active" data-range="day" onclick="setLeaderboardRange('day', this)">BUGÜN</button>
+            <button class="btn mc-gray lb-tab" data-range="week" onclick="setLeaderboardRange('week', this)">HAFTALIK</button>
+            <button class="btn mc-gray lb-tab" data-range="month" onclick="setLeaderboardRange('month', this)">AYLIK</button>
+          </div>
+
+          <div class="lb-list" id="lbList">
+            <div class="empty-state"><div class="spinner"></div></div>
+          </div>
         </div>
-        <div class="lb-list" id="lbList">
-          <!-- Populated by JS -->
+
+        <!-- RECENT WINS -->
+        <div class="recent-wins-container">
+          <div class="rw-header">
+            <h2>✨ Son Çıkanlar</h2>
+            <span style="font-size: 10px; color: var(--text-dim); font-weight: bold; text-transform: uppercase;">Canlı Akış</span>
+          </div>
+          <div class="rw-list" id="rwList">
+            <div class="empty-state"><div class="spinner"></div></div>
+          </div>
         </div>
+
       </div>
 
     </div>
@@ -318,32 +301,85 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentProfile = null;
-    let spinRights = 1;
+    let hasFreeSpin = false;
+    let paidSpins = 0;
     let isSpinning = false;
-    let currentRotation = 0;
-
-    // The segments
-    // Angle ranges from top center (pointer). Segment 0 is at 0-45 deg.
-    const segments = [
-      { name: "10 LCoin", type: "lcoin", val: 10 },
-      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
-      { name: "20 LCoin", type: "lcoin", val: 20 },
-      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
-      { name: "50 LCoin", type: "lcoin", val: 50 },
-      { name: "1 Gün Öne Çıkarma", type: "item", val: 1 },
-      { name: "100 LCoin", type: "lcoin", val: 100 },
-      { name: "2 Gün Öne Çıkarma", type: "item", val: 2 }
+    
+    // Canvas & Animation variables
+    let startAngle = 0;
+    let spinSpeed = 0;
+    let animationFrameId = null;
+    
+    // Default Wheel configuration (18 segments requested)
+    const defaultItems = [
+      { id: 1, name: "1 LCoin", prob: 15, type: "lcoin", val: 1 },
+      { id: 2, name: "2 LCoin", prob: 12, type: "lcoin", val: 2 },
+      { id: 3, name: "3 LCoin", prob: 10, type: "lcoin", val: 3 },
+      { id: 4, name: "4 LCoin", prob: 8, type: "lcoin", val: 4 },
+      { id: 5, name: "5 LCoin", prob: 8, type: "lcoin", val: 5 },
+      { id: 6, name: "10 LCoin", prob: 7, type: "lcoin", val: 10 },
+      { id: 7, name: "12 LCoin", prob: 6, type: "lcoin", val: 12 },
+      { id: 8, name: "15 LCoin", prob: 5, type: "lcoin", val: 15 },
+      { id: 9, name: "20 LCoin", prob: 5, type: "lcoin", val: 20 },
+      { id: 10, name: "25 LCoin", prob: 4, type: "lcoin", val: 25 },
+      { id: 11, name: "30 LCoin", prob: 4, type: "lcoin", val: 30 },
+      { id: 12, name: "40 LCoin", prob: 3, type: "lcoin", val: 40 },
+      { id: 13, name: "50 LCoin", prob: 3, type: "lcoin", val: 50 },
+      { id: 14, name: "60 LCoin", prob: 2, type: "lcoin", val: 60 },
+      { id: 15, name: "70 LCoin", prob: 2, type: "lcoin", val: 70 },
+      { id: 16, name: "80 LCoin", prob: 2, type: "lcoin", val: 80 },
+      { id: 17, name: "90 LCoin", prob: 2, type: "lcoin", val: 90 },
+      { id: 18, name: "100 LCoin", prob: 1, type: "lcoin", val: 100 }
     ];
 
+    let carkItems = defaultItems;
+    let allSpinHistory = [];
+    let activeRange = 'day';
+
+    // Toast Notification
+    function toast(msg, type='success') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      const icons = {success:'✅', error:'❌', info:'ℹ️', gold:'⭐'};
+      const ico = document.createElement('span');
+      ico.textContent = icons[type] || '✅';
+      const txt = document.createElement('span');
+      txt.textContent = msg;
+      t.appendChild(ico);
+      t.appendChild(txt);
+      c.appendChild(t);
+      setTimeout(() => {
+        t.style.transition = 'opacity 0.3s';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 320);
+      }, 3500);
+    }
+
+    // Time Ago
+    function timeAgo(str) {
+      if (!str) return '';
+      const diff = (Date.now() - new Date(str).getTime()) / 1000;
+      if (diff < 60) return 'az önce';
+      if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
+      if (diff < 86400) return Math.floor(diff/3600) + ' saat önce';
+      return Math.floor(diff/86400) + ' gün önce';
+    }
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
     async function buildNav() {
       const nav = document.getElementById('nav');
       nav.innerHTML = `
-        <a href="lobbyx.html"><img src="https://i.hizliresim.com/6c4wdx4.png" alt="LOBBY.GG Logo" class="nav-logo"></a>
+        <a href="lobbyx.html"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG Logo" class="nav-logo"></a>
         <div class="nav-links">
           <a href="lobbyx.html" class="nav-link">🏠 Ana Sayfa</a>
           <a href="ilanlar.html" class="nav-link">📜 İlanlar</a>
+          <a href="klanlar.html" class="nav-link">🛡️ Klanlar</a>
           <a href="kesfet.html" class="nav-link">🌍 Keşfet</a>
           <a href="market.html" class="nav-link">💎 Mağaza</a>
+          <a href="destek.html" class="nav-link">📞 Destek</a>
         </div>
         <div class="nav-right" id="navRight">
           <a href="giris.html" class="btn mc-green mc-sm">Giriş Yap</a>
@@ -356,135 +392,565 @@
         if (profile) {
           currentProfile = profile;
           document.getElementById('navRight').innerHTML = `
-            <a href="profil.html" class="nav-lcoin"><span class="lcoin-icon">L</span> ${profile.lcoin || 0}</a>
+            <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
+            <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
+            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>
             <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
               <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
             </a>
           `;
+          
+          // Enable actions
+          document.getElementById('btnBuySpins').disabled = false;
+          checkSpinRights();
         }
+      } else {
+        document.getElementById('spinCount').textContent = '—';
+        document.getElementById('btnSpin').textContent = 'GİRİŞ YAPIN';
+        document.getElementById('btnSpin').disabled = false;
+        document.getElementById('btnSpin').addEventListener('click', () => window.location.href = 'giris.html');
       }
     }
 
-    function initCanvas() {
-      const cvs = document.getElementById('canvas-bg');
-      const ctx = cvs.getContext('2d');
-      let w, h;
-      let beams = [];
+    // ==========================================
+    // CHECK SPIN ELIGIBILITY
+    // ==========================================
+    async function checkSpinRights() {
+      if (!currentProfile) return;
+      
+      try {
+        // Query last spin in the past 24 hours
+        const limitTime = new Date(Date.now() - 24*60*60*1000).toISOString();
+        const { data, error } = await sb.from('bildirimler')
+          .select('created_at')
+          .eq('alici_id', currentProfile.id)
+          .eq('tip', 'cark_hediyesi')
+          .gte('created_at', limitTime)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        hasFreeSpin = !data || data.length === 0;
+        paidSpins = currentProfile.ggcoin || 0;
+        
+        const countEl = document.getElementById('spinCount');
+        const btnSpin = document.getElementById('btnSpin');
+        
+        let labelText = '';
+        if (hasFreeSpin) {
+          labelText = '1 Ücretsiz';
+          if (paidSpins > 0) labelText += ` + ${paidSpins} Ücretli`;
+        } else {
+          labelText = `${paidSpins} Ücretli`;
+        }
+        
+        countEl.textContent = labelText;
+        btnSpin.disabled = false;
+        
+        if (hasFreeSpin) {
+          btnSpin.textContent = 'ÜCRETSİZ ÇEVİR';
+          btnSpin.className = 'btn mc-gold mc-xl';
+        } else if (paidSpins > 0) {
+          btnSpin.textContent = 'HAKKINI KULLAN';
+          btnSpin.className = 'btn mc-green mc-xl';
+        } else {
+          btnSpin.textContent = 'HAKKINIZ KALMADI';
+          btnSpin.className = 'btn mc-gray mc-xl';
+          btnSpin.disabled = true;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ==========================================
+    // CANVAS DRAWING (THE WHEEL)
+    // ==========================================
+    function drawWheel() {
+      const canvas = document.getElementById('wheelCanvas');
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const r = canvas.width / 2 - 15;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const numSegs = carkItems.length;
+      const angle = 2 * Math.PI / numSegs;
+      
+      for (let i = 0; i < numSegs; i++) {
+        const segAngle = startAngle + i * angle;
+        
+        // Alternating nice themed dark/gold slices
+        ctx.fillStyle = i % 2 === 0 ? 'var(--gold)' : '#c88c0c';
+        ctx.strokeStyle = '#050505';
+        ctx.lineWidth = 2.5;
+        
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, segAngle, segAngle + angle);
+        ctx.lineTo(cx, cy);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Render text
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(segAngle + angle / 2);
+        
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#050505';
+        ctx.font = '900 11px Montserrat, sans-serif';
+        // Display values like '50 L'
+        const labelVal = carkItems[i].val + ' L';
+        ctx.fillText(labelVal, r - 22, 0);
+        ctx.restore();
+      }
+      
+      // Draw outer gold ring with bulb lights
+      ctx.strokeStyle = 'var(--gold)';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // Draw center golden circle
+      ctx.fillStyle = '#111';
+      ctx.strokeStyle = 'var(--gold)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Center 'L' Logo Text
+      ctx.fillStyle = 'var(--gold)';
+      ctx.font = '900 20px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('L', cx, cy);
+      
+      // Draw blinking bulb lights on the ring
+      const numBulbs = 16;
+      for (let i = 0; i < numBulbs; i++) {
+        const bulbAngle = i * (2 * Math.PI / numBulbs) + (isSpinning ? Date.now() / 150 : 0);
+        const bx = cx + (r - 2) * Math.cos(bulbAngle);
+        const by = cy + (r - 2) * Math.sin(bulbAngle);
+        
+        ctx.fillStyle = (Math.floor(Date.now() / 250) + i) % 2 === 0 ? '#fff' : 'var(--gold)';
+        ctx.beginPath();
+        ctx.arc(bx, by, 4.5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    function animateWheelLoop() {
+      if (isSpinning) {
+        startAngle += spinSpeed;
+        drawWheel();
+        requestAnimationFrame(animateWheelLoop);
+      }
+    }
+
+    // ==========================================
+    // SPIN WHEEL TRIGGER
+    // ==========================================
+    document.getElementById('btnSpin').addEventListener('click', async () => {
+      if (!currentProfile) return;
+      if (isSpinning) return;
+      
+      // Re-verify spin counts
+      const limitTime = new Date(Date.now() - 24*60*60*1000).toISOString();
+      const { data: lastSpins } = await sb.from('bildirimler')
+        .select('created_at')
+        .eq('alici_id', currentProfile.id)
+        .eq('tip', 'cark_hediyesi')
+        .gte('created_at', limitTime);
+
+      hasFreeSpin = !lastSpins || lastSpins.length === 0;
+      paidSpins = currentProfile.ggcoin || 0;
+      
+      if (!hasFreeSpin && paidSpins <= 0) {
+        toast('Çevirme hakkınız kalmadı!', 'error');
+        return;
+      }
+
+      isSpinning = true;
+      document.getElementById('btnSpin').disabled = true;
+      document.getElementById('btnBuySpins').disabled = true;
+
+      // Weighted random selection
+      const totalWeight = carkItems.reduce((s, item) => s + (item.prob || 0), 0);
+      let randomVal = Math.random() * totalWeight;
+      let winningIndex = carkItems.length - 1;
+      
+      for (let i = 0; i < carkItems.length; i++) {
+        if (randomVal < carkItems[i].prob) {
+          winningIndex = i;
+          break;
+        }
+        randomVal -= carkItems[i].prob;
+      }
+      
+      const winningItem = carkItems[winningIndex];
+
+      // Easing-based spin animation
+      let duration = 6000; // 6 seconds spin
+      let startTime = null;
+      
+      // Calculate target angle to align pointer (top center, i.e., 3 * Math.PI / 2) with winner
+      const numSegs = carkItems.length;
+      const segAngle = 2 * Math.PI / numSegs;
+      
+      // The slice is drawn at: startAngle + winningIndex * segAngle
+      // We want: startAngle + winningIndex * segAngle + segAngle / 2 = 3 * Math.PI / 2 (pointer)
+      // So target startAngle = 3 * Math.PI / 2 - (winningIndex * segAngle + segAngle / 2)
+      const targetStartAngle = (3 * Math.PI / 2) - (winningIndex * segAngle + segAngle / 2) + (2 * Math.PI * 8); // +8 full rotations
+
+      const initialStartAngle = startAngle;
+      const totalDiff = targetStartAngle - initialStartAngle;
+
+      function easeOutBack(t, b, c, d) {
+        let s = 1.20;
+        return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
+      }
+
+      function spinAnim(timestamp) {
+        if (!startTime) startTime = timestamp;
+        let elapsed = timestamp - startTime;
+        
+        if (elapsed < duration) {
+          // Animate start angle using easing
+          startAngle = easeOutBack(elapsed, initialStartAngle, totalDiff, duration);
+          drawWheel();
+          requestAnimationFrame(spinAnim);
+        } else {
+          // Finalize spin
+          isSpinning = false;
+          startAngle = targetStartAngle % (2 * Math.PI);
+          drawWheel();
+          
+          processSpinResult(winningItem);
+        }
+      }
+
+      requestAnimationFrame(spinAnim);
+    });
+
+    async function processSpinResult(item) {
+      try {
+        // 1. Insert won LCoin as unclaimed gift notification
+        await sb.from('bildirimler').insert({
+          alici_id: currentProfile.id,
+          gonderen_id: currentProfile.id,
+          tip: 'cark_hediyesi',
+          icerik: item.val.toString(),
+          link: 'cark.html',
+          okundu: false
+        });
+
+        // 2. Update paid spins (ggcoin) in database if free spin was already used
+        if (!hasFreeSpin) {
+          paidSpins--;
+          await sb.from('kullanicilar').update({ ggcoin: paidSpins }).eq('id', currentProfile.id);
+          currentProfile.ggcoin = paidSpins;
+        }
+
+        toast(`Tebrikler! Çarktan ${item.name} kazandınız!`, 'gold');
+        
+        // Refresh local displays
+        checkSpinRights();
+        document.getElementById('btnBuySpins').disabled = false;
+        
+        // Reload Leaderboards
+        loadLeaderboardAndRecent();
+      } catch (err) {
+        console.error(err);
+        toast('Ödül kaydedilemedi!', 'error');
+        isSpinning = false;
+        document.getElementById('btnSpin').disabled = false;
+        document.getElementById('btnBuySpins').disabled = false;
+      }
+    }
+
+    // ==========================================
+    // BUY SPINS
+    // ==========================================
+    document.getElementById('btnBuySpins').addEventListener('click', async () => {
+      if (!currentProfile) return;
+      if (currentProfile.lcoin < 50) {
+        toast('Yetersiz LCoin! 5 Hak almak için 50 LCoin gerekir.', 'error');
+        return;
+      }
+
+      document.getElementById('btnBuySpins').disabled = true;
+
+      try {
+        const newLcoin = currentProfile.lcoin - 50;
+        const newGgcoin = (currentProfile.ggcoin || 0) + 5;
+
+        // Update database
+        const { error } = await sb.from('kullanicilar')
+          .update({ lcoin: newLcoin, ggcoin: newGgcoin })
+          .eq('id', currentProfile.id);
+
+        if (error) throw error;
+
+        currentProfile.lcoin = newLcoin;
+        currentProfile.ggcoin = newGgcoin;
+
+        // Update navbar lcoin
+        const navL = document.getElementById('nav-lcoin-amount');
+        if (navL) navL.textContent = newLcoin.toLocaleString();
+
+        toast('Başarıyla 5 Çevirme Hakkı satın aldınız! 🪙 -50', 'success');
+        checkSpinRights();
+      } catch (err) {
+        console.error(err);
+        toast('Satın alma işlemi başarısız!', 'error');
+      } finally {
+        document.getElementById('btnBuySpins').disabled = false;
+      }
+    });
+
+    // ==========================================
+    // LEADERBOARD & RECENT WINS LOADING
+    // ==========================================
+    async function loadLeaderboardAndRecent() {
+      try {
+        // Query cark rewards from last 30 days
+        const { data, error } = await sb.from('bildirimler')
+          .select('created_at, icerik, alici_id, kullanicilar:alici_id(kullanici_adi, avatar_url)')
+          .eq('tip', 'cark_hediyesi')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        allSpinHistory = data || [];
+        
+        renderLeaderboard();
+        renderRecentWins();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setLeaderboardRange(range, btn) {
+      activeRange = range;
+      document.querySelectorAll('.lb-tabs .lb-tab').forEach(b => {
+        b.classList.remove('mc-green');
+        b.classList.add('mc-gray');
+      });
+      btn.classList.remove('mc-gray');
+      btn.classList.add('mc-green');
+      renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      const list = document.getElementById('lbList');
+      list.innerHTML = '';
+
+      let timeLimit = 0;
+      if (activeRange === 'day') {
+        timeLimit = Date.now() - 24 * 60 * 60 * 1000;
+      } else if (activeRange === 'week') {
+        timeLimit = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      } else {
+        timeLimit = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      }
+
+      // Filter and aggregate total LCoin won per user
+      const userWins = {};
+      allSpinHistory.forEach(item => {
+        const itemTime = new Date(item.created_at).getTime();
+        if (itemTime >= timeLimit) {
+          const uId = item.alici_id;
+          const uNick = item.kullanicilar?.kullanici_adi || 'Anonim';
+          const uAvatar = item.kullanicilar?.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${uNick}`;
+          const amount = parseInt(item.icerik) || 0;
+
+          if (!userWins[uId]) {
+            userWins[uId] = {
+              name: uNick,
+              avatar: uAvatar,
+              total: 0
+            };
+          }
+          userWins[uId].total += amount;
+        }
+      });
+
+      // Sort by total desc
+      const sorted = Object.values(userWins).sort((a, b) => b.total - a.total).slice(0, 10);
+
+      if (sorted.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-3); font-size:12px; text-align:center; padding: 20px 0;">Bu dönemde kazanan yok.</div>';
+        return;
+      }
+
+      sorted.forEach((w, idx) => {
+        const rank = idx + 1;
+        const item = document.createElement('div');
+        item.className = 'lb-item';
+        
+        let rankCls = 'lb-rank';
+        if (rank === 1) rankCls += ' rank-1';
+        if (rank === 2) rankCls += ' rank-2';
+        if (rank === 3) rankCls += ' rank-3';
+
+        item.innerHTML = `
+          <div class="${rankCls}">${rank <= 3 ? '★' : rank}</div>
+          <img src="${w.avatar}" class="lb-avatar" alt="Avatar">
+          <div class="lb-info">
+            <div class="lb-name">${w.name}</div>
+            <div class="lb-reward"><span class="nav-lcoin-icon" style="transform: scale(0.85);"></span> ${w.total} LCoin</div>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function renderRecentWins() {
+      const list = document.getElementById('rwList');
+      list.innerHTML = '';
+
+      // Take latest 5 spins globally
+      const latest = allSpinHistory.slice(0, 5);
+
+      if (latest.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-3); font-size:12px; text-align:center; padding: 20px 0;">Henüz çeviren olmadı.</div>';
+        return;
+      }
+
+      latest.forEach(w => {
+        const uNick = w.kullanicilar?.kullanici_adi || 'Anonim';
+        const uAvatar = w.kullanicilar?.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${uNick}`;
+        const amount = parseInt(w.icerik) || 0;
+
+        const item = document.createElement('div');
+        item.className = 'rw-item';
+        item.innerHTML = `
+          <img src="${uAvatar}" class="rw-avatar" alt="Avatar">
+          <div class="rw-info">
+            <div class="rw-name">${uNick}</div>
+            <div class="rw-reward"><span class="nav-lcoin-icon" style="transform: scale(0.85);"></span> ${amount} LCoin çıkardı!</div>
+          </div>
+          <div class="rw-time">${timeAgo(w.created_at)}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // ==========================================
+    // LOAD COG WHEEL CONFIG FROM DB
+    // ==========================================
+    async function loadWheelSettings() {
+      try {
+        const { data, error } = await sb.from('cark_ayarlari').select('*').limit(1).maybeSingle();
+        if (!error && data && data.config && data.config.items && data.config.items.length > 0) {
+          // Filter to make sure it only has LCoin type
+          carkItems = data.config.items.filter(i => i.type === 'lcoin');
+          if (carkItems.length === 0) carkItems = defaultItems;
+        }
+      } catch (err) {
+        console.warn('Could not load cark_ayarlari, using defaults.');
+      }
+      
+      // Render initial static wheel
+      drawWheel();
+      
+      // Run continuous drawing to animate bulb lights blinking
+      setInterval(drawWheel, 250);
+    }
+
+    // ==========================================
+    // CANVAS BACKGROUND ANIMATION
+    // ==========================================
+    function initCanvasBg() {
+      const canvas = document.getElementById('canvas-bg');
+      const ctx = canvas.getContext('2d');
+      let W, H, beams=[], logos=[];
+
       function resize() {
-        w = cvs.width = window.innerWidth;
-        h = cvs.height = window.innerHeight;
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
       }
       window.addEventListener('resize', resize);
       resize();
-      
-      class Beam {
-        constructor() { this.reset(); }
-        reset() {
-          this.x = Math.random() * w;
-          this.y = h + Math.random() * 100;
-          this.len = Math.random() * 200 + 100;
-          this.speed = Math.random() * 2 + 0.5;
-          this.width = Math.random() * 3 + 1;
-          this.opacity = Math.random() * 0.5 + 0.1;
-        }
-        update() {
-          this.y -= this.speed;
-          if (this.y + this.len < 0) this.reset();
-        }
-        draw() {
-          const grad = ctx.createLinearGradient(0, this.y, 0, this.y + this.len);
-          grad.addColorStop(0, `rgba(57,255,20,0)`);
-          grad.addColorStop(0.5, `rgba(57,255,20,${this.opacity})`);
-          grad.addColorStop(1, `rgba(57,255,20,0)`);
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(this.x, this.y + this.len);
-          ctx.lineWidth = this.width;
-          ctx.strokeStyle = grad;
-          ctx.stroke();
-        }
-      }
-      for (let i=0; i<15; i++) beams.push(new Beam());
+
+      for(let i=0;i<6;i++) beams.push({
+        x: Math.random()*W, y: Math.random()*H,
+        angle: Math.PI/4 + (Math.random()-0.5)*0.3,
+        speed: 0.3+Math.random()*0.4,
+        width: 60+Math.random()*80,
+        alpha: 0.03+Math.random()*0.04
+      });
+
+      for(let i=0;i<5;i++) logos.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-0.5)*0.2,
+        vy: (Math.random()-0.5)*0.2,
+        alpha: 0.02+Math.random()*0.03,
+        size: 22+Math.random()*28,
+        rot: Math.random()*Math.PI*2,
+        rotSpeed: (Math.random()-0.5)*0.002
+      });
+
       function animate() {
-        ctx.clearRect(0,0,w,h);
-        beams.forEach(b => { b.update(); b.draw(); });
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#050505';
+        ctx.fillRect(0,0,W,H);
+
+        beams.forEach(b => {
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.angle);
+          const grad = ctx.createLinearGradient(-b.width/2,0,b.width/2,0);
+          grad.addColorStop(0,'transparent');
+          grad.addColorStop(0.5,`rgba(57,255,20,${b.alpha})`);
+          grad.addColorStop(1,'transparent');
+          ctx.fillStyle=grad;
+          ctx.fillRect(-b.width/2,-2000,b.width,4000);
+          ctx.restore();
+          b.x += Math.cos(b.angle)*b.speed;
+          b.y += Math.sin(b.angle)*b.speed;
+          if(b.x>W+200) b.x=-200;
+          if(b.y>H+200) b.y=-200;
+        });
+
+        logos.forEach(l => {
+          ctx.save();
+          ctx.translate(l.x, l.y);
+          ctx.rotate(l.rot);
+          ctx.globalAlpha = l.opacity;
+          ctx.font = `900 ${l.size}px Montserrat, sans-serif`;
+          ctx.fillStyle = '#39ff14';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('LOBBY.GG', 0, 0);
+          ctx.restore();
+          l.x += l.vx; l.y += l.vy; l.rot += l.rotSpeed;
+          if(l.x<-100) l.x=W+100;
+          if(l.x>W+100) l.x=-100;
+          if(l.y<-50) l.y=H+50;
+          if(l.y>H+50) l.y=-50;
+        });
+
         requestAnimationFrame(animate);
       }
       animate();
     }
 
-    function generateLeaderboard() {
-      // Mock leaderboard for visual presentation
-      const list = document.getElementById('lbList');
-      const winners = [
-        { name: 'ProGamer_99', win: '100 LCoin', time: '10 dk önce', color: 'gold' },
-        { name: 'CraftMaster', win: '2 Gün Öne Çıkarma', time: '1 saat önce', color: 'text-1' },
-        { name: 'SlayerX', win: '50 LCoin', time: '2 saat önce', color: 'gold' },
-        { name: 'Yusuf_TR', win: '1 Gün Öne Çıkarma', time: '5 saat önce', color: 'text-1' },
-        { name: 'Ayse_Girl', win: '20 LCoin', time: '8 saat önce', color: 'gold' }
-      ];
-
-      list.innerHTML = winners.map(w => `
-        <div class="lb-item">
-          <img src="https://api.dicebear.com/7.x/minecraft/svg?seed=${w.name}" class="lb-avatar">
-          <div class="lb-info">
-            <div class="lb-name">${w.name}</div>
-            <div class="lb-reward" style="color:var(--${w.color})">${w.win}</div>
-          </div>
-          <div class="lb-time">${w.time}</div>
-        </div>
-      `).join('');
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
+    async function init() {
+      await buildNav();
+      initCanvasBg();
+      await loadWheelSettings();
+      await loadLeaderboardAndRecent();
     }
 
-    document.getElementById('btnBuySpins').addEventListener('click', () => {
-      if (!currentProfile) return alert('Lütfen giriş yapın!');
-      if (currentProfile.lcoin < 50) return alert('Yetersiz LCoin!');
-      // In real scenario, subtract from DB.
-      spinRights += 5;
-      document.getElementById('spinCount').textContent = spinRights;
-      alert('5 Hak satın alındı!');
-    });
-
-    document.getElementById('btnSpin').addEventListener('click', () => {
-      if (!currentProfile) return alert('Lütfen giriş yapın!');
-      if (spinRights <= 0) return alert('Çevirme hakkınız kalmadı! Satın alabilirsiniz.');
-      if (isSpinning) return;
-
-      isSpinning = true;
-      spinRights--;
-      document.getElementById('spinCount').textContent = spinRights;
-
-      // Random segment (0 to 7)
-      const targetSegment = Math.floor(Math.random() * 8);
-      // Segment 0 is at 0-45deg. To land pointer in middle of segment 0, we need to rotate 
-      // wheel such that segment 0 is at top. Actually segment 0 is top-right (0-45deg from top center)
-      // To bring segment center to top (-22.5 deg relative to its own start).
-      
-      const spins = 5; // number of full rotations
-      const baseRotation = spins * 360;
-      // segment angle size
-      const segAngle = 360 / 8;
-      // offset to put pointer in middle of segment
-      const offset = (targetSegment * segAngle) + (segAngle / 2);
-      
-      // We want to rotate backwards (or forwards) so that `offset` aligns with top (which is 0deg).
-      // If wheel rotates clockwise, segment N moves right. To bring it to top, we subtract offset.
-      const totalRotation = currentRotation + baseRotation + (360 - offset) - (currentRotation % 360);
-      
-      const wheel = document.getElementById('wheel');
-      wheel.style.transform = `rotate(${totalRotation}deg)`;
-
-      setTimeout(() => {
-        isSpinning = false;
-        currentRotation = totalRotation;
-        const reward = segments[targetSegment];
-        alert(`Tebrikler! ${reward.name} kazandınız! Ödülünüz "Hediyelerim" sekmesine eklendi.`);
-      }, 5000);
-    });
-
-    buildNav();
-    initCanvas();
-    generateLeaderboard();
+    init();
   </script>
 </body>
 </html>

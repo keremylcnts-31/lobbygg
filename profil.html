@@ -1933,28 +1933,18 @@ async function renderHediyelerTab(container) {
 
   const list = el('div', {style:{display:'flex', flexDirection:'column', gap:'12px'}});
   
+  // Load LCoin gifts from notifications
+  const { data: giftsData } = await sb.from('bildirimler')
+    .select('*')
+    .eq('alici_id', currentUser.id)
+    .eq('tip', 'cark_hediyesi')
+    .eq('okundu', false)
+    .order('created_at', {ascending:false});
+  
+  const gifts = giftsData || [];
   const kalanOne = currentUser.kalan_one_cikarma || 0;
   
-  if (kalanOne > 0) {
-    const item = el('div', {style:{background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between'}});
-    
-    const left = el('div', {style:{display:'flex', alignItems:'center', gap:'16px'}});
-    const ico = el('div', {style:{fontSize:'32px'}}); ico.textContent = '🚀';
-    const info = el('div');
-    const h = el('div', {style:{color:'#fff', fontWeight:'800', fontSize:'16px', marginBottom:'4px'}}); h.textContent = 'İlan Öne Çıkarma Hakkı';
-    const sub = el('div', {style:{color:'var(--text-2)', fontSize:'12px'}}); sub.textContent = `Toplam ${kalanOne} adet öne çıkarma hakkınız bulunuyor.`;
-    info.appendChild(h); info.appendChild(sub);
-    left.appendChild(ico); left.appendChild(info);
-    
-    const right = el('div');
-    const useBtn = el('button', {className:'btn mc-gold', textContent:'İlanlarımda Kullan'});
-    useBtn.addEventListener('click', () => switchTab('ilanlar'));
-    right.appendChild(useBtn);
-    
-    item.appendChild(left);
-    item.appendChild(right);
-    list.appendChild(item);
-  } else {
+  if (kalanOne <= 0 && gifts.length === 0) {
     const es = el('div', {className:'empty-state'});
     const ico = el('div', {className:'empty-state-icon', textContent:'😔'});
     const tit = el('div', {className:'empty-state-title', textContent:'Hiç Hediyeniz Yok'});
@@ -1963,8 +1953,78 @@ async function renderHediyelerTab(container) {
     carkBtn.addEventListener('click', () => window.location.href='cark.html');
     es.appendChild(ico); es.appendChild(tit); es.appendChild(sub); es.appendChild(carkBtn);
     list.appendChild(es);
+  } else {
+    // 1. Show highlights if any
+    if (kalanOne > 0) {
+      const item = el('div', {style:{background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px'}});
+      const left = el('div', {style:{display:'flex', alignItems:'center', gap:'16px'}});
+      const ico = el('div', {style:{fontSize:'32px'}}); ico.textContent = '🚀';
+      const info = el('div');
+      const h = el('div', {style:{color:'#fff', fontWeight:'800', fontSize:'16px', marginBottom:'4px'}}); h.textContent = 'İlan Öne Çıkarma Hakkı';
+      const sub = el('div', {style:{color:'var(--text-2)', fontSize:'12px'}}); sub.textContent = `Toplam ${kalanOne} adet öne çıkarma hakkınız bulunuyor.`;
+      info.appendChild(h); info.appendChild(sub);
+      left.appendChild(ico); left.appendChild(info);
+      
+      const right = el('div');
+      const useBtn = el('button', {className:'btn mc-gold', textContent:'İlanlarımda Kullan'});
+      useBtn.addEventListener('click', () => switchTab('ilanlar'));
+      right.appendChild(useBtn);
+      
+      item.appendChild(left);
+      item.appendChild(right);
+      list.appendChild(item);
+    }
+    
+    // 2. Show LCoin gifts
+    gifts.forEach(g => {
+      const amount = parseInt(g.icerik) || 0;
+      const item = el('div', {style:{background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px'}});
+      const left = el('div', {style:{display:'flex', alignItems:'center', gap:'16px'}});
+      
+      const ico = el('span', {className:'nav-lcoin-icon', style:{transform:'scale(1.8)', margin:'0 10px'}});
+      const info = el('div');
+      const h = el('div', {style:{color:'#fff', fontWeight:'800', fontSize:'16px', marginBottom:'4px'}}); h.textContent = `${amount} LCoin Hediye`;
+      const sub = el('div', {style:{color:'var(--text-2)', fontSize:'12px'}}); sub.textContent = `Çarkı çevirerek kazandığın ${amount} LCoin ödülü.`;
+      info.appendChild(h); info.appendChild(sub);
+      left.appendChild(ico); left.appendChild(info);
+      
+      const right = el('div');
+      const claimBtn = el('button', {className:'btn mc-green', textContent:'Hesaba Aktar'});
+      claimBtn.addEventListener('click', async () => {
+        claimBtn.disabled = true;
+        claimBtn.textContent = 'Aktarılıyor...';
+        
+        try {
+          const newBal = (currentUser.lcoin || 0) + amount;
+          // Update database
+          const { error: dbErr } = await sb.from('kullanicilar').update({ lcoin: newBal }).eq('id', currentUser.id);
+          if (dbErr) throw dbErr;
+          
+          // Mark notification as read (claimed)
+          const { error: notifErr } = await sb.from('bildirimler').update({ okundu: true }).eq('id', g.id);
+          if (notifErr) throw notifErr;
+          
+          // Success
+          currentUser.lcoin = newBal;
+          const navL = document.getElementById('navLcoin');
+          if (navL) navL.textContent = newBal.toLocaleString();
+          
+          toast(`${amount} LCoin hesabınıza aktarıldı!`, 'success');
+          renderHediyelerTab(container);
+        } catch (err) {
+          toast('Aktarım başarısız: ' + err.message, 'error');
+          claimBtn.disabled = false;
+          claimBtn.textContent = 'Hesaba Aktar';
+        }
+      });
+      right.appendChild(claimBtn);
+      
+      item.appendChild(left);
+      item.appendChild(right);
+      list.appendChild(item);
+    });
   }
-
+  
   wrap.appendChild(list);
   container.appendChild(wrap);
 }
@@ -3073,7 +3133,7 @@ function renderOzellestirTab(container) {
       aktif_cerceve: selectedFrame || profileUser.aktif_cerceve,
       pp_sekil: selectedShape || profileUser.pp_sekil,
       banner_renk: savedBannerColor || profileUser.banner_renk,
-      desteklenen_sunucu: selectedDestServer,
+      desteklened_sunucu: selectedDestServer,
       favori_sunucular: selectedFavServers
     };
 

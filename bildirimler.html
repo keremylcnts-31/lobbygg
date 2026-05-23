@@ -857,6 +857,7 @@ async function fetchNotifications() {
     .from('bildirimler')
     .select('*')
     .eq('alici_id', currentUser.id)
+    .neq('tip', 'cark_hediyesi')
     .order('created_at', { ascending: false })
     .limit(100);
   if (error) { console.error(error); return []; }
@@ -1364,6 +1365,7 @@ function subscribeRealtime() {
       filter: `alici_id=eq.${currentUser.id}`
     }, async (payload) => {
       const newN = payload.new;
+      if (newN.tip === 'cark_hediyesi') return;
 
       // Enrich with sender
       if (newN.gonderen_id) {

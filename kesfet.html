@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LOBBY.GG - Keşfet</title>
+  <title>LOBBY.GG - Oyuncuları Keşfet</title>
   
   <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,34 +97,10 @@
       flex-wrap: wrap;
     }
 
-    .filter-chip {
-      background: var(--bg-card2);
-      border: 1px solid var(--border);
-      padding: 8px 16px;
-      border-radius: 20px;
-      color: var(--text-2);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-
-    .filter-chip:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: var(--border-hover);
-    }
-
-    .filter-chip.active {
-      background: var(--accent);
-      color: #000;
-      border-color: var(--accent);
-    }
-
-    /* Grid */
+    /* Player Cards Grid */
     .player-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 24px;
     }
 
@@ -136,9 +112,10 @@
       overflow: hidden;
       position: relative;
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      text-decoration: none;
       display: flex;
       flex-direction: column;
+      text-decoration: none;
+      color: inherit;
     }
 
     .player-card:hover {
@@ -149,7 +126,7 @@
 
     .pc-banner-wrap {
       position: relative;
-      height: 110px;
+      height: 90px;
       background: #111;
       border-bottom: 1px solid var(--border-thin);
     }
@@ -166,30 +143,12 @@
       background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
     }
 
-    .pc-server-logo {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      border: 2px solid rgba(255,255,255,0.2);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      background: #000;
-      object-fit: cover;
-      transition: transform 0.2s;
-    }
-    .player-card:hover .pc-server-logo {
-      transform: scale(1.1) rotate(5deg);
-      border-color: var(--accent);
-    }
-
     .pc-avatar-wrap {
       position: absolute;
-      bottom: -35px;
-      left: 15px;
-      width: 70px;
-      height: 70px;
+      top: 50px;
+      left: 16px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       padding: 3px;
       background: var(--bg-card);
@@ -203,67 +162,106 @@
       object-fit: cover;
       border: 2px solid var(--border);
     }
+    .pc-avatar.shape-rounded {
+      border-radius: 12px;
+    }
 
     [data-frame="neon-green"] .pc-avatar { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
     [data-frame="gold"] .pc-avatar { border-color: var(--gold); }
     [data-frame="purple"] .pc-avatar { border-color: var(--purple); }
 
     .pc-body {
-      padding: 45px 15px 20px;
+      padding: 40px 16px 16px;
       flex: 1;
       display: flex;
       flex-direction: column;
+      gap: 12px;
     }
 
     .pc-name-row {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .pc-name {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 900;
       color: var(--text-1);
     }
 
-    .verified-icon {
-      color: var(--blue);
-      font-size: 14px;
+    .profile-verify-badge {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
 
-    .pc-badges {
+    .pc-clan-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 15px;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-2);
+      background: rgba(255,255,255,0.02);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-thin);
+    }
+    .pc-clan-logo {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      object-fit: cover;
+    }
+    .pc-clan-name {
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .pc-clan-tag {
+      color: var(--accent);
+      font-weight: 800;
     }
 
-    .pc-stats {
-      margin-top: auto;
+    .pc-server-row {
       display: flex;
-      gap: 15px;
-      border-top: 1px dashed var(--border);
-      padding-top: 15px;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-2);
+      background: rgba(255,255,255,0.02);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-thin);
     }
-    
-    .pc-stat {
+    .pc-server-logo-img {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      object-fit: cover;
+    }
+    .pc-server-name {
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .pc-bio {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 34px;
+    }
+
+    .pc-actions {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 8px;
+      margin-top: auto;
     }
-    .pc-stat-val {
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--text-1);
-    }
-    .pc-stat-lbl {
-      font-size: 10px;
-      color: var(--text-3);
-      text-transform: uppercase;
-    }
-
   </style>
 </head>
 <body>
@@ -285,11 +283,11 @@
           <input type="text" id="searchInput" placeholder="Oyuncu, klan veya yetenek ara..." onkeyup="filterCards()">
         </div>
         <div class="kesfet-filters">
-          <div class="filter-chip active" onclick="setFilter('Tümü', this)">Tümü</div>
-          <div class="filter-chip" onclick="setFilter('PvP', this)">PvP</div>
-          <div class="filter-chip" onclick="setFilter('Builder', this)">Builder</div>
-          <div class="filter-chip" onclick="setFilter('İçerik', this)">Yayıncı</div>
-          <div class="filter-chip" onclick="setFilter('Developer', this)">Geliştirici</div>
+          <button class="btn mc-green mc-sm" onclick="setFilter('Tümü', this)">Tümü</button>
+          <button class="btn mc-gray mc-sm" onclick="setFilter('PvP', this)">PvP</button>
+          <button class="btn mc-gray mc-sm" onclick="setFilter('Builder', this)">Builder</button>
+          <button class="btn mc-gray mc-sm" onclick="setFilter('İçerik Üretici', this)">Yayıncı</button>
+          <button class="btn mc-gray mc-sm" onclick="setFilter('Developer', this)">Geliştirici</button>
         </div>
       </div>
 
@@ -307,19 +305,46 @@
 
     let currentFilter = 'Tümü';
     let allUsers = [];
+    let allClans = [];
+
+    const SERVERS = [
+      {name:'HanedanMC', ip:'play.hanedanmc.com'},
+      {name:'ChickenNW', ip:'oyna.chickennw.com'},
+      {name:'BLOKYA', ip:'oyna.blokya.com'},
+      {name:'DugeCraft', ip:'play.dugecraft.com.tr'},
+      {name:'ZENITMC', ip:'play.zenitmc.com'},
+      {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+      {name:'SOULCRAFT', ip:'soulcraft.tc'},
+      {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+      {name:'AtlantikMC', ip:'atlantikmc.com'},
+      {name:'NAVELYA', ip:'navelya.net'},
+      {name:'CRAFTLUNA', ip:'play.craftluna.net'},
+      {name:'Melonya', ip:'melonya.net'},
+      {name:'Rush Craft', ip:'play.rushcraft.com.tr'},
+      {name:'RebornCraft', ip:'play.reborncraft.pw'},
+      {name:'LuneCraft', ip:'mc.lunecraft.net'},
+      {name:'SimitSMP', ip:'simitsmp.net'},
+      {name:'MC4FUN', ip:'play.mc4fun.net'},
+      {name:'İmibiyum', ip:'play.imibiyum.com'}
+    ];
+
+    const abonelikMap = {uye:'b-uye', abone:'b-abone', premium:'b-premium', admin:'b-admin', yonetici:'b-yonetici', kurucu:'b-yonetici'};
+    const abonelikLabel = {uye:'Üye', abone:'Abone', premium:'Premium', admin:'Admin', yonetici:'Yönetici', kurucu:'Kurucu'};
 
     // ==========================================
-    // NAV BUILDER (From main theme)
+    // NAV BUILDER
     // ==========================================
     async function buildNav() {
       const nav = document.getElementById('nav');
       nav.innerHTML = `
-        <a href="lobbyx.html"><img src="https://i.hizliresim.com/6c4wdx4.png" alt="LOBBY.GG Logo" class="nav-logo"></a>
+        <a href="lobbyx.html"><img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG Logo" class="nav-logo"></a>
         <div class="nav-links">
           <a href="lobbyx.html" class="nav-link">🏠 Ana Sayfa</a>
           <a href="ilanlar.html" class="nav-link">📜 İlanlar</a>
+          <a href="klanlar.html" class="nav-link">🛡️ Klanlar</a>
           <a href="kesfet.html" class="nav-link active">🌍 Keşfet</a>
           <a href="market.html" class="nav-link">💎 Mağaza</a>
+          <a href="destek.html" class="nav-link">📞 Destek</a>
         </div>
         <div class="nav-right" id="navRight">
           <a href="giris.html" class="btn mc-green mc-sm">Giriş Yap</a>
@@ -331,7 +356,9 @@
         const { data: profile } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
         if (profile) {
           document.getElementById('navRight').innerHTML = `
-            <a href="profil.html" class="nav-lcoin"><span class="lcoin-icon">L</span> ${profile.lcoin || 0}</a>
+            <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
+            <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
+            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>
             <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
               <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
             </a>
@@ -345,11 +372,16 @@
     // ==========================================
     async function loadPlayers() {
       try {
-        const { data, error } = await sb.from('kullanicilar').select('*').order('kayit_tarihi', { ascending: false });
-        if (data) {
-          allUsers = data;
-          renderGrid();
+        const { data: usersData, error: uErr } = await sb.from('kullanicilar').select('*').order('kayit_tarihi', { ascending: false });
+        const { data: clansData, error: cErr } = await sb.from('klanlar').select('*');
+        
+        if (usersData) {
+          allUsers = usersData;
         }
+        if (clansData) {
+          allClans = clansData;
+        }
+        renderGrid();
       } catch (e) { console.error(e); }
     }
 
@@ -362,81 +394,126 @@
       
       const searchQ = document.getElementById('searchInput').value.toLowerCase();
       
+      const clanMap = {};
+      allClans.forEach(c => clanMap[c.tag] = c);
+
       const filtered = allUsers.filter(u => {
-        const matchSearch = (u.kullanici_adi || '').toLowerCase().includes(searchQ) || (u.kategori || '').toLowerCase().includes(searchQ);
+        const matchSearch = (u.kullanici_adi || '').toLowerCase().includes(searchQ) || 
+                            (u.kategori || '').toLowerCase().includes(searchQ) || 
+                            (u.alt_kategori || '').toLowerCase().includes(searchQ) || 
+                            (u.klan_tag || '').toLowerCase().includes(searchQ);
+        
         const matchFilter = currentFilter === 'Tümü' || u.kategori === currentFilter;
         return matchSearch && matchFilter;
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-3); font-size:14px; grid-column:1/-1;">Sonuç bulunamadı.</div>';
+        grid.innerHTML = '<div style="color:var(--text-3); font-size:14px; grid-column:1/-1; text-align:center; padding: 40px 0;">Sonuç bulunamadı.</div>';
         return;
       }
 
       filtered.forEach(u => {
-        const avatarSrc = u.avatar_url || \`https://api.dicebear.com/7.x/minecraft/svg?seed=\${u.kullanici_adi}\`;
+        const avatarSrc = u.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${u.kullanici_adi}`;
         const bannerSrc = u.banner_url || 'https://images.unsplash.com/photo-1627856013091-fed6e4e30025?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
         
         let subBadge = '';
         if (u.kategori) {
           let bClass = 'b-diger';
           if (u.kategori === 'PvP') bClass = 'b-pvp';
-          if (u.kategori === 'İçerik') bClass = 'b-icerik';
+          if (u.kategori === 'İçerik Üretici' || u.kategori === 'İçerik') bClass = 'b-icerik';
           if (u.kategori === 'Developer') bClass = 'b-developer';
           if (u.kategori === 'Builder') bClass = 'b-builder';
           if (u.kategori === 'Yönetici') bClass = 'b-yonetici-cat';
-          subBadge = \`<span class="badge \${bClass}">\${u.kategori}</span>\`;
+          subBadge = `<span class="badge ${bClass}">${u.kategori}</span>`;
         }
 
         let roleBadge = '';
         if (u.abonelik === 'premium') roleBadge = '<span class="badge b-premium">Premium</span>';
         if (u.abonelik === 'abone') roleBadge = '<span class="badge b-abone">Abone</span>';
+        if (u.abonelik === 'admin') roleBadge = '<span class="badge b-admin">Admin</span>';
+        if (u.abonelik === 'yonetici' || u.abonelik === 'kurucu') roleBadge = '<span class="badge b-yonetici">Yönetici</span>';
         
-        // Random stats for visual
-        const followers = Math.floor(Math.random() * 500) + 10;
-        const posts = Math.floor(Math.random() * 50) + 1;
+        // Clan HTML
+        let clanHtml = '';
+        if (u.klan_tag && clanMap[u.klan_tag]) {
+          const klan = clanMap[u.klan_tag];
+          const klanLogo = klan.logo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(klan.isim)}&background=1a1a1a&color=39ff14`;
+          clanHtml = `
+            <div class="pc-clan-row">
+              <img src="${klanLogo}" class="pc-clan-logo" alt="${klan.isim}">
+              <div>
+                <span class="pc-clan-name">${klan.isim}</span>
+                <span class="pc-clan-tag">[${klan.tag}]</span>
+              </div>
+            </div>
+          `;
+        }
+
+        // Server HTML
+        let serverHtml = '';
+        if (u.desteklened_sunucu) {
+          const srv = SERVERS.find(s => s.ip === u.desteklened_sunucu);
+          const srvName = srv ? srv.name : u.desteklened_sunucu;
+          const srvLogo = `https://api.mcsrvstat.us/icon/${u.desteklened_sunucu}`;
+          serverHtml = `
+            <div class="pc-server-row">
+              <img src="${srvLogo}" class="pc-server-logo-img" onerror="this.src='https://ui-avatars.com/api/?name=MC&background=1a1a1a&color=39ff14&size=24'" alt="Server">
+              <span class="pc-server-name">${srvName}</span>
+            </div>
+          `;
+        }
+
+        // Discord Button HTML
+        let discordBtnHtml = '';
+        if (u.discord) {
+          discordBtnHtml = `
+            <button class="btn mc-discord" style="width: 100%; justify-content: center; font-size: 11px;" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${u.discord}'); alert('Discord kullanıcı adı kopyalandı: ${u.discord}')">
+              <span style="font-size: 14px; margin-right: 6px;">💬</span> ${u.discord}
+            </button>
+          `;
+        }
 
         const card = document.createElement('a');
-        card.href = \`profil.html?id=\${u.id}\`;
+        card.href = `profil.html?id=${u.id}`;
         card.className = 'player-card';
-        card.innerHTML = \`
+        card.innerHTML = `
           <div class="pc-banner-wrap">
-            <img src="\${bannerSrc}" class="pc-banner" alt="Banner">
+            <img src="${bannerSrc}" class="pc-banner" alt="Banner">
             <div class="pc-banner-overlay"></div>
-            \${u.desteklened_sunucu ? \`<img src="https://api.mcsrvstat.us/icon/\${u.desteklened_sunucu}" class="pc-server-logo" title="Oynadığı Sunucu">\` : ''}
-            <div class="pc-avatar-wrap" data-frame="\${u.aktif_cerceve || 'none'}">
-              <img src="\${avatarSrc}" class="pc-avatar" alt="Avatar">
-            </div>
+          </div>
+          <div class="pc-avatar-wrap" data-frame="${u.aktif_cerceve || 'none'}">
+            <img src="${avatarSrc}" class="pc-avatar ${u.pp_sekil === 'rounded' ? 'shape-rounded' : ''}" alt="Avatar">
           </div>
           <div class="pc-body">
             <div class="pc-name-row">
-              <span class="pc-name">\${u.kullanici_adi || 'Anonim'}</span>
-              \${u.dogrulama_rozeti ? '<span class="verified-icon" title="Doğrulanmış">✔</span>' : ''}
+              <span class="pc-name">${u.kullanici_adi || 'Anonim'}</span>
+              ${u.dogrulama_rozeti ? '<img src="https://i.imgur.com/VDpHaPy.png" class="profile-verify-badge" title="Doğrulanmış">' : ''}
+              ${roleBadge}
+              ${subBadge}
             </div>
-            <div class="pc-badges">
-              \${roleBadge}
-              \${subBadge}
+            ${clanHtml}
+            ${serverHtml}
+            <div class="pc-bio">
+              ${u.bio || 'Henüz bir açıklama yazılmamış.'}
             </div>
-            <div class="pc-stats">
-              <div class="pc-stat">
-                <span class="pc-stat-val">\${followers}</span>
-                <span class="pc-stat-lbl">Takipçi</span>
-              </div>
-              <div class="pc-stat">
-                <span class="pc-stat-val">\${posts}</span>
-                <span class="pc-stat-lbl">Drop</span>
-              </div>
+            <div class="pc-actions">
+              <span class="btn mc-gold" style="width: 100%; justify-content: center; font-size: 11px;">PROFİLİ ZİYARET ET</span>
+              ${discordBtnHtml}
             </div>
           </div>
-        \`;
+        `;
         grid.appendChild(card);
       });
     }
 
     function setFilter(f, el) {
       currentFilter = f;
-      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      el.classList.add('active');
+      document.querySelectorAll('.kesfet-filters .btn').forEach(c => {
+        c.classList.remove('mc-green');
+        c.classList.add('mc-gray');
+      });
+      el.classList.remove('mc-gray');
+      el.classList.add('mc-green');
       renderGrid();
     }
 
@@ -450,46 +527,73 @@
     function initCanvas() {
       const cvs = document.getElementById('canvas-bg');
       const ctx = cvs.getContext('2d');
-      let w, h;
-      let beams = [];
+      let W, H, beams=[], logos=[];
+
       function resize() {
-        w = cvs.width = window.innerWidth;
-        h = cvs.height = window.innerHeight;
+        W = cvs.width = window.innerWidth;
+        H = cvs.height = window.innerHeight;
       }
       window.addEventListener('resize', resize);
       resize();
-      
-      class Beam {
-        constructor() { this.reset(); }
-        reset() {
-          this.x = Math.random() * w;
-          this.y = h + Math.random() * 100;
-          this.len = Math.random() * 200 + 100;
-          this.speed = Math.random() * 2 + 0.5;
-          this.width = Math.random() * 3 + 1;
-          this.opacity = Math.random() * 0.5 + 0.1;
-        }
-        update() {
-          this.y -= this.speed;
-          if (this.y + this.len < 0) this.reset();
-        }
-        draw() {
-          const grad = ctx.createLinearGradient(0, this.y, 0, this.y + this.len);
-          grad.addColorStop(0, \`rgba(57,255,20,0)\`);
-          grad.addColorStop(0.5, \`rgba(57,255,20,\${this.opacity})\`);
-          grad.addColorStop(1, \`rgba(57,255,20,0)\`);
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(this.x, this.y + this.len);
-          ctx.lineWidth = this.width;
-          ctx.strokeStyle = grad;
-          ctx.stroke();
-        }
-      }
-      for (let i=0; i<15; i++) beams.push(new Beam());
+
+      for(let i=0;i<6;i++) beams.push({
+        x: Math.random()*W, y: Math.random()*H,
+        angle: Math.PI/4 + (Math.random()-0.5)*0.3,
+        speed: 0.3+Math.random()*0.4,
+        width: 60+Math.random()*80,
+        alpha: 0.03+Math.random()*0.04
+      });
+
+      for(let i=0;i<5;i++) logos.push({
+        x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-0.5)*0.2,
+        vy: (Math.random()-0.5)*0.2,
+        alpha: 0.02+Math.random()*0.03,
+        size: 22+Math.random()*28,
+        rot: Math.random()*Math.PI*2,
+        rotSpeed: (Math.random()-0.5)*0.002
+      });
+
       function animate() {
-        ctx.clearRect(0,0,w,h);
-        beams.forEach(b => { b.update(); b.draw(); });
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#050505';
+        ctx.fillRect(0,0,W,H);
+
+        beams.forEach(b => {
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.angle);
+          const grad = ctx.createLinearGradient(-b.width/2,0,b.width/2,0);
+          grad.addColorStop(0,'transparent');
+          grad.addColorStop(0.5,`rgba(57,255,20,${b.alpha})`);
+          grad.addColorStop(1,'transparent');
+          ctx.fillStyle=grad;
+          ctx.fillRect(-b.width/2,-2000,b.width,4000);
+          ctx.restore();
+          b.x += Math.cos(b.angle)*b.speed;
+          b.y += Math.sin(b.angle)*b.speed;
+          if(b.x>W+200) b.x=-200;
+          if(b.y>H+200) b.y=-200;
+        });
+
+        logos.forEach(l => {
+          ctx.save();
+          ctx.translate(l.x, l.y);
+          ctx.rotate(l.rot);
+          ctx.globalAlpha = l.alpha;
+          ctx.font = `900 ${l.size}px Montserrat, sans-serif`;
+          ctx.fillStyle = '#39ff14';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('LOBBY.GG', 0, 0);
+          ctx.restore();
+          l.x += l.vx; l.y += l.vy; l.rot += l.rotSpeed;
+          if(l.x<-100) l.x=W+100;
+          if(l.x>W+100) l.x=-100;
+          if(l.y<-50) l.y=H+50;
+          if(l.y>H+50) l.y=-50;
+        });
+
         requestAnimationFrame(animate);
       }
       animate();

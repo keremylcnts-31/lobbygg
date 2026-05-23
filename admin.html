@@ -3224,10 +3224,10 @@ async function renderSunucular() {
   const tbody = document.createElement('tbody');
   data.forEach(s => {
     const tr = document.createElement('tr');
-    tr.innerHTML = \`<td>\${s.id}</td>
-      <td style="font-weight:700;">\${s.isim}</td>
-      <td>\${s.ip}</td>
-      <td><span class="badge-pill bp-uye">\${s.durum || 'aktif'}</span></td>\`;
+    tr.innerHTML = `<td>${s.id}</td>
+      <td style="font-weight:700;">${s.isim}</td>
+      <td>${s.ip}</td>
+      <td><span class="badge-pill bp-uye">${s.durum || 'aktif'}</span></td>`;
     
     const tdAct = document.createElement('td');
     const delBtn = document.createElement('button');
@@ -3265,10 +3265,24 @@ async function renderCark() {
 
   let config = data ? data.config : { 
     items: [
-      { id: 1, name: "10 LCoin", prob: 40, type: "lcoin", val: 10 },
-      { id: 2, name: "50 LCoin", prob: 20, type: "lcoin", val: 50 },
-      { id: 3, name: "Boş", prob: 35, type: "none", val: 0 },
-      { id: 4, name: "Premium (1G)", prob: 5, type: "premium", val: 1 }
+      { id: 1, name: "1 LCoin", prob: 15, type: "lcoin", val: 1 },
+      { id: 2, name: "2 LCoin", prob: 12, type: "lcoin", val: 2 },
+      { id: 3, name: "3 LCoin", prob: 10, type: "lcoin", val: 3 },
+      { id: 4, name: "4 LCoin", prob: 8, type: "lcoin", val: 4 },
+      { id: 5, name: "5 LCoin", prob: 8, type: "lcoin", val: 5 },
+      { id: 6, name: "10 LCoin", prob: 7, type: "lcoin", val: 10 },
+      { id: 7, name: "12 LCoin", prob: 6, type: "lcoin", val: 12 },
+      { id: 8, name: "15 LCoin", prob: 5, type: "lcoin", val: 15 },
+      { id: 9, name: "20 LCoin", prob: 5, type: "lcoin", val: 20 },
+      { id: 10, name: "25 LCoin", prob: 4, type: "lcoin", val: 25 },
+      { id: 11, name: "30 LCoin", prob: 4, type: "lcoin", val: 30 },
+      { id: 12, name: "40 LCoin", prob: 3, type: "lcoin", val: 40 },
+      { id: 13, name: "50 LCoin", prob: 3, type: "lcoin", val: 50 },
+      { id: 14, name: "60 LCoin", prob: 2, type: "lcoin", val: 60 },
+      { id: 15, name: "70 LCoin", prob: 2, type: "lcoin", val: 70 },
+      { id: 16, name: "80 LCoin", prob: 2, type: "lcoin", val: 80 },
+      { id: 17, name: "90 LCoin", prob: 2, type: "lcoin", val: 90 },
+      { id: 18, name: "100 LCoin", prob: 1, type: "lcoin", val: 100 }
     ]
   };
 
@@ -3289,12 +3303,12 @@ async function renderCark() {
     tbody.innerHTML = '';
     config.items.forEach((item, index) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = \`
-        <td><input type="text" class="modal-input" style="padding:6px;" value="\${item.name}" onchange="updateCarkItem(\${index}, 'name', this.value)"></td>
-        <td><input type="text" class="modal-input" style="padding:6px;" value="\${item.type}" onchange="updateCarkItem(\${index}, 'type', this.value)"></td>
-        <td><input type="number" class="modal-input" style="padding:6px;" value="\${item.val}" onchange="updateCarkItem(\${index}, 'val', this.value)"></td>
-        <td><input type="number" class="modal-input" style="padding:6px;" value="\${item.prob}" onchange="updateCarkItem(\${index}, 'prob', this.value)"></td>
-      \`;
+      tr.innerHTML = `
+        <td><input type="text" class="modal-input" style="padding:6px;" value="${item.name}" onchange="updateCarkItem(${index}, 'name', this.value)"></td>
+        <td><input type="text" class="modal-input" style="padding:6px;" value="${item.type}" onchange="updateCarkItem(${index}, 'type', this.value)"></td>
+        <td><input type="number" class="modal-input" style="padding:6px;" value="${item.val}" onchange="updateCarkItem(${index}, 'val', this.value)"></td>
+        <td><input type="number" class="modal-input" style="padding:6px;" value="${item.prob}" onchange="updateCarkItem(${index}, 'prob', this.value)"></td>
+      `;
       const tdAct = document.createElement('td');
       const delBtn = document.createElement('button');
       delBtn.className = 'btn-s btn-s-red';
