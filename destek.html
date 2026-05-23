@@ -169,18 +169,20 @@ async function buildNav() {
   const links = document.createElement('div');
   links.className = 'nav-links';
 
+  const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
   const menu = [
-    { label: 'Feed', href: 'lobbyx.html' },
-    { label: 'Keşfet', href: 'kesfet.html' },
-    { label: 'İlanlar', href: 'ilanlar.html' },
-    { label: 'Mağaza', href: 'market.html' },
-    { label: 'Destek', href: 'destek.html', active: true }
+    { label: 'Ana Sayfa', href: 'lobbyx.html', key: 'lobbyx' },
+    { label: 'İlanlar', href: 'ilanlar.html', key: 'ilanlar' },
+    { label: 'Klanlar', href: 'klanlar.html', key: 'klanlar' },
+    { label: 'Keşfet', href: 'kesfet.html', key: 'kesfet' },
+    { label: 'Mağaza', href: 'market.html', key: 'market' },
+    { label: 'Destek', href: 'destek.html', key: 'destek' }
   ];
 
   menu.forEach(m => {
     const a = document.createElement('a');
     a.href = m.href;
-    a.className = 'nav-link' + (m.active ? ' active' : '');
+    a.className = 'nav-link' + (activePage === m.key ? ' active' : '');
     a.textContent = m.label;
     links.appendChild(a);
   });

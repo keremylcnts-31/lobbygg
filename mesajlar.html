@@ -973,10 +973,11 @@ function buildNav(user) {
 
   const links = nav.appendChild(document.createElement('div'));
   links.className = 'nav-links';
-  [['Ana Sayfa','lobbyx.html'],['İlanlar','ilanlar.html'],['Klanlar','klanlar.html'],['Keşfet','kesfet.html']].forEach(([label,href]) => {
+  const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
+  [['Ana Sayfa','lobbyx.html','lobbyx'],['İlanlar','ilanlar.html','ilanlar'],['Klanlar','klanlar.html','klanlar'],['Keşfet','kesfet.html','kesfet'],['Mağaza','market.html','market'],['Destek','destek.html','destek']].forEach(([label,href,key]) => {
     const a = document.createElement('a');
     a.href = href;
-    a.className = 'nav-link' + (window.location.pathname.includes(href) ? ' active' : '');
+    a.className = 'nav-link' + (activePage === key ? ' active' : '');
     const sp = document.createElement('span');
     sp.textContent = label;
     a.appendChild(sp);

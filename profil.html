@@ -1330,14 +1330,17 @@ function buildNav() {
   nav.appendChild(logoA);
 
   const navLinks = el('div', {className:'nav-links'});
+  const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
   const links = [
-    {label:'Ana Sayfa', href:'lobbyx.html'},
-    {label:'İlanlar', href:'ilanlar.html'},
-    {label:'Klanlar', href:'klanlar.html'},
-    {label:'Keşfet', href:'kesfet.html'}
+    {label:'Ana Sayfa', href:'lobbyx.html', key:'lobbyx'},
+    {label:'İlanlar', href:'ilanlar.html', key:'ilanlar'},
+    {label:'Klanlar', href:'klanlar.html', key:'klanlar'},
+    {label:'Keşfet', href:'kesfet.html', key:'kesfet'},
+    {label:'Mağaza', href:'market.html', key:'market'},
+    {label:'Destek', href:'destek.html', key:'destek'}
   ];
   links.forEach(l => {
-    const a = el('a', {className:'nav-link', attrs:{href:l.href}});
+    const a = el('a', {className:'nav-link' + (activePage === l.key ? ' active' : ''), attrs:{href:l.href}});
     const sp = el('span', {textContent:l.label});
     a.appendChild(sp);
     navLinks.appendChild(a);

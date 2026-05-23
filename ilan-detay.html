@@ -350,14 +350,17 @@
 
       const links = document.createElement('div');
       links.className = 'nav-links';
+      const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
       [
-        {label:'Ana Sayfa', href:'lobbyx.html'},
-        {label:'İlanlar', href:'ilanlar.html'},
-        {label:'Klanlar', href:'klanlar.html'},
-        {label:'Keşfet', href:'kesfet.html'}
+        {label:'Ana Sayfa', href:'lobbyx.html', key:'lobbyx'},
+        {label:'İlanlar', href:'ilanlar.html', key:'ilanlar'},
+        {label:'Klanlar', href:'klanlar.html', key:'klanlar'},
+        {label:'Keşfet', href:'kesfet.html', key:'kesfet'},
+        {label:'Mağaza', href:'market.html', key:'market'},
+        {label:'Destek', href:'destek.html', key:'destek'}
       ].forEach(l => {
         const a = document.createElement('a');
-        a.className = 'nav-link' + (l.href==='ilanlar.html'?' active':'');
+        a.className = 'nav-link' + (activePage === l.key ? ' active' : '');
         a.href = l.href;
         a.textContent = l.label;
         links.appendChild(a);

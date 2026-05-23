@@ -921,16 +921,19 @@ function buildNav() {
   /* Links */
   const links = document.createElement('div');
   links.className = 'nav-links';
+  const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
   const navItems = [
-    { label: 'Ana Sayfa', href: 'lobbyx.html', icon: '🏠' },
-    { label: 'İlanlar',   href: 'ilanlar.html', icon: '📋' },
-    { label: 'Klanlar',   href: 'klanlar.html', icon: '⚔️', active: true },
-    { label: 'Keşfet',   href: 'kesfet.html', icon: '🔍' },
+    { label: 'Ana Sayfa', href: 'lobbyx.html', icon: '🏠', key: 'lobbyx' },
+    { label: 'İlanlar',   href: 'ilanlar.html', icon: '📋', key: 'ilanlar' },
+    { label: 'Klanlar',   href: 'klanlar.html', icon: '⚔️', key: 'klanlar' },
+    { label: 'Keşfet',   href: 'kesfet.html', icon: '🔍', key: 'kesfet' },
+    { label: 'Mağaza',   href: 'market.html', icon: '🛒', key: 'market' },
+    { label: 'Destek',   href: 'destek.html', icon: '🎟️', key: 'destek' },
   ];
   navItems.forEach(item => {
     const a = document.createElement('a');
     a.href = item.href;
-    a.className = 'nav-link' + (item.active ? ' active' : '');
+    a.className = 'nav-link' + (activePage === item.key ? ' active' : '');
     const icon = document.createElement('span');
     icon.textContent = item.icon;
     const label = document.createElement('span');

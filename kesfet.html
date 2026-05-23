@@ -968,17 +968,21 @@
     // Links
     const linksDiv = document.createElement('div');
     linksDiv.className = 'nav-links';
+    
+    const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
 
     const pages = [
-      {href:'lobbyx.html',   label:'Ana Sayfa',   icon:'🏠'},
-      {href:'ilanlar.html',  label:'İlanlar',     icon:'📋'},
-      {href:'klanlar.html',  label:'Klanlar',     icon:'🛡️'},
-      {href:'kesfet.html',   label:'Keşfet',      icon:'🔍', active: true}
+      {href:'lobbyx.html',   label:'Ana Sayfa',   icon:'🏠', key: 'lobbyx'},
+      {href:'ilanlar.html',  label:'İlanlar',     icon:'📋', key: 'ilanlar'},
+      {href:'klanlar.html',  label:'Klanlar',     icon:'🛡️', key: 'klanlar'},
+      {href:'kesfet.html',   label:'Keşfet',      icon:'🔍', key: 'kesfet'},
+      {href:'market.html',   label:'Mağaza',      icon:'🛒', key: 'market'},
+      {href:'destek.html',   label:'Destek',      icon:'🎟️', key: 'destek'}
     ];
     pages.forEach(p => {
       const a = document.createElement('a');
       a.href = p.href;
-      a.className = 'nav-link' + (p.active ? ' active' : '');
+      a.className = 'nav-link' + (activePage === p.key ? ' active' : '');
       const ic = document.createElement('span');
       ic.textContent = p.icon;
       const sp = document.createElement('span');
