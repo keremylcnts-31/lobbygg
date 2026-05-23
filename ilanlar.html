@@ -609,7 +609,7 @@
     contactWrap.className = 'card-contact';
     if (ilan.discord) {
       const dBtn = document.createElement('a');
-      dBtn.className = 'card-contact-btn discord';
+      dBtn.className = 'card-contact-btn btn mc-discord mc-sm';
       dBtn.href = 'https://discord.com/users/' + ilan.discord;
       dBtn.target = '_blank';
       dBtn.rel = 'noopener';
@@ -620,7 +620,7 @@
     }
     if (ilan.email) {
       const eBtn = document.createElement('a');
-      eBtn.className = 'card-contact-btn email';
+      eBtn.className = 'card-contact-btn btn mc-blue mc-sm';
       eBtn.href = 'mailto:' + ilan.email;
       eBtn.innerHTML = '✉️';
       eBtn.title = 'E-posta';

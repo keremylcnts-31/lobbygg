@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Günlük Çark - LOBBY.GG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg-dark: #0f1016;
+            --bg-panel: #1a1c23;
+            --primary: #ffd700;
+            --primary-hover: #ffea00;
+            --text-light: #e0e0e0;
+            --text-muted: #8b8d99;
+            --gold-gradient: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        header {
+            background-color: rgba(26, 28, 35, 0.95);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+        }
+
+        .lcoin-balance {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 40px 5%;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+
+        /* Left Side: Wheel */
+        .wheel-section {
+            flex: 2;
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wheel-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .wheel-header {
+            text-align: center;
+            margin-bottom: 30px;
+            z-index: 1;
+        }
+
+        .wheel-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .wheel-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 20px 0 40px;
+            z-index: 1;
+        }
+
+        @media (max-width: 500px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #2a2d38;
+            box-shadow: 0 0 20px rgba(255,215,0,0.2), inset 0 0 20px rgba(0,0,0,0.8);
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.15, 1);
+            position: relative;
+            overflow: hidden;
+            background: #222;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--primary);
+            z-index: 10;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+        }
+
+        .pointer::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: -15px;
+            width: 30px;
+            height: 10px;
+            background: #fff;
+            border-radius: 5px;
+            z-index: 11;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 1;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .spins-left {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .spins-count {
+            color: var(--primary);
+            font-size: 1.4rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-spin {
+            background: var(--gold-gradient);
+            color: #000;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-spin:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn-spin:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-buy {
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-buy:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        /* Right Side: Leaderboard */
+        .leaderboard-section {
+            flex: 1;
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leaderboard-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .leaderboard-title i {
+            font-size: 1.8rem;
+        }
+
+        .winner-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 500px;
+            padding-right: 5px;
+        }
+
+        .winner-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .winner-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .winner-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.3s;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .winner-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .winner-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #333;
+            margin-right: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            object-fit: cover;
+        }
+
+        .winner-details {
+            flex: 1;
+        }
+
+        .winner-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .winner-prize {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .winner-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        /* Modal / Result overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .modal-prize {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: #fff;
+        }
+
+        .modal-close {
+            background: var(--gold-gradient);
+            color: #000;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        /* Confetti Canvas */
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#" class="logo">LOBBY.GG</a>
+        <div class="user-info">
+            <div class="lcoin-balance">
+                <span id="user-lcoin">1250</span> LCoin
+            </div>
+            <span>Oyuncu123</span>
+        </div>
+    </header>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="container">
+        <!-- Wheel Section -->
+        <div class="wheel-section">
+            <div class="wheel-header">
+                <h1 class="wheel-title">Günlük Çark</h1>
+                <p class="wheel-subtitle">Şansını dene, efsanevi ödülleri kazan!</p>
+            </div>
+
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <canvas id="wheelCanvas" class="wheel" width="400" height="400"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="spins-left">Kalan Hak: <span class="spins-count" id="spinCount">1</span></div>
+                <button id="spinBtn" class="btn-spin">ÇEVİR</button>
+                <button id="buyBtn" class="btn-buy">50 LCOIN İLE 5 HAK AL</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div class="leaderboard-section">
+            <h2 class="leaderboard-title">🏆 En Çok Kazananlar</h2>
+            <ul class="winner-list" id="winnerList">
+                <!-- Populated by JS -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div class="modal-overlay" id="winModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <h2 class="modal-title">Tebrikler!</h2>
+            <div class="modal-prize" id="winPrizeText">250 LCoin</div>
+            <button class="modal-close" onclick="closeModal()">Harika!</button>
+        </div>
+    </div>
+
+    <script>
+        const prizes = [
+            { text: "10 LCoin", color: "#1e212b", textColor: "#ffd700", value: "10 LCoin" },
+            { text: "20 LCoin", color: "#2a2d38", textColor: "#fff", value: "20 LCoin" },
+            { text: "50 LCoin", color: "#1e212b", textColor: "#ffd700", value: "50 LCoin" },
+            { text: "100 LCoin", color: "#2a2d38", textColor: "#fff", value: "100 LCoin" },
+            { text: "250 LCoin", color: "#ffd700", textColor: "#000", value: "250 LCoin", isSpecial: true },
+            { text: "1 Gün Öne Çıkarma", color: "#1e212b", textColor: "#ffd700", value: "1 Günlük Öne Çıkarma" },
+            { text: "10 LCoin", color: "#2a2d38", textColor: "#fff", value: "10 LCoin" },
+            { text: "2 Gün Öne Çıkarma", color: "#ffd700", textColor: "#000", value: "2 Günlük Öne Çıkarma", isSpecial: true }
+        ];
+
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
+        const spinBtn = document.getElementById("spinBtn");
+        const buyBtn = document.getElementById("buyBtn");
+        const spinCountEl = document.getElementById("spinCount");
+        const lcoinEl = document.getElementById("user-lcoin");
+        const winModal = document.getElementById("winModal");
+        const winPrizeText = document.getElementById("winPrizeText");
+        const winnerList = document.getElementById("winnerList");
+
+        let spinCount = 1;
+        let lcoin = 1250;
+        let currentRotation = 0;
+        let isSpinning = false;
+        
+        const numSlices = prizes.length;
+        const sliceAngle = (2 * Math.PI) / numSlices;
+
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numSlices; i++) {
+                const startAngle = i * sliceAngle - sliceAngle / 2 - Math.PI / 2;
+                const endAngle = startAngle + sliceAngle;
+
+                // Draw Slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = prizes[i].color;
+                ctx.fill();
+                
+                // Border
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255,215,0,0.2)";
+                ctx.stroke();
+
+                // Draw Text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = prizes[i].textColor;
+                ctx.font = prizes[i].isSpecial ? "bold 16px Montserrat" : "600 16px Montserrat";
+                
+                // Shadow for text
+                if (prizes[i].isSpecial) {
+                    ctx.shadowColor = "rgba(0,0,0,0.5)";
+                    ctx.shadowBlur = 4;
+                }
+
+                ctx.fillText(prizes[i].text, radius - 30, 6);
+                ctx.restore();
+            }
+            
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = "#1a1c23";
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#ffd700";
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = "#ffd700";
+            ctx.fill();
+        }
+
+        drawWheel();
+
+        // Spin Logic
+        spinBtn.addEventListener("click", () => {
+            if (isSpinning || spinCount <= 0) return;
+            
+            isSpinning = true;
+            spinCount--;
+            updateUI();
+            
+            // Random prize
+            const prizeIndex = Math.floor(Math.random() * numSlices);
+            
+            // Calculate rotation
+            // We want the chosen slice to be at the top (-90 degrees / 270 degrees)
+            // Each slice is 360/numSlices degrees
+            const sliceDeg = 360 / numSlices;
+            // Target angle to land the center of the chosen slice at the top
+            const targetRotation = (360 - (prizeIndex * sliceDeg)) + (360 * 5); // 5 extra spins
+            
+            // Add a small random offset within the slice so it doesn't always land dead center
+            const randomOffset = (Math.random() * (sliceDeg - 4)) - ((sliceDeg - 4) / 2);
+            
+            currentRotation += (targetRotation - (currentRotation % 360)) + randomOffset;
+            
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                showWin(prizes[prizeIndex].value);
+            }, 5000); // matches CSS transition
+        });
+
+        // Buy Spins
+        buyBtn.addEventListener("click", () => {
+            if (lcoin >= 50) {
+                lcoin -= 50;
+                spinCount += 5;
+                updateUI();
+                
+                // Small animation on button
+                buyBtn.style.transform = "scale(0.95)";
+                setTimeout(() => buyBtn.style.transform = "scale(1)", 150);
+            } else {
+                alert("Yeterli LCoin bulunmuyor.");
+            }
+        });
+
+        function updateUI() {
+            spinCountEl.innerText = spinCount;
+            lcoinEl.innerText = lcoin;
+            
+            if (spinCount <= 0) {
+                spinBtn.disabled = true;
+            } else {
+                spinBtn.disabled = false;
+            }
+        }
+
+        function showWin(prize) {
+            winPrizeText.innerText = prize;
+            winModal.classList.add("active");
+            fireConfetti();
+            addWinnerToLeaderboard("Sen", prize, "Şimdi");
+            
+            // Update balance if LCoin won
+            if(prize.includes("LCoin")) {
+                const amount = parseInt(prize);
+                if(!isNaN(amount)) {
+                    lcoin += amount;
+                    updateUI();
+                }
+            }
+        }
+
+        function closeModal() {
+            winModal.classList.remove("active");
+            stopConfetti();
+        }
+
+        // Leaderboard population
+        const mockWinners = [
+            { name: "ProGamer_99", prize: "250 LCoin", time: "2 dk önce" },
+            { name: "NoobMaster", prize: "2 Günlük Öne Çıkarma", time: "15 dk önce" },
+            { name: "xX_Slayer_Xx", prize: "100 LCoin", time: "1 saat önce" },
+            { name: "ElitOyuncu", prize: "50 LCoin", time: "2 saat önce" },
+            { name: "CemK", prize: "1 Günlük Öne Çıkarma", time: "3 saat önce" },
+            { name: "Kral_Tr", prize: "10 LCoin", time: "4 saat önce" },
+            { name: "Viper23", prize: "250 LCoin", time: "5 saat önce" },
+            { name: "GhostRider", prize: "20 LCoin", time: "6 saat önce" },
+        ];
+
+        function renderLeaderboard() {
+            winnerList.innerHTML = "";
+            mockWinners.forEach(w => {
+                addWinnerToLeaderboard(w.name, w.prize, w.time, false);
+            });
+        }
+
+        function addWinnerToLeaderboard(name, prize, time, prepend = true) {
+            const li = document.createElement("li");
+            li.className = "winner-item";
+            // Random placeholder avatar based on name length
+            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+            
+            li.innerHTML = `
+                <img src="${avatarUrl}" alt="Avatar" class="winner-avatar">
+                <div class="winner-details">
+                    <div class="winner-name">${name}</div>
+                    <div class="winner-prize">${prize}</div>
+                </div>
+                <div class="winner-time">${time}</div>
+            `;
+            
+            if (prepend) {
+                winnerList.prepend(li);
+                // Highlight new entry
+                li.style.background = "rgba(255, 215, 0, 0.2)";
+                setTimeout(() => {
+                    li.style.background = "";
+                }, 2000);
+            } else {
+                winnerList.appendChild(li);
+            }
+        }
+
+        renderLeaderboard();
+        updateUI();
+
+        // Confetti implementation (Simple version)
+        const confettiCanvas = document.getElementById('confetti');
+        const cCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimationId;
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function fireConfetti() {
+            confettiParticles = [];
+            const colors = ['#ffd700', '#ffea00', '#ffffff', '#bf953f'];
+            
+            for(let i=0; i<150; i++) {
+                confettiParticles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedY: Math.random() * 3 + 2,
+                    speedX: (Math.random() - 0.5) * 2,
+                    rot: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 10
+                });
+            }
+            
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            let active = false;
+            confettiParticles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rot += p.rotSpeed;
+                
+                if (p.y < confettiCanvas.height) {
+                    active = true;
+                }
+                
+                cCtx.save();
+                cCtx.translate(p.x, p.y);
+                cCtx.rotate(p.rot * Math.PI / 180);
+                cCtx.fillStyle = p.color;
+                cCtx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                cCtx.restore();
+            });
+            
+            if(active) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        function stopConfetti() {
+            cancelAnimationFrame(confettiAnimationId);
+            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            confettiParticles = [];
+        }
+
+    </script>
+</body>
+</html>

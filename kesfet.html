@@ -1,1950 +1,453 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Keşfet — LOBBY.GG</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    /* ── Keşfet Page Specific Styles ── */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOBBY.GG - Keşfet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0c0d10;
+            --bg-card: #15161c;
+            --bg-input: #1a1b23;
+            --border-color: #232530;
+            --border-hover: #353849;
+            --text-main: #ffffff;
+            --text-muted: #a0a5b5;
+            --accent: #5865F2;
+            --accent-hover: #4752c4;
+        }
 
-    /* Hero */
-    .kesfet-hero {
-      padding: 100px 20px 40px;
-      text-align: center;
-      position: relative;
-    }
-    .kesfet-hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(57,255,20,0.08);
-      border: 1px solid rgba(57,255,20,0.2);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
-    .kesfet-hero-title {
-      font-size: clamp(28px, 5vw, 52px);
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: -1px;
-      line-height: 1.05;
-      margin-bottom: 12px;
-    }
-    .kesfet-hero-title span {
-      color: var(--accent);
-      text-shadow: 0 0 30px rgba(57,255,20,0.5);
-    }
-    .kesfet-hero-sub {
-      font-size: 14px;
-      color: var(--text-2);
-      font-weight: 600;
-      max-width: 500px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
-    /* Stats Row */
-    .stats-row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      padding: 0 20px 32px;
-    }
-    .stat-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-thin);
-      border-radius: 30px;
-      padding: 8px 18px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .stat-pill-icon { font-size: 15px; }
-    .stat-pill-num {
-      font-weight: 900;
-      color: var(--accent);
-    }
-    .stat-pill-label { color: var(--text-2); }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
 
-    /* Main content */
-    .kesfet-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px 60px;
-    }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
 
-    /* Section heading */
-    .section-heading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .section-heading-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border-thin);
-    }
-    .section-heading-text {
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-3);
-      white-space: nowrap;
-    }
-    .section-heading-accent {
-      color: var(--accent);
-    }
+        /* Header / Search / Filters */
+        .header {
+            margin-bottom: 3rem;
+        }
 
-    /* Featured Players */
-    .featured-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 40px;
-    }
-    @media (max-width: 900px) {
-      .featured-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .featured-grid { grid-template-columns: 1fr; }
-    }
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
 
-    .featured-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(57,255,20,0.2);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-      box-shadow: 0 0 20px rgba(57,255,20,0.06);
-    }
-    .featured-card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(57,255,20,0.5);
-      box-shadow: 0 8px 40px rgba(57,255,20,0.15);
-    }
-    .featured-card-crown {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      z-index: 10;
-      font-size: 18px;
-      filter: drop-shadow(0 0 6px rgba(255,215,0,0.8));
-    }
-    .featured-card-banner {
-      height: 80px;
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-    }
-    .featured-card-banner::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6));
-    }
-    .featured-card-body {
-      padding: 0 16px 16px;
-      position: relative;
-    }
-    .featured-card-pp {
-      display: flex;
-      align-items: flex-end;
-      margin-top: -30px;
-      margin-bottom: 8px;
-    }
-    .featured-card-pp .pp-wrap {
-      flex-shrink: 0;
-    }
-    .featured-card-pp .pp-wrap .pp-img {
-      width: 56px;
-      height: 56px;
-      border-width: 3px;
-    }
-    .featured-card-info {
-      flex: 1;
-      padding-left: 10px;
-      padding-top: 16px;
-    }
-    .featured-card-nick {
-      font-size: 14px;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .featured-card-badges {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-top: 5px;
-    }
-    .featured-card-bio {
-      font-size: 11px;
-      color: var(--text-2);
-      line-height: 1.5;
-      margin: 8px 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .featured-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-    .featured-card-followers {
-      font-size: 11px;
-      color: var(--text-2);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 700;
-    }
-    .featured-card-followers strong {
-      color: var(--text-1);
-    }
-    .featured-spotlight-badge {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(57,255,20,0.15);
-      border: 1px solid rgba(57,255,20,0.4);
-      border-radius: 3px;
-      padding: 2px 8px;
-      font-size: 8px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--accent);
-    }
+        .header h1 span {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 1.5rem;
+            display: block;
+            margin-top: 0.5rem;
+        }
 
-    /* Filter Bar */
-    .filter-bar {
-      background: rgba(13,13,13,0.9);
-      border: 1px solid var(--border-thin);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 68px;
-      z-index: 100;
-    }
-    .filter-bar-row1 {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .filter-search-wrap {
-      flex: 1;
-      min-width: 200px;
-      position: relative;
-    }
-    .filter-search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 14px;
-      color: var(--text-dim);
-      pointer-events: none;
-    }
-    .filter-search-input {
-      width: 100%;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-1);
-      font-family: var(--font);
-      font-size: 13px;
-      padding: 10px 14px 10px 38px;
-      transition: border-color var(--transition);
-    }
-    .filter-search-input:focus { border-color: var(--accent); outline: none; }
-    .filter-search-input::placeholder { color: var(--text-dim); }
-    .filter-select {
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-1);
-      font-family: var(--font);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 10px 14px;
-      appearance: none;
-      -webkit-appearance: none;
-      cursor: pointer;
-      min-width: 150px;
-      transition: border-color var(--transition);
-    }
-    .filter-select:focus { border-color: var(--accent); outline: none; }
-    .filter-bar-row2 {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .filter-cat-btn {
-      padding: 5px 12px;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-2);
-      font-family: var(--font);
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .filter-cat-btn:hover {
-      border-color: var(--border-hover);
-      color: var(--text-1);
-    }
-    .filter-cat-btn.active {
-      background: rgba(57,255,20,0.1);
-      border-color: rgba(57,255,20,0.4);
-      color: var(--accent);
-    }
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
 
-    /* Active filter chips */
-    .active-chips {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .active-chips:empty { display: none; }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(57,255,20,0.08);
-      border: 1px solid rgba(57,255,20,0.25);
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 10px;
-      font-weight: 800;
-      color: var(--accent);
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .chip:hover { background: rgba(57,255,20,0.15); }
-    .chip-x { font-size: 12px; line-height: 1; opacity: 0.7; }
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 20px;
+            height: 20px;
+        }
 
-    /* Results bar */
-    .results-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .results-count {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-3);
-    }
-    .results-count span { color: var(--text-1); }
-    .sort-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .sort-label {
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      color: var(--text-3);
-    }
-    .sort-btn {
-      padding: 4px 10px;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-2);
-      font-family: var(--font);
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .sort-btn:hover {
-      border-color: var(--border-hover);
-      color: var(--text-1);
-    }
-    .sort-btn.active {
-      background: rgba(57,255,20,0.1);
-      border-color: rgba(57,255,20,0.35);
-      color: var(--accent);
-    }
+        .search-bar {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1rem 1rem 3rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
 
-    /* Player Grid */
-    .player-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-    @media (max-width: 1200px) { .player-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 850px)  { .player-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px)  { .player-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
-    @media (max-width: 360px)  { .player-grid { grid-template-columns: 1fr; } }
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15);
+        }
 
-    /* Player Card */
-    .player-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-thin);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      cursor: pointer;
-      position: relative;
-      transition: transform 0.22s cubic-bezier(.22,.68,0,1.2),
-                  border-color 0.22s ease,
-                  box-shadow 0.22s ease;
-      display: flex;
-      flex-direction: column;
-    }
-    .player-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      opacity: 0;
-      transition: opacity 0.22s ease;
-      background: radial-gradient(ellipse at top, rgba(57,255,20,0.05), transparent 70%);
-      pointer-events: none;
-    }
-    .player-card:hover {
-      transform: translateY(-6px);
-      border-color: var(--border-hover);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(57,255,20,0.08);
-    }
-    .player-card:hover::before { opacity: 1; }
+        .search-bar::placeholder {
+            color: var(--text-muted);
+        }
 
-    .player-card-banner {
-      height: 60px;
-      width: 100%;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .player-card-banner::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 30px;
-      background: linear-gradient(to bottom, transparent, var(--bg-card));
-    }
+        .filters {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
 
-    .player-card-pp-row {
-      display: flex;
-      align-items: flex-end;
-      padding: 0 12px;
-      margin-top: -26px;
-      margin-bottom: 8px;
-      position: relative;
-      z-index: 2;
-      justify-content: space-between;
-    }
-    .player-card-pp .pp-wrap .pp-img {
-      width: 52px;
-      height: 52px;
-      border-width: 3px;
-    }
+        .filter-btn {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 1.25rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
 
-    .player-card-body {
-      padding: 0 12px 12px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .player-card-nick {
-      font-size: 13px;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-bottom: 4px;
-      color: var(--text-1);
-    }
-    .player-card-nick-verify {
-      width: 14px;
-      height: 14px;
-      flex-shrink: 0;
-    }
-    .player-card-badges {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      margin-bottom: 6px;
-    }
-    .player-card-bio {
-      font-size: 11px;
-      color: var(--text-2);
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-bottom: 8px;
-      flex: 1;
-    }
-    .player-card-server {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .player-card-server-logo {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: var(--border);
-    }
-    .player-card-server-name {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-2);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .player-card-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .player-card-followers {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--text-2);
-      font-weight: 700;
-    }
-    .player-card-followers strong { color: var(--text-1); }
-    .player-card-klan {
-      font-size: 9px;
-      font-weight: 900;
-      padding: 2px 7px;
-      border-radius: 3px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    .player-card-footer {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      padding-top: 8px;
-      border-top: 1px solid var(--border-thin);
-    }
-    .player-card-follow-btn {
-      flex: 1;
-    }
-    .player-card-view-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      color: var(--text-2);
-      font-size: 13px;
-      transition: all var(--transition);
-      flex-shrink: 0;
-      text-decoration: none;
-    }
-    .player-card-view-link:hover {
-      border-color: var(--border-hover);
-      color: var(--text-1);
-    }
+        .filter-btn:hover {
+            background-color: #252733;
+            color: var(--text-main);
+        }
 
-    /* Load more */
-    .load-more-wrap {
-      display: flex;
-      justify-content: center;
-      margin-top: 32px;
-    }
+        .filter-btn.active {
+            background-color: var(--text-main);
+            color: var(--bg-main);
+            border-color: var(--text-main);
+        }
 
-    /* Empty state */
-    .player-empty {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      padding: 80px 20px;
-      color: var(--text-dim);
-      text-align: center;
-    }
-    .player-empty-icon {
-      font-size: 56px;
-      opacity: 0.25;
-    }
-    .player-empty-title {
-      font-size: 15px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-3);
-    }
-    .player-empty-sub {
-      font-size: 12px;
-      color: var(--text-dim);
-      max-width: 300px;
-      line-height: 1.6;
-    }
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
 
-    /* Skeleton loader */
-    .skeleton-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-thin);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-    }
-    .skel {
-      background: linear-gradient(90deg, #111 25%, #191919 50%, #111 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 4px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .skel-banner { height: 60px; width: 100%; border-radius: 0; }
-    .skel-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .skel-avatar { width: 52px; height: 52px; border-radius: 50%; margin-top: -22px; }
-    .skel-line-lg { height: 13px; width: 70%; }
-    .skel-line-sm { height: 10px; width: 50%; }
-    .skel-line-xs { height: 10px; width: 40%; }
+        /* Card */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
 
-    /* Grid loading overlay */
-    .grid-loading {
-      display: flex;
-      justify-content: center;
-      padding: 40px;
-      grid-column: 1 / -1;
-    }
-    .grid-spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            border-color: var(--border-hover);
+        }
 
-    /* Verification badge img */
-    .verify-img {
-      width: 14px;
-      height: 14px;
-      vertical-align: middle;
-      flex-shrink: 0;
-    }
+        .card-banner {
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+            background-color: #252733;
+            position: relative;
+        }
 
-    /* Featured section shimmer overlay for banner */
-    .featured-card-banner-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+        /* Favorite Server Logo */
+        .fav-server-logo {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--bg-main);
+            object-fit: cover;
+            z-index: 2;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
 
-    /* Responsive tweaks */
-    @media (max-width: 768px) {
-      .filter-bar { position: static; }
-      .filter-bar-row1 { flex-wrap: wrap; }
-      .filter-select { min-width: 120px; }
-      .results-bar { flex-wrap: wrap; gap: 8px; }
-    }
-  </style>
+        .fav-server-logo:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .fav-server-tooltip {
+            position: absolute;
+            top: 64px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            transform: translateY(-5px);
+            white-space: nowrap;
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .fav-server-logo:hover + .fav-server-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-card);
+            position: absolute;
+            top: -40px;
+            left: 1.25rem;
+            background-color: var(--bg-input);
+            object-fit: cover;
+        }
+
+        .card-info {
+            margin-top: 2.5rem;
+        }
+
+        .user-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .verified-badge {
+            color: #1DA1F2; /* Verified blue */
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .user-roles {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .role {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .clan-tag {
+            background-color: rgba(255, 184, 0, 0.1);
+            color: #ffb800;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 184, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            }
+        }
+    </style>
 </head>
 <body>
-  <canvas id="canvas-bg"></canvas>
 
-  <div class="page-wrapper">
-    <!-- NAV -->
-    <nav class="nav" id="main-nav"></nav>
-
-    <!-- HERO -->
-    <div class="kesfet-hero">
-      <div class="kesfet-hero-eyebrow">🔍 Oyuncu Keşif Motoru</div>
-      <h1 class="kesfet-hero-title">
-        Oyuncuları<br><span>Keşfet</span>
-      </h1>
-      <p class="kesfet-hero-sub">
-        Binlerce Minecraft oyuncusunu filtrele, takip et ve toplulukla bağlantı kur.
-      </p>
+<div class="container">
+    <div class="header">
+        <h1>Keşfet <span>LOBBY.GG'de oyuncuları ve toplulukları bul</span></h1>
+        
+        <div class="search-container">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input type="text" class="search-bar" placeholder="Oyuncu, klan veya sunucu ara...">
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active">Tümü</button>
+            <button class="filter-btn">PvP</button>
+            <button class="filter-btn">Builder</button>
+            <button class="filter-btn">Yayıncı</button>
+            <button class="filter-btn">Geliştirici</button>
+            <button class="filter-btn">Klan</button>
+        </div>
     </div>
 
-    <!-- STATS ROW -->
-    <div class="stats-row" id="stats-row"></div>
+    <div class="grid">
+        <!-- Card 1 -->
+        <div class="card">
+            <div class="card-banner" style="background-image: url('https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1000&auto=format&fit=crop');">
+                <img src="https://eu.mc-api.net/v3/server/favicon/play.hypixel.net" alt="Hypixel" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: Hypixel</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/1?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">Ahmet Can</span>
+                        <svg class="verified-badge" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L5.4 12l1.4-1.4 3.3 3.3 8.5-8.5 1.4 1.4-9.9 9.9z"/>
+                        </svg>
+                    </div>
+                    <div class="user-roles">
+                        <span class="clan-tag">[PRO]</span>
+                        <span class="role">PvP</span>
+                        <span class="role">Yayıncı</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="kesfet-content">
+        <!-- Card 2 -->
+        <div class="card">
+            <div class="card-banner" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop');">
+                <img src="https://eu.mc-api.net/v3/server/favicon/play.cubecraft.net" alt="CubeCraft" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: CubeCraft</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/2?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">Mehmet Builder</span>
+                    </div>
+                    <div class="user-roles">
+                        <span class="clan-tag">[BLD]</span>
+                        <span class="role">Builder</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <!-- FEATURED SPOTLIGHT -->
-      <div class="section-heading">
-        <div class="section-heading-text section-heading-accent">⭐ Öne Çıkan Oyuncular</div>
-        <div class="section-heading-line"></div>
-      </div>
-      <div class="featured-grid" id="featured-grid"></div>
+        <!-- Card 3 -->
+        <div class="card">
+            <div class="card-banner" style="background-image: url('https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1000&auto=format&fit=crop');">
+                <img src="https://eu.mc-api.net/v3/server/favicon/play.hivemc.com" alt="HiveMC" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: HiveMC</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/3?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">Ayşe Dev</span>
+                        <svg class="verified-badge" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L5.4 12l1.4-1.4 3.3 3.3 8.5-8.5 1.4 1.4-9.9 9.9z"/>
+                        </svg>
+                    </div>
+                    <div class="user-roles">
+                        <span class="clan-tag">[DEV]</span>
+                        <span class="role">Geliştirici</span>
+                        <span class="role">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 4 -->
+        <div class="card">
+            <div class="card-banner" style="background-color: #2b193d;">
+                <img src="https://eu.mc-api.net/v3/server/favicon/mc.craftrise.com" alt="CraftRise" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: CraftRise</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/4?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">Anonim Oyuncu</span>
+                    </div>
+                    <div class="user-roles">
+                        <span class="role">PvP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 5 -->
+        <div class="card">
+            <div class="card-banner" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1000&auto=format&fit=crop');">
+                <img src="https://eu.mc-api.net/v3/server/favicon/play.sonoyuncu.network" alt="SonOyuncu" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: SonOyuncu</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/5?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">SonOyuncu Fan</span>
+                        <svg class="verified-badge" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L5.4 12l1.4-1.4 3.3 3.3 8.5-8.5 1.4 1.4-9.9 9.9z"/>
+                        </svg>
+                    </div>
+                    <div class="user-roles">
+                        <span class="clan-tag">[SO]</span>
+                        <span class="role">PvP</span>
+                        <span class="role">Youtuber</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <!-- FILTER BAR -->
-      <div class="filter-bar" id="filter-bar"></div>
+        <!-- Card 6 -->
+        <div class="card">
+            <div class="card-banner" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1000&auto=format&fit=crop');">
+                <img src="https://eu.mc-api.net/v3/server/favicon/mc.hypixel.net" alt="Hypixel" class="fav-server-logo">
+                <div class="fav-server-tooltip">Favori Sunucu: Hypixel</div>
+            </div>
+            <div class="card-body">
+                <img src="https://avatars.githubusercontent.com/u/6?v=4" alt="Profile" class="profile-pic">
+                <div class="card-info">
+                    <div class="user-name-wrapper">
+                        <span class="user-name">Gamer Girl</span>
+                        <svg class="verified-badge" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L5.4 12l1.4-1.4 3.3 3.3 8.5-8.5 1.4 1.4-9.9 9.9z"/>
+                        </svg>
+                    </div>
+                    <div class="user-roles">
+                        <span class="clan-tag">[E-GIRL]</span>
+                        <span class="role">Mimar</span>
+                        <span class="role">Moderatör</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      <!-- RESULTS BAR -->
-      <div class="results-bar" id="results-bar"></div>
-
-      <!-- PLAYER GRID -->
-      <div class="player-grid" id="player-grid"></div>
-
-      <!-- LOAD MORE -->
-      <div class="load-more-wrap" id="load-more-wrap"></div>
     </div>
-  </div>
+</div>
 
-  <!-- TOAST CONTAINER -->
-  <div class="toast-container" id="toast-container"></div>
-
-  <script>
-  /* =====================================================================
-     LOBBY.GG — kesfet.html
-     Player Discovery Page
-     ===================================================================== */
-
-  const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  /* ── Servers ── */
-  const SERVERS = [
-    {name:'HanedanMC',    ip:'play.hanedanmc.com'},
-    {name:'ChickenNW',    ip:'oyna.chickennw.com'},
-    {name:'BLOKYA',       ip:'oyna.blokya.com'},
-    {name:'DugeCraft',    ip:'play.dugecraft.com.tr'},
-    {name:'ZENITMC',      ip:'play.zenitmc.com'},
-    {name:'SENTORCRAFT',  ip:'sentorcraft.com'},
-    {name:'SOULCRAFT',    ip:'soulcraft.tc'},
-    {name:'AtlasOyuncu',  ip:'play.atlasoyuncu.com'},
-    {name:'AtlantikMC',   ip:'atlantikmc.com'},
-    {name:'NAVELYA',      ip:'navelya.net'},
-    {name:'CRAFTLUNA',    ip:'play.craftluna.net'},
-    {name:'Melonya',      ip:'melonya.net'},
-    {name:'Rush Craft',   ip:'play.rushcraft.com.tr'},
-    {name:'RebornCraft',  ip:'play.reborncraft.pw'},
-    {name:'LuneCraft',    ip:'mc.lunecraft.net'},
-    {name:'SimitSMP',     ip:'simitsmp.net'},
-    {name:'MC4FUN',       ip:'play.mc4fun.net'},
-    {name:'İmibiyum',     ip:'play.imibiyum.com'}
-  ];
-  const serverLogoUrl = (ip) => `https://api.mcsrvstat.us/icon/${ip}`;
-
-  /* ── Categories ── */
-  const CATEGORIES = [
-    {key: 'all',      label: 'Tümü'},
-    {key: 'PvP',      label: 'PvP'},
-    {key: 'İçerik Üreticisi', label: 'İçerik Üreticisi'},
-    {key: 'Developer', label: 'Developer'},
-    {key: 'Builder',  label: 'Builder'},
-    {key: 'Yönetici', label: 'Yönetici'}
-  ];
-
-  /* ── Sort options ── */
-  const SORTS = [
-    {key: 'new',       label: 'Yeni Üyeler'},
-    {key: 'popular',   label: 'Popüler'},
-    {key: 'followers', label: 'Takipçi'}
-  ];
-
-  /* ── Category → CSS class map ── */
-  const catBadgeClass = {
-    'PvP':              'b-pvp',
-    'İçerik Üreticisi': 'b-icerik',
-    'Developer':        'b-developer',
-    'Builder':          'b-builder',
-    'Yönetici':         'b-yonetici-cat'
-  };
-
-  /* ── Abonelik badge ── */
-  const abonelikBadge = {
-    'abone':   { cls: 'b-abone',   label: 'Abone' },
-    'premium': { cls: 'b-premium', label: 'Premium' },
-    'admin':   { cls: 'b-admin',   label: 'Admin' }
-  };
-
-  /* ── Banner color map ── */
-  const bannerColors = {
-    blue:    'linear-gradient(135deg,#091e3a,#1a4a8a)',
-    green:   'linear-gradient(135deg,#0d1f00,#1e4a09)',
-    purple:  'linear-gradient(135deg,#1a0d2a,#3a0a6a)',
-    red:     'linear-gradient(135deg,#1a0909,#4a0909)',
-    gold:    'linear-gradient(135deg,#1a1200,#3a2800)',
-    pink:    'linear-gradient(135deg,#1a0915,#3a0a28)',
-    dark:    'linear-gradient(135deg,#0a0a0a,#1a1a1a)',
-    cyber:   'linear-gradient(135deg,#000510,#001520)',
-    default: 'linear-gradient(135deg,#0d0d0d,#1a1a1a)'
-  };
-
-  /* ── State ── */
-  let currentUser = null;
-  let followingSet = new Set();  // IDs the user is following
-  const PAGE_SIZE = 24;
-  let currentPage = 0;
-  let totalCount = 0;
-  let allLoaded = false;
-  let isFetching = false;
-  let searchTerm = '';
-  let activeCategory = 'all';
-  let activeServer = 'all';
-  let activeSort = 'new';
-  let debounceTimer = null;
-  let activeChips = []; // [{type, label, value}]
-
-  /* ═══════════════════════════════════════════════════════════
-     CANVAS BACKGROUND
-     ═══════════════════════════════════════════════════════════ */
-  (function initCanvas() {
-    const canvas = document.getElementById('canvas-bg');
-    const ctx = canvas.getContext('2d');
-    let W, H;
-
-    const beams = [];
-    const logos = [];
-    const BEAM_COUNT = 8;
-    const LOGO_COUNT = 6;
-    const LOGO_TEXT = 'LOBBY.GG';
-
-    function resize() {
-      W = canvas.width  = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    }
-
-    function initBeams() {
-      beams.length = 0;
-      for (let i = 0; i < BEAM_COUNT; i++) {
-        beams.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          angle: -40 + Math.random() * 20,
-          width: 60 + Math.random() * 120,
-          speed: 0.15 + Math.random() * 0.25,
-          alpha: 0.02 + Math.random() * 0.04,
-          length: H * 1.5
-        });
-      }
-    }
-
-    function initLogos() {
-      logos.length = 0;
-      for (let i = 0; i < LOGO_COUNT; i++) {
-        logos.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          size: 14 + Math.random() * 18,
-          alpha: 0.03 + Math.random() * 0.04,
-          speedX: (Math.random() - 0.5) * 0.3,
-          speedY: (Math.random() - 0.5) * 0.3
-        });
-      }
-    }
-
-    resize();
-    initBeams();
-    initLogos();
-    window.addEventListener('resize', () => { resize(); initBeams(); initLogos(); });
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#050505';
-      ctx.fillRect(0, 0, W, H);
-
-      /* Beams */
-      beams.forEach(b => {
-        ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(b.angle * Math.PI / 180);
-        const grad = ctx.createLinearGradient(0, 0, 0, b.length);
-        grad.addColorStop(0, `rgba(57,255,20,0)`);
-        grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
-        grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha})`);
-        grad.addColorStop(1, `rgba(57,255,20,0)`);
-        ctx.fillStyle = grad;
-        ctx.fillRect(-b.width / 2, 0, b.width, b.length);
-        ctx.restore();
-        b.x += Math.cos(b.angle * Math.PI / 180) * b.speed;
-        if (b.x > W + 200) b.x = -200;
-        if (b.x < -200) b.x = W + 200;
-      });
-
-      /* Floating logos */
-      logos.forEach(l => {
-        ctx.save();
-        ctx.globalAlpha = l.alpha;
-        ctx.font = `900 ${l.size}px Montserrat, sans-serif`;
-        ctx.fillStyle = '#39ff14';
-        ctx.fillText(LOGO_TEXT, l.x, l.y);
-        ctx.restore();
-        l.x += l.speedX;
-        l.y += l.speedY;
-        if (l.x > W + 100) l.x = -100;
-        if (l.x < -100) l.x = W + 100;
-        if (l.y > H + 30) l.y = -30;
-        if (l.y < -30) l.y = H + 30;
-      });
-
-      requestAnimationFrame(draw);
-    }
-    draw();
-  })();
-
-  /* ═══════════════════════════════════════════════════════════
-     TOAST
-     ═══════════════════════════════════════════════════════════ */
-  function toast(msg, type = 'success') {
-    const c = document.getElementById('toast-container');
-    const t = document.createElement('div');
-    t.className = `toast ${type}`;
-    const icons = {success:'✅', error:'❌', info:'ℹ️', gold:'🏅'};
-    const ic = document.createElement('span');
-    ic.textContent = icons[type] || '✅';
-    const tx = document.createElement('span');
-    tx.textContent = msg;
-    t.appendChild(ic);
-    t.appendChild(tx);
-    c.appendChild(t);
-    setTimeout(() => t.remove(), 3500);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     NAV
-     ═══════════════════════════════════════════════════════════ */
-  function buildNav() {
-    const nav = document.getElementById('main-nav');
-
-    // Logo
-    const logoLink = document.createElement('a');
-    logoLink.href = 'lobbyx.html';
-    const logoImg = document.createElement('img');
-    logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
-    logoImg.alt = 'LOBBY.GG';
-    logoImg.className = 'nav-logo';
-    logoLink.appendChild(logoImg);
-    nav.appendChild(logoLink);
-
-    // Links
-    const linksDiv = document.createElement('div');
-    linksDiv.className = 'nav-links';
-    
-    const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
-
-    const pages = [
-      {href:'lobbyx.html',   label:'Ana Sayfa',   icon:'🏠', key: 'lobbyx'},
-      {href:'ilanlar.html',  label:'İlanlar',     icon:'📋', key: 'ilanlar'},
-      {href:'klanlar.html',  label:'Klanlar',     icon:'🛡️', key: 'klanlar'},
-      {href:'kesfet.html',   label:'Keşfet',      icon:'🔍', key: 'kesfet'},
-      {href:'market.html',   label:'Mağaza',      icon:'🛒', key: 'market'},
-      {href:'destek.html',   label:'Destek',      icon:'🎟️', key: 'destek'}
-    ];
-    pages.forEach(p => {
-      const a = document.createElement('a');
-      a.href = p.href;
-      a.className = 'nav-link' + (activePage === p.key ? ' active' : '');
-      const ic = document.createElement('span');
-      ic.textContent = p.icon;
-      const sp = document.createElement('span');
-      sp.textContent = p.label;
-      a.appendChild(ic);
-      a.appendChild(sp);
-      linksDiv.appendChild(a);
-    });
-    nav.appendChild(linksDiv);
-
-    // Right side
-    const rightDiv = document.createElement('div');
-    rightDiv.className = 'nav-right';
-
-    // Bell
-    const bell = document.createElement('a');
-    bell.href = 'bildirimler.html';
-    bell.title = 'Bildirimler';
-    bell.className = 'nav-bell';
-    bell.textContent = '🔔';
-    const bellBadge = document.createElement('div');
-    bellBadge.className = 'nav-bell-badge';
-    bellBadge.id = 'nav-bell-count';
-    bellBadge.textContent = '0';
-    bellBadge.style.display = 'none';
-    bell.appendChild(bellBadge);
-    rightDiv.appendChild(bell);
-
-    // LCoin
-    const lcoin = document.createElement('div');
-    lcoin.className = 'nav-lcoin';
-    const lcoinIcon = document.createElement('span');
-    lcoinIcon.className = 'nav-lcoin-icon';
-    const lcoinVal = document.createElement('span');
-    lcoinVal.id = 'nav-lcoin-val';
-    lcoinVal.textContent = '0';
-    lcoin.appendChild(lcoinIcon);
-    lcoin.appendChild(lcoinVal);
-    rightDiv.appendChild(lcoin);
-
-    // Avatar
-    const avatarLink = document.createElement('a');
-    avatarLink.href = 'profil.html';
-    avatarLink.className = 'nav-avatar';
-    const avatarImg = document.createElement('img');
-    avatarImg.src = 'https://i.imgur.com/6l08Y4k.png';
-    avatarImg.alt = 'Profil';
-    avatarImg.id = 'nav-avatar-img';
-    avatarLink.appendChild(avatarImg);
-    rightDiv.appendChild(avatarLink);
-
-    nav.appendChild(rightDiv);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     AUTH
-     ═══════════════════════════════════════════════════════════ */
-  async function initAuth() {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      currentUser = session.user;
-      // Fetch profile
-      const { data: profile } = await sb.from('kullanicilar')
-        .select('id, kullanici_adi, avatar_url, lcoin')
-        .eq('email', currentUser.email)
-        .maybeSingle();
-      if (profile) {
-        currentUser = { ...session.user, id: profile.id };
-        const navAvatar = document.getElementById('nav-avatar-img');
-        if (profile.avatar_url && navAvatar) navAvatar.src = profile.avatar_url;
-        const lcoinEl = document.getElementById('nav-lcoin-val');
-        if (lcoinEl) lcoinEl.textContent = (profile.lcoin || 0).toLocaleString('tr-TR');
-      } else {
-        window.location.href = 'giris.html';
-        return;
-      }
-      // Load following
-      const { data: follows } = await sb.from('takipler')
-        .select('takip_edilen_id')
-        .eq('takip_eden_id', currentUser.id);
-      if (follows) follows.forEach(f => followingSet.add(f.takip_edilen_id));
-
-      // Bell
-      const { count } = await sb.from('bildirimler')
-        .select('id', {count: 'exact', head: true})
-        .eq('alici_id', currentUser.id)
-        .eq('okundu', false);
-      if (count > 0) {
-        const bellEl = document.getElementById('nav-bell-count');
-        if (bellEl) {
-          bellEl.textContent = count > 99 ? '99+' : count;
-          bellEl.style.display = 'flex';
-        }
-      }
-    }
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     STATS ROW
-     ═══════════════════════════════════════════════════════════ */
-  async function loadStats() {
-    const row = document.getElementById('stats-row');
-
-    const [
-      { count: totalPlayers },
-      { count: newPlayers }
-    ] = await Promise.all([
-      sb.from('kullanicilar').select('id', {count:'exact', head:true}).eq('profil_gizli', false),
-      sb.from('kullanicilar').select('id', {count:'exact', head:true})
-        .eq('profil_gizli', false)
-        .gte('kayit_tarihi', new Date(Date.now() - 7*24*60*60*1000).toISOString())
-    ]);
-
-    const pills = [
-      {icon:'👥', num: (totalPlayers||0).toLocaleString('tr-TR'), label:'Toplam Oyuncu'},
-      {icon:'🆕', num: (newPlayers||0).toLocaleString('tr-TR'), label:'Bu Hafta Yeni'},
-      {icon:'🌐', num: SERVERS.length.toString(), label:'Sunucu'},
-      {icon:'⚡', num: '24/7', label:'Aktif Topluluk'}
-    ];
-
-    pills.forEach(p => {
-      const pill = document.createElement('div');
-      pill.className = 'stat-pill';
-
-      const icon = document.createElement('span');
-      icon.className = 'stat-pill-icon';
-      icon.textContent = p.icon;
-
-      const num = document.createElement('span');
-      num.className = 'stat-pill-num';
-      num.textContent = p.num;
-
-      const lbl = document.createElement('span');
-      lbl.className = 'stat-pill-label';
-      lbl.textContent = p.label;
-
-      pill.appendChild(icon);
-      pill.appendChild(num);
-      pill.appendChild(lbl);
-      row.appendChild(pill);
-    });
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     FEATURED SECTION
-     ═══════════════════════════════════════════════════════════ */
-  async function loadFeatured() {
-    const grid = document.getElementById('featured-grid');
-    // Skeleton
-    for (let i = 0; i < 3; i++) {
-      const sk = buildSkeletonCard();
-      grid.appendChild(sk);
-    }
-
-    const { data } = await sb.from('kullanicilar')
-      .select('id, kullanici_adi, avatar_url, aktif_cerceve, banner_renk, banner_url, takipci_sayisi, abonelik, kategori, alt_kategori, bio, dogrulama_rozeti, klan_tag, pp_sekil, desteklened_sunucu')
-      .eq('profil_gizli', false)
-      .order('takipci_sayisi', {ascending: false})
-      .limit(3);
-
-    grid.innerHTML = '';
-
-    if (!data || data.length === 0) {
-      const msg = document.createElement('div');
-      msg.textContent = 'Henüz oyuncu yok.';
-      msg.style.cssText = 'color:var(--text-3);font-size:12px;padding:20px;';
-      grid.appendChild(msg);
-      return;
-    }
-
-    data.forEach((player, idx) => {
-      const card = buildFeaturedCard(player, idx);
-      grid.appendChild(card);
-    });
-  }
-
-  function buildFeaturedCard(p, idx) {
-    const card = document.createElement('div');
-    card.className = 'featured-card';
-
-    // Crown
-    const crowns = ['👑','🥈','🥉'];
-    const crown = document.createElement('div');
-    crown.className = 'featured-card-crown';
-    crown.textContent = crowns[idx] || '⭐';
-    card.appendChild(crown);
-
-    // Spotlight badge
-    const spotlight = document.createElement('div');
-    spotlight.className = 'featured-spotlight-badge';
-    spotlight.textContent = '⭐ Spotlight';
-    card.appendChild(spotlight);
-
-    // Banner
-    const banner = document.createElement('div');
-    banner.className = 'featured-card-banner';
-    if (p.banner_url) {
-      const img = document.createElement('img');
-      img.className = 'featured-card-banner-img';
-      img.src = p.banner_url;
-      img.alt = '';
-      banner.appendChild(img);
-    } else {
-      banner.style.background = bannerColors[p.banner_renk] || bannerColors.default;
-    }
-    card.appendChild(banner);
-
-    // Body
-    const body = document.createElement('div');
-    body.className = 'featured-card-body';
-
-    // PP row
-    const ppRow = document.createElement('div');
-    ppRow.className = 'featured-card-pp';
-
-    const ppWrap = document.createElement('div');
-    ppWrap.className = 'pp-wrap';
-    ppWrap.setAttribute('data-frame', p.aktif_cerceve || 'none');
-
-    const ppImg = document.createElement('img');
-    ppImg.className = 'pp-img' + (p.pp_sekil === 'rounded' ? ' shape-rounded' : '');
-    ppImg.src = p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.kullanici_adi||'?')}&background=1a1a1a&color=39ff14&bold=true&size=56`;
-    ppImg.alt = p.kullanici_adi || '?';
-    ppImg.style.width = '56px';
-    ppImg.style.height = '56px';
-    ppImg.onerror = () => { ppImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.kullanici_adi||'?')}&background=1a1a1a&color=39ff14&bold=true&size=56`; };
-    ppWrap.appendChild(ppImg);
-    ppRow.appendChild(ppWrap);
-
-    const ppInfo = document.createElement('div');
-    ppInfo.className = 'featured-card-info';
-
-    const nick = document.createElement('div');
-    nick.className = 'featured-card-nick';
-    const nickText = document.createElement('span');
-    nickText.textContent = p.kullanici_adi || 'Oyuncu';
-    nick.appendChild(nickText);
-    if (p.dogrulama_rozeti) {
-      const verImg = document.createElement('img');
-      verImg.src = 'https://i.imgur.com/VDpHaPy.png';
-      verImg.alt = '✔';
-      verImg.style.cssText = 'width:15px;height:15px;';
-      nick.appendChild(verImg);
-    }
-    ppInfo.appendChild(nick);
-
-    // Followers
-    const fol = document.createElement('div');
-    fol.className = 'featured-card-followers';
-    fol.innerHTML = '👥 ';
-    const folStrong = document.createElement('strong');
-    folStrong.textContent = (p.takipci_sayisi || 0).toLocaleString('tr-TR');
-    fol.appendChild(folStrong);
-    const folText = document.createTextNode(' takipçi');
-    fol.appendChild(folText);
-    ppInfo.appendChild(fol);
-
-    ppRow.appendChild(ppInfo);
-    body.appendChild(ppRow);
-
-    // Badges
-    const badges = document.createElement('div');
-    badges.className = 'featured-card-badges';
-    if (p.abonelik && abonelikBadge[p.abonelik]) {
-      const b = document.createElement('span');
-      b.className = `badge ${abonelikBadge[p.abonelik].cls}`;
-      b.textContent = abonelikBadge[p.abonelik].label;
-      badges.appendChild(b);
-    }
-    if (p.kategori) {
-      const bc = document.createElement('span');
-      bc.className = `badge b-cat ${catBadgeClass[p.kategori] || 'b-diger'}`;
-      bc.textContent = p.kategori;
-      badges.appendChild(bc);
-    }
-    if (p.alt_kategori) {
-      const balt = document.createElement('span');
-      balt.className = 'badge b-uye';
-      balt.style.cssText = 'font-size:8px;';
-      balt.textContent = p.alt_kategori;
-      badges.appendChild(balt);
-    }
-    body.appendChild(badges);
-
-    // Bio
-    if (p.bio) {
-      const bio = document.createElement('div');
-      bio.className = 'featured-card-bio';
-      bio.textContent = p.bio;
-      body.appendChild(bio);
-    }
-
-    // Footer
-    const footer = document.createElement('div');
-    footer.className = 'featured-card-footer';
-
-    // Server
-    if (p.desteklened_sunucu) {
-      const srv = SERVERS.find(s => s.name === p.desteklened_sunucu || s.ip === p.desteklened_sunucu);
-      if (srv) {
-        const srvDiv = document.createElement('div');
-        srvDiv.style.cssText = 'display:flex;align-items:center;gap:5px;';
-        const srvLogo = document.createElement('img');
-        srvLogo.src = serverLogoUrl(srv.ip);
-        srvLogo.alt = srv.name;
-        srvLogo.style.cssText = 'width:20px;height:20px;border-radius:3px;';
-        srvLogo.onerror = () => { srvLogo.style.display = 'none'; };
-        const srvName = document.createElement('span');
-        srvName.style.cssText = 'font-size:10px;color:var(--text-2);font-weight:700;';
-        srvName.textContent = srv.name;
-        srvDiv.appendChild(srvLogo);
-        srvDiv.appendChild(srvName);
-        footer.appendChild(srvDiv);
-      }
-    }
-
-    const viewBtn = document.createElement('a');
-    viewBtn.href = `profil.html?id=${p.id}`;
-    viewBtn.className = 'btn mc-green mc-sm';
-    viewBtn.textContent = 'Profili Gör';
-    footer.appendChild(viewBtn);
-
-    body.appendChild(footer);
-    card.appendChild(body);
-
-    card.addEventListener('click', (e) => {
-      if (!e.target.closest('a') && !e.target.closest('button')) {
-        window.location.href = `profil.html?id=${p.id}`;
-      }
-    });
-
-    return card;
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     FILTER BAR
-     ═══════════════════════════════════════════════════════════ */
-  function buildFilterBar() {
-    const bar = document.getElementById('filter-bar');
-
-    /* Row 1 */
-    const row1 = document.createElement('div');
-    row1.className = 'filter-bar-row1';
-
-    // Search
-    const searchWrap = document.createElement('div');
-    searchWrap.className = 'filter-search-wrap';
-    const searchIcon = document.createElement('span');
-    searchIcon.className = 'filter-search-icon';
-    searchIcon.textContent = '🔍';
-    const searchInput = document.createElement('input');
-    searchInput.className = 'filter-search-input';
-    searchInput.placeholder = 'Nick ara...';
-    searchInput.type = 'text';
-    searchInput.id = 'search-input';
-    searchInput.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        searchTerm = searchInput.value.trim();
-        resetAndLoad();
-      }, 400);
-    });
-    searchWrap.appendChild(searchIcon);
-    searchWrap.appendChild(searchInput);
-    row1.appendChild(searchWrap);
-
-    // Server filter
-    const srvSelect = document.createElement('select');
-    srvSelect.className = 'filter-select';
-    srvSelect.id = 'server-select';
-    const allOpt = document.createElement('option');
-    allOpt.value = 'all';
-    allOpt.textContent = 'Tüm Sunucular';
-    srvSelect.appendChild(allOpt);
-    SERVERS.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.name;
-      opt.textContent = s.name;
-      srvSelect.appendChild(opt);
-    });
-    srvSelect.addEventListener('change', () => {
-      activeServer = srvSelect.value;
-      updateChips();
-      resetAndLoad();
-    });
-    row1.appendChild(srvSelect);
-
-    bar.appendChild(row1);
-
-    /* Row 2 — Category buttons */
-    const row2 = document.createElement('div');
-    row2.className = 'filter-bar-row2';
-
-    CATEGORIES.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className = 'filter-cat-btn' + (cat.key === 'all' ? ' active' : '');
-      btn.textContent = cat.label;
-      btn.dataset.cat = cat.key;
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeCategory = cat.key;
-        updateChips();
-        resetAndLoad();
-      });
-      row2.appendChild(btn);
-    });
-
-    bar.appendChild(row2);
-
-    /* Active chips area */
-    const chipsDiv = document.createElement('div');
-    chipsDiv.className = 'active-chips';
-    chipsDiv.id = 'active-chips';
-    bar.appendChild(chipsDiv);
-  }
-
-  function updateChips() {
-    const container = document.getElementById('active-chips');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (searchTerm) {
-      addChip(container, 'search', `"${searchTerm}"`, () => {
-        searchTerm = '';
-        const si = document.getElementById('search-input');
-        if (si) si.value = '';
-        updateChips();
-        resetAndLoad();
-      });
-    }
-    if (activeCategory !== 'all') {
-      const cat = CATEGORIES.find(c => c.key === activeCategory);
-      addChip(container, 'cat', cat ? cat.label : activeCategory, () => {
-        activeCategory = 'all';
-        document.querySelectorAll('.filter-cat-btn').forEach(b => b.classList.remove('active'));
-        const allBtn = document.querySelector('.filter-cat-btn[data-cat="all"]');
-        if (allBtn) allBtn.classList.add('active');
-        updateChips();
-        resetAndLoad();
-      });
-    }
-    if (activeServer !== 'all') {
-      addChip(container, 'server', activeServer, () => {
-        activeServer = 'all';
-        const sel = document.getElementById('server-select');
-        if (sel) sel.value = 'all';
-        updateChips();
-        resetAndLoad();
-      });
-    }
-  }
-
-  function addChip(container, type, label, onRemove) {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    const labelSp = document.createElement('span');
-    labelSp.textContent = label;
-    const x = document.createElement('span');
-    x.className = 'chip-x';
-    x.textContent = '×';
-    chip.appendChild(labelSp);
-    chip.appendChild(x);
-    chip.addEventListener('click', onRemove);
-    container.appendChild(chip);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     RESULTS BAR
-     ═══════════════════════════════════════════════════════════ */
-  function buildResultsBar() {
-    const bar = document.getElementById('results-bar');
-    bar.innerHTML = '';
-
-    // Count
-    const countDiv = document.createElement('div');
-    countDiv.className = 'results-count';
-    countDiv.id = 'result-count-text';
-    bar.appendChild(countDiv);
-
-    // Sort row
-    const sortRow = document.createElement('div');
-    sortRow.className = 'sort-row';
-    const sortLabel = document.createElement('span');
-    sortLabel.className = 'sort-label';
-    sortLabel.textContent = 'Sırala:';
-    sortRow.appendChild(sortLabel);
-
-    SORTS.forEach(s => {
-      const btn = document.createElement('button');
-      btn.className = 'sort-btn' + (s.key === activeSort ? ' active' : '');
-      btn.textContent = s.label;
-      btn.dataset.sort = s.key;
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeSort = s.key;
-        resetAndLoad();
-      });
-      sortRow.appendChild(btn);
-    });
-
-    bar.appendChild(sortRow);
-  }
-
-  function updateResultCount() {
-    const el = document.getElementById('result-count-text');
-    if (!el) return;
-    const showing = document.querySelectorAll('.player-card').length;
-    el.innerHTML = '';
-    const sp1 = document.createElement('span');
-    sp1.textContent = showing;
-    const tx = document.createTextNode(` / ${totalCount} oyuncu gösteriliyor`);
-    el.appendChild(sp1);
-    el.appendChild(tx);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     PLAYER GRID — LOAD
-     ═══════════════════════════════════════════════════════════ */
-  function resetAndLoad() {
-    currentPage = 0;
-    totalCount = 0;
-    allLoaded = false;
-    const grid = document.getElementById('player-grid');
-    grid.innerHTML = '';
-    loadPlayers();
-  }
-
-  async function loadPlayers() {
-    if (isFetching || allLoaded) return;
-    isFetching = true;
-
-    const grid = document.getElementById('player-grid');
-    const loadMoreWrap = document.getElementById('load-more-wrap');
-    loadMoreWrap.innerHTML = '';
-
-    // Show loading indicator
-    const loadingEl = document.createElement('div');
-    loadingEl.className = 'grid-loading';
-    loadingEl.id = 'grid-loading';
-    const spinner = document.createElement('div');
-    spinner.className = 'grid-spinner';
-    loadingEl.appendChild(spinner);
-
-    if (currentPage === 0) {
-      // Show skeletons for first page
-      for (let i = 0; i < 8; i++) {
-        const sk = buildSkeletonCard();
-        sk.classList.add('skeleton-temp');
-        grid.appendChild(sk);
-      }
-    } else {
-      grid.appendChild(loadingEl);
-    }
-
-    try {
-      let query = sb.from('kullanicilar')
-        .select('id, kullanici_adi, avatar_url, aktif_cerceve, banner_renk, banner_url, takipci_sayisi, abonelik, kategori, alt_kategori, bio, dogrulama_rozeti, klan_tag, pp_sekil, desteklened_sunucu, kayit_tarihi', {count: 'exact'})
-        .eq('profil_gizli', false);
-
-      // Search
-      if (searchTerm) {
-        query = query.ilike('kullanici_adi', `%${searchTerm}%`);
-      }
-      // Category
-      if (activeCategory !== 'all') {
-        query = query.eq('kategori', activeCategory);
-      }
-      // Server
-      if (activeServer !== 'all') {
-        query = query.eq('desteklened_sunucu', activeServer);
-      }
-      // Sort
-      if (activeSort === 'new') {
-        query = query.order('kayit_tarihi', {ascending: false});
-      } else if (activeSort === 'popular' || activeSort === 'followers') {
-        query = query.order('takipci_sayisi', {ascending: false});
-      }
-
-      // Pagination
-      query = query.range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
-
-      const { data, count, error } = await query;
-
-      // Remove skeletons
-      document.querySelectorAll('.skeleton-temp').forEach(el => el.remove());
-      const gridLoadEl = document.getElementById('grid-loading');
-      if (gridLoadEl) gridLoadEl.remove();
-
-      if (error) throw error;
-
-      totalCount = count || 0;
-
-      if (!data || data.length === 0) {
-        if (currentPage === 0) {
-          // Show empty state
-          const empty = document.createElement('div');
-          empty.className = 'player-empty';
-          const emptyIcon = document.createElement('div');
-          emptyIcon.className = 'player-empty-icon';
-          emptyIcon.textContent = '🔍';
-          const emptyTitle = document.createElement('div');
-          emptyTitle.className = 'player-empty-title';
-          emptyTitle.textContent = 'Oyuncu bulunamadı';
-          const emptySub = document.createElement('div');
-          emptySub.className = 'player-empty-sub';
-          emptySub.textContent = searchTerm
-            ? `"${searchTerm}" için sonuç bulunamadı. Farklı bir arama deneyin.`
-            : 'Filtrelere uyan oyuncu bulunamadı.';
-          empty.appendChild(emptyIcon);
-          empty.appendChild(emptyTitle);
-          empty.appendChild(emptySub);
-          grid.appendChild(empty);
-        }
-        allLoaded = true;
-      } else {
-        data.forEach(player => {
-          const card = buildPlayerCard(player);
-          grid.appendChild(card);
-        });
-
-        if (data.length < PAGE_SIZE) {
-          allLoaded = true;
-        } else {
-          currentPage++;
-          // Add "load more" button
-          buildLoadMoreBtn();
-        }
-      }
-
-      updateResultCount();
-
-    } catch (err) {
-      console.error('loadPlayers error:', err);
-      document.querySelectorAll('.skeleton-temp').forEach(el => el.remove());
-      const gridLoadEl = document.getElementById('grid-loading');
-      if (gridLoadEl) gridLoadEl.remove();
-      toast('Oyuncular yüklenirken hata oluştu.', 'error');
-    }
-
-    isFetching = false;
-  }
-
-  function buildLoadMoreBtn() {
-    const wrap = document.getElementById('load-more-wrap');
-    wrap.innerHTML = '';
-    const btn = document.createElement('button');
-    btn.className = 'btn mc-gray';
-    btn.textContent = 'Daha Fazla Göster';
-    btn.addEventListener('click', () => {
-      wrap.innerHTML = '';
-      loadPlayers();
-    });
-    wrap.appendChild(btn);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     SKELETON CARD
-     ═══════════════════════════════════════════════════════════ */
-  function buildSkeletonCard() {
-    const card = document.createElement('div');
-    card.className = 'skeleton-card';
-
-    const banner = document.createElement('div');
-    banner.className = 'skel skel-banner';
-    card.appendChild(banner);
-
-    const body = document.createElement('div');
-    body.className = 'skel-body';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'skel skel-avatar';
-    body.appendChild(avatar);
-
-    const l1 = document.createElement('div');
-    l1.className = 'skel skel-line-lg';
-    body.appendChild(l1);
-
-    const l2 = document.createElement('div');
-    l2.className = 'skel skel-line-sm';
-    body.appendChild(l2);
-
-    const l3 = document.createElement('div');
-    l3.className = 'skel skel-line-xs';
-    body.appendChild(l3);
-
-    card.appendChild(body);
-    return card;
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     PLAYER CARD
-     ═══════════════════════════════════════════════════════════ */
-  function buildPlayerCard(p) {
-    const card = document.createElement('div');
-    card.className = 'player-card';
-
-    /* Banner */
-    const banner = document.createElement('div');
-    banner.className = 'player-card-banner';
-    if (p.banner_url) {
-      const bImg = document.createElement('img');
-      bImg.src = p.banner_url;
-      bImg.alt = '';
-      bImg.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-      banner.appendChild(bImg);
-    } else {
-      banner.style.background = bannerColors[p.banner_renk] || bannerColors.default;
-    }
-    card.appendChild(banner);
-
-    /* PP row */
-    const ppRow = document.createElement('div');
-    ppRow.className = 'player-card-pp-row';
-
-    const ppCell = document.createElement('div');
-    ppCell.className = 'player-card-pp';
-
-    const ppWrap = document.createElement('div');
-    ppWrap.className = 'pp-wrap';
-    ppWrap.setAttribute('data-frame', p.aktif_cerceve || 'none');
-
-    const ppImg = document.createElement('img');
-    ppImg.className = 'pp-img' + (p.pp_sekil === 'rounded' ? ' shape-rounded' : '');
-    ppImg.src = p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.kullanici_adi||'?')}&background=1a1a1a&color=39ff14&bold=true&size=52`;
-    ppImg.alt = p.kullanici_adi || '?';
-    ppImg.style.width = '52px';
-    ppImg.style.height = '52px';
-    ppImg.onerror = () => { ppImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.kullanici_adi||'?')}&background=1a1a1a&color=39ff14&bold=true&size=52`; };
-    ppWrap.appendChild(ppImg);
-    ppCell.appendChild(ppWrap);
-    ppRow.appendChild(ppCell);
-
-    // Follow button in pp row
-    const followBtn = buildFollowBtn(p);
-    ppRow.appendChild(followBtn);
-
-    card.appendChild(ppRow);
-
-    /* Body */
-    const body = document.createElement('div');
-    body.className = 'player-card-body';
-
-    // Nick
-    const nick = document.createElement('div');
-    nick.className = 'player-card-nick';
-    const nickText = document.createElement('span');
-    nickText.textContent = p.kullanici_adi || 'Oyuncu';
-    nick.appendChild(nickText);
-    if (p.dogrulama_rozeti) {
-      const verImg = document.createElement('img');
-      verImg.src = 'https://i.imgur.com/VDpHaPy.png';
-      verImg.alt = '✔';
-      verImg.className = 'verify-img';
-      nick.appendChild(verImg);
-    }
-    body.appendChild(nick);
-
-    // Badges
-    const badges = document.createElement('div');
-    badges.className = 'player-card-badges';
-    if (p.abonelik && abonelikBadge[p.abonelik]) {
-      const b = document.createElement('span');
-      b.className = `badge ${abonelikBadge[p.abonelik].cls}`;
-      b.textContent = abonelikBadge[p.abonelik].label;
-      badges.appendChild(b);
-    }
-    if (p.kategori) {
-      const bc = document.createElement('span');
-      bc.className = `badge b-cat ${catBadgeClass[p.kategori] || 'b-diger'}`;
-      bc.textContent = p.kategori;
-      badges.appendChild(bc);
-    }
-    if (badges.children.length > 0) body.appendChild(badges);
-
-    // Alt kategori
-    if (p.alt_kategori) {
-      const ak = document.createElement('div');
-      ak.style.cssText = 'font-size:10px;color:var(--text-3);font-weight:700;margin-bottom:4px;';
-      ak.textContent = p.alt_kategori;
-      body.appendChild(ak);
-    }
-
-    // Bio
-    const bio = document.createElement('div');
-    bio.className = 'player-card-bio';
-    bio.textContent = p.bio || 'Henüz bir bio girilmemiş.';
-    body.appendChild(bio);
-
-    // Server
-    if (p.desteklened_sunucu) {
-      const srv = SERVERS.find(s => s.name === p.desteklened_sunucu || s.ip === p.desteklened_sunucu);
-      if (srv) {
-        const srvDiv = document.createElement('div');
-        srvDiv.className = 'player-card-server';
-        const srvLogo = document.createElement('img');
-        srvLogo.className = 'player-card-server-logo';
-        srvLogo.src = serverLogoUrl(srv.ip);
-        srvLogo.alt = srv.name;
-        srvLogo.onerror = () => { srvLogo.style.display = 'none'; };
-        const srvName = document.createElement('span');
-        srvName.className = 'player-card-server-name';
-        srvName.textContent = srv.name;
-        srvDiv.appendChild(srvLogo);
-        srvDiv.appendChild(srvName);
-        body.appendChild(srvDiv);
-      }
-    }
-
-    // Meta row
-    const meta = document.createElement('div');
-    meta.className = 'player-card-meta';
-
-    const followers = document.createElement('div');
-    followers.className = 'player-card-followers';
-    followers.textContent = '👥 ';
-    const folStrong = document.createElement('strong');
-    folStrong.textContent = formatNum(p.takipci_sayisi || 0);
-    followers.appendChild(folStrong);
-    const folTxt = document.createTextNode(' takipçi');
-    followers.appendChild(folTxt);
-    meta.appendChild(followers);
-
-    // Klan tag
-    if (p.klan_tag) {
-      const klan = document.createElement('span');
-      klan.className = 'player-card-klan';
-      klan.textContent = `[${p.klan_tag}]`;
-      klan.style.cssText = 'background:rgba(57,255,20,0.1);color:var(--accent);border:1px solid rgba(57,255,20,0.2);';
-      meta.appendChild(klan);
-    }
-
-    body.appendChild(meta);
-
-    // Footer
-    const footer = document.createElement('div');
-    footer.className = 'player-card-footer';
-
-    // "Profili Gör" link
-    const viewLink = document.createElement('a');
-    viewLink.href = `profil.html?id=${p.id}`;
-    viewLink.className = 'player-card-view-link';
-    viewLink.title = 'Profili Gör';
-    viewLink.textContent = '→';
-    footer.appendChild(viewLink);
-
-    body.appendChild(footer);
-    card.appendChild(body);
-
-    // Card click → profile
-    card.addEventListener('click', (e) => {
-      if (!e.target.closest('a') && !e.target.closest('button')) {
-        window.location.href = `profil.html?id=${p.id}`;
-      }
-    });
-
-    return card;
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     FOLLOW BUTTON
-     ═══════════════════════════════════════════════════════════ */
-  function buildFollowBtn(p) {
-    const isFollowing = followingSet.has(p.id);
-    const isSelf = currentUser && currentUser.id === p.id;
-
-    const btn = document.createElement('button');
-    btn.className = isSelf ? 'btn mc-gray mc-sm' : (isFollowing ? 'btn mc-gray mc-sm' : 'btn mc-green mc-sm');
-    btn.textContent = isSelf ? 'Sen' : (isFollowing ? '✓ Takiptesin' : '+ Takip Et');
-    btn.disabled = isSelf;
-    btn.dataset.playerId = p.id;
-    btn.id = `follow-btn-${p.id}`;
-
-    if (!isSelf) {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (!currentUser) {
-          toast('Takip etmek için giriş yapmalısın.', 'info');
-          return;
-        }
-        await toggleFollow(p.id, btn);
-      });
-    }
-
-    return btn;
-  }
-
-  async function toggleFollow(playerId, btn) {
-    const isFollowing = followingSet.has(playerId);
-
-    // Optimistic update
-    if (isFollowing) {
-      followingSet.delete(playerId);
-      btn.className = 'btn mc-green mc-sm';
-      btn.textContent = '+ Takip Et';
-    } else {
-      followingSet.add(playerId);
-      btn.className = 'btn mc-gray mc-sm';
-      btn.textContent = '✓ Takiptesin';
-    }
-
-    try {
-      if (isFollowing) {
-        const { error } = await sb.from('takipler')
-          .delete()
-          .eq('takip_eden_id', currentUser.id)
-          .eq('takip_edilen_id', playerId);
-        if (error) throw error;
-        toast('Takip bırakıldı.', 'info');
-      } else {
-        const { error } = await sb.from('takipler')
-          .insert({takip_eden_id: currentUser.id, takip_edilen_id: playerId});
-        if (error) throw error;
-        toast('Takip edildi! 🎉', 'success');
-        // Bildirim
-        await sb.from('bildirimler').insert({
-          alici_id: playerId,
-          gonderen_id: currentUser.id,
-          tip: 'takip',
-          icerik: 'seni takip etmeye başladı.',
-          link: `profil.html?id=${currentUser.id}`,
-          okundu: false
-        });
-      }
-    } catch (err) {
-      // Revert
-      if (isFollowing) {
-        followingSet.add(playerId);
-        btn.className = 'btn mc-gray mc-sm';
-        btn.textContent = '✓ Takiptesin';
-      } else {
-        followingSet.delete(playerId);
-        btn.className = 'btn mc-green mc-sm';
-        btn.textContent = '+ Takip Et';
-      }
-      toast('İşlem sırasında hata oluştu.', 'error');
-      console.error(err);
-    }
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     HELPERS
-     ═══════════════════════════════════════════════════════════ */
-  function formatNum(n) {
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000)    return (n / 1000).toFixed(1) + 'K';
-    return n.toLocaleString('tr-TR');
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     INIT
-     ═══════════════════════════════════════════════════════════ */
-  (async function init() {
-    buildNav();
-    await initAuth();
-    await loadStats();
-    await loadFeatured();
-    buildFilterBar();
-    buildResultsBar();
-    loadPlayers();
-  })();
-  </script>
 </body>
 </html>

@@ -1846,6 +1846,7 @@ const TAB_DEFS = [
   {id:'takip',     icon:'👤', label:'Takip'},
 ];
 const OWN_TABS = [
+  {id:'hediyeler', icon:'🎁', label:'Hediyelerim'},
   {id:'ozellestir',icon:'🎨', label:'Özelleştir'},
   {id:'hesap',     icon:'⚙️', label:'Hesap'},
 ];
@@ -1919,6 +1920,53 @@ function renderMainContent() {
   else if (activeTab === 'takip') renderFollowList(mc, 'takip');
   else if (activeTab === 'ozellestir') renderOzellestirTab(mc);
   else if (activeTab === 'hesap') renderHesapTab(mc);
+  else if (activeTab === 'hediyeler') renderHediyelerTab(mc);
+}
+
+// ===== HEDİYELERİM TAB =====
+async function renderHediyelerTab(container) {
+  const wrap = el('div', {className:'fade-in-up', style:{display:'flex', flexDirection:'column', gap:'16px'}});
+  
+  const title = el('h2', {style:{color:'#fff', fontWeight:'900', fontSize:'20px', marginBottom:'10px'}});
+  title.textContent = '🎁 Çark Hediyelerim';
+  wrap.appendChild(title);
+
+  const list = el('div', {style:{display:'flex', flexDirection:'column', gap:'12px'}});
+  
+  const kalanOne = currentUser.kalan_one_cikarma || 0;
+  
+  if (kalanOne > 0) {
+    const item = el('div', {style:{background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:'var(--radius)', padding:'16px', display:'flex', alignItems:'center', justifyContent:'space-between'}});
+    
+    const left = el('div', {style:{display:'flex', alignItems:'center', gap:'16px'}});
+    const ico = el('div', {style:{fontSize:'32px'}}); ico.textContent = '🚀';
+    const info = el('div');
+    const h = el('div', {style:{color:'#fff', fontWeight:'800', fontSize:'16px', marginBottom:'4px'}}); h.textContent = 'İlan Öne Çıkarma Hakkı';
+    const sub = el('div', {style:{color:'var(--text-2)', fontSize:'12px'}}); sub.textContent = `Toplam ${kalanOne} adet öne çıkarma hakkınız bulunuyor.`;
+    info.appendChild(h); info.appendChild(sub);
+    left.appendChild(ico); left.appendChild(info);
+    
+    const right = el('div');
+    const useBtn = el('button', {className:'btn mc-gold', textContent:'İlanlarımda Kullan'});
+    useBtn.addEventListener('click', () => switchTab('ilanlar'));
+    right.appendChild(useBtn);
+    
+    item.appendChild(left);
+    item.appendChild(right);
+    list.appendChild(item);
+  } else {
+    const es = el('div', {className:'empty-state'});
+    const ico = el('div', {className:'empty-state-icon', textContent:'😔'});
+    const tit = el('div', {className:'empty-state-title', textContent:'Hiç Hediyeniz Yok'});
+    const sub = el('div', {className:'empty-state-sub', textContent:'Günlük çarkı çevirerek ücretsiz hediyeler kazanabilirsiniz.'});
+    const carkBtn = el('button', {className:'btn mc-gold', style:{marginTop:'16px'}, textContent:'🎡 Çarkı Çevir'});
+    carkBtn.addEventListener('click', () => window.location.href='cark.html');
+    es.appendChild(ico); es.appendChild(tit); es.appendChild(sub); es.appendChild(carkBtn);
+    list.appendChild(es);
+  }
+
+  wrap.appendChild(list);
+  container.appendChild(wrap);
 }
 
 // ===== DROPS TAB =====

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Yetkili Başvurusu | LOBBY.GG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      font-family: var(--font);
+    }
+    .basvuru-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .logo-container {
+      margin-bottom: 20px;
+    }
+    .logo-container img {
+      width: 80px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    p {
+      color: var(--text-2);
+      font-size: 14px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 800;
+      color: var(--text-1);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .form-control {
+      width: 100%;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--text-3);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: var(--text-1);
+    }
+    .success-msg {
+      display: none;
+      color: var(--accent);
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.2);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-top: 20px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="basvuru-container">
+    <div class="logo-container">
+      <img src="https://i.imgur.com/6l08Y4k.png" alt="Logo">
+    </div>
+    <h1>Yetkili Başvurusu</h1>
+    <p>LOBBY.GG ekibine katılmak ister misin? Aşağıdaki formu doldurarak Rehber, Moderatör veya Destek ekibi başvurunu bize iletebilirsin.</p>
+
+    <div id="basvuruFormWrap">
+      <div class="form-group">
+        <label>Yaşınız</label>
+        <input type="number" id="yas" class="form-control" placeholder="Örn: 18" min="13" max="99">
+      </div>
+      <div class="form-group">
+        <label>Başvurmak İstediğiniz Departman</label>
+        <select id="departman" class="form-control">
+          <option value="rehber">Rehber Ekibi</option>
+          <option value="moderator">Moderatör Ekibi</option>
+          <option value="destek">Destek Ekibi</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Neden yetkili olmak istiyorsunuz?</label>
+        <textarea id="neden" class="form-control" placeholder="Kendinizden ve hedeflerinizden kısaca bahsedin..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Daha önceki tecrübeleriniz</label>
+        <textarea id="tecrube" class="form-control" placeholder="Daha önce görev aldığınız sunucular vb."></textarea>
+      </div>
+      <button class="btn mc-green btn-submit" onclick="submitBasvuru()">Başvuruyu Gönder</button>
+    </div>
+
+    <div id="successMsg" class="success-msg">
+      🎉 Başvurunuz başarıyla alındı! Yönetim ekibimiz en kısa sürede inceleyip size dönüş yapacaktır.
+    </div>
+
+    <a href="lobbyx.html" class="back-link">← Ana Sayfaya Dön</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script>
+    async function submitBasvuru() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        alert("Başvuru yapmak için giriş yapmalısınız!");
+        window.location.href = 'giris.html';
+        return;
+      }
+
+      const yas = document.getElementById('yas').value;
+      const departman = document.getElementById('departman').value;
+      const neden = document.getElementById('neden').value.trim();
+      const tecrube = document.getElementById('tecrube').value.trim();
+
+      if (!yas || !departman || !neden || !tecrube) {
+        alert("Lütfen tüm alanları doldurun.");
+        return;
+      }
+
+      const btn = document.querySelector('.btn-submit');
+      btn.disabled = true;
+      btn.textContent = 'Gönderiliyor...';
+
+      // Insert into basvurular table
+      const { error } = await sb.from('basvurular').insert({
+        kullanici_id: session.user.id,
+        yas: parseInt(yas),
+        departman: departman,
+        neden: neden,
+        tecrube: tecrube,
+        durum: 'bekliyor',
+        tarih: new Date().toISOString()
+      });
+
+      if (error) {
+        console.error(error);
+        alert("Başvuru gönderilirken bir hata oluştu.");
+        btn.disabled = false;
+        btn.textContent = 'Başvuruyu Gönder';
+        return;
+      }
+
+      document.getElementById('basvuruFormWrap').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
