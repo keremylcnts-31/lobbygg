@@ -2338,6 +2338,132 @@ function openImgModal(src) {
 }
 
 // ===== İLANLAR TAB =====
+async function handleBoostClick(ilan, btn) {
+  if (!currentUser) {
+    showToast('Lütfen giriş yapın.', true);
+    return;
+  }
+
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ ...';
+
+  try {
+    const settings = await window.dbHelper.getSiteSettings();
+    const role = currentUser.abonelik || 'uye';
+    
+    // Determine free rights count
+    let freeRights = currentUser.kalan_one_cikarma;
+    if (freeRights === undefined || freeRights === null) {
+      if (role === 'abone') freeRights = 3;
+      else if (['premium', 'yonetici', 'admin', 'moderator', 'rehber'].includes(role)) freeRights = 10;
+      else freeRights = 0;
+    }
+
+    let useFreeRight = false;
+    let cost = 0;
+
+    if (freeRights > 0) {
+      useFreeRight = true;
+      cost = 0;
+    } else {
+      if (role === 'uye') cost = settings.boost_cost_uye || 15;
+      else if (role === 'abone') cost = settings.boost_cost_abone || 10;
+      else cost = settings.boost_cost_premium || 5;
+    }
+
+    let confirmMsg = '';
+    if (useFreeRight) {
+      confirmMsg = `Bu ilanı ücretsiz öne çıkarma hakkınızı kullanarak öne çıkarmak istiyor musunuz?\n(Kalan Ücretsiz Hak: ${freeRights})`;
+    } else {
+      confirmMsg = `Bu ilanı öne çıkarmak için ${cost} LCoin harcanacaktır.\n(Mevcut LCoininiz: ${currentUser.lcoin || 0})\n\nDevam etmek istiyor musunuz?`;
+    }
+
+    if (!confirm(confirmMsg)) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      return;
+    }
+
+    if (!useFreeRight && (currentUser.lcoin || 0) < cost) {
+      if (confirm('Yetersiz LCoin! Mağazaya gidip LCoin satın almak ister misiniz?')) {
+        window.location.href = 'market.html';
+      }
+      btn.disabled = false;
+      btn.textContent = originalText;
+      return;
+    }
+
+    const newFreeRights = useFreeRight ? freeRights - 1 : freeRights;
+    const newLcoins = useFreeRight ? (currentUser.lcoin || 0) : (currentUser.lcoin || 0) - cost;
+
+    // Supabase update
+    if (sb) {
+      const userUpdate = {};
+      if (useFreeRight) {
+        userUpdate.kalan_one_cikarma = newFreeRights;
+      } else {
+        userUpdate.lcoin = newLcoins;
+      }
+      
+      const { error: userErr } = await sb.from('kullanicilar').update(userUpdate).eq('id', currentUser.id);
+      if (userErr) throw userErr;
+
+      const { error: ilanErr } = await sb.from('ilanlar').update({ one_cikan: true }).eq('id', ilan.id);
+      if (ilanErr) throw ilanErr;
+    }
+
+    // Update state & LocalStorage fallback
+    if (useFreeRight) {
+      currentUser.kalan_one_cikarma = newFreeRights;
+    } else {
+      currentUser.lcoin = newLcoins;
+      const navL = document.getElementById('navLcoin');
+      if (navL) navL.textContent = newLcoins.toLocaleString();
+    }
+
+    // Sync localStorage for listings
+    try {
+      const local = localStorage.getItem('lobby_ilanlar');
+      if (local) {
+        const arr = JSON.parse(local);
+        const idx = arr.findIndex(i => i.id === ilan.id);
+        if (idx !== -1) {
+          arr[idx].one_cikan = true;
+          localStorage.setItem('lobby_ilanlar', JSON.stringify(arr));
+        }
+      }
+    } catch(e) {}
+
+    // Sync localStorage for users
+    try {
+      const localUsers = localStorage.getItem('lobby_kullanicilar');
+      if (localUsers) {
+        const users = JSON.parse(localUsers);
+        const uIdx = users.findIndex(u => u.id === currentUser.id);
+        if (uIdx !== -1) {
+          users[uIdx] = { ...users[uIdx], ...currentUser };
+          localStorage.setItem('lobby_kullanicilar', JSON.stringify(users));
+        }
+      }
+    } catch(e) {}
+
+    showToast('🚀 İlan başarıyla öne çıkarıldı!');
+    
+    // Re-render tab
+    const tabContent = document.getElementById('tabContent');
+    if (tabContent) {
+      tabContent.innerHTML = '';
+      await renderIlanlarTab(tabContent);
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Bir hata oluştu: ' + err.message, true);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
 async function renderIlanlarTab(container) {
   const wrap = el('div', {className:'fade-in-up'});
   const spinner = el('div', {className:'empty-state'});
@@ -2345,12 +2471,43 @@ async function renderIlanlarTab(container) {
   wrap.appendChild(spinner);
   container.appendChild(wrap);
 
-  const { data: ilanlar } = await sb.from('ilanlar')
-    .select('*')
-    .eq('kullanici_id', profileUser.id)
-    .eq('durum', 'aktif')
-    .order('one_cikan', {ascending:false})
-    .order('id', {ascending:false});
+  let ilanlar = [];
+
+  if (sb) {
+    try {
+      const { data } = await sb.from('ilanlar')
+        .select('*')
+        .eq('kullanici_id', profileUser.id)
+        .order('one_cikan', {ascending:false})
+        .order('id', {ascending:false});
+      if (data) {
+        ilanlar = data.filter(ilan => {
+          if (isOwnProfile) return ['aktif', 'onaylandi', 'beklemede'].includes(ilan.durum);
+          return ['aktif', 'onaylandi'].includes(ilan.durum);
+        });
+      }
+    } catch (err) {
+      console.warn("Supabase listings load failed in profile, checking localStorage");
+    }
+  }
+
+  if (!ilanlar || !ilanlar.length) {
+    try {
+      const local = localStorage.getItem('lobby_ilanlar');
+      if (local) {
+        const arr = JSON.parse(local);
+        ilanlar = arr.filter(ilan => {
+          if (ilan.kullanici_id !== profileUser.id) return false;
+          if (isOwnProfile) return ['aktif', 'onaylandi', 'beklemede'].includes(ilan.durum);
+          return ['aktif', 'onaylandi'].includes(ilan.durum);
+        });
+        ilanlar.sort((a, b) => {
+          if (a.one_cikan !== b.one_cikan) return b.one_cikan ? 1 : -1;
+          return b.id - a.id;
+        });
+      }
+    } catch(e) {}
+  }
 
   spinner.remove();
 
@@ -2371,6 +2528,16 @@ async function renderIlanlarTab(container) {
     const catBadge = el('span', {className:`badge b-cat ${catCls}`, textContent:ilan.kategori||'Diğer', style:{marginBottom:'8px', display:'inline-flex'}});
     card.appendChild(catBadge);
 
+    if (ilan.one_cikan) {
+      const ocBadge = el('span', {className:'badge b-gold', textContent:'⭐ Öne Çıkarıldı', style:{marginLeft:'6px', marginBottom:'8px', display:'inline-flex'}});
+      card.appendChild(ocBadge);
+    }
+    
+    if (isOwnProfile && ilan.durum === 'beklemede') {
+      const statusBadge = el('span', {className:'badge', textContent:'⏳ Onay Bekliyor', style:{marginLeft:'6px', marginBottom:'8px', display:'inline-flex', background:'#ffa500', color:'#111', padding:'2px 6px', fontSize:'10px', fontWeight:'bold'}});
+      card.appendChild(statusBadge);
+    }
+
     const title = el('div', {className:'ilan-card-title', textContent:ilan.baslik});
     card.appendChild(title);
 
@@ -2380,12 +2547,19 @@ async function renderIlanlarTab(container) {
     const price = el('div', {className:'ilan-card-price' + (!ilan.fiyat||ilan.fiyat===0?' free':''), textContent:ilan.fiyat?ilan.fiyat.toLocaleString()+' ₺':'Ücretsiz'});
     card.appendChild(price);
 
-    const actDiv = el('div', {className:'ilan-card-actions'});
+    const actDiv = el('div', {className:'ilan-card-actions', style:{display:'flex', gap:'8px', flexWrap:'wrap'}});
     if (ilan.discord) {
       const dc = el('button', {className:'btn mc-blue mc-sm', textContent:'💬 Discord'});
       dc.addEventListener('click', () => window.open(`https://discord.com/users/${ilan.discord}`, '_blank'));
       actDiv.appendChild(dc);
     }
+
+    if (isOwnProfile && !ilan.one_cikan && ['aktif', 'onaylandi'].includes(ilan.durum)) {
+      const boostBtn = el('button', {className:'btn mc-gold mc-sm', textContent:'🚀 Öne Çıkar'});
+      boostBtn.addEventListener('click', () => handleBoostClick(ilan, boostBtn));
+      actDiv.appendChild(boostBtn);
+    }
+
     card.appendChild(actDiv);
     grid.appendChild(card);
   });

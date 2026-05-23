@@ -949,3 +949,418 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
   color: var(--text-3);
   margin-top: 2px;
 }
+
+/* ============================================
+   MARKET & DESTEK & ADMIN CUSTOM STYLES
+   ============================================ */
+.store-container, .support-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: calc(var(--nav-h) + 30px) 16px 80px;
+}
+
+.store-section-title {
+  font-size: 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-1);
+  margin-bottom: 8px;
+  text-align: center;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.store-section-subtitle {
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 50px;
+}
+
+.store-card {
+  background: var(--bg-card);
+  border: 3px solid #000000;
+  border-radius: 0;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), inset 0 -4px 0 rgba(0,0,0,0.6);
+  transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.store-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.store-card-popular {
+  border-color: var(--gold);
+}
+.store-card-popular::before {
+  content: 'POPÜLER';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold);
+  color: #000;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border: 2px solid #000;
+}
+
+.store-card-premium {
+  border-color: var(--purple);
+}
+.store-card-premium::before {
+  content: 'EN İYİ DEĞER';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--purple);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border: 2px solid #000;
+}
+
+.store-card-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.store-card-title {
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-1);
+  margin-bottom: 8px;
+}
+
+.store-card-desc {
+  font-size: 11px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+  min-height: 32px;
+  line-height: 1.4;
+}
+
+.store-card-features {
+  text-align: left;
+  margin: 16px 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-thin);
+  font-size: 11px;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.store-card-features li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.store-card-price {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 0 #000;
+}
+.store-card-price span {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+/* PayTR Modal Simulation */
+.pay-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.pay-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #c6c6c6; /* Classic MC interface light gray */
+  border: 4px solid #000000;
+  box-shadow: inset -4px -4px 0 #555555, inset 4px 4px 0 #ffffff;
+  color: #333333;
+  padding: 24px;
+  position: relative;
+  font-family: var(--font);
+}
+
+.pay-modal-title {
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #000000;
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid #555555;
+  padding-bottom: 8px;
+}
+
+.paytr-header-logo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.paytr-logo {
+  font-weight: 900;
+  font-size: 20px;
+  color: #0056b3;
+  letter-spacing: -0.5px;
+}
+.paytr-logo span { color: #f8981d; }
+.paytr-secure {
+  font-size: 10px;
+  font-weight: 800;
+  color: #2e7d32;
+  border: 1px solid #2e7d32;
+  padding: 2px 6px;
+}
+
+.pay-form-group {
+  margin-bottom: 14px;
+}
+
+.pay-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  color: #444444;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.pay-input {
+  width: 100%;
+  background: #ffffff;
+  border: 2px solid #555555;
+  box-shadow: inset -2px -2px 0 #dddddd, inset 2px 2px 0 #444444;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 0;
+}
+.pay-input:focus {
+  border-color: #000000;
+  background: #ffffe0;
+}
+
+.pay-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* 3D Secure SMS Screen */
+.pay-sms-box {
+  background: #a9a9a9;
+  border: 2px solid #000000;
+  box-shadow: inset -2px -2px 0 #555555, inset 2px 2px 0 #ffffff;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.pay-sms-info {
+  font-size: 11px;
+  color: #111111;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* Ticket Page Styles */
+.support-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  height: 600px;
+}
+@media (max-width: 768px) {
+  .support-grid { grid-template-columns: 1fr; height: auto; }
+}
+
+.support-sidebar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.support-sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-thin);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+}
+.ticket-item:hover, .ticket-item.active {
+  background: rgba(57,255,20,0.04);
+  border-color: var(--accent);
+}
+.ticket-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.ticket-item-subject {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.ticket-item-date {
+  font-size: 9px;
+  color: var(--text-3);
+}
+.ticket-item-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ticket-item-cat {
+  font-size: 9px;
+  color: var(--text-2);
+  background: var(--border-thin);
+  padding: 2px 6px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.support-main {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.support-main-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  text-align: center;
+  padding: 40px;
+}
+
+.support-thread-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-thin);
+  background: rgba(255,255,255,0.01);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.support-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.msg-bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  position: relative;
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.msg-bubble-user {
+  background: var(--border-thin);
+  color: var(--text-1);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.msg-bubble-staff {
+  background: rgba(57,255,20,0.08);
+  border: 1px solid rgba(57,255,20,0.2);
+  color: var(--text-1);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.msg-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.support-input-area {
+  padding: 16px;
+  border-top: 1px solid var(--border-thin);
+  display: flex;
+  gap: 10px;
+  background: var(--bg-card2);
+}
+
+.ticket-badge {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.tb-open { background: rgba(57,255,20,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.tb-replied { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid var(--blue); }
+.tb-closed { background: rgba(255,26,60,0.15); color: var(--red); border: 1px solid var(--red); }

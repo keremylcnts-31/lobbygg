@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="db-helper.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Montserrat', sans-serif; background: #050505; color: #e0e0e0; min-height: 100vh; overflow-x: hidden; }
@@ -303,7 +304,7 @@
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session ? session.user : null;
     if (currentUser) {
-      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, kullanici_adi, email, discord').eq('email', currentUser.email).maybeSingle();
+      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, kullanici_adi, email, discord, abonelik').eq('email', currentUser.email).maybeSingle();
       if (ku) {
         currentUser = { ...session.user, id: ku.id };
         userProfile = ku;
@@ -416,8 +417,96 @@
     }
   }
 
+  // ─── CHECK LISTING LIMITS ──────────────────────────────────────────────────
+  async function checkListingLimits() {
+    if (!currentUser) return true;
+    const settings = await window.dbHelper.getSiteSettings();
+    const role = (userProfile && userProfile.abonelik) ? userProfile.abonelik : 'uye';
+    
+    let limit = settings.limit_uye || 3;
+    if (role === 'abone') limit = settings.limit_abone || 10;
+    else if (['premium', 'yonetici', 'admin', 'moderator', 'rehber'].includes(role)) {
+      limit = settings.limit_premium || 9999;
+    }
+
+    let activeCount = 0;
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('ilanlar')
+          .select('id, durum')
+          .eq('kullanici_id', currentUser.id);
+        if (!error && data) {
+          activeCount = data.filter(i => ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
+        }
+      } catch (err) {
+        console.warn("Supabase active listings query failed, using localStorage fallback.");
+      }
+    }
+    
+    try {
+      const local = localStorage.getItem('lobby_ilanlar');
+      if (local) {
+        const arr = JSON.parse(local);
+        const localCount = arr.filter(i => i.kullanici_id === currentUser.id && ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
+        if (localCount > activeCount) activeCount = localCount;
+      }
+    } catch(e) {}
+
+    if (activeCount >= limit) {
+      renderLimitGate(limit, activeCount);
+      return false;
+    }
+    return true;
+  }
+
+  function renderLimitGate(limit, count) {
+    const container = document.getElementById('pageContainer');
+    container.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.className = 'page-header';
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'page-eyebrow';
+    eyebrow.textContent = 'Limit Engeli';
+    const title = document.createElement('h1');
+    title.className = 'page-title';
+    title.innerHTML = 'İlan Vermek <span>Kilitlendi</span>';
+    header.appendChild(eyebrow);
+    header.appendChild(title);
+    container.appendChild(header);
+
+    const gate = document.createElement('div');
+    gate.className = 'login-gate';
+    const ico = document.createElement('div');
+    ico.className = 'login-gate-icon';
+    ico.textContent = '🚫';
+    const titleGate = document.createElement('div');
+    titleGate.className = 'login-gate-title';
+    titleGate.textContent = 'İlan Limitine Ulaştın';
+    const txt = document.createElement('div');
+    txt.className = 'login-gate-text';
+    txt.innerHTML = `Mevcut aktif veya onay bekleyen ilan sayınız: <strong>${count}</strong>.<br>Mevcut abonelik türünüz için tanımlanan sınır: <strong>${limit}</strong>.<br><br>Daha fazla ilan yayınlamak için Mağaza sayfamızdan aboneliğinizi yükseltebilirsiniz.`;
+    const btn = document.createElement('button');
+    btn.className = 'login-gate-btn mc-gold';
+    btn.textContent = '🛒 Mağazaya Git';
+    btn.addEventListener('click', () => { window.location.href = 'market.html'; });
+    
+    const btnBack = document.createElement('button');
+    btnBack.className = 'login-gate-btn mc-gray';
+    btnBack.style.marginLeft = '12px';
+    btnBack.textContent = '📂 İlanlar';
+    btnBack.addEventListener('click', () => { window.location.href = 'ilanlar.html'; });
+
+    gate.appendChild(ico);
+    gate.appendChild(titleGate);
+    gate.appendChild(txt);
+    gate.appendChild(btn);
+    gate.appendChild(btnBack);
+    container.appendChild(gate);
+  }
+
   // ─── PAGE BUILDER ─────────────────────────────────────────────────────────
-  function renderPage() {
+  async function renderPage() {
     const container = document.getElementById('pageContainer');
     container.innerHTML = '';
 
@@ -446,6 +535,9 @@
       renderLoginGate(container);
       return;
     }
+
+    const limitOk = await checkListingLimits();
+    if (!limitOk) return;
 
     buildProgressBar(container);
     updateProgress();
@@ -1231,7 +1323,7 @@
   // ─── INIT ─────────────────────────────────────────────────────────────────
   async function init() {
     await buildNav();
-    renderPage();
+    await renderPage();
   }
 
   init();

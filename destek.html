@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOBBY.GG — Destek Sistemi</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="db-helper.js"></script>
+</head>
+<body>
+
+<div class="page-wrapper">
+  <!-- Canvas Background -->
+  <canvas id="canvas-bg"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav"></nav>
+
+  <!-- Main Support Layout -->
+  <main class="support-container">
+    <div class="store-section-title">DESTEK SİSTEMİ</div>
+    <div class="store-section-subtitle">Bir sorun mu yaşıyorsun? Destek ekibimize talep göndererek yardım alabilirsin.</div>
+
+    <div class="support-grid">
+      <!-- SIDEBAR: TICKET LIST -->
+      <aside class="support-sidebar">
+        <div class="support-sidebar-header">
+          <button class="btn mc-green" style="width: 100%;" onclick="showNewTicketForm()">➕ YENİ TALEP OLUŞTUR</button>
+        </div>
+        <div class="ticket-list" id="ticket-list-el">
+          <!-- Tickets load here -->
+          <div style="text-align:center; color:var(--text-3); font-size:11px; margin-top:20px;">Yükleniyor...</div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT: CONVERSATION THREAD OR FORM -->
+      <section class="support-main" id="support-main-el">
+        <div class="support-main-empty">
+          <div style="font-size: 48px; margin-bottom:12px;">📞</div>
+          <div style="font-size: 14px; font-weight:800; color:var(--text-2);">Bir Destek Talebi Seçin</div>
+          <div style="font-size: 11px; color:var(--text-3); margin-top:6px;">Detayları görmek ve mesajlaşmak için sol menüden bir talebe tıklayın veya yeni bir tane oluşturun.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- NEW TICKET MODAL/FORM (Hidden by default) -->
+<div class="pay-overlay" id="new-ticket-overlay" style="display: none;">
+  <div class="pay-modal" style="max-width: 500px;">
+    <div class="paytr-header-logo">
+      <div class="paytr-logo" style="color:#2c4e1b;">LOBBY<span>.GG</span></div>
+      <div class="paytr-secure" style="color:#4c7e2b; border-color:#4c7e2b;">📞 Destek Formu</div>
+    </div>
+    <div class="pay-modal-title">Yeni Destek Talebi</div>
+
+    <div class="pay-form-group">
+      <label class="pay-label">Konu Başlığı</label>
+      <input type="text" class="pay-input" id="ticket-subject" placeholder="örn. Ödeme Yapamadım / Sunucu Ekleme Hatası" required>
+    </div>
+    
+    <div class="pay-form-group">
+      <label class="pay-label">Kategori</label>
+      <select class="pay-input" id="ticket-category" style="height: auto; appearance: none; -webkit-appearance: none;">
+        <option value="Odeme">💳 Ödeme & LCoin</option>
+        <option value="Sikayet">🚫 Kullanıcı / Sunucu Şikayeti</option>
+        <option value="Hata">🐛 Sitede Hata / Bug</option>
+        <option value="Diger">❓ Diğer Konular</option>
+      </select>
+    </div>
+
+    <div class="pay-form-group">
+      <label class="pay-label">Mesajınız</label>
+      <textarea class="pay-input" id="ticket-message" placeholder="Yaşadığınız sorunu detaylıca açıklayınız..." rows="5" style="resize: none;" required></textarea>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn mc-gray" style="flex:1;" onclick="closeNewTicketForm()">VAZGEÇ</button>
+      <button class="btn mc-green" style="flex:1;" onclick="submitNewTicket()">TALEBİ GÖNDER</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let currentProfile = null;
+let userTickets = [];
+let activeTicketId = null;
+
+// TOAST
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('visible'), 50);
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// CANVAS BACKGROUND ANIMATION
+(function initCanvas() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 10; i++) {
+    beams.push({
+      x: Math.random() * 1.5 - 0.25,
+      speed: 0.0002 + Math.random() * 0.0003,
+      width: 80 + Math.random() * 160,
+      alpha: 0.025 + Math.random() * 0.05,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    beams.forEach(b => {
+      const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
+      grad.addColorStop(0,   'rgba(57,255,20,0)');
+      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.6})`);
+      grad.addColorStop(1,   'rgba(57,255,20,0)');
+      ctx.save();
+      ctx.translate(cx, 0);
+      ctx.rotate(-Math.PI / 6);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// BUILD NAVIGATION BAR
+async function buildNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+
+  const logoWrap = document.createElement('a');
+  logoWrap.href = 'index.html';
+  logoWrap.className = 'nav-logo';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoWrap.appendChild(logoImg);
+  nav.appendChild(logoWrap);
+
+  const links = document.createElement('div');
+  links.className = 'nav-links';
+
+  const menu = [
+    { label: 'Feed', href: 'lobbyx.html' },
+    { label: 'Keşfet', href: 'kesfet.html' },
+    { label: 'İlanlar', href: 'ilanlar.html' },
+    { label: 'Mağaza', href: 'market.html' },
+    { label: 'Destek', href: 'destek.html', active: true }
+  ];
+
+  menu.forEach(m => {
+    const a = document.createElement('a');
+    a.href = m.href;
+    a.className = 'nav-link' + (m.active ? ' active' : '');
+    a.textContent = m.label;
+    links.appendChild(a);
+  });
+
+  nav.appendChild(links);
+
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  if (currentUser && currentProfile) {
+    const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber'];
+    if (staffRoles.includes(currentProfile.abonelik)) {
+      const panelBtn = document.createElement('a');
+      panelBtn.href = 'admin.html';
+      panelBtn.className = 'btn mc-blue mc-sm';
+      panelBtn.style.marginRight = '8px';
+      panelBtn.textContent = currentProfile.abonelik === 'yonetici' ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ';
+      right.appendChild(panelBtn);
+    }
+
+    // LCoin
+    const lcoin = document.createElement('div');
+    lcoin.className = 'nav-lcoin';
+    const coinIcon = document.createElement('span');
+    coinIcon.className = 'nav-lcoin-icon';
+    const coinAmt = document.createElement('span');
+    coinAmt.id = 'nav-lcoin-amount';
+    coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+    lcoin.appendChild(coinIcon);
+    lcoin.appendChild(coinAmt);
+    right.appendChild(lcoin);
+
+    // Avatar
+    const avWrap = document.createElement('a');
+    avWrap.href = 'profil.html';
+    avWrap.className = 'nav-avatar';
+    const avImg = document.createElement('img');
+    avImg.src = currentProfile.avatar_url || '';
+    avImg.alt = currentProfile.kullanici_adi;
+    avImg.onerror = () => { avImg.style.display = 'none'; };
+    avWrap.appendChild(avImg);
+    right.appendChild(avWrap);
+  } else {
+    const loginBtn = document.createElement('a');
+    loginBtn.href = 'giris.html';
+    loginBtn.className = 'btn mc-green mc-sm';
+    loginBtn.textContent = 'Giriş Yap';
+    right.appendChild(loginBtn);
+  }
+
+  nav.appendChild(right);
+}
+
+// LOAD TICKETS
+async function loadTickets() {
+  if (!currentUser) return;
+  const listEl = document.getElementById('ticket-list-el');
+  
+  try {
+    userTickets = await dbHelper.getTicketsByUser(currentUser.id);
+    listEl.innerHTML = '';
+
+    if (userTickets.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center; color:var(--text-3); font-size:11px; margin-top:20px;">Kayıtlı destek talebiniz bulunmuyor.</div>';
+      return;
+    }
+
+    userTickets.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item' + (t.id === activeTicketId ? ' active' : '');
+      item.onclick = () => selectTicket(t.id);
+
+      // Format Date
+      const dateStr = new Date(t.tarih).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+      // Status Badge
+      let badgeClass = 'tb-open';
+      let badgeText = 'Açık';
+      if (t.durum === 'Cevaplandi') {
+        badgeClass = 'tb-replied';
+        badgeText = 'Cevaplandı';
+      } else if (t.durum === 'Kapali') {
+        badgeClass = 'tb-closed';
+        badgeText = 'Kapalı';
+      }
+
+      // Kategori Translation
+      let catText = t.kategori;
+      if (t.kategori === 'Odeme') catText = '💳 Ödeme';
+      else if (t.kategori === 'Sikayet') catText = '🚫 Şikayet';
+      else if (t.kategori === 'Hata') catText = '🐛 Hata';
+      else if (t.kategori === 'Diger') catText = '❓ Diğer';
+
+      item.innerHTML = `
+        <div class="ticket-item-header">
+          <div class="ticket-item-subject">${t.konu}</div>
+          <span class="ticket-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="ticket-item-meta">
+          <span class="ticket-item-cat">${catText}</span>
+          <span class="ticket-item-date">${dateStr}</span>
+        </div>
+      `;
+      listEl.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Tickets loading error:", err);
+    listEl.innerHTML = '<div style="text-align:center; color:var(--red); font-size:11px; margin-top:20px;">Hata oluştu!</div>';
+  }
+}
+
+// SELECT TICKET
+async function selectTicket(ticketId) {
+  activeTicketId = ticketId;
+  
+  // Highlight in sidebar list
+  const items = document.querySelectorAll('.ticket-item');
+  items.forEach(el => el.classList.remove('active'));
+  
+  // Find in list to highlight
+  await loadTickets(); // Refresh lists
+  
+  const mainEl = document.getElementById('support-main-el');
+  mainEl.innerHTML = '<div style="text-align:center; color:var(--text-3); font-size:11px; margin-top:40px;">Talep detayları yükleniyor...</div>';
+
+  try {
+    const ticket = await dbHelper.getTicketById(ticketId);
+    if (!ticket) {
+      mainEl.innerHTML = '<div style="text-align:center; color:var(--red); font-size:11px; margin-top:40px;">Talep bulunamadı.</div>';
+      return;
+    }
+
+    // Status Badge
+    let badgeClass = 'tb-open';
+    let badgeText = 'Açık';
+    if (ticket.durum === 'Cevaplandi') {
+      badgeClass = 'tb-replied';
+      badgeText = 'Cevaplandı';
+    } else if (ticket.durum === 'Kapali') {
+      badgeClass = 'tb-closed';
+      badgeText = 'Kapalı';
+    }
+
+    let catText = ticket.kategori;
+    if (ticket.kategori === 'Odeme') catText = '💳 Ödeme & LCoin';
+    else if (ticket.kategori === 'Sikayet') catText = '🚫 Şikayet';
+    else if (ticket.kategori === 'Hata') catText = '🐛 Hata / Bug';
+    else if (ticket.kategori === 'Diger') catText = '❓ Diğer';
+
+    // Build Header
+    const header = document.createElement('div');
+    header.className = 'support-thread-header';
+    header.innerHTML = `
+      <div>
+        <div style="font-size: 14px; font-weight: 900; text-transform: uppercase;">${ticket.konu}</div>
+        <div style="font-size: 10px; color: var(--text-3); margin-top: 4px;">Kategori: ${catText}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="ticket-badge ${badgeClass}">${badgeText}</span>
+        ${ticket.durum !== 'Kapali' ? `<button class="btn mc-red mc-sm" onclick="closeTicket('${ticket.id}')">TALEBİ KAPAT</button>` : ''}
+      </div>
+    `;
+
+    // Messages Area
+    const messagesEl = document.createElement('div');
+    messagesEl.className = 'support-messages';
+    messagesEl.id = 'messages-container';
+
+    // Populate Messages
+    if (ticket.mesajlar && ticket.mesajlar.length > 0) {
+      ticket.mesajlar.forEach(m => {
+        const bubble = document.createElement('div');
+        const isStaff = ['yonetici', 'admin', 'rehber'].includes(m.gonderen_rol);
+        bubble.className = 'msg-bubble ' + (isStaff ? 'msg-bubble-staff' : 'msg-bubble-user');
+
+        const dateStr = new Date(m.tarih).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const senderLabel = isStaff ? `🛡️ ${m.gonderen_adi} (${m.gonderen_rol.toUpperCase()})` : `👤 ${m.gonderen_adi}`;
+
+        bubble.innerHTML = `
+          <div class="msg-info">
+            <span>${senderLabel}</span>
+            <span>${dateStr}</span>
+          </div>
+          <div>${m.icerik.replace(/\n/g, '<br>')}</div>
+        `;
+        messagesEl.appendChild(bubble);
+      });
+    }
+
+    // Input Area
+    const inputArea = document.createElement('div');
+    inputArea.className = 'support-input-area';
+    
+    if (ticket.durum === 'Kapali') {
+      inputArea.innerHTML = `
+        <div style="text-align: center; color: var(--text-3); font-size:11px; font-weight:800; width:100%;">
+          🚫 BU DESTEK TALEBİ KAPATILMIŞTIR. YENİ MESAJ YAZILAMAZ.
+        </div>
+      `;
+    } else {
+      inputArea.innerHTML = `
+        <input type="text" class="pay-input" id="reply-message-input" placeholder="Bir cevap yazın..." style="flex:1;" onkeydown="checkReplyEnter(event, '${ticket.id}')">
+        <button class="btn mc-green" onclick="sendReply('${ticket.id}')">GÖNDER</button>
+      `;
+    }
+
+    mainEl.innerHTML = '';
+    mainEl.appendChild(header);
+    mainEl.appendChild(messagesEl);
+    mainEl.appendChild(inputArea);
+
+    // Scroll to bottom
+    setTimeout(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 50);
+
+  } catch (err) {
+    console.error("Select ticket error:", err);
+    mainEl.innerHTML = '<div style="text-align:center; color:var(--red); font-size:11px; margin-top:40px;">Hata oluştu!</div>';
+  }
+}
+
+// CLOSE TICKET
+async function closeTicket(ticketId) {
+  if (confirm("Bu destek talebini kapatmak istediğinize emin misiniz?")) {
+    const ok = await dbHelper.updateTicketStatus(ticketId, 'Kapali');
+    if (ok) {
+      showToast("Talep başarıyla kapatıldı.");
+      await selectTicket(ticketId);
+    }
+  }
+}
+
+// SEND REPLY
+async function sendReply(ticketId) {
+  const input = document.getElementById('reply-message-input');
+  const val = input.value.trim();
+  if (!val) return;
+
+  const msg = {
+    gonderen_id: currentUser.id,
+    gonderen_adi: currentProfile.kullanici_adi,
+    gonderen_rol: currentProfile.abonelik, // 'uye', 'abone', 'premium' or staff role
+    icerik: val
+  };
+
+  input.value = '';
+  const updated = await dbHelper.addTicketMessage(ticketId, msg);
+  if (updated) {
+    await selectTicket(ticketId);
+  } else {
+    showToast("Cevap gönderilirken bir sorun oluştu.", "error");
+  }
+}
+
+function checkReplyEnter(e, ticketId) {
+  if (e.key === 'Enter') {
+    sendReply(ticketId);
+  }
+}
+
+// NEW TICKET FORM TRIGGER
+function showNewTicketForm() {
+  if (!currentUser) {
+    showToast('Önce giriş yapmalısınız!', 'error');
+    return;
+  }
+  document.getElementById('ticket-subject').value = '';
+  document.getElementById('ticket-message').value = '';
+  document.getElementById('new-ticket-overlay').style.display = 'flex';
+}
+
+function closeNewTicketForm() {
+  document.getElementById('new-ticket-overlay').style.display = 'none';
+}
+
+// SUBMIT NEW TICKET
+async function submitNewTicket() {
+  const subject = document.getElementById('ticket-subject').value.trim();
+  const category = document.getElementById('ticket-category').value;
+  const message = document.getElementById('ticket-message').value.trim();
+
+  if (!subject || !message) {
+    showToast('Lütfen tüm alanları doldurun!', 'error');
+    return;
+  }
+
+  const initialMsg = {
+    gonderen_id: currentUser.id,
+    gonderen_adi: currentProfile.kullanici_adi,
+    gonderen_rol: currentProfile.abonelik,
+    icerik: message,
+    tarih: new Date().toISOString()
+  };
+
+  const newTicket = {
+    kullanici_id: currentUser.id,
+    kullanici_adi: currentProfile.kullanici_adi,
+    konu: subject,
+    kategori: category,
+    durum: 'Acik',
+    mesajlar: [initialMsg]
+  };
+
+  const saved = await dbHelper.createTicket(newTicket);
+  if (saved) {
+    showToast('Destek talebiniz başarıyla oluşturuldu.');
+    closeNewTicketForm();
+    activeTicketId = saved.id;
+    await selectTicket(saved.id);
+  } else {
+    showToast('Talep oluşturulamadı!', 'error');
+  }
+}
+
+// INITIALIZATION
+async function init() {
+  // Check Supabase session
+  const sb = window.sb || window.db || supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
+  window.sb = sb;
+  window.db = sb;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: profile } = await sb.from('kullanicilar')
+        .select('*')
+        .eq('email', session.user.email)
+        .maybeSingle();
+      if (profile) {
+        currentUser = { ...session.user, id: profile.id };
+        currentProfile = profile;
+      } else {
+        window.location.href = 'giris.html';
+        return;
+      }
+    } else {
+      window.location.href = 'giris.html';
+      return;
+    }
+  } catch (e) {
+    console.warn("Offline fallback session checking");
+  }
+
+  buildNav();
+  await loadTickets();
+}
+
+init();
+</script>
+</body>
+</html>

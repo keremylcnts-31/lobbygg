@@ -1,0 +1,68 @@
+function buildNavMenu(kullanici) {
+  const nav = document.getElementById('main-nav') || document.getElementById('nav');
+  if (!nav) return;
+
+  const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+
+  const panelBtn = ['yonetici', 'admin', 'moderator', 'rehber'].includes(kullanici.abonelik) ? `
+    <a href="admin.html" class="btn ${kullanici.abonelik === 'yonetici' ? 'mc-purple' : 'mc-blue'}" style="padding: 6px 10px; font-size: 10px; margin-right: 5px;">
+      ${kullanici.abonelik === 'yonetici' ? '👑 Yönetici Paneli' : '🛡️ Yetkili Paneli'}
+    </a>
+  ` : '';
+
+  nav.innerHTML = `
+    <div class="nav-left">
+      <a href="lobbyx.html" class="nav-logo">
+        <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
+      </a>
+      <div class="nav-links">
+        <a href="kesfet.html" class="nav-link ${activePage === 'kesfet' ? 'active' : ''}">Keşfet</a>
+        <a href="ilanlar.html" class="nav-link ${activePage === 'ilanlar' || activePage === 'ilan-detay' ? 'active' : ''}">İlanlar</a>
+        <a href="klanlar.html" class="nav-link ${activePage === 'klanlar' ? 'active' : ''}">Klanlar</a>
+        <a href="market.html" class="nav-link ${activePage === 'market' ? 'active' : ''}">Mağaza</a>
+        <a href="destek.html" class="nav-link ${activePage === 'destek' ? 'active' : ''}">Destek</a>
+      </div>
+    </div>
+    <div class="nav-right" style="display: flex; align-items: center; gap: 15px;">
+      ${panelBtn}
+      <a href="mesajlar.html" class="nav-icon-btn" title="Mesajlar">
+        <span class="nav-icon-text">💬</span>
+        <span class="nav-icon-badge" id="nav-msg-badge" style="display: none;">0</span>
+      </a>
+      <a href="bildirimler.html" class="nav-icon-btn" title="Bildirimler">
+        <span class="nav-icon-text">🔔</span>
+        <span class="nav-icon-badge" id="nav-notif-badge" style="display: none;">0</span>
+      </a>
+      <div class="nav-user-profile" style="position: relative; cursor: pointer;">
+        <img src="${kullanici.profil_resmi || 'https://i.imgur.com/H4t5Y6m.png'}" class="nav-avatar" id="nav-avatar-img">
+        <div class="nav-dropdown" id="nav-dropdown-menu">
+          <a href="profil.html" class="nav-dropdown-item">👤 Profilim</a>
+          <a href="ilan-ver.html" class="nav-dropdown-item">📣 İlan Ver</a>
+          <div class="nav-dropdown-divider"></div>
+          <div class="nav-dropdown-item" id="nav-logout-btn" style="color: var(--red);">🚪 Çıkış Yap</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Dropdown toggle logic
+  const avatar = nav.querySelector('.nav-user-profile');
+  const dropdown = nav.querySelector('#nav-dropdown-menu');
+  if (avatar && dropdown) {
+    avatar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('show');
+    });
+    document.addEventListener('click', () => dropdown.classList.remove('show'));
+  }
+
+  const logoutBtn = nav.querySelector('#nav-logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'giris.html';
+    });
+  }
+
+  updateBadgeCounts();
+}

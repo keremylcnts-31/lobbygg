@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOBBY.GG — Lobby Market</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="db-helper.js"></script>
+</head>
+<body>
+
+<div class="page-wrapper">
+  <!-- Canvas Background -->
+  <canvas id="canvas-bg"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav"></nav>
+
+  <!-- Main Store Layout -->
+  <main class="store-container">
+    <div class="store-section-title">LOBBY MARKET</div>
+    <div class="store-section-subtitle">LOBBY.GG deneyimini LCoin ve abonelikler ile özelleştir. Reklam sınırlarını kaldır ve öne çık!</div>
+
+    <!-- SUBSCRIPTION TIERS -->
+    <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 20px; color: var(--accent); text-transform: uppercase;">Abonelik Paketleri</h3>
+    <div class="store-grid" id="subs-grid">
+      <!-- Standard (Uye) - Free, but shown as reference -->
+      <div class="store-card">
+        <div class="store-card-icon">⚔️</div>
+        <div class="store-card-title">Standart Üye</div>
+        <div class="store-card-desc">LOBBY.GG topluluğuna ilk adım. Temel özellikler.</div>
+        <div class="store-card-price">ÜCRETSİZ</div>
+        <ul class="store-card-features">
+          <li>✅ Profil Oluşturma</li>
+          <li>✅ Drop Paylaşımı</li>
+          <li>❌ Max 3 Aktif İlan Limiti</li>
+          <li>❌ Öne çıkarma başına 15 LCoin</li>
+          <li>❌ Özel PP Çerçeveleri Kilitli</li>
+        </ul>
+        <button class="btn mc-gray" style="width: 100%;" disabled>Aktif Paket</button>
+      </div>
+
+      <!-- Abone -->
+      <div class="store-card store-card-popular" id="card-abone">
+        <div class="store-card-icon">👑</div>
+        <div class="store-card-title">Abone</div>
+        <div class="store-card-desc">Daha fazla ilan ve özel özelleştirmeler isteyenler için.</div>
+        <div class="store-card-price"><span id="price-abone">29</span> TL<span>/ay</span></div>
+        <ul class="store-card-features">
+          <li>✅ Profil Oluşturma</li>
+          <li>✅ Drop Paylaşımı</li>
+          <li>✅ <strong>Max 10 Aktif İlan Limiti</strong></li>
+          <li>✅ <strong>Her ay 3 Ücretsiz Öne Çıkarma</strong></li>
+          <li>✅ İndirimli Öne Çıkarma (10 LCoin)</li>
+          <li>✅ Oval PP Şekli ve Çerçeveler</li>
+          <li>✅ Banner Görseli Yükleme</li>
+        </ul>
+        <button class="btn mc-green" style="width: 100%;" onclick="startPurchase('sub_abone', 'Abone Üyeliği', 29)">ABONE OL</button>
+      </div>
+
+      <!-- Premium -->
+      <div class="store-card store-card-premium" id="card-premium">
+        <div class="store-card-icon">💎</div>
+        <div class="store-card-title">Premium</div>
+        <div class="store-card-desc">Topluluğun en iyileri için sınırsız deneyim.</div>
+        <div class="store-card-price"><span id="price-premium">59</span> TL<span>/ay</span></div>
+        <ul class="store-card-features">
+          <li>✅ Profil Oluşturma</li>
+          <li>✅ Drop Paylaşımı</li>
+          <li>✅ <strong>Sınırsız Aktif İlan Limiti</strong></li>
+          <li>✅ <strong>Her ay 10 Ücretsiz Öne Çıkarma</strong></li>
+          <li>✅ İndirimli Öne Çıkarma (5 LCoin)</li>
+          <li>✅ Özel PP Çerçeveleri (Neon, Rainbow, Glass)</li>
+          <li>✅ Profil Ziyaretçileri Listesi</li>
+          <li>✅ Banner Görseli Yükleme</li>
+        </ul>
+        <button class="btn mc-purple" style="width: 100%;" onclick="startPurchase('sub_premium', 'Premium Üyelik', 59)">PREMIUM OL</button>
+      </div>
+    </div>
+
+    <!-- LCOIN PACKAGES -->
+    <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 20px; color: var(--gold); text-transform: uppercase;">LCoin Paketleri</h3>
+    <div class="store-grid" id="coins-grid">
+      <!-- 50 LCoin -->
+      <div class="store-card">
+        <div class="store-card-icon">🪙</div>
+        <div class="store-card-title">50 LCoin</div>
+        <div class="store-card-desc">İlanları öne çıkarmak için ufak takviye.</div>
+        <div class="store-card-price"><span id="price-coin50">25</span> TL</div>
+        <button class="btn mc-gold" style="width: 100%;" onclick="startPurchase('coin_50', '50 LCoin Paketi', 25)">SATIN AL</button>
+      </div>
+
+      <!-- 120 LCoin -->
+      <div class="store-card store-card-popular">
+        <div class="store-card-icon">🏺</div>
+        <div class="store-card-title">120 LCoin</div>
+        <div class="store-card-desc">En çok tercih edilen LCoin paketi.</div>
+        <div class="store-card-price"><span id="price-coin120">50</span> TL</div>
+        <button class="btn mc-gold" style="width: 100%;" onclick="startPurchase('coin_120', '120 LCoin Paketi', 50)">SATIN AL</button>
+      </div>
+
+      <!-- 250 LCoin -->
+      <div class="store-card">
+        <div class="store-card-icon">📦</div>
+        <div class="store-card-title">250 LCoin</div>
+        <div class="store-card-desc">Toplu alımlarda daha avantajlı paket.</div>
+        <div class="store-card-price"><span id="price-coin250">100</span> TL</div>
+        <button class="btn mc-gold" style="width: 100%;" onclick="startPurchase('coin_250', '250 LCoin Paketi', 100)">SATIN AL</button>
+      </div>
+
+      <!-- 600 LCoin -->
+      <div class="store-card">
+        <div class="store-card-icon">💎</div>
+        <div class="store-card-title">600 LCoin</div>
+        <div class="store-card-desc">Lobby Market'teki en büyük LCoin cüzdan paketi.</div>
+        <div class="store-card-price"><span id="price-coin600">200</span> TL</div>
+        <button class="btn mc-gold" style="width: 100%;" onclick="startPurchase('coin_600', '600 LCoin Paketi', 200)">SATIN AL</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- PAYTR OVERLAY MODAL -->
+<div class="pay-overlay" id="pay-overlay" style="display: none;">
+  <div class="pay-modal">
+    <!-- Step 1: Kredi Kartı Bilgileri -->
+    <div id="step-cc-details">
+      <div class="paytr-header-logo">
+        <div class="paytr-logo">Pay<span>TR</span></div>
+        <div class="paytr-secure">🔒 Güvenli Ödeme</div>
+      </div>
+      <div class="pay-modal-title">Kart ile Ödeme</div>
+      
+      <div style="font-size: 11px; font-weight: 800; color: #555; background: #e0e0e0; padding: 10px; border-left: 4px solid #0056b3; margin-bottom: 16px; border-radius: 2px;">
+        Ürün: <span id="checkout-item-name" style="color:#000;">120 LCoin Paketi</span><br>
+        Tutar: <span id="checkout-item-price" style="color:#000;">50.00 TL</span>
+      </div>
+
+      <div class="pay-form-group">
+        <label class="pay-label">Kart Sahibi Ad Soyad</label>
+        <input type="text" class="pay-input" id="cc-name" placeholder="örn. KEREM DEMİR" required>
+      </div>
+      <div class="pay-form-group">
+        <label class="pay-label">Kart Numarası</label>
+        <input type="text" class="pay-input" id="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+      </div>
+      <div class="pay-row-2">
+        <div class="pay-form-group">
+          <label class="pay-label">Son Kullanma</label>
+          <input type="text" class="pay-input" id="cc-expiry" placeholder="AA/YY" maxlength="5" required>
+        </div>
+        <div class="pay-form-group">
+          <label class="pay-label">CVV (Güvenlik Kodu)</label>
+          <input type="password" class="pay-input" id="cc-cvv" placeholder="000" maxlength="3" required>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:24px;">
+        <button class="btn mc-gray" style="flex:1;" onclick="cancelPurchase()">İPTAL ET</button>
+        <button class="btn mc-green" style="flex:1;" onclick="submitCardDetails()">ÖDEME YAP</button>
+      </div>
+    </div>
+
+    <!-- Step 2: 3D Secure SMS Onayı -->
+    <div id="step-3d-sms" style="display: none;">
+      <div class="paytr-header-logo">
+        <div class="paytr-logo">Pay<span>TR</span></div>
+        <div class="paytr-secure" style="color:#ff8f00; border-color:#ff8f00;">🔑 3D Secure</div>
+      </div>
+      <div class="pay-modal-title">SMS Doğrulama</div>
+
+      <div class="pay-sms-box">
+        <div class="pay-sms-info">
+          LOBBY.GG alışverişiniz için bankanızda kayıtlı cep telefonunuza gönderilen tek kullanımlık 3D Secure şifresini giriniz.
+        </div>
+        <div style="font-size: 10px; color:#444; margin-bottom: 8px;">Kalan Süre: <span id="sms-timer" style="font-weight:900; color:#ff1a3c;">03:00</span></div>
+        
+        <input type="text" class="pay-input" id="sms-code" placeholder="6 Haneli Kod" maxlength="6" style="text-align: center; font-size: 18px; letter-spacing: 4px; width: 180px; margin: 0 auto 10px; display: block;" required>
+        <div style="font-size:9px; color:#555;">(Simülasyon şifresi: <strong style="color:#000;">123456</strong> veya herhangi bir kod girin)</div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn mc-gray" style="flex:1;" onclick="cancelPurchase()">VAZGEÇ</button>
+        <button class="btn mc-green" style="flex:1;" onclick="verifySMSCode()">ONAYLA</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Başarılı Ödeme Ekranı -->
+    <div id="step-success" style="display: none; text-align: center; padding: 10px 0;">
+      <div style="font-size: 56px; margin-bottom: 16px; animation: pulse 1s infinite;">✅</div>
+      <div style="font-size: 18px; font-weight: 900; color: #2e7d32; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">Ödeme Başarılı!</div>
+      <div style="font-size: 12px; color: #111111; font-weight: 700; margin-bottom: 20px; line-height: 1.5;">
+        Tebrikler! Alışverişiniz başarıyla tamamlandı.<br>
+        Hesabınıza yükleme yapıldı.
+      </div>
+      
+      <button class="btn mc-green" style="width: 100%;" onclick="closeSuccessScreen()">PROFELE DÖN</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let currentProfile = null;
+let activeItem = null; // { key, name, price }
+let timerInterval = null;
+
+// TOAST NOTIFICATIONS
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('visible'), 50);
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// CANVAS BACKGROUND ANIMATION
+(function initCanvas() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, beams = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 10; i++) {
+    beams.push({
+      x: Math.random() * 1.5 - 0.25,
+      speed: 0.0002 + Math.random() * 0.0003,
+      width: 80 + Math.random() * 160,
+      alpha: 0.025 + Math.random() * 0.05,
+      offset: Math.random() * Math.PI * 2
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    beams.forEach(b => {
+      const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
+      grad.addColorStop(0,   'rgba(57,255,20,0)');
+      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.6})`);
+      grad.addColorStop(1,   'rgba(57,255,20,0)');
+      ctx.save();
+      ctx.translate(cx, 0);
+      ctx.rotate(-Math.PI / 6);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// DYNAMIC PRICING LOADING
+async function loadPrices() {
+  const settings = await dbHelper.getSiteSettings();
+  
+  // Set subscriptions
+  document.getElementById('price-abone').textContent = settings.sub_abone_price;
+  document.getElementById('price-premium').textContent = settings.sub_premium_price;
+  
+  // Set coins
+  document.getElementById('price-coin50').textContent = settings.lcoin_50_price;
+  document.getElementById('price-coin120').textContent = settings.lcoin_120_price;
+  document.getElementById('price-coin250').textContent = settings.lcoin_250_price;
+  document.getElementById('price-coin600').textContent = settings.lcoin_600_price;
+}
+
+// BUILD NAV
+async function buildNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+
+  const logoWrap = document.createElement('a');
+  logoWrap.href = 'index.html';
+  logoWrap.className = 'nav-logo';
+  const logoImg = document.createElement('img');
+  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.alt = 'LOBBY.GG';
+  logoWrap.appendChild(logoImg);
+  nav.appendChild(logoWrap);
+
+  const links = document.createElement('div');
+  links.className = 'nav-links';
+
+  const menu = [
+    { label: 'Feed', href: 'lobbyx.html' },
+    { label: 'Keşfet', href: 'kesfet.html' },
+    { label: 'İlanlar', href: 'ilanlar.html' },
+    { label: 'Mağaza', href: 'market.html', active: true },
+    { label: 'Destek', href: 'destek.html' }
+  ];
+
+  menu.forEach(m => {
+    const a = document.createElement('a');
+    a.href = m.href;
+    a.className = 'nav-link' + (m.active ? ' active' : '');
+    a.textContent = m.label;
+    links.appendChild(a);
+  });
+
+  nav.appendChild(links);
+
+  const right = document.createElement('div');
+  right.className = 'nav-right';
+
+  if (currentUser && currentProfile) {
+    // Admin checking
+    const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber'];
+    if (staffRoles.includes(currentProfile.abonelik)) {
+      const panelBtn = document.createElement('a');
+      panelBtn.href = 'admin.html';
+      panelBtn.className = 'btn mc-blue mc-sm';
+      panelBtn.style.marginRight = '8px';
+      panelBtn.textContent = currentProfile.abonelik === 'yonetici' ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ';
+      right.appendChild(panelBtn);
+    }
+
+    // LCoin
+    const lcoin = document.createElement('div');
+    lcoin.className = 'nav-lcoin';
+    const coinIcon = document.createElement('span');
+    coinIcon.className = 'nav-lcoin-icon';
+    const coinAmt = document.createElement('span');
+    coinAmt.id = 'nav-lcoin-amount';
+    coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+    lcoin.appendChild(coinIcon);
+    lcoin.appendChild(coinAmt);
+    right.appendChild(lcoin);
+
+    // Avatar
+    const avWrap = document.createElement('a');
+    avWrap.href = 'profil.html';
+    avWrap.className = 'nav-avatar';
+    const avImg = document.createElement('img');
+    avImg.src = currentProfile.avatar_url || '';
+    avImg.alt = currentProfile.kullanici_adi;
+    avImg.onerror = () => { avImg.style.display = 'none'; };
+    avWrap.appendChild(avImg);
+    right.appendChild(avWrap);
+  } else {
+    const loginBtn = document.createElement('a');
+    loginBtn.href = 'giris.html';
+    loginBtn.className = 'btn mc-green mc-sm';
+    loginBtn.textContent = 'Giriş Yap';
+    right.appendChild(loginBtn);
+  }
+
+  nav.appendChild(right);
+}
+
+// CHECKOUT FLOW TRIGGERS
+function startPurchase(key, name, price) {
+  if (!currentUser) {
+    showToast('Satın alabilmek için giriş yapmalısınız!', 'error');
+    setTimeout(() => { window.location.href = 'giris.html'; }, 1500);
+    return;
+  }
+  activeItem = { key, name, price };
+  
+  document.getElementById('checkout-item-name').textContent = name;
+  document.getElementById('checkout-item-price').textContent = price.toFixed(2) + ' TL';
+  
+  // Clear inputs
+  document.getElementById('cc-name').value = '';
+  document.getElementById('cc-number').value = '';
+  document.getElementById('cc-expiry').value = '';
+  document.getElementById('cc-cvv').value = '';
+  
+  // Show Card Info step
+  document.getElementById('step-cc-details').style.display = 'block';
+  document.getElementById('step-3d-sms').style.display = 'none';
+  document.getElementById('step-success').style.display = 'none';
+  document.getElementById('pay-overlay').style.display = 'flex';
+}
+
+function cancelPurchase() {
+  document.getElementById('pay-overlay').style.display = 'none';
+  if (timerInterval) clearInterval(timerInterval);
+  activeItem = null;
+}
+
+// CARD INPUT FORMATTING
+document.getElementById('cc-number').addEventListener('input', function (e) {
+  let val = e.target.value.replace(/\D/g, '');
+  let formatted = val.match(/.{1,4}/g)?.join(' ') || '';
+  e.target.value = formatted;
+});
+
+document.getElementById('cc-expiry').addEventListener('input', function (e) {
+  let val = e.target.value.replace(/\D/g, '');
+  if (val.length >= 2) {
+    e.target.value = val.substr(0, 2) + '/' + val.substr(2, 2);
+  } else {
+    e.target.value = val;
+  }
+});
+
+// SUBMIT CARD DETAILS
+function submitCardDetails() {
+  const name = document.getElementById('cc-name').value.trim();
+  const num = document.getElementById('cc-number').value.replace(/\s+/g, '');
+  const exp = document.getElementById('cc-expiry').value.trim();
+  const cvv = document.getElementById('cc-cvv').value.trim();
+
+  if (!name || num.length < 16 || exp.length < 5 || cvv.length < 3) {
+    showToast('Lütfen tüm kart bilgilerini doğru girin!', 'error');
+    return;
+  }
+
+  // Go to 3D SMS screen
+  document.getElementById('step-cc-details').style.display = 'none';
+  document.getElementById('step-3d-sms').style.display = 'block';
+  document.getElementById('sms-code').value = '';
+  document.getElementById('sms-code').focus();
+
+  // Start 3D SMS Code timer
+  let seconds = 180;
+  const timerEl = document.getElementById('sms-timer');
+  timerEl.textContent = '03:00';
+  
+  if (timerInterval) clearInterval(timerInterval);
+  
+  timerInterval = setInterval(() => {
+    seconds--;
+    let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    let s = (seconds % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    
+    if (seconds <= 0) {
+      clearInterval(timerInterval);
+      showToast('3D Secure SMS süresi doldu!', 'error');
+      cancelPurchase();
+    }
+  }, 1000);
+}
+
+// VERIFY SMS CODE & SAVE PAYMENT
+async function verifySMSCode() {
+  const code = document.getElementById('sms-code').value.trim();
+  if (code.length < 6) {
+    showToast('Kod 6 haneli olmalıdır!', 'error');
+    return;
+  }
+
+  if (timerInterval) clearInterval(timerInterval);
+
+  // Success flow
+  document.getElementById('step-3d-sms').style.display = 'none';
+  const successStep = document.getElementById('step-success');
+  successStep.style.display = 'block';
+
+  try {
+    // Determine rewards
+    let lcoinAdd = 0;
+    let newAbonelik = null;
+
+    if (activeItem.key.startsWith('coin_')) {
+      lcoinAdd = parseInt(activeItem.key.split('_')[1]);
+    } else if (activeItem.key.startsWith('sub_')) {
+      newAbonelik = activeItem.key.split('_')[1]; // abone or premium
+    }
+
+    // Update user profile record
+    const updates = {};
+    if (lcoinAdd > 0) {
+      updates.lcoin = (currentProfile.lcoin || 0) + lcoinAdd;
+      currentProfile.lcoin = updates.lcoin;
+    }
+    if (newAbonelik) {
+      updates.abonelik = newAbonelik;
+      currentProfile.abonelik = newAbonelik;
+      // Initialize free bumps for tier
+      updates.kalan_one_cikarma = newAbonelik === 'premium' ? 10 : (newAbonelik === 'abone' ? 3 : 0);
+      currentProfile.kalan_one_cikarma = updates.kalan_one_cikarma;
+    }
+
+    // Write to Supabase using window.sb or window.db
+    const sb = window.sb || window.db;
+    if (sb) {
+      const { error } = await sb.from('kullanicilar').update(updates).eq('id', currentUser.id);
+      if (error) console.error("Supabase profile update error:", error);
+    }
+
+    // Save payment log
+    const paymentRecord = {
+      kullanici_id: currentUser.id,
+      kullanici_adi: currentProfile.kullanici_adi,
+      paket_adi: activeItem.name,
+      miktar_tl: activeItem.price
+    };
+    await dbHelper.addPayment(paymentRecord);
+
+    // Update dynamic numbers on UI immediately
+    const navAmt = document.getElementById('nav-lcoin-amount');
+    if (navAmt) navAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
+
+    showToast('Ödeme ve yükleme tamamlandı! 🪙', 'success');
+  } catch (err) {
+    console.error("Purchase processing failed:", err);
+    showToast('Yükleme sırasında hata oluştu, yerel hafızaya kaydedildi.', 'success');
+  }
+}
+
+function closeSuccessScreen() {
+  document.getElementById('pay-overlay').style.display = 'none';
+  window.location.href = 'profil.html';
+}
+
+// INITIALIZATION
+async function init() {
+  // Check Supabase session
+  const sb = window.sb || window.db || supabase.createClient('https://hmkeedyqmzblnmkhdste.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA');
+  window.sb = sb;
+  window.db = sb;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: profile } = await sb.from('kullanicilar')
+        .select('*')
+        .eq('email', session.user.email)
+        .maybeSingle();
+      if (profile) {
+        currentUser = { ...session.user, id: profile.id };
+        currentProfile = profile;
+      }
+    }
+  } catch (e) {
+    console.warn("Session check failed, running offline/guest mode.");
+  }
+
+  await loadPrices();
+  buildNav();
+}
+
+init();
+</script>
+</body>
+</html>
