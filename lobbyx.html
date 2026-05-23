@@ -1083,8 +1083,11 @@ function showToast(msg, type = 'info', duration = 3000) {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  const icons = { success: '✅', error: '❌', info: 'ℹ️', gold: '🪙' };
+  const icons = { success: '✅', error: '❌', info: 'ℹ️', gold: 'L' };
   const icon = document.createElement('span');
+  if (type === 'gold') {
+    icon.className = 'lcoin-icon';
+  }
   icon.textContent = icons[type] || 'ℹ️';
   const text = document.createElement('span');
   text.textContent = msg;
@@ -1207,7 +1210,8 @@ function buildNav() {
     const lcoin = document.createElement('div');
     lcoin.className = 'nav-lcoin';
     const coinIcon = document.createElement('span');
-    coinIcon.className = 'nav-lcoin-icon';
+    coinIcon.className = 'lcoin-icon';
+    coinIcon.textContent = 'L';
     const coinAmt = document.createElement('span');
     coinAmt.id = 'nav-lcoin-amount';
     coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
@@ -1282,8 +1286,8 @@ function buildLeftSidebar() {
     lcoinCard.className = 'lcoin-card';
 
     const icon = document.createElement('span');
-    icon.className = 'lcoin-card-icon';
-    icon.textContent = '🪙';
+    icon.className = 'lcoin-icon';
+    icon.textContent = 'L';
 
     const info = document.createElement('div');
     const label = document.createElement('div');

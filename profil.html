@@ -1594,7 +1594,8 @@ function renderProfileHeader() {
   statsRow.appendChild(sep2);
 
   const lcoinStat = el('div', {className:'profile-lcoin-stat'});
-  lcoinStat.appendChild(document.createTextNode('🪙 '));
+  const lcoinIcon = el('span', {className:'lcoin-icon', textContent:'L'});
+  lcoinStat.appendChild(lcoinIcon);
   lcoinStat.appendChild(el('strong', {textContent:(profileUser.lcoin||0).toLocaleString()}));
   lcoinStat.appendChild(document.createTextNode(' LCoin'));
   statsRow.appendChild(lcoinStat);
@@ -1613,6 +1614,14 @@ function renderProfileHeader() {
     msgBtn.addEventListener('click', () => { window.location.href='mesajlar.html'; });
     row.appendChild(editBtn);
     row.appendChild(msgBtn);
+    
+    // YETKİLİ PANELİ
+    const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'];
+    if (staffRoles.includes(profileUser.abonelik)) {
+      const adminBtn = el('a', {className:'btn mc-green', textContent: profileUser.abonelik === 'yonetici' || profileUser.abonelik === 'kurucu' ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ', attrs:{href:'admin.html'}});
+      row.appendChild(adminBtn);
+    }
+    
     actions.appendChild(row);
   } else if (currentUser) {
     const row = el('div', {className:'profile-actions-row'});

@@ -1364,3 +1364,32 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 .tb-open { background: rgba(57,255,20,0.15); color: var(--accent); border: 1px solid var(--accent); }
 .tb-replied { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid var(--blue); }
 .tb-closed { background: rgba(255,26,60,0.15); color: var(--red); border: 1px solid var(--red); }
+
+/* LCoin Icon */
+.lcoin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #FFD700, #B8860B);
+  border: 1px solid #DAA520;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 11px;
+  box-shadow: 1px 1px 0px #8B6508, 2px 2px 0px #8B6508;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
+  margin-right: 4px;
+  font-family: 'Montserrat', sans-serif;
+  vertical-align: middle;
+}
+
+/* Profile Banner Image */
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
