@@ -904,8 +904,9 @@ let logoFile = null;
 /* ══════════════════════════════════════
    NAV
 ══════════════════════════════════════ */
-function buildNav() {
+async function buildNav() {
   const nav = document.getElementById('nav');
+  if (!nav) return;
   nav.innerHTML = '';
 
   /* Logo */
@@ -961,22 +962,62 @@ function buildNav() {
   bell.appendChild(bellBadge);
   right.appendChild(bell);
 
+  // Default values
+  let userLcoin = 0;
+  let userAvatar = 'https://i.imgur.com/6l08Y4k.png';
+  let activeFrame = 'none';
+  let userNick = 'Profil';
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: profile } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
+    if (profile) {
+      userLcoin = profile.lcoin || 0;
+      userAvatar = profile.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${profile.kullanici_adi}`;
+      activeFrame = profile.aktif_cerceve || 'none';
+      userNick = profile.kullanici_adi;
+
+      // Show admin link if staff
+      if (['admin', 'yonetici', 'moderator', 'rehber'].includes(profile.abonelik)) {
+        const adminBtn = document.createElement('a');
+        adminBtn.href = 'admin.html';
+        adminBtn.className = 'nav-link';
+        adminBtn.style.color = 'var(--gold)';
+        const adminIcon = document.createElement('span');
+        adminIcon.textContent = '🛠️';
+        const adminLabel = document.createElement('span');
+        adminLabel.textContent = 'Panel';
+        adminBtn.appendChild(adminIcon);
+        adminBtn.appendChild(adminLabel);
+        links.appendChild(adminBtn);
+      }
+    }
+  }
+
   /* LCoin */
   const lcoin = document.createElement('div');
   lcoin.className = 'nav-lcoin';
-  lcoin.innerHTML = '<span class="nav-lcoin-icon"></span><span id="nav-lcoin-val">—</span>';
+  lcoin.innerHTML = `<span class="nav-lcoin-icon"></span><span id="nav-lcoin-val">${session ? userLcoin.toLocaleString('tr-TR') : '—'}</span>`;
   right.appendChild(lcoin);
 
   /* Avatar */
   const avatarWrap = document.createElement('a');
-  avatarWrap.href = 'profil.html';
-  avatarWrap.className = 'nav-avatar';
+  avatarWrap.href = session ? 'profil.html' : 'giris.html';
+  avatarWrap.className = 'nav-avatar pp-wrap';
+  avatarWrap.setAttribute('data-frame', activeFrame);
+  
   const avatarImg = document.createElement('img');
-  avatarImg.src = 'https://i.imgur.com/6l08Y4k.png';
-  avatarImg.alt = 'Profil';
+  avatarImg.src = userAvatar;
+  avatarImg.className = 'pp-img shape-rounded';
+  avatarImg.alt = userNick;
   avatarImg.id = 'nav-avatar-img';
+  avatarImg.onerror = () => { avatarImg.style.display = 'none'; };
   avatarWrap.appendChild(avatarImg);
   right.appendChild(avatarWrap);
+
+  if (!session) {
+    right.innerHTML = `<a href="giris.html" class="btn mc-green mc-sm">Giriş Yap</a>`;
+  }
 
   nav.appendChild(right);
 }
@@ -1962,6 +2003,8 @@ async function loadCurrentUser() {
       if (lcoinEl) lcoinEl.textContent = fmtNum(profile.lcoin || 0);
       const avatarEl = document.getElementById('nav-avatar-img');
       if (avatarEl && profile.avatar_url) avatarEl.src = profile.avatar_url;
+      const avatarWrap = avatarEl ? avatarEl.parentElement : null;
+      if (avatarWrap) avatarWrap.setAttribute('data-frame', profile.aktif_cerceve || 'none');
     }
 
     /* Load voted today */

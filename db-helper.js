@@ -277,6 +277,102 @@
   }
 
   // ==========================================
+  // GLOBAL SYSTEM CONFIG (__system_config__)
+  // ==========================================
+  const DEFAULT_SERVERS = [
+    {name:'HanedanMC',    ip:'play.hanedanmc.com',    altin_cerceve: false},
+    {name:'ChickenNW',    ip:'oyna.chickennw.com',    altin_cerceve: false},
+    {name:'BLOKYA',       ip:'oyna.blokya.com',       altin_cerceve: false},
+    {name:'DugeCraft',    ip:'play.dugecraft.com.tr', altin_cerceve: false},
+    {name:'ZENITMC',      ip:'play.zenitmc.com',      altin_cerceve: false},
+    {name:'SENTORCRAFT',  ip:'sentorcraft.com',       altin_cerceve: false},
+    {name:'SOULCRAFT',    ip:'soulcraft.tc',          altin_cerceve: false},
+    {name:'AtlasOyuncu',  ip:'play.atlasoyuncu.com',  altin_cerceve: false},
+    {name:'AtlantikMC',   ip:'atlantikmc.com',        altin_cerceve: false},
+    {name:'NAVELYA',      ip:'navelya.net',           altin_cerceve: false},
+    {name:'CRAFTLUNA',    ip:'play.craftluna.net',    altin_cerceve: false},
+    {name:'Melonya',      ip:'melonya.net',           altin_cerceve: false},
+    {name:'Rush Craft',   ip:'play.rushcraft.com.tr', altin_cerceve: false},
+    {name:'RebornCraft',  ip:'play.reborncraft.pw',   altin_cerceve: false},
+    {name:'LuneCraft',    ip:'mc.lunecraft.net',      altin_cerceve: false},
+    {name:'SimitSMP',     ip:'simitsmp.net',          altin_cerceve: false},
+    {name:'MC4FUN',       ip:'play.mc4fun.net',       altin_cerceve: false},
+    {name:'İmibiyum',     ip:'play.imibiyum.com',     altin_cerceve: false}
+  ];
+
+  async function getGlobalConfig() {
+    const sb = getClient();
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('kullanicilar').select('bio').eq('kullanici_adi', '__system_config__').maybeSingle();
+        if (!error && data && data.bio) {
+          try {
+            return JSON.parse(data.bio);
+          } catch (e) {
+            console.error("JSON parsing error in global config bio:", e);
+          }
+        }
+      } catch (err) {
+        console.warn("Supabase global config query failed:", err);
+      }
+    }
+    const local = localStorage.getItem('lobby_system_config');
+    if (local) {
+      try { return JSON.parse(local); } catch(e) {}
+    }
+    const defaults = { servers: DEFAULT_SERVERS, featured_order: [] };
+    localStorage.setItem('lobby_system_config', JSON.stringify(defaults));
+    return defaults;
+  }
+
+  async function saveGlobalConfig(config) {
+    const sb = getClient();
+    if (sb) {
+      try {
+        const { data } = await sb.from('kullanicilar').select('id').eq('kullanici_adi', '__system_config__').maybeSingle();
+        const configStr = JSON.stringify(config);
+        if (data) {
+          await sb.from('kullanicilar').update({ bio: configStr }).eq('id', data.id);
+        } else {
+          await sb.from('kullanicilar').insert([{
+            kullanici_adi: '__system_config__',
+            email: 'admin@lobby.gg',
+            bio: configStr,
+            abonelik: 'admin',
+            kayit_tarihi: new Date().toLocaleDateString('tr-TR')
+          }]);
+        }
+      } catch (err) {
+        console.warn("Supabase global config save failed:", err);
+      }
+    }
+    localStorage.setItem('lobby_system_config', JSON.stringify(config));
+    return true;
+  }
+
+  async function getGlobalServers() {
+    const config = await getGlobalConfig();
+    return config.servers || DEFAULT_SERVERS;
+  }
+
+  async function saveGlobalServers(serversList) {
+    const config = await getGlobalConfig();
+    config.servers = serversList;
+    return await saveGlobalConfig(config);
+  }
+
+  async function getFeaturedOrder() {
+    const config = await getGlobalConfig();
+    return config.featured_order || [];
+  }
+
+  async function saveFeaturedOrder(orderList) {
+    const config = await getGlobalConfig();
+    config.featured_order = orderList;
+    return await saveGlobalConfig(config);
+  }
+
+  // ==========================================
   // EXPOSE GLOBAL API
   // ==========================================
   window.dbHelper = {
@@ -289,6 +385,12 @@
     getTicketById,
     createTicket,
     addTicketMessage,
-    updateTicketStatus
+    updateTicketStatus,
+    getGlobalConfig,
+    saveGlobalConfig,
+    getGlobalServers,
+    saveGlobalServers,
+    getFeaturedOrder,
+    saveFeaturedOrder
   };
 })();

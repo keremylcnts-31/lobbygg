@@ -199,6 +199,10 @@ a.nav-bell { display: flex; }
   cursor: pointer;
   transition: border-color var(--transition);
 }
+.nav-avatar.pp-wrap {
+  border: none !important;
+  overflow: visible !important;
+}
 .nav-avatar:hover { border-color: var(--accent); }
 .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -1450,22 +1454,21 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 
 /* LCoin Icon */
 .lcoin-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 18px;
   height: 18px;
-  background: linear-gradient(135deg, #FFD700, #B8860B);
-  border: 1px solid #DAA520;
-  border-radius: 4px;
-  color: #fff;
-  font-weight: 900;
-  font-size: 11px;
-  box-shadow: 1px 1px 0px #8B6508, 2px 2px 0px #8B6508;
-  text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
-  margin-right: 4px;
-  font-family: 'Montserrat', sans-serif;
+  display: inline-block;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='0' width='8' height='2' fill='%23cc8800'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='12' y='2' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='1' y='4' width='1' height='8' fill='%23cc8800'/%3E%3Crect x='14' y='4' width='1' height='8' fill='%23cc8800'/%3E%3Crect x='2' y='12' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='12' y='12' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='4' y='14' width='8' height='2' fill='%23cc8800'/%3E%3Crect x='2' y='4' width='12' height='8' fill='%23FFD700'/%3E%3Crect x='3' y='3' width='10' height='1' fill='%23FFD700'/%3E%3Crect x='3' y='12' width='10' height='1' fill='%23FFD700'/%3E%3Crect x='5' y='5' width='1' height='6' fill='%23cc8800'/%3E%3Crect x='8' y='5' width='1' height='4' fill='%23cc8800'/%3E%3Crect x='6' y='4' width='2' height='1' fill='%23cc8800'/%3E%3Crect x='8' y='8' width='2' height='1' fill='%23cc8800'/%3E%3Crect x='10' y='9' width='1' height='2' fill='%23cc8800'/%3E%3Crect x='6' y='11' width='4' height='1' fill='%23cc8800'/%3E%3Crect x='6' y='5' width='2' height='6' fill='%23FFBF00'/%3E%3Crect x='6' y='9' width='4' height='2' fill='%23FFBF00'/%3E%3Crect x='6' y='6' width='1' height='1' fill='%2300D2FF'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%23FFFFFF'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%230066FF'/%3E%3Crect x='7' y='7' width='1' height='1' fill='%2300D2FF'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23ffe566'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  image-rendering: pixelated !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background-color: transparent !important;
+  flex-shrink: 0;
   vertical-align: middle;
+  margin-right: 4px;
 }
 
 /* Profile Banner Image */
@@ -1476,3 +1479,91 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
   object-position: center;
   display: block;
 }
+
+/* ================================================================
+   NEW STYLES: LOBBYX, PREMIUM BADGES, GOLD SERVERS, NAV AVATAR
+   ================================================================ */
+
+/* Mavi 3D Button Style for Active LobbyX Tab */
+.feed-tab-btn.active#tab-kesif {
+  color: #ffffff !important;
+  background-color: #1d4d8c !important;
+  border: 2px solid #000000 !important;
+  box-shadow: inset 0 2px 0 #3a6fb3, inset 0 -4px 0 #0d274a !important;
+  border-radius: 0px !important;
+  border-bottom: 2px solid #000000 !important;
+  transform: translateY(0);
+}
+.feed-tab-btn.active#tab-kesif:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 #3a6fb3, inset 0 -2px 0 #0d274a !important;
+}
+
+/* Content Creator Subcategory Badge Styles */
+.badge.b-youtube, .badge.b-youtube-cat {
+  background: rgba(255, 26, 26, 0.15) !important;
+  color: #ff1a1a !important;
+  border: 1px solid rgba(255, 26, 26, 0.35) !important;
+}
+.badge.b-kick, .badge.b-kick-cat {
+  background: rgba(83, 244, 79, 0.15) !important;
+  color: #53f44f !important;
+  border: 1px solid rgba(83, 244, 79, 0.35) !important;
+}
+.badge.b-twitch, .badge.b-twitch-cat {
+  background: rgba(145, 71, 255, 0.15) !important;
+  color: #9147ff !important;
+  border: 1px solid rgba(145, 71, 255, 0.35) !important;
+}
+.badge.b-tiktok, .badge.b-tiktok-cat {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #00f2ea !important;
+  border: 1px solid rgba(255, 0, 80, 0.35) !important;
+}
+.badge.b-instagram, .badge.b-instagram-cat {
+  background: rgba(225, 48, 108, 0.15) !important;
+  color: #e1306c !important;
+  border: 1px solid rgba(225, 48, 108, 0.35) !important;
+}
+
+/* Gold Border Server Card (Admin Feature) */
+.gold-border-server {
+  border: 2px solid var(--gold) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 8px rgba(255, 215, 0, 0.2) !important;
+  position: relative;
+}
+.gold-border-server::after {
+  content: '★';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 10px;
+  background: var(--gold);
+  color: #000000;
+  border: 1.5px solid #000000;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  font-weight: 900;
+}
+
+/* Nav Avatar Link Wrapper */
+.nav-avatar-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.nav-avatar-link .pp-wrap::before {
+  top: -10px !important;
+  font-size: 12px !important;
+}
+.nav-avatar-link .pp-wrap::after {
+  font-size: 8px !important;
+}
+

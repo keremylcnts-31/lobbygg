@@ -18,22 +18,11 @@
     #bgCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
     /* NAV */
-    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(5,5,5,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid #1a1a1a; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { height: 52px; }
-    .nav-links { display: flex; align-items: center; gap: 8px; }
-    .nav-links a { color: #aaa; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; letter-spacing: 0.3px; }
-    .nav-links a:hover, .nav-links a.active { color: #39ff14; background: rgba(57,255,20,0.08); }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-    .nav-bell { width: 36px; height: 36px; border-radius: 50%; background: #111; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.2s; position: relative; }
-    .nav-bell:hover { border-color: #39ff14; }
-    .nav-bell .notif-dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ff1a3c; border-radius: 50%; border: 1px solid #050505; }
-    .nav-lcoin { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid #2a2a2a; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 700; color: #FFD700; cursor: pointer; transition: all 0.2s; }
-    .nav-lcoin:hover { border-color: #FFD700; }
-    .nav-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #2a2a2a; cursor: pointer; object-fit: cover; transition: all 0.2s; background: #1a1a1a; }
-    .nav-avatar:hover { border-color: #39ff14; }
-    .nav-login-btn { background: #39ff14; color: #050505; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: all 0.2s; }
-    .nav-login-btn:hover { background: #2de010; }
+    .profile-verify-badge {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
 
     /* MAIN */
     .main-content { position: relative; z-index: 1; padding-top: 64px; min-height: 100vh; }
@@ -73,7 +62,7 @@
     .cat-card.selected.icerik { border-color: #b933ff; background: rgba(185,51,255,0.08); box-shadow: 0 0 20px rgba(185,51,255,0.15); }
     .cat-card.selected.developer { border-color: #00d4ff; background: rgba(0,212,255,0.08); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
     .cat-card.selected.builder { border-color: #ffa500; background: rgba(255,165,0,0.08); box-shadow: 0 0 20px rgba(255,165,0,0.15); }
-    .cat-card.selected.yonetici { border-color: #FFD700; background: rgba(255,215,0,0.08); box-shadow: 0 0 20px rgba(255,215,0,0.15); }
+    .cat-card.selected.sunucu { border-color: #FFD700; background: rgba(255,215,0,0.08); box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .cat-card-icon { font-size: 36px; }
     .cat-card-name { font-size: 12px; font-weight: 800; color: #bbb; letter-spacing: 0.5px; }
     .cat-card.selected .cat-card-name { color: #fff; }
@@ -173,7 +162,7 @@
     .cat-badge.icerik { background: rgba(185,51,255,0.2); color: #b933ff; border: 1px solid rgba(185,51,255,0.4); }
     .cat-badge.developer { background: rgba(0,212,255,0.2); color: #00d4ff; border: 1px solid rgba(0,212,255,0.4); }
     .cat-badge.builder { background: rgba(255,165,0,0.2); color: #ffa500; border: 1px solid rgba(255,165,0,0.4); }
-    .cat-badge.yonetici { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.4); }
+    .cat-badge.sunucu { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.4); }
     .price-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: 800; }
     .price-badge.free { background: rgba(57,255,20,0.12); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); }
     .price-badge.paid { background: rgba(255,215,0,0.12); color: #FFD700; border: 1px solid rgba(255,215,0,0.3); }
@@ -270,7 +259,7 @@
       alts: ['Plugin', 'Bot', 'Web', 'Skript', 'Konfigürasyon', 'API', 'Diğer'] },
     { id: 'Builder', label: 'Builder', icon: '🏗️', cls: 'builder', color: '#ffa500',
       alts: ['Spawn', 'Harita', 'Hub', 'Dekor', 'Mimari', 'Mağaza', 'Diğer'] },
-    { id: 'Yönetici', label: 'Yönetici', icon: '👑', cls: 'yonetici', color: '#FFD700',
+    { id: 'Sunucu', label: 'Sunucu', icon: '👑', cls: 'sunucu', color: '#FFD700',
       alts: ['Admin', 'Moderatör', 'Helper', 'Event Manager', 'Sosyal Medya', 'Diğer'] },
   ];
 
@@ -279,7 +268,7 @@
     'İçerik': 'linear-gradient(135deg, #140020, #2d0050)',
     Developer: 'linear-gradient(135deg, #001a20, #003040)',
     Builder: 'linear-gradient(135deg, #1a1000, #3d2800)',
-    'Yönetici': 'linear-gradient(135deg, #1a1500, #3d3000)',
+    Sunucu: 'linear-gradient(135deg, #1a1500, #3d3000)',
   };
 
   // ─── STATE ────────────────────────────────────────────────────────────────
@@ -306,7 +295,7 @@
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session ? session.user : null;
     if (currentUser) {
-      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, kullanici_adi, email, discord, abonelik').eq('email', currentUser.email).maybeSingle();
+      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, kullanici_adi, email, discord, abonelik, aktif_cerceve').eq('email', currentUser.email).maybeSingle();
       if (ku) {
         currentUser = { ...session.user, id: ku.id };
         userProfile = ku;
@@ -336,12 +325,28 @@
       lcoin.appendChild(coinTxt);
       navRight.appendChild(lcoin);
 
-      const avatar = document.createElement('img');
-      avatar.className = 'nav-avatar';
-      avatar.src = (userProfile && userProfile.avatar_url) ? userProfile.avatar_url : 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
-      avatar.alt = 'Profil';
-      avatar.addEventListener('click', () => { window.location.href = 'profil.html'; });
-      navRight.appendChild(avatar);
+      const avatarLink = document.createElement('a');
+      avatarLink.href = 'profil.html';
+      avatarLink.className = 'nav-avatar pp-wrap';
+      avatarLink.dataset.frame = userProfile ? (userProfile.aktif_cerceve || 'none') : 'none';
+      
+      const avatarImg = document.createElement('img');
+      avatarImg.className = 'pp-img shape-rounded';
+      avatarImg.src = (userProfile && userProfile.avatar_url) ? userProfile.avatar_url : 'https://api.dicebear.com/7.x/minecraft/svg?seed=' + currentUser.id;
+      avatarImg.alt = 'Profil';
+      
+      avatarLink.appendChild(avatarImg);
+      navRight.appendChild(avatarLink);
+
+      // Check if user is staff to show admin/management panel
+      if (userProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(userProfile.abonelik)) {
+        const adminBtn = document.createElement('a');
+        adminBtn.href = 'admin.html';
+        adminBtn.className = 'nav-link';
+        adminBtn.style.color = 'var(--gold)';
+        adminBtn.textContent = '🛠️ Panel';
+        document.querySelector('.nav-links').appendChild(adminBtn);
+      }
 
       formData.email = (userProfile && userProfile.email) ? userProfile.email : (currentUser.email || '');
       formData.discord = (userProfile && userProfile.discord) ? userProfile.discord : '';
@@ -1155,7 +1160,7 @@
     const pvBadges = document.createElement('div');
     pvBadges.className = 'preview-badges';
     const pvCatBadge = document.createElement('span');
-    const catMap = { PvP: 'pvp', 'İçerik': 'icerik', Developer: 'developer', Builder: 'builder', 'Yönetici': 'yonetici' };
+    const catMap = { PvP: 'pvp', 'İçerik': 'icerik', Developer: 'developer', Builder: 'builder', Sunucu: 'sunucu' };
     pvCatBadge.className = 'cat-badge ' + (catMap[formData.kategori] || '');
     pvCatBadge.textContent = (catDef ? catDef.icon + ' ' : '') + formData.kategori;
     pvBadges.appendChild(pvCatBadge);

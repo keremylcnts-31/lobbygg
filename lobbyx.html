@@ -898,7 +898,7 @@
       <!-- Feed Tabs -->
       <div class="feed-tabs" id="feed-tabs">
         <button class="feed-tab-btn active" id="tab-takip">👥 Takip Edilenler</button>
-        <button class="feed-tab-btn" id="tab-kesif">🌎 Keşfet</button>
+        <button class="feed-tab-btn" id="tab-kesif">🌎 LobbyX</button>
       </div>
 
       <!-- New Drop Pill -->
@@ -956,7 +956,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // =============================================
 // SERVERS LIST
 // =============================================
-const SERVERS = [
+let SERVERS = [
   {name:'HanedanMC', ip:'play.hanedanmc.com'},
   {name:'ChickenNW', ip:'oyna.chickennw.com'},
   {name:'BLOKYA', ip:'oyna.blokya.com'},
@@ -1222,17 +1222,29 @@ function buildNav() {
     // Avatar
     const avWrap = document.createElement('a');
     avWrap.href = 'profil.html';
-    avWrap.className = 'nav-avatar';
+    avWrap.className = 'nav-avatar pp-wrap';
     avWrap.title = currentProfile.kullanici_adi;
+    avWrap.dataset.frame = currentProfile.aktif_cerceve || 'none';
     const avImg = document.createElement('img');
+    avImg.className = 'pp-img shape-rounded';
     avImg.src = currentProfile.avatar_url || '';
     avImg.alt = currentProfile.kullanici_adi;
     avImg.onerror = () => { avImg.style.display = 'none'; };
     avWrap.appendChild(avImg);
     right.appendChild(avWrap);
+
+    // Admin checking
+    if (['admin', 'yonetici', 'moderator', 'rehber'].includes(currentProfile.abonelik)) {
+      const adminBtn = document.createElement('a');
+      adminBtn.href = 'admin.html';
+      adminBtn.className = 'nav-link';
+      adminBtn.style.color = 'var(--gold)';
+      adminBtn.textContent = '🛠️ Panel';
+      links.appendChild(adminBtn);
+    }
   } else {
     const loginBtn = document.createElement('a');
-    loginBtn.href = 'login.html';
+    loginBtn.href = 'giris.html';
     loginBtn.className = 'btn mc-green mc-sm';
     loginBtn.textContent = 'Giriş Yap';
     right.appendChild(loginBtn);
@@ -1324,6 +1336,171 @@ function buildLeftSidebar() {
 // =============================================
 // BUILD RIGHT SIDEBAR
 // =============================================
+// =============================================
+// SERVER DETAIL MODAL
+// =============================================
+async function openServerDetailModal(srv) {
+  const modalWrap = document.createElement('div');
+  modalWrap.className = 'modal-overlay';
+  modalWrap.id = 'server-detail-modal';
+  
+  modalWrap.addEventListener('click', (e) => {
+    if (e.target === modalWrap) modalWrap.remove();
+  });
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.maxWidth = '400px';
+
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const title = document.createElement('div');
+  title.className = 'modal-title';
+  title.textContent = srv.name + ' - Sunucu Profili';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', () => modalWrap.remove());
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  body.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;color:var(--text-2);';
+
+  const logo = document.createElement('img');
+  logo.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
+  logo.alt = srv.name;
+  logo.style.cssText = 'width:64px;height:64px;border-radius:12px;border:2px solid var(--border);background:#1a1a1a;';
+  logo.onerror = () => { logo.src = 'https://i.imgur.com/6l08Y4k.png'; };
+
+  const nameEl = document.createElement('div');
+  nameEl.style.cssText = 'font-size:20px;font-weight:900;color:var(--text-1);text-transform:uppercase;';
+  nameEl.textContent = srv.name;
+
+  const ipWrap = document.createElement('div');
+  ipWrap.style.cssText = 'display:flex;align-items:center;gap:8px;background:var(--border-thin);padding:8px 12px;border-radius:6px;border:1px solid var(--border);width:100%;justify-content:center;';
+  const ipText = document.createElement('span');
+  ipText.style.cssText = 'font-size:12px;font-weight:700;color:var(--text-2);font-family:monospace;';
+  ipText.textContent = srv.ip;
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'btn mc-blue mc-sm';
+  copyBtn.textContent = 'Kopyala';
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(srv.ip).then(() => showToast('IP Kopyalandı!', 'success'));
+  });
+  ipWrap.appendChild(ipText);
+  ipWrap.appendChild(copyBtn);
+
+  const statsBox = document.createElement('div');
+  statsBox.style.cssText = 'width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;';
+
+  const statPlayers = document.createElement('div');
+  statPlayers.style.cssText = 'background:rgba(255,255,255,0.02);border:1px solid var(--border-thin);padding:10px;border-radius:6px;';
+  const statPlayersLabel = document.createElement('div');
+  statPlayersLabel.style.cssText = 'font-size:9px;font-weight:800;color:var(--text-3);text-transform:uppercase;';
+  statPlayersLabel.textContent = 'Aktif Oyuncu';
+  const statPlayersVal = document.createElement('div');
+  statPlayersVal.style.cssText = 'font-size:14px;font-weight:900;color:var(--accent);margin-top:4px;';
+  statPlayersVal.textContent = 'Yükleniyor...';
+  statPlayers.appendChild(statPlayersLabel);
+  statPlayers.appendChild(statPlayersVal);
+
+  const statFavs = document.createElement('div');
+  statFavs.style.cssText = 'background:rgba(255,255,255,0.02);border:1px solid var(--border-thin);padding:10px;border-radius:6px;';
+  const statFavsLabel = document.createElement('div');
+  statFavsLabel.style.cssText = 'font-size:9px;font-weight:800;color:var(--text-3);text-transform:uppercase;';
+  statFavsLabel.textContent = 'Sitedeki Favori';
+  const statFavsVal = document.createElement('div');
+  statFavsVal.style.cssText = 'font-size:14px;font-weight:900;color:var(--gold);margin-top:4px;';
+  statFavsVal.textContent = '...';
+  statFavs.appendChild(statFavsLabel);
+  statFavs.appendChild(statFavsVal);
+
+  statsBox.appendChild(statPlayers);
+  statsBox.appendChild(statFavs);
+
+  // Favorite button
+  const favBtn = document.createElement('button');
+  favBtn.style.width = '100%';
+  
+  const isFav = currentProfile && Array.isArray(currentProfile.favori_sunucular) && currentProfile.favori_sunucular.includes(srv.ip);
+  if (isFav) {
+    favBtn.className = 'btn mc-gold mc-lg';
+    favBtn.textContent = '★ Favorilerden Çıkar';
+  } else {
+    favBtn.className = 'btn mc-gray mc-lg';
+    favBtn.textContent = '☆ Favorilere Ekle';
+  }
+
+  favBtn.addEventListener('click', async () => {
+    if (!currentUser) { showToast('Favorilemek için giriş yapmalısın!', 'error'); return; }
+    favBtn.disabled = true;
+    let list = Array.isArray(currentProfile.favori_sunucular) ? [...currentProfile.favori_sunucular] : [];
+    const idx = list.indexOf(srv.ip);
+    if (idx > -1) {
+      list.splice(idx, 1);
+      favBtn.className = 'btn mc-gray mc-lg';
+      favBtn.textContent = '☆ Favorilere Ekle';
+      showToast('Favorilerden çıkarıldı.', 'info');
+    } else {
+      list.push(srv.ip);
+      favBtn.className = 'btn mc-gold mc-lg';
+      favBtn.textContent = '★ Favorilerden Çıkar';
+      showToast('Favorilere eklendi! ★', 'success');
+    }
+    currentProfile.favori_sunucular = list;
+    await sb.from('kullanicilar').update({ favori_sunucular: list }).eq('id', currentUser.id);
+    
+    updateFavCount();
+    favBtn.disabled = false;
+  });
+
+  body.appendChild(logo);
+  body.appendChild(nameEl);
+  body.appendChild(ipWrap);
+  body.appendChild(statsBox);
+  body.appendChild(favBtn);
+
+  modal.appendChild(body);
+  modalWrap.appendChild(modal);
+  document.body.appendChild(modalWrap);
+
+  // Fetch online count
+  fetch(`https://api.mcsrvstat.us/2/${srv.ip}`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.online) {
+        statPlayersVal.textContent = `${d.players?.online || 0} / ${d.players?.max || 0}`;
+      } else {
+        statPlayersVal.textContent = 'Çevrimdışı';
+      }
+    })
+    .catch(() => {
+      statPlayersVal.textContent = 'Bilinmiyor';
+    });
+
+  // Fetch fav count
+  async function updateFavCount() {
+    try {
+      const { data: usersWithFav } = await sb.from('kullanicilar').select('favori_sunucular');
+      let count = 0;
+      if (usersWithFav) {
+        usersWithFav.forEach(u => {
+          if (Array.isArray(u.favori_sunucular) && u.favori_sunucular.includes(srv.ip)) {
+            count++;
+          }
+        });
+      }
+      statFavsVal.textContent = count + ' kişi';
+    } catch (e) {
+      statFavsVal.textContent = '0 kişi';
+    }
+  }
+  updateFavCount();
+}
+
 async function buildRightSidebar() {
   const sidebar = document.getElementById('right-sidebar');
   sidebar.innerHTML = '';
@@ -1336,7 +1513,7 @@ async function buildRightSidebar() {
   followHeader.className = 'sidebar-box-header';
   const followTitle = document.createElement('div');
   followTitle.className = 'sidebar-box-title';
-  followTitle.textContent = '👥 Kim Takip Et?';
+  followTitle.textContent = '👥 KİMİ TAKİP ET?';
   const followLink = document.createElement('a');
   followLink.href = 'kesfet.html';
   followLink.className = 'sidebar-box-link';
@@ -1355,8 +1532,14 @@ async function buildRightSidebar() {
       item.className = 'suggest-item';
 
       const av = createAvatar(u.avatar_url, u.kullanici_adi, 36);
+      av.style.cursor = 'pointer';
+      av.addEventListener('click', () => { window.location.href = `profil.html?id=${u.id}`; });
+
       const info = document.createElement('div');
       info.className = 'suggest-info';
+      info.style.cursor = 'pointer';
+      info.addEventListener('click', () => { window.location.href = `profil.html?id=${u.id}`; });
+
       const nick = document.createElement('div');
       nick.className = 'suggest-nick';
       nick.textContent = u.kullanici_adi;
@@ -1371,7 +1554,8 @@ async function buildRightSidebar() {
       followBtn.textContent = followedUsers.has(u.id) ? '✓ Takip' : 'Takip Et';
       if (followedUsers.has(u.id)) followBtn.classList.replace('mc-green', 'mc-gray');
 
-      followBtn.addEventListener('click', async () => {
+      followBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         if (!currentUser) { showToast('Takip etmek için giriş yap!', 'error'); return; }
         await toggleFollow(u.id, followBtn, u.kullanici_adi);
       });
@@ -1401,6 +1585,14 @@ async function buildRightSidebar() {
   displayServers.forEach(srv => {
     const item = document.createElement('div');
     item.className = 'server-item';
+    
+    // Add gold-border-server class if gold border configured by admin
+    if (srv.altin_cerceve) {
+      item.classList.add('gold-border-server');
+    }
+
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', () => openServerDetailModal(srv));
 
     const logo = document.createElement('img');
     logo.className = 'server-logo';
@@ -1466,45 +1658,88 @@ async function buildRightSidebar() {
 
   try {
     const { data: ilanlar } = await sb.from('ilanlar')
-      .select('id, baslik, kategori, fiyat, one_cikan')
+      .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
       .eq('one_cikan', true)
-      .eq('durum', 'aktif')
-      .limit(3);
+      .or('durum.eq.onaylandi,durum.eq.aktif');
 
-    const catIcons = { 'Oyuncu Ara': '🎮', 'Sunucu': '🖥️', 'İçerik': '📹', 'Klan': '🛡️' };
+    // Retrieve global featured order
+    const orderList = await dbHelper.getFeaturedOrder();
+    let sortedIlanlar = [];
+    if (ilanlar) {
+      sortedIlanlar = [...ilanlar];
+      if (orderList && orderList.length > 0) {
+        sortedIlanlar.sort((a, b) => {
+          const idxA = orderList.indexOf(a.id);
+          const idxB = orderList.indexOf(b.id);
+          if (idxA === -1 && idxB === -1) return 0;
+          if (idxA === -1) return 1;
+          if (idxB === -1) return -1;
+          return idxA - idxB;
+        });
+      }
+      sortedIlanlar = sortedIlanlar.slice(0, 10); // Limit to top 10
+    }
 
-    (ilanlar || []).forEach(ilan => {
+    sortedIlanlar.forEach(ilan => {
       const item = document.createElement('div');
       item.className = 'ilan-item';
+      item.style.cssText = 'position:relative;height:80px;margin:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;';
       item.addEventListener('click', () => { window.location.href = `ilan-detay.html?id=${ilan.id}`; });
 
-      const icon = document.createElement('div');
-      icon.className = 'ilan-icon';
-      icon.textContent = catIcons[ilan.kategori] || '📣';
+      // Banner background
+      const bg = document.createElement('div');
+      bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.3s;background-color:#1a1a1a;';
+      if (ilan.banner_url || ilan.resim_url) {
+        bg.style.backgroundImage = `url('${ilan.banner_url || ilan.resim_url}')`;
+      } else {
+        const gradients = {
+          'PvP': 'linear-gradient(135deg, #1a0008, #3d0015)',
+          'İçerik': 'linear-gradient(135deg, #140020, #2d0050)',
+          'Developer': 'linear-gradient(135deg, #001a20, #003040)',
+          'Builder': 'linear-gradient(135deg, #1a1000, #3d2800)'
+        };
+        bg.style.background = gradients[ilan.kategori] || 'linear-gradient(135deg, #111, #222)';
+      }
+      item.appendChild(bg);
 
+      // Dark overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.2) 100%);z-index:2;';
+      item.appendChild(overlay);
+
+      // Hover zoom effect
+      item.addEventListener('mouseenter', () => { bg.style.transform = 'scale(1.06)'; });
+      item.addEventListener('mouseleave', () => { bg.style.transform = ''; });
+
+      // Info container
       const info = document.createElement('div');
-      info.className = 'ilan-info';
+      info.style.cssText = 'position:relative;z-index:3;display:flex;flex-direction:column;gap:2px;';
+      
       const title = document.createElement('div');
       title.className = 'ilan-title';
+      title.style.cssText = 'font-size:11px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       title.textContent = ilan.baslik;
+
       const price = document.createElement('div');
       price.className = 'ilan-price';
-      price.textContent = ilan.fiyat ? `${ilan.fiyat} ₺` : 'Ücretsiz';
+      price.style.cssText = 'font-size:9px;font-weight:900;color:var(--accent);';
+      price.textContent = ilan.fiyat ? (typeof ilan.fiyat === 'number' ? `${ilan.fiyat} ₺` : ilan.fiyat) : 'Ücretsiz';
 
       info.appendChild(title);
       info.appendChild(price);
-      item.appendChild(icon);
       item.appendChild(info);
       ilanBox.appendChild(item);
     });
 
-    if (!ilanlar || ilanlar.length === 0) {
+    if (sortedIlanlar.length === 0) {
       const empty = document.createElement('div');
       empty.style.cssText = 'padding:16px;text-align:center;color:var(--text-dim);font-size:12px;';
       empty.textContent = 'Öne çıkan ilan yok';
       ilanBox.appendChild(empty);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Error building featured listings in sidebar:", e);
+  }
 
   sidebar.appendChild(ilanBox);
 }
@@ -2001,39 +2236,113 @@ function buildDropCard(drop) {
   inner.appendChild(header);
 
   // --- Content ---
-  const content = document.createElement('div');
-  content.className = 'drop-content';
-
-  if (drop.icerik) {
-    const isLong = drop.icerik.length > 200 || drop.icerik.split('\n').length > 3;
-    if (isLong) {
-      content.classList.add('drop-content-collapsed');
-      content.textContent = drop.icerik;
-      inner.appendChild(content);
-
-      const readMore = document.createElement('span');
-      readMore.className = 'drop-readmore';
-      readMore.textContent = 'Devamını oku';
-      readMore.addEventListener('click', () => {
-        content.classList.remove('drop-content-collapsed');
-        readMore.style.display = 'none';
-      });
-      inner.appendChild(readMore);
-    } else {
-      content.textContent = drop.icerik;
-      inner.appendChild(content);
+  let isReDrop = false;
+  let redropData = null;
+  try {
+    if (drop.icerik && drop.icerik.trim().startsWith('{') && drop.icerik.includes('"is_redrop"')) {
+      redropData = JSON.parse(drop.icerik);
+      if (redropData.is_redrop) {
+        isReDrop = true;
+      }
     }
-  }
+  } catch (e) {}
 
-  // Image
-  if (drop.gorsel_url) {
-    const img = document.createElement('img');
-    img.className = 'drop-image';
-    img.src = drop.gorsel_url;
-    img.alt = 'Drop görseli';
-    img.loading = 'lazy';
-    img.addEventListener('click', () => openImageZoom(drop.gorsel_url));
-    inner.appendChild(img);
+  if (isReDrop && redropData) {
+    // Show "ReDropladı" indicator
+    const rdHeader = document.createElement('div');
+    rdHeader.className = 'redrop-info-header';
+    rdHeader.style.cssText = 'font-size:11px;color:var(--accent);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:4px;';
+    rdHeader.innerHTML = `🔁 <strong>${drop.kullanici_nick || 'Anonim'}</strong> ReDropladı`;
+    inner.appendChild(rdHeader);
+
+    // Nested card container
+    const nestedCard = document.createElement('div');
+    nestedCard.className = 'nested-drop-card';
+    nestedCard.style.cssText = 'border: 1px solid var(--border); background: rgba(255,255,255,0.015); border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; display: flex; flex-direction: column; gap: 8px;';
+    nestedCard.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = `profil.html?id=${redropData.original_author_id}`;
+    });
+
+    // Original author header
+    const origHeader = document.createElement('div');
+    origHeader.className = 'orig-header';
+    origHeader.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+    const origAv = createAvatar(redropData.original_author_avatar, redropData.original_author_nick, 24);
+    const origNick = document.createElement('span');
+    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);';
+    origNick.textContent = redropData.original_author_nick;
+
+    origHeader.appendChild(origAv);
+    origHeader.appendChild(origNick);
+    if (redropData.original_author_verify) {
+      const origVerify = document.createElement('img');
+      origVerify.src = 'https://i.imgur.com/VDpHaPy.png';
+      origVerify.style.cssText = 'width:14px;height:14px;';
+      origHeader.appendChild(origVerify);
+    }
+    
+    const origTime = document.createElement('span');
+    origTime.style.cssText = 'font-size:10px;color:var(--text-dim);margin-left:auto;';
+    origTime.textContent = relativeTime(redropData.original_created_at);
+    origHeader.appendChild(origTime);
+
+    nestedCard.appendChild(origHeader);
+
+    // Original content
+    if (redropData.original_content) {
+      const origContent = document.createElement('div');
+      origContent.className = 'orig-content';
+      origContent.style.cssText = 'font-size:12px;color:var(--text-2);line-height:1.4;';
+      origContent.textContent = redropData.original_content;
+      nestedCard.appendChild(origContent);
+    }
+
+    // Original image
+    if (redropData.original_gorsel_url) {
+      const origImg = document.createElement('img');
+      origImg.src = redropData.original_gorsel_url;
+      origImg.style.cssText = 'max-width:100%;max-height:200px;object-fit:cover;border-radius:6px;';
+      nestedCard.appendChild(origImg);
+    }
+
+    inner.appendChild(nestedCard);
+  } else {
+    const content = document.createElement('div');
+    content.className = 'drop-content';
+
+    if (drop.icerik) {
+      const isLong = drop.icerik.length > 200 || drop.icerik.split('\n').length > 3;
+      if (isLong) {
+        content.classList.add('drop-content-collapsed');
+        content.textContent = drop.icerik;
+        inner.appendChild(content);
+
+        const readMore = document.createElement('span');
+        readMore.className = 'drop-readmore';
+        readMore.textContent = 'Devamını oku';
+        readMore.addEventListener('click', () => {
+          content.classList.remove('drop-content-collapsed');
+          readMore.style.display = 'none';
+        });
+        inner.appendChild(readMore);
+      } else {
+        content.textContent = drop.icerik;
+        inner.appendChild(content);
+      }
+    }
+
+    // Image
+    if (drop.gorsel_url) {
+      const img = document.createElement('img');
+      img.className = 'drop-image';
+      img.src = drop.gorsel_url;
+      img.alt = 'Drop görseli';
+      img.loading = 'lazy';
+      img.addEventListener('click', () => openImageZoom(drop.gorsel_url));
+      inner.appendChild(img);
+    }
   }
 
   // --- Actions ---
@@ -2083,19 +2392,76 @@ function buildDropCard(drop) {
   });
   actions.appendChild(commentBtn);
 
-  // Share button
+  // ReDrop button
   const shareBtn = document.createElement('button');
   shareBtn.className = 'drop-action-btn';
   const shareIcon = document.createElement('span');
   shareIcon.className = 'drop-action-icon';
   shareIcon.textContent = '🔁';
   const shareLabel = document.createElement('span');
-  shareLabel.textContent = 'Paylaş';
+  shareLabel.textContent = 'ReDropla';
   shareBtn.appendChild(shareIcon);
   shareBtn.appendChild(shareLabel);
-  shareBtn.addEventListener('click', () => {
-    const url = `${window.location.origin}/drop.html?id=${drop.id}`;
-    navigator.clipboard.writeText(url).then(() => showToast('Link kopyalandı! 🔗', 'success'));
+  shareBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!currentUser) { showToast('ReDroplamak için giriş yap!', 'error'); return; }
+    shareBtn.disabled = true;
+
+    const originalDropId = drop.id;
+    const originalAuthorId = drop.kullanici_id;
+    const originalAuthorNick = user.kullanici_adi || 'Anonim';
+    const originalAuthorAvatar = user.avatar_url || '';
+    const originalAuthorVerify = !!user.dogrulama_rozeti;
+    const originalContent = drop.icerik;
+    const originalGorselUrl = drop.gorsel_url;
+    const originalCreatedAt = drop.created_at;
+
+    let finalContent = originalContent;
+    let finalGorselUrl = originalGorselUrl;
+    let finalAuthorId = originalAuthorId;
+    let finalAuthorNick = originalAuthorNick;
+    let finalAuthorAvatar = originalAuthorAvatar;
+    let finalAuthorVerify = originalAuthorVerify;
+    let finalCreatedAt = originalCreatedAt;
+
+    if (isReDrop && redropData) {
+      finalContent = redropData.original_content;
+      finalGorselUrl = redropData.original_gorsel_url;
+      finalAuthorId = redropData.original_author_id;
+      finalAuthorNick = redropData.original_author_nick;
+      finalAuthorAvatar = redropData.original_author_avatar;
+      finalAuthorVerify = redropData.original_author_verify;
+      finalCreatedAt = redropData.original_created_at;
+    }
+
+    const redropPayload = {
+      is_redrop: true,
+      original_drop_id: originalDropId,
+      original_author_id: finalAuthorId,
+      original_author_nick: finalAuthorNick,
+      original_author_avatar: finalAuthorAvatar,
+      original_author_verify: finalAuthorVerify,
+      original_content: finalContent,
+      original_gorsel_url: finalGorselUrl,
+      original_created_at: finalCreatedAt
+    };
+
+    const { data: rd, error } = await sb.from('droplar').insert({
+      kullanici_id: currentUser.id,
+      kullanici_nick: currentProfile.kullanici_adi,
+      icerik: JSON.stringify(redropPayload),
+      gorsel_url: null,
+      begeni_sayisi: 0,
+      yorum_sayisi: 0
+    }).select();
+
+    if (error) {
+      showToast('ReDroplama başarısız: ' + error.message, 'error');
+      shareBtn.disabled = false;
+    } else {
+      showToast('ReDroplandı! 🔁', 'success');
+      loadDrops();
+    }
   });
   actions.appendChild(shareBtn);
 
@@ -2690,6 +3056,12 @@ function buildCarkWidget() {
 // INIT
 // =============================================
 async function init() {
+  try {
+    SERVERS = await dbHelper.getGlobalServers();
+  } catch (e) {
+    console.warn("Could not load global servers:", e);
+  }
+
   // Check session
   const { data: { session } } = await sb.auth.getSession();
   if (session) {

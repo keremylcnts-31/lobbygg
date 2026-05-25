@@ -1097,12 +1097,25 @@ const SERVERS = [
 ];
 
 const KATEGORI_MAP = {
-  'PvP': ['UHC', 'KitPvP', 'SkyWars', 'BedWars', 'Diğer'],
+  'PvP': ['LT5', 'HT5', 'LT4', 'HT4', 'LT3', 'HT3', 'LT2', 'HT2', 'LT1', 'HT1'],
   'İçerik Üretici': ['YouTube', 'Twitch', 'TikTok', 'Diğer'],
   'Developer': ['Plugin', 'Bot', 'Web', 'Diğer'],
   'Builder': ['Survival', 'Creative', 'Harita', 'Diğer'],
-  'Yönetici': ['Server', 'Discord', 'Mod', 'Diğer'],
-  'Diğer': ['Genel']
+  'Sunucu Sahibi': [],
+  'Diğer': []
+};
+
+const PVP_TIERS_HELP = {
+  'LT5': 'Low Tier 5 (Başlangıç Üstü)',
+  'HT5': 'High Tier 5 (Orta Başlangıç)',
+  'LT4': 'Low Tier 4 (Orta Seviye)',
+  'HT4': 'High Tier 4 (İyi Seviye)',
+  'LT3': 'Low Tier 3 (Uzman Seviye)',
+  'HT3': 'High Tier 3 (Profesyonel)',
+  'LT2': 'Low Tier 2 (Elit Oyuncu)',
+  'HT2': 'High Tier 2 (Yarı Efsanevi)',
+  'LT1': 'Low Tier 1 (Efsanevi)',
+  'HT1': 'High Tier 1 (İlahi Seviye)'
 };
 
 const BANNER_COLORS = [
@@ -1122,7 +1135,7 @@ const CAT_BADGE_MAP = {
   'İçerik Üretici': 'b-icerik',
   'Developer': 'b-developer',
   'Builder': 'b-builder',
-  'Yönetici': 'b-yonetici-cat',
+  'Sunucu Sahibi': 'b-yonetici-cat',
   'Diğer': 'b-diger'
 };
 
@@ -1322,6 +1335,7 @@ initBannerCanvas();
 // ===== NAV =====
 function buildNav() {
   const nav = document.getElementById('nav');
+  if (!nav) return;
   nav.innerHTML = '';
 
   const logoA = el('a', {attrs:{href:'lobbyx.html'}});
@@ -1360,13 +1374,24 @@ function buildNav() {
   lcoin.appendChild(lcoinVal);
   navRight.appendChild(lcoin);
 
-  const avatarWrap = el('div', {className:'nav-avatar', id:'navAvatar'});
-  const avatarImg = el('img', {attrs:{src:'https://ui-avatars.com/api/?name=?&background=1a1a1a&color=39ff14', alt:'Avatar'}});
+  const avatarWrap = el('a', {className:'nav-avatar pp-wrap', id:'navAvatar', attrs:{href:'profil.html'}});
+  const avatarImg = el('img', {className:'pp-img shape-rounded', attrs:{src:'https://ui-avatars.com/api/?name=?&background=1a1a1a&color=39ff14', alt:'Avatar'}});
   avatarWrap.appendChild(avatarImg);
-  avatarWrap.addEventListener('click', () => { window.location.href='profil.html'; });
   navRight.appendChild(avatarWrap);
 
   nav.appendChild(navRight);
+
+  if (window.currentUser) {
+    lcoinVal.textContent = (currentUser.lcoin || 0).toLocaleString();
+    avatarImg.src = ppSrc(currentUser);
+    avatarWrap.setAttribute('data-frame', currentUser.aktif_cerceve || 'none');
+    
+    // Show admin link if staff
+    if (['admin', 'yonetici', 'moderator', 'rehber'].includes(currentUser.abonelik)) {
+      const adminBtn = el('a', {className:'nav-link', style:{color:'var(--gold)'}, attrs:{href:'admin.html'}, textContent:'🛠️ Panel'});
+      navLinks.appendChild(adminBtn);
+    }
+  }
 }
 
 // ===== MAIN INIT =====
@@ -1378,9 +1403,7 @@ async function init() {
     const { data: u } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
     if (u) {
       currentUser = u;
-      document.getElementById('navLcoin').textContent = (u.lcoin||0).toLocaleString();
-      const navAvImg = document.querySelector('#navAvatar img');
-      if (navAvImg) navAvImg.src = ppSrc(u);
+      buildNav();
     } else {
       window.location.href = 'giris.html';
       return;
@@ -1549,10 +1572,25 @@ function renderProfileHeader() {
 
   if (profileUser.kategori) {
     const catBadge = el('span', {className:`badge b-cat ${CAT_BADGE_MAP[profileUser.kategori]||'b-diger'}`, textContent:profileUser.kategori});
+    if (['Sunucu Sahibi', 'Diğer'].includes(profileUser.kategori) && profileUser.alt_kategori) {
+      catBadge.title = profileUser.alt_kategori;
+    }
     badgesRow.appendChild(catBadge);
   }
-  if (profileUser.alt_kategori) {
-    const altBadge = el('span', {className:'badge b-diger', textContent:profileUser.alt_kategori});
+  if (profileUser.alt_kategori && !['Sunucu Sahibi', 'Diğer'].includes(profileUser.kategori)) {
+    const isContentCreator = profileUser.kategori === 'İçerik Üretici' || profileUser.kategori === 'İçerik';
+    const altLower = profileUser.alt_kategori.toLowerCase();
+    const isPlatform = ['youtube', 'kick', 'twitch', 'tiktok', 'instagram'].includes(altLower);
+    
+    let badgeClass = 'badge b-diger';
+    if (isContentCreator && isPlatform) {
+      badgeClass = `badge b-${altLower}`;
+    }
+    
+    const altBadge = el('span', {className: badgeClass, textContent:profileUser.alt_kategori});
+    if (profileUser.kategori === 'PvP' && PVP_TIERS_HELP[profileUser.alt_kategori]) {
+      altBadge.title = PVP_TIERS_HELP[profileUser.alt_kategori];
+    }
     badgesRow.appendChild(altBadge);
   }
   if (profileUser.klan_tag) {
@@ -3042,29 +3080,36 @@ function renderOzellestirTab(container) {
   const katRow = el('div', {style:{display:'flex',gap:'10px',flexWrap:'wrap'}});
   const katSelect = el('select', {className:'select-field', style:{flex:'1',minWidth:'140px'}});
   Object.keys(KATEGORI_MAP).forEach(k => {
-    if (k === 'Yönetici' && !['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'].includes(profileUser.abonelik) && profileUser.kategori !== 'Yönetici') {
-      return;
-    }
     const opt2 = el('option', {textContent:k, attrs:{value:k}});
     if (profileUser.kategori === k) opt2.selected = true;
     katSelect.appendChild(opt2);
   });
 
-  const altKatSelect = el('select', {className:'select-field', style:{flex:'1',minWidth:'120px'}});
+  const altKatContainer = el('div', {style:{flex:'1',display:'flex',minWidth:'120px'}});
   const updateAltKat = () => {
-    altKatSelect.innerHTML = '';
-    const alts = KATEGORI_MAP[katSelect.value] || ['Diğer'];
-    alts.forEach(a => {
-      const o = el('option', {textContent:a, attrs:{value:a}});
-      if (profileUser.alt_kategori === a) o.selected = true;
-      altKatSelect.appendChild(o);
-    });
+    altKatContainer.innerHTML = '';
+    const alts = KATEGORI_MAP[katSelect.value] || [];
+    if (alts.length > 0) {
+      const select = el('select', {className:'select-field', id:'altKategoriInput', style:{width:'100%'}});
+      alts.forEach(a => {
+        const o = el('option', {textContent:a, attrs:{value:a}});
+        if (katSelect.value === 'PvP' && PVP_TIERS_HELP[a]) {
+          o.title = PVP_TIERS_HELP[a];
+        }
+        if (profileUser.alt_kategori === a) o.selected = true;
+        select.appendChild(o);
+      });
+      altKatContainer.appendChild(select);
+    } else {
+      const input = el('input', {className:'input-field', id:'altKategoriInput', attrs:{type:'text', placeholder:'Alt Kategori Girin (Örn: Server Sahibi veya Rol)', value: ['Sunucu Sahibi', 'Diğer'].includes(profileUser.kategori) ? (profileUser.alt_kategori || '') : ''}});
+      altKatContainer.appendChild(input);
+    }
   };
   updateAltKat();
   katSelect.addEventListener('change', updateAltKat);
 
   katRow.appendChild(katSelect);
-  katRow.appendChild(altKatSelect);
+  katRow.appendChild(altKatContainer);
   katSec.appendChild(katRow);
   wrap.appendChild(katSec);
 
@@ -3140,7 +3185,7 @@ function renderOzellestirTab(container) {
       bio: bioTa.value.trim(),
       discord: document.getElementById('discordInput').value.trim(),
       kategori: katSelect.value,
-      alt_kategori: altKatSelect.value,
+      alt_kategori: document.getElementById('altKategoriInput') ? document.getElementById('altKategoriInput').value.trim() : '',
       aktif_cerceve: selectedFrame || profileUser.aktif_cerceve,
       pp_sekil: selectedShape || profileUser.pp_sekil,
       banner_renk: savedBannerColor || profileUser.banner_renk,

@@ -615,14 +615,27 @@ function buildNav() {
 
   // Avatar
   if (currentUser) {
-    const avatarA = document.createElement('a');
-    avatarA.href = 'profil.html';
-    avatarA.className = 'nav-avatar';
+    const avatarLink = document.createElement('a');
+    avatarLink.href = 'profil.html';
+    avatarLink.className = 'nav-avatar pp-wrap';
+    avatarLink.dataset.frame = currentProfile ? (currentProfile.aktif_cerceve || 'none') : 'none';
+    
     const avatarImg = document.createElement('img');
-    avatarImg.src = currentProfile?.avatar_url || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${currentUser.id}`;
+    avatarImg.className = 'pp-img shape-rounded';
+    avatarImg.src = currentProfile?.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${currentUser.id}`;
     avatarImg.alt = 'Profil';
-    avatarA.appendChild(avatarImg);
-    right.appendChild(avatarA);
+    avatarLink.appendChild(avatarImg);
+    right.appendChild(avatarLink);
+
+    // Show admin link if staff
+    if (currentProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(currentProfile.abonelik)) {
+      const adminBtn = document.createElement('a');
+      adminBtn.href = 'admin.html';
+      adminBtn.className = 'nav-link';
+      adminBtn.style.color = 'var(--gold)';
+      adminBtn.textContent = '🛠️ Panel';
+      nav.querySelector('.nav-links').appendChild(adminBtn);
+    }
   } else {
     const loginBtn = document.createElement('a');
     loginBtn.href = 'giris.html';
@@ -661,8 +674,16 @@ const NOTIF_CONFIG = {
   takip:        { icon: '♦',  color: 'var(--accent)',  text: (n) => `${n._sender_nick || 'Birisi'} seni takip etmeye başladı`,                           link: () => `profil.html?id=${n.gonderen_id}` },
   takip_istegi: { icon: '👤', color: 'var(--blue)',    text: (n) => `${n._sender_nick || 'Birisi'} sana takip isteği gönderdi`,                           link: () => `bildirimler.html` },
   takip_kabul:  { icon: '✔',  color: 'var(--accent)',  text: (n) => `${n._sender_nick || 'Birisi'} takip isteğini kabul etti`,                           link: () => `profil.html?id=${n.gonderen_id}` },
-  begeni:       { icon: '❤',  color: 'var(--red)',     text: (n) => `${n._sender_nick || 'Birisi'} dropunu beğendi`,                                      link: (n) => `drop.html?id=${n.link?.split('=')[1] || ''}` },
-  yorum:        { icon: '💬', color: 'var(--purple)',  text: (n) => `${n._sender_nick || 'Birisi'} dropuna yorum yaptı`,                                  link: (n) => n.link || 'kesfet.html' },
+  begeni:       { icon: '❤',  color: 'var(--red)',     text: (n) => `${n._sender_nick || 'Birisi'} dropunu beğendi`,                                      link: (n) => {
+    const dropMatch = n.link ? n.link.match(/drop[=-]([a-f0-9\-]+|[0-9]+)/i) : null;
+    const dropId = dropMatch ? dropMatch[1] : '';
+    return `profil.html?id=${currentUser.id}` + (dropId ? `#drop-${dropId}` : '');
+  }},
+  yorum:        { icon: '💬', color: 'var(--purple)',  text: (n) => `${n._sender_nick || 'Birisi'} dropuna yorum yaptı`,                                  link: (n) => {
+    const dropMatch = n.link ? n.link.match(/drop[=-]([a-f0-9\-]+|[0-9]+)/i) : null;
+    const dropId = dropMatch ? dropMatch[1] : '';
+    return `profil.html?id=${currentUser.id}` + (dropId ? `#drop-${dropId}` : '');
+  }},
   mesaj:        { icon: '✉️', color: 'var(--blue)',    text: (n) => `${n._sender_nick || 'Birisi'} sana mesaj gönderdi`,                                  link: (n) => `mesajlar.html?id=${n.gonderen_id}` },
   sistem:       { icon: 'ℹ️', color: 'var(--text-2)', text: (n) => n.icerik || 'Sistem bildirimi',                                                        link: () => '#' }
 };
@@ -1312,7 +1333,7 @@ function buildMarkAllBtn() {
   const ico = document.createElement('span');
   ico.textContent = '✓';
   const lbl = document.createElement('span');
-  lbl.textContent = 'Tümünü Okundu İşaret';
+  lbl.textContent = 'Tümünü Okundu Olarak İşaretle';
   btn.appendChild(ico);
   btn.appendChild(lbl);
 

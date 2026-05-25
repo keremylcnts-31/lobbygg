@@ -358,11 +358,20 @@
           document.getElementById('navRight').innerHTML = `
             <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
             <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
-            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>
+            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${(profile.lcoin || 0).toLocaleString('tr-TR')}</a>
             <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
               <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
             </a>
           `;
+          
+          if (['admin', 'yonetici', 'moderator', 'rehber'].includes(profile.abonelik)) {
+            const adminBtn = document.createElement('a');
+            adminBtn.href = 'admin.html';
+            adminBtn.className = 'nav-link';
+            adminBtn.style.color = 'var(--gold)';
+            adminBtn.textContent = '🛠️ Panel';
+            nav.querySelector('.nav-links').appendChild(adminBtn);
+          }
         }
       }
     }
@@ -407,6 +416,13 @@
         return matchSearch && matchFilter;
       });
 
+      // Sort verified players first
+      filtered.sort((a, b) => {
+        const aVerify = a.dogrulama_rozeti ? 1 : 0;
+        const bVerify = b.dogrulama_rozeti ? 1 : 0;
+        return bVerify - aVerify;
+      });
+
       if (filtered.length === 0) {
         grid.innerHTML = '<div style="color:var(--text-3); font-size:14px; grid-column:1/-1; text-align:center; padding: 40px 0;">Sonuç bulunamadı.</div>';
         return;
@@ -414,7 +430,12 @@
 
       filtered.forEach(u => {
         const avatarSrc = u.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${u.kullanici_adi}`;
-        const bannerSrc = u.banner_url || 'https://images.unsplash.com/photo-1627856013091-fed6e4e30025?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+        let bannerHtml = '';
+        if (u.banner_url) {
+          bannerHtml = `<img src="${u.banner_url}" class="pc-banner" alt="Banner">`;
+        } else {
+          bannerHtml = `<canvas class="pc-banner-canvas" style="width: 100%; height: 100%; display: block;"></canvas>`;
+        }
         
         let subBadge = '';
         if (u.kategori) {
@@ -427,11 +448,10 @@
           subBadge = `<span class="badge ${bClass}">${u.kategori}</span>`;
         }
 
-        let roleBadge = '';
-        if (u.abonelik === 'premium') roleBadge = '<span class="badge b-premium">Premium</span>';
-        if (u.abonelik === 'abone') roleBadge = '<span class="badge b-abone">Abone</span>';
-        if (u.abonelik === 'admin') roleBadge = '<span class="badge b-admin">Admin</span>';
-        if (u.abonelik === 'yonetici' || u.abonelik === 'kurucu') roleBadge = '<span class="badge b-yonetici">Yönetici</span>';
+        const abMapped = u.abonelik || 'uye';
+        const abClassMap = { uye: 'b-uye', abone: 'b-abone', premium: 'b-premium', admin: 'b-admin', yonetici: 'b-yonetici', kurucu: 'b-yonetici' };
+        const abLabelMap = { uye: 'Üye', abone: 'Abone', premium: 'Premium', admin: 'Admin', yonetici: 'Yönetici', kurucu: 'Yönetici' };
+        let roleBadge = `<span class="badge ${abClassMap[abMapped] || 'b-uye'}">${abLabelMap[abMapped] || 'Üye'}</span>`;
         
         // Clan HTML
         let clanHtml = '';
@@ -467,8 +487,8 @@
         let discordBtnHtml = '';
         if (u.discord) {
           discordBtnHtml = `
-            <button class="btn mc-discord" style="width: 100%; justify-content: center; font-size: 11px;" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${u.discord}'); alert('Discord kullanıcı adı kopyalandı: ${u.discord}')">
-              <img src="discord-icon.jpg" style="width: 14px; height: 14px; object-fit: cover; border-radius: 3px; margin-right: 6px; display: inline-block; vertical-align: middle;" /> ${u.discord}
+            <button class="btn mc-discord" style="width: 100%; justify-content: center; font-size: 11px;" onclick="event.preventDefault(); event.stopPropagation(); navigator.clipboard.writeText('${u.discord}'); showToast('Discord kullanıcı adı kopyalandı: ${u.discord}')">
+              <svg width="14" height="14" viewBox="0 0 127.14 96.36" fill="currentColor" style="vertical-align: middle; display: inline-block; margin-right: 6px;"><path d="M107.7,8.07A105.15,105.15,0,0,0,77.26,0a77.19,77.19,0,0,0-3.3,6.83A96.67,96.67,0,0,0,53.22,6.83,77.19,77.19,0,0,0,49.88,0,105.15,105.15,0,0,0,19.44,8.07C3.66,31.58-1.86,54.65,1,77.53A105.73,105.73,0,0,0,32,96.36a77.7,77.7,0,0,0,6.63-10.85,68.43,68.43,0,0,1-10.5-5c1-.73,2-1.5,2.92-2.3a75.46,75.46,0,0,0,75.12,0c.91.8,1.91,1.57,2.92,2.3a68.43,68.43,0,0,1-10.5,5,77.7,77.7,0,0,0,6.63,10.85,105.73,105.73,0,0,0,31-18.83C129.87,50.7,123.82,27.82,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53S36.18,40.36,42.45,40.36,53.83,46,53.83,53,48.72,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.24,60,73.24,53S78.41,40.36,84.69,40.36,96.07,46,96.07,53,91,65.69,84.69,65.69Z"/></svg> ${u.discord}
             </button>
           `;
         }
@@ -478,7 +498,7 @@
         card.className = 'player-card';
         card.innerHTML = `
           <div class="pc-banner-wrap">
-            <img src="${bannerSrc}" class="pc-banner" alt="Banner">
+            ${bannerHtml}
             <div class="pc-banner-overlay"></div>
           </div>
           <div class="pc-avatar-wrap" data-frame="${u.aktif_cerceve || 'none'}">
@@ -504,6 +524,67 @@
         `;
         grid.appendChild(card);
       });
+
+      // Initialize canvas animations for cards without banners
+      grid.querySelectorAll('.pc-banner-canvas').forEach(canvas => {
+        initBannerCanvas(canvas);
+      });
+    }
+
+    function initBannerCanvas(canvas) {
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = canvas.offsetWidth || 290;
+      let h = canvas.height = 90;
+      
+      let beams = Array.from({length: 3}, () => ({
+        x: Math.random() * w,
+        speed: 0.15 + Math.random() * 0.2,
+        width: 15 + Math.random() * 25,
+        alpha: 0.04 + Math.random() * 0.05
+      }));
+      
+      function draw() {
+        if (!canvas.isConnected) return;
+        ctx.fillStyle = '#050c05';
+        ctx.fillRect(0, 0, w, h);
+        
+        beams.forEach(b => {
+          ctx.save();
+          const g = ctx.createLinearGradient(b.x - b.width/2, 0, b.x + b.width/2, 0);
+          g.addColorStop(0, 'transparent');
+          g.addColorStop(0.5, `rgba(57,255,20,${b.alpha})`);
+          g.addColorStop(1, 'transparent');
+          ctx.fillStyle = g;
+          ctx.fillRect(b.x - b.width/2, 0, b.width, h);
+          ctx.restore();
+          
+          b.x += b.speed;
+          if (b.x > w + b.width) b.x = -b.width;
+        });
+        
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    function showToast(msg) {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const t = document.createElement('div');
+      t.className = 'toast success';
+      t.innerHTML = `<span>✅</span> ${msg}`;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-20px)';
+        t.style.transition = 'all 0.3s ease';
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
     }
 
     function setFilter(f, el) {

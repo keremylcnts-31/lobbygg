@@ -974,12 +974,20 @@ function buildNav(user) {
   const links = nav.appendChild(document.createElement('div'));
   links.className = 'nav-links';
   const activePage = window.location.pathname.split('/').pop().replace('.html', '') || 'lobbyx';
-  [['Ana Sayfa','lobbyx.html','lobbyx'],['İlanlar','ilanlar.html','ilanlar'],['Klanlar','klanlar.html','klanlar'],['Keşfet','kesfet.html','kesfet'],['Mağaza','market.html','market'],['Destek','destek.html','destek']].forEach(([label,href,key]) => {
+  const navItems = [
+    { label: 'Ana Sayfa', href: 'lobbyx.html', key: 'lobbyx' },
+    { label: 'İlanlar',   href: 'ilanlar.html', key: 'ilanlar' },
+    { label: 'Klanlar',   href: 'klanlar.html', key: 'klanlar' },
+    { label: 'Keşfet',    href: 'kesfet.html',  key: 'kesfet'  },
+    { label: 'Mağaza',    href: 'market.html',  key: 'market'  },
+    { label: 'Destek',    href: 'destek.html',  key: 'destek'  }
+  ];
+  navItems.forEach(item => {
     const a = document.createElement('a');
-    a.href = href;
-    a.className = 'nav-link' + (activePage === key ? ' active' : '');
+    a.href = item.href;
+    a.className = 'nav-link' + (activePage === item.key ? ' active' : '');
     const sp = document.createElement('span');
-    sp.textContent = label;
+    sp.textContent = item.label;
     a.appendChild(sp);
     links.appendChild(a);
   });
@@ -995,18 +1003,30 @@ function buildNav(user) {
 
   const lcoin = document.createElement('div');
   lcoin.className = 'nav-lcoin';
-  lcoin.innerHTML = '<span class="nav-lcoin-icon"></span><span>' + (user ? (user.lcoin || 0) : '—') + '</span>';
+  lcoin.innerHTML = '<span class="nav-lcoin-icon"></span><span>' + (user ? (user.lcoin || 0).toLocaleString('tr-TR') : '—') + '</span>';
   right.appendChild(lcoin);
 
-  const av = document.createElement('div');
-  av.className = 'nav-avatar';
-  av.style.cursor = 'pointer';
-  av.addEventListener('click', () => { window.location.href = 'profil.html'; });
+  const av = document.createElement('a');
+  av.href = 'profil.html';
+  av.className = 'nav-avatar pp-wrap';
+  av.setAttribute('data-frame', (user && user.aktif_cerceve) ? user.aktif_cerceve : 'none');
   const img = document.createElement('img');
+  img.className = 'pp-img shape-rounded';
   img.src = avatarSrc(user ? user.avatar_url : null, user ? user.kullanici_adi : '?');
   img.alt = 'avatar';
+  img.onerror = () => { img.style.display = 'none'; };
   av.appendChild(img);
   right.appendChild(av);
+
+  // Show admin link if staff
+  if (user && ['admin', 'yonetici', 'moderator', 'rehber'].includes(user.abonelik)) {
+    const adminBtn = document.createElement('a');
+    adminBtn.href = 'admin.html';
+    adminBtn.className = 'nav-link';
+    adminBtn.style.color = 'var(--gold)';
+    adminBtn.textContent = '🛠️ Panel';
+    links.appendChild(adminBtn);
+  }
 }
 
 // ── Auth ──────────────────────────────────────────────────────

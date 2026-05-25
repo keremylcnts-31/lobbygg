@@ -990,15 +990,30 @@ const ROLES = [
   { key: 'content',  icon: '🎬',  name: 'İçerik Üreticisi' },
   { key: 'dev',      icon: '💻',  name: 'Developer' },
   { key: 'builder',  icon: '🏗️',  name: 'Builder' },
+  { key: 'server_owner', icon: '👑', name: 'Sunucu Sahibi' },
   { key: 'other',    icon: '🎮',  name: 'Diğer' }
 ];
 
 const SUBROLES = {
-  pvp:     ['T1','HT1','LT1','T2','HT2','LT2','T3','HT3','LT3','T4','T5','Başlangıç'],
+  pvp:     ['LT5','HT5','LT4','HT4','LT3','HT3','LT2','HT2','LT1','HT1'],
   content: ['Kick','YouTube','Twitch','TikTok','Instagram'],
   dev:     ['Plugin Dev','Skripter','Web Dev'],
   builder: [],
+  server_owner: [],
   other:   []
+};
+
+const PVP_TIERS_HELP = {
+  'LT5': 'Low Tier 5 (Başlangıç Üstü)',
+  'HT5': 'High Tier 5 (Orta Başlangıç)',
+  'LT4': 'Low Tier 4 (Orta Seviye)',
+  'HT4': 'High Tier 4 (İyi Seviye)',
+  'LT3': 'Low Tier 3 (Uzman Seviye)',
+  'HT3': 'High Tier 3 (Profesyonel)',
+  'LT2': 'Low Tier 2 (Elit Oyuncu)',
+  'HT2': 'High Tier 2 (Yarı Efsanevi)',
+  'LT1': 'Low Tier 1 (Efsanevi)',
+  'HT1': 'High Tier 1 (İlahi Seviye)'
 };
 
 const SERVERS = [
@@ -1052,6 +1067,16 @@ function buildSubRoles(roleKey) {
   const chips = document.getElementById('subrole-chips');
   const subs = SUBROLES[roleKey] || [];
   chips.innerHTML = '';
+  if (['server_owner', 'other'].includes(roleKey)) {
+    wrap.classList.add('visible');
+    document.getElementById('subrole-title').textContent = 'Alt Kategori Yazın';
+    const input = el('input', {className:'field-input', id:'reg-subrole-input', attrs:{type:'text', placeholder:'Örn: HanedanMC Sahibi veya Tasarımcı'}});
+    input.addEventListener('input', () => {
+      state.subRole = input.value.trim();
+    });
+    chips.appendChild(input);
+    return;
+  }
   if (subs.length === 0) {
     wrap.classList.remove('visible');
     return;
@@ -1060,6 +1085,9 @@ function buildSubRoles(roleKey) {
   subs.forEach(s => {
     const chip = el('div', { class: 'chip' });
     chip.textContent = s;
+    if (roleKey === 'pvp' && PVP_TIERS_HELP[s]) {
+      chip.title = PVP_TIERS_HELP[s];
+    }
     chip.addEventListener('click', () => {
       state.subRole = s;
       document.querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.textContent === s));
@@ -1285,6 +1313,7 @@ async function finalizeRegistration() {
     content: 'İçerik Üretici',
     dev: 'Developer',
     builder: 'Builder',
+    server_owner: 'Sunucu Sahibi',
     other: 'Diğer'
   };
 

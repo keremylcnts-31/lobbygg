@@ -1075,9 +1075,9 @@ function buildSidebar() {
   const role = currentUser.abonelik;
   let allowedSections = [];
   if (role === 'yonetici' || role === 'kurucu') {
-    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'ayarlar', 'kilavuz', 'basvurular', 'sunucular', 'cark', 'droplar'];
+    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'ayarlar', 'kilavuz', 'basvurular', 'sunucular', 'cark', 'droplar', 'one-cikanlar'];
   } else if (role === 'admin') {
-    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'kilavuz', 'basvurular', 'sunucular', 'droplar'];
+    allowedSections = ['dashboard', 'users', 'ilanlar', 'klanlar', 'stats', 'destek', 'kilavuz', 'basvurular', 'sunucular', 'droplar', 'one-cikanlar'];
   } else if (role === 'moderator') {
     allowedSections = ['ilanlar', 'kilavuz', 'droplar'];
   } else if (role === 'rehber') {
@@ -1088,6 +1088,7 @@ function buildSidebar() {
     { id: 'dashboard', icon: '📊', label: 'Dashboard' },
     { id: 'users',     icon: '👥', label: 'Kullanıcılar' },
     { id: 'ilanlar',   icon: '📣', label: 'İlanlar', hasBadge: true },
+    { id: 'one-cikanlar', icon: '⭐', label: 'Öne Çıkanlar' },
     { id: 'klanlar',   icon: '🛡️', label: 'Klanlar' },
     { id: 'stats',     icon: '📈', label: 'İstatistikler' },
     { id: 'destek',    icon: '📞', label: 'Destek Talepleri' },
@@ -1171,6 +1172,7 @@ function showSection(id) {
     case 'dashboard': renderDashboard(); break;
     case 'users':     renderUsers();     break;
     case 'ilanlar':   renderIlanlar();   break;
+    case 'one-cikanlar': renderOneCikanlar(); break;
     case 'klanlar':   renderKlanlar();   break;
     case 'stats':     renderStats();     break;
     case 'destek':    renderDestek();    break;
@@ -3195,10 +3197,16 @@ async function renderSunucular() {
         </div>
       `;
       document.getElementById('s_save').onclick = async () => {
-        const ad = document.getElementById('s_ad').value;
-        const ip = document.getElementById('s_ip').value;
+        const ad = document.getElementById('s_ad').value.trim();
+        const ip = document.getElementById('s_ip').value.trim();
         if (!ad || !ip) return toast('Boş bırakmayın');
-        await db.from('sunucular').insert([{isim: ad, ip: ip, durum: 'aktif'}]);
+        
+        let servers = await dbHelper.getGlobalServers();
+        if (servers.some(s => s.ip.toLowerCase() === ip.toLowerCase())) {
+          return toast('Bu IP adresi zaten kayıtlı');
+        }
+        servers.push({ name: ad, ip: ip, altin_cerceve: false });
+        await dbHelper.saveGlobalServers(servers);
         toast('Eklendi', 'success'); closeModal(); renderSunucular();
       };
     });
@@ -3210,38 +3218,233 @@ async function renderSunucular() {
   content.appendChild(tableCard);
   tableCard.appendChild(makeSpin());
 
-  const { data, error } = await db.from('sunucular').select('*').order('id');
+  const data = await dbHelper.getGlobalServers();
   tableCard.innerHTML = '';
   
-  if (error || !data || data.length === 0) {
+  if (!data || data.length === 0) {
     tableCard.innerHTML = '<div class="empty-state"><div class="empty-text">Sunucu bulunamadı</div></div>';
     return;
   }
   
   const table = document.createElement('table');
   table.className = 'data-table';
-  table.innerHTML = '<thead><tr><th>ID</th><th>Adı</th><th>IP</th><th>Durum</th><th>İşlem</th></tr></thead>';
+  table.innerHTML = '<thead><tr><th>Sıra</th><th>Logo</th><th>Adı</th><th>IP</th><th>Altın Çerçeve</th><th>Sıralama</th><th>İşlem</th></tr></thead>';
   const tbody = document.createElement('tbody');
-  data.forEach(s => {
+  
+  data.forEach((s, index) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.id}</td>
-      <td style="font-weight:700;">${s.isim}</td>
-      <td>${s.ip}</td>
-      <td><span class="badge-pill bp-uye">${s.durum || 'aktif'}</span></td>`;
+    const logoUrl = `https://api.mcsrvstat.us/icon/${s.ip}`;
     
-    const tdAct = document.createElement('td');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td><img src="${logoUrl}" onerror="this.src='https://i.imgur.com/6l08Y4k.png'" style="width:24px; height:24px; border-radius:4px; vertical-align:middle;"></td>
+      <td style="font-weight:700;">${s.name}</td>
+      <td>${s.ip}</td>
+      <td id="gold-frame-cell-${index}"></td>
+      <td id="sort-cell-${index}"></td>
+      <td id="act-cell-${index}"></td>
+    `;
+    
+    // Gold Frame Toggle Button/Badge
+    const tdGold = tr.querySelector(`#gold-frame-cell-${index}`);
+    const goldBadge = document.createElement('span');
+    goldBadge.className = 'badge-pill ' + (s.altin_cerceve ? 'bp-premium' : 'bp-uye');
+    goldBadge.textContent = s.altin_cerceve ? 'Aktif' : 'Pasif';
+    goldBadge.style.cursor = 'pointer';
+    goldBadge.onclick = async () => {
+      s.altin_cerceve = !s.altin_cerceve;
+      await dbHelper.saveGlobalServers(data);
+      toast('Altın çerçeve durumu güncellendi', 'success');
+      renderSunucular();
+    };
+    tdGold.appendChild(goldBadge);
+
+    // Sorting actions (Up/Down buttons)
+    const tdSort = tr.querySelector(`#sort-cell-${index}`);
+    const sortGrp = document.createElement('div');
+    sortGrp.className = 'btn-action-group';
+
+    const upBtn = document.createElement('button');
+    upBtn.className = 'btn-s btn-s-gray';
+    upBtn.textContent = '↑';
+    upBtn.disabled = index === 0;
+    upBtn.onclick = async () => {
+      const servers = [...data];
+      const temp = servers[index];
+      servers[index] = servers[index - 1];
+      servers[index - 1] = temp;
+      await dbHelper.saveGlobalServers(servers);
+      toast('Sıralama güncellendi', 'success');
+      renderSunucular();
+    };
+
+    const downBtn = document.createElement('button');
+    downBtn.className = 'btn-s btn-s-gray';
+    downBtn.textContent = '↓';
+    downBtn.disabled = index === data.length - 1;
+    downBtn.onclick = async () => {
+      const servers = [...data];
+      const temp = servers[index];
+      servers[index] = servers[index + 1];
+      servers[index + 1] = temp;
+      await dbHelper.saveGlobalServers(servers);
+      toast('Sıralama güncellendi', 'success');
+      renderSunucular();
+    };
+
+    sortGrp.appendChild(upBtn);
+    sortGrp.appendChild(downBtn);
+    tdSort.appendChild(sortGrp);
+
+    // Delete Action
+    const tdAct = tr.querySelector(`#act-cell-${index}`);
     const delBtn = document.createElement('button');
     delBtn.className = 'btn-s btn-s-red';
     delBtn.textContent = '🗑 Sil';
     delBtn.onclick = async () => {
-      if(!confirm('Silinsin mi?')) return;
-      await db.from('sunucular').delete().eq('id', s.id);
+      if(!confirm(`"${s.name}" sunucusunu silmek istediğinize emin misiniz?`)) return;
+      const servers = data.filter((_, idx) => idx !== index);
+      await dbHelper.saveGlobalServers(servers);
       toast('Silindi', 'info'); renderSunucular();
     };
     tdAct.appendChild(delBtn);
-    tr.appendChild(tdAct);
+    
     tbody.appendChild(tr);
   });
+  
+  table.appendChild(tbody);
+  tableCard.appendChild(table);
+}
+
+/* ================================================================
+   SECTION: ÖNE ÇIKANLAR
+================================================================ */
+async function renderOneCikanlar() {
+  const content = document.getElementById('content');
+  const header = buildPageHeader('⭐', 'Öne Çıkan İlanlar', 'Öne çıkan ilanları sıralayın ve yönetin');
+  content.appendChild(header);
+
+  const tableCard = document.createElement('div');
+  tableCard.className = 'panel-card';
+  content.appendChild(tableCard);
+  tableCard.appendChild(makeSpin());
+
+  const { data: rawIlanlar, error } = await db.from('ilanlar')
+    .select('id, baslik, kategori, kullanici_nick, one_cikan, durum')
+    .eq('one_cikan', true)
+    .or('durum.eq.onaylandi,durum.eq.aktif');
+
+  tableCard.innerHTML = '';
+
+  if (error) {
+    tableCard.innerHTML = `<div class="empty-state"><div class="empty-text">Hata: ${error.message}</div></div>`;
+    return;
+  }
+
+  if (!rawIlanlar || rawIlanlar.length === 0) {
+    tableCard.innerHTML = '<div class="empty-state"><div class="empty-text">Öne çıkarılmış aktif ilan bulunamadı. "İlanlar" sekmesinden onaylı ilanları öne çıkarabilirsiniz.</div></div>';
+    return;
+  }
+
+  let orderList = await dbHelper.getFeaturedOrder();
+  
+  let neededSave = false;
+  rawIlanlar.forEach(il => {
+    if (!orderList.includes(il.id)) {
+      orderList.push(il.id);
+      neededSave = true;
+    }
+  });
+
+  const currentIds = rawIlanlar.map(il => il.id);
+  const filteredOrder = orderList.filter(id => currentIds.includes(id));
+  if (filteredOrder.length !== orderList.length) {
+    orderList = filteredOrder;
+    neededSave = true;
+  }
+
+  if (neededSave) {
+    await dbHelper.saveFeaturedOrder(orderList);
+  }
+
+  const sortedIlanlar = [...rawIlanlar].sort((a, b) => {
+    return orderList.indexOf(a.id) - orderList.indexOf(b.id);
+  });
+
+  const table = document.createElement('table');
+  table.className = 'data-table';
+  table.innerHTML = '<thead><tr><th>Sıra</th><th>Başlık</th><th>Kategori</th><th>Satıcı</th><th>Sıralama</th><th>İşlem</th></tr></thead>';
+  const tbody = document.createElement('tbody');
+
+  sortedIlanlar.forEach((il, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td style="font-weight:700;">${il.baslik}</td>
+      <td><span class="badge-pill bp-uye">${il.kategori}</span></td>
+      <td>${il.kullanici_nick || '—'}</td>
+      <td id="sort-cell-${index}"></td>
+      <td id="act-cell-${index}"></td>
+    `;
+
+    const tdSort = tr.querySelector(`#sort-cell-${index}`);
+    const sortGrp = document.createElement('div');
+    sortGrp.className = 'btn-action-group';
+
+    const upBtn = document.createElement('button');
+    upBtn.className = 'btn-s btn-s-gray';
+    upBtn.textContent = '↑';
+    upBtn.disabled = index === 0;
+    upBtn.onclick = async () => {
+      const newOrder = [...orderList];
+      const temp = newOrder[index];
+      newOrder[index] = newOrder[index - 1];
+      newOrder[index - 1] = temp;
+      await dbHelper.saveFeaturedOrder(newOrder);
+      toast('Sıralama güncellendi', 'success');
+      renderOneCikanlar();
+    };
+
+    const downBtn = document.createElement('button');
+    downBtn.className = 'btn-s btn-s-gray';
+    downBtn.textContent = '↓';
+    downBtn.disabled = index === sortedIlanlar.length - 1;
+    downBtn.onclick = async () => {
+      const newOrder = [...orderList];
+      const temp = newOrder[index];
+      newOrder[index] = newOrder[index + 1];
+      newOrder[index + 1] = temp;
+      await dbHelper.saveFeaturedOrder(newOrder);
+      toast('Sıralama güncellendi', 'success');
+      renderOneCikanlar();
+    };
+
+    sortGrp.appendChild(upBtn);
+    sortGrp.appendChild(downBtn);
+    tdSort.appendChild(sortGrp);
+
+    const tdAct = tr.querySelector(`#act-cell-${index}`);
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-s btn-s-red';
+    removeBtn.textContent = '⭐ Kaldır';
+    removeBtn.onclick = async () => {
+      removeBtn.disabled = true;
+      const { error } = await db.from('ilanlar').update({ one_cikan: false }).eq('id', il.id);
+      if (error) {
+        toast('Hata oluştu: ' + error.message);
+        removeBtn.disabled = false;
+      } else {
+        toast('Öne çıkarılanlardan kaldırıldı', 'info');
+        const newOrder = orderList.filter(id => id !== il.id);
+        await dbHelper.saveFeaturedOrder(newOrder);
+        renderOneCikanlar();
+      }
+    };
+    tdAct.appendChild(removeBtn);
+
+    tbody.appendChild(tr);
+  });
+
   table.appendChild(tbody);
   tableCard.appendChild(table);
 }
