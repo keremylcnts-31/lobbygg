@@ -2301,7 +2301,7 @@ function buildDropCard(drop) {
     const rdHeader = document.createElement('div');
     rdHeader.className = 'redrop-info-header';
     rdHeader.style.cssText = 'font-size:11px;color:var(--accent);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:4px;';
-    rdHeader.innerHTML = `🔁 <strong>${drop.kullanici_nick || 'Anonim'}</strong> ReDropladı`;
+    rdHeader.innerHTML = `🔁 <strong>${user.kullanici_adi || 'Anonim'}</strong> ReDropladı`;
     inner.appendChild(rdHeader);
 
     // Nested card container

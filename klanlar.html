@@ -1963,8 +1963,7 @@ async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, s
       logo_url: logoUrl,
       desteklenen_sunucu: server || null,
       uye_sayisi: 1,
-      vote_sayisi: 0,
-      hazine: 0
+      vote_sayisi: 0
     }).select().single();
 
     if (insertErr) throw insertErr;
