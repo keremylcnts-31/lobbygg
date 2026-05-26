@@ -420,7 +420,7 @@
       navRight.appendChild(avatarLink);
 
       // Check if user is staff to show admin/management panel
-      if (kuProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(kuProfile.abonelik)) {
+      if (kuProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(kuProfile.abonelik)) {
         const adminBtn = document.createElement('a');
         adminBtn.href = 'admin.html';
         adminBtn.className = 'nav-link';

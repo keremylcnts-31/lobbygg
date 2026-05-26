@@ -193,13 +193,13 @@ async function buildNav() {
   right.className = 'nav-right';
 
   if (currentUser && currentProfile) {
-    const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber'];
+    const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'];
     if (staffRoles.includes(currentProfile.abonelik)) {
       const panelBtn = document.createElement('a');
       panelBtn.href = 'admin.html';
       panelBtn.className = 'btn mc-blue mc-sm';
       panelBtn.style.marginRight = '8px';
-      panelBtn.textContent = currentProfile.abonelik === 'yonetici' ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ';
+      panelBtn.textContent = ['yonetici', 'kurucu'].includes(currentProfile.abonelik) ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ';
       right.appendChild(panelBtn);
     }
 
@@ -218,8 +218,10 @@ async function buildNav() {
     // Avatar
     const avWrap = document.createElement('a');
     avWrap.href = 'profil.html';
-    avWrap.className = 'nav-avatar';
+    avWrap.className = 'nav-avatar pp-wrap';
+    avWrap.dataset.frame = currentProfile.aktif_cerceve || 'none';
     const avImg = document.createElement('img');
+    avImg.className = 'pp-img shape-rounded';
     avImg.src = currentProfile.avatar_url || '';
     avImg.alt = currentProfile.kullanici_adi;
     avImg.onerror = () => { avImg.style.display = 'none'; };

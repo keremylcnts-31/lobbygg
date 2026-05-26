@@ -339,7 +339,7 @@
       navRight.appendChild(avatarLink);
 
       // Check if user is staff to show admin/management panel
-      if (userProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(userProfile.abonelik)) {
+      if (userProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(userProfile.abonelik)) {
         const adminBtn = document.createElement('a');
         adminBtn.href = 'admin.html';
         adminBtn.className = 'nav-link';

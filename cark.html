@@ -391,7 +391,20 @@
         const { data: profile } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
         if (profile) {
           currentProfile = profile;
+          
+          let panelBtn = '';
+          const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'];
+          if (staffRoles.includes(profile.abonelik)) {
+            const isYoneticiOrKurucu = ['yonetici', 'kurucu'].includes(profile.abonelik);
+            panelBtn = `
+              <a href="admin.html" class="btn mc-blue mc-sm" style="margin-right: 8px;">
+                ${isYoneticiOrKurucu ? '👑 YÖNETİCİ PANELİ' : '🛡️ YETKİLİ PANELİ'}
+              </a>
+            `;
+          }
+
           document.getElementById('navRight').innerHTML = `
+            ${panelBtn}
             <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
             <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
             <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>

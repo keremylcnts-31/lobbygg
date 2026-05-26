@@ -628,7 +628,7 @@ function buildNav() {
     right.appendChild(avatarLink);
 
     // Show admin link if staff
-    if (currentProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(currentProfile.abonelik)) {
+    if (currentProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(currentProfile.abonelik)) {
       const adminBtn = document.createElement('a');
       adminBtn.href = 'admin.html';
       adminBtn.className = 'nav-link';
