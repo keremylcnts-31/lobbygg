@@ -115,6 +115,8 @@
     /* UPLOAD ZONE */
     .upload-zone { border: 2px dashed #2a2a2a; border-radius: 14px; padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; background: #111; }
     .upload-zone:hover, .upload-zone.drag-over { border-color: #39ff14; background: rgba(57,255,20,0.04); }
+    .upload-zone.has-file { padding: 0; border: 1px solid #2a2a2a; }
+    .upload-zone.has-file .upload-preview { margin-top: 0; border-radius: 0; border: none; }
     .upload-zone input[type="file"] { display: none; }
     .upload-icon { font-size: 40px; margin-bottom: 12px; }
     .upload-title { font-size: 15px; font-weight: 800; color: #bbb; margin-bottom: 6px; }
@@ -1077,6 +1079,7 @@
       preview.src = formData.bannerUrl;
       preview.classList.add('show');
       uploadContent.style.display = 'none';
+      uploadZone.classList.add('has-file');
     }
     uploadZone.appendChild(preview);
 
@@ -1164,6 +1167,7 @@
             preview.src = formData.bannerUrl;
             preview.classList.add('show');
             uploadContent.style.display = 'none';
+            uploadZone.classList.add('has-file');
             removeBtn.classList.add('show');
             overlay.remove();
           }, 'image/png', 0.9);
@@ -1201,6 +1205,7 @@
       preview.src = '';
       preview.classList.remove('show');
       uploadContent.style.display = 'block';
+      uploadZone.classList.remove('has-file');
       removeBtn.classList.remove('show');
     });
     removeBtn.appendChild(removeBtnEl);

@@ -14,14 +14,15 @@
 
     /* Banner */
     .banner-wrap {
-      border-radius: 0;
+      border-radius: var(--radius-lg);
       overflow: hidden;
       width: 100%;
-      max-width: 100%;
-      height: 280px;
-      max-height: 280px;
+      max-width: 960px;
+      margin: 24px auto 0;
+      height: 240px;
+      max-height: 240px;
     }
-    .banner-canvas-mini { width: 100%; height: 100%; display: block; }
+    .banner-canvas-mini { width: 100%; height: 100%; display: block; object-fit: cover; }
 
     /* Profile Container */
     .profile-container {
@@ -1097,6 +1098,7 @@ const SERVERS = [
 ];
 
 const KATEGORI_MAP = {
+  'Yok': [],
   'PvP': ['LT5', 'HT5', 'LT4', 'HT4', 'LT3', 'HT3', 'LT2', 'HT2', 'LT1', 'HT1'],
   'İçerik Üretici': ['YouTube', 'Twitch', 'TikTok', 'Diğer'],
   'Developer': ['Plugin', 'Bot', 'Web', 'Diğer'],
@@ -2289,12 +2291,68 @@ function buildDropCard(drop, isLiked) {
 
   card.appendChild(header);
 
+  // --- Content ---
+  let isReDrop = false;
+  let redropData = null;
+  let contentText = drop.icerik;
+
   if (drop.icerik) {
-    const content = el('div', {className:'drop-card-content', textContent:drop.icerik});
+    try {
+      if (drop.icerik.trim().startsWith('{') && drop.icerik.includes('"is_redrop"')) {
+        redropData = JSON.parse(drop.icerik);
+        if (redropData.is_redrop) {
+          isReDrop = true;
+          contentText = '';
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (isReDrop && redropData) {
+    const rdHeader = el('div', {className:'redrop-info-header'});
+    rdHeader.style.cssText = 'font-size:11px;color:var(--accent);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:4px;';
+    rdHeader.innerHTML = `🔁 <strong>${profileUser.kullanici_adi || 'Anonim'}</strong> ReDropladı`;
+    card.appendChild(rdHeader);
+
+    const nestedCard = el('div', {className:'nested-drop-card'});
+    nestedCard.style.cssText = 'border: 1px solid var(--border); background: rgba(255,255,255,0.015); border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; display: flex; flex-direction: column; gap: 8px;';
+    nestedCard.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = `profil.html?id=${redropData.original_author_id}`;
+    });
+
+    const origHeader = el('div', {className:'orig-header'});
+    origHeader.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    
+    const origAv = el('img', {attrs:{src:redropData.original_author_avatar || 'https://i.imgur.com/6l08Y4k.png'}, style:{width:'24px',height:'24px',borderRadius:'50%',objectFit:'cover'}});
+    const origNick = el('span');
+    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);';
+    origNick.textContent = redropData.original_author_nick;
+
+    origHeader.appendChild(origAv);
+    origHeader.appendChild(origNick);
+    nestedCard.appendChild(origHeader);
+
+    if (redropData.original_content) {
+      const origContent = el('div');
+      origContent.style.cssText = 'font-size:13px;color:var(--text-2);word-break:break-word;';
+      origContent.textContent = redropData.original_content;
+      nestedCard.appendChild(origContent);
+    }
+
+    if (redropData.original_gorsel_url) {
+      const origImg = el('img', {attrs:{src:redropData.original_gorsel_url}});
+      origImg.style.cssText = 'width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:8px;';
+      nestedCard.appendChild(origImg);
+    }
+
+    card.appendChild(nestedCard);
+  } else if (contentText) {
+    const content = el('div', {className:'drop-card-content', textContent:contentText});
     card.appendChild(content);
   }
 
-  if (drop.gorsel_url) {
+  if (!isReDrop && drop.gorsel_url) {
     const dImg = el('img', {className:'drop-card-img', attrs:{src:drop.gorsel_url, alt:'Drop Görseli'}});
     dImg.addEventListener('click', () => openImgModal(drop.gorsel_url));
     card.appendChild(dImg);
@@ -2559,72 +2617,109 @@ function openImgModal(src) {
 // ===== İLANLAR TAB =====
 async function handleProfileBoost(btn) {
   if (!currentUser) return;
-  const daysStr = prompt("Kaç günlüğüne profilinizi öne çıkarmak istiyorsunuz? (1 Gün = 5 LCoin)\n\nMaksimum 15 gün seçebilirsiniz.", "3");
-  if (!daysStr) return;
-  const days = parseInt(daysStr);
-  if (isNaN(days) || days <= 0 || days > 15) {
-    showToast('Geçersiz gün sayısı (1-15 arası giriniz).', true);
-    return;
-  }
+
+  const modalId = 'modal-boost';
+  let overlay = document.getElementById(modalId);
+  if (overlay) overlay.remove();
+
+  overlay = el('div', {className:'modal-overlay open', id:modalId, style:{display:'flex'}});
+  const inner = el('div', {className:'modal', style:{maxWidth:'400px'}});
+
+  const header = el('div', {className:'modal-header'});
+  const title = el('div', {className:'modal-title', textContent:'🚀 Profili Öne Çıkar'});
+  const closeBtn = el('button', {className:'modal-close', textContent:'✕'});
+  closeBtn.addEventListener('click', () => overlay.remove());
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  inner.appendChild(header);
+
+  const body = el('div', {className:'modal-body', style:{padding:'20px'}});
+  const infoTxt = el('p', {style:{color:'var(--text-2)', fontSize:'14px', marginBottom:'15px'}, textContent:'Profilinizi öne çıkararak Keşfet ve diğer alanlarda üst sıralarda görünün.'});
+  body.appendChild(infoTxt);
+
+  const costInfo = el('p', {style:{color:'var(--accent)', fontWeight:'800', marginBottom:'15px'}, textContent:'Maliyet: Günlük 5 LCoin'});
+  body.appendChild(costInfo);
+
+  const group = el('div', {className:'input-group'});
+  const label = el('label', {className:'input-label', textContent:'Kaç gün öne çıkarmak istiyorsunuz? (Max: 15)'});
+  const input = el('input', {className:'input-field', attrs:{type:'number', min:'1', max:'15', value:'3'}});
+  group.appendChild(label);
+  group.appendChild(input);
+  body.appendChild(group);
+
+  const totalCost = el('div', {style:{marginTop:'10px', fontSize:'16px', fontWeight:'900', color:'var(--text-1)'}, textContent:'Toplam: 15 LCoin'});
+  input.addEventListener('input', () => {
+    let d = parseInt(input.value) || 0;
+    if (d > 15) { d = 15; input.value = 15; }
+    if (d < 1) { d = 1; input.value = 1; }
+    totalCost.textContent = `Toplam: ${d * 5} LCoin`;
+  });
+  body.appendChild(totalCost);
+  inner.appendChild(body);
+
+  const footer = el('div', {className:'modal-footer'});
+  const cancelBtn = el('button', {className:'btn mc-gray', textContent:'İptal'});
+  cancelBtn.addEventListener('click', () => overlay.remove());
+  const confirmBtn = el('button', {className:'btn mc-gold', textContent:'🚀 Onayla'});
   
-  const cost = days * 5;
-  if ((currentUser.lcoin || 0) < cost) {
-    showToast(`Yetersiz bakiye! ${cost} LCoin gerekiyor. (Mevcut: ${currentUser.lcoin || 0})`, true);
-    return;
-  }
-  
-  if (!confirm(`Profilinizi ${days} günlüğüne öne çıkarmak için ${cost} LCoin harcanacaktır. Onaylıyor musunuz?`)) {
-    return;
-  }
-  
-  btn.disabled = true;
-  btn.textContent = '🚀 İşleniyor...';
-  
-  try {
-    const bitisDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-    
-    // Update local currentUser
-    currentUser.lcoin -= cost;
-    currentUser.profil_one_cikan_bitis = bitisDate;
-    profileUser.lcoin = currentUser.lcoin;
-    profileUser.profil_one_cikan_bitis = currentUser.profil_one_cikan_bitis;
-    
-    if (sb) {
-      // 1. Deduct LCoin and update bitis date
-      const { error } = await sb.from('kullanicilar').update({
-        lcoin: currentUser.lcoin,
-        profil_one_cikan_bitis: currentUser.profil_one_cikan_bitis
-      }).eq('id', currentUser.id);
-      
-      if (error) {
-        // Fallback or ignore if column doesn't exist
-        console.warn("Supabase update error (maybe column missing):", error);
-      }
+  confirmBtn.addEventListener('click', async () => {
+    const days = parseInt(input.value);
+    if (isNaN(days) || days <= 0 || days > 15) {
+      toast('Lütfen 1 ile 15 arasında bir gün sayısı girin.', 'error');
+      return;
     }
-    
-    // LocalStorage Sync
+    const cost = days * 5;
+    if ((currentUser.lcoin || 0) < cost) {
+      toast(`Yetersiz bakiye! ${cost} LCoin gerekiyor.`, 'error');
+      return;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '⏳ İşleniyor...';
+
     try {
-      const localUsers = localStorage.getItem('lobby_kullanicilar');
-      if (localUsers) {
-        const users = JSON.parse(localUsers);
-        const uIdx = users.findIndex(u => u.id === currentUser.id);
-        if (uIdx !== -1) {
-          users[uIdx] = { ...users[uIdx], ...currentUser };
-          localStorage.setItem('lobby_kullanicilar', JSON.stringify(users));
-        }
+      const bitisDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      currentUser.lcoin -= cost;
+      currentUser.profil_one_cikan_bitis = bitisDate;
+      profileUser.lcoin = currentUser.lcoin;
+      profileUser.profil_one_cikan_bitis = currentUser.profil_one_cikan_bitis;
+
+      if (sb) {
+        await sb.from('kullanicilar').update({
+          lcoin: currentUser.lcoin,
+          profil_one_cikan_bitis: currentUser.profil_one_cikan_bitis
+        }).eq('id', currentUser.id);
       }
-    } catch(e) {}
-    
-    showToast(`🚀 Profiliniz başarıyla ${days} gün öne çıkarıldı!`);
-    renderProfileHeader();
-    
-  } catch(err) {
-    console.error(err);
-    showToast('Bir hata oluştu.', true);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '🚀 Profili Öne Çıkar';
-  }
+      
+      try {
+        const localUsers = localStorage.getItem('lobby_kullanicilar');
+        if (localUsers) {
+          const users = JSON.parse(localUsers);
+          const uIdx = users.findIndex(u => u.id === currentUser.id);
+          if (uIdx !== -1) {
+            users[uIdx] = { ...users[uIdx], ...currentUser };
+            localStorage.setItem('lobby_kullanicilar', JSON.stringify(users));
+          }
+        }
+      } catch(e) {}
+      
+      toast(`Profiliniz başarıyla ${days} gün öne çıkarıldı!`, 'success');
+      renderProfileHeader();
+      overlay.remove();
+    } catch(err) {
+      console.error(err);
+      toast('Bir hata oluştu.', 'error');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '🚀 Onayla';
+    }
+  });
+
+  footer.appendChild(cancelBtn);
+  footer.appendChild(confirmBtn);
+  inner.appendChild(footer);
+
+  overlay.appendChild(inner);
+  document.body.appendChild(overlay);
 }
 
 async function handleBoostClick(ilan, btn) {
