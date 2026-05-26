@@ -1954,7 +1954,7 @@ async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, s
       }
     }
 
-    const { error: insertErr } = await db.from('klanlar').insert({
+    const { error: insertErr, data: insertedClan } = await db.from('klanlar').insert({
       tag,
       isim: name,
       kurucu_id: currentUser.id,
@@ -1963,13 +1963,21 @@ async function handleCreateClan({ tagInput, nameInput, descInput, colorPicker, s
       logo_url: logoUrl,
       desteklenen_sunucu: server || null,
       uye_sayisi: 1,
-      vote_sayisi: 0
-    });
+      vote_sayisi: 0,
+      hazine: 0
+    }).select().single();
 
     if (insertErr) throw insertErr;
 
-    /* Update user klan_tag */
-    await db.from('kullanicilar').update({ klan_tag: tag }).eq('id', currentUser.id);
+    /* Update user klan_tag and klan_rutbe */
+    await db.from('kullanicilar').update({ klan_tag: tag, klan_rutbe: 'Lider' }).eq('id', currentUser.id);
+    
+    // Also log this creation to clan feed
+    await db.from('droplar').insert({
+      kullanici_id: currentUser.id,
+      icerik: `🛡️ **${name}** klanını kurdu!`,
+      tur: 'klan_sistem'
+    });
 
     toast('🎉 Klan başarıyla oluşturuldu!', 'success');
     closeCreateModal();

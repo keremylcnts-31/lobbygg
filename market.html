@@ -90,7 +90,7 @@
     <div class="store-grid" id="coins-grid">
       <!-- 50 LCoin -->
       <div class="store-card">
-        <div class="store-card-icon">🪙</div>
+        <div class="store-card-icon"><span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span></div>
         <div class="store-card-title">50 LCoin</div>
         <div class="store-card-desc">İlanları öne çıkarmak için ufak takviye.</div>
         <div class="store-card-price"><span id="price-coin50">25</span> TL</div>
@@ -356,17 +356,36 @@ async function buildNav() {
     right.appendChild(lcoin);
 
     // Avatar
-    const avWrap = document.createElement('a');
-    avWrap.href = 'profil.html';
-    avWrap.className = 'nav-avatar pp-wrap';
-    avWrap.dataset.frame = currentProfile.aktif_cerceve || 'none';
-    const avImg = document.createElement('img');
-    avImg.className = 'pp-img shape-rounded';
-    avImg.src = currentProfile.avatar_url || '';
-    avImg.alt = currentProfile.kullanici_adi;
-    avImg.onerror = () => { avImg.style.display = 'none'; };
-    avWrap.appendChild(avImg);
-    right.appendChild(avWrap);
+    const avatarLink = document.createElement('a');
+    avatarLink.href = 'profil.html';
+    avatarLink.className = 'nav-avatar pp-wrap';
+    avatarLink.dataset.frame = currentProfile.aktif_cerceve || 'none';
+    const avatarImg = document.createElement('img');
+    avatarImg.className = 'pp-img shape-rounded';
+    avatarImg.src = currentProfile.avatar_url || '';
+    avatarImg.alt = currentProfile.kullanici_adi;
+    avatarImg.onerror = () => { avatarImg.style.display = 'none'; };
+    avatarLink.appendChild(avatarImg);
+
+    const userWrap = document.createElement('div');
+    userWrap.className = 'nav-user';
+    userWrap.appendChild(avatarLink);
+
+    if (currentProfile) {
+      const info = document.createElement('div');
+      info.className = 'nav-user-info';
+      const nickEl = document.createElement('div');
+      nickEl.className = 'nav-nick';
+      nickEl.textContent = currentProfile.kullanici_adi || 'Kullanıcı';
+      const roleEl = document.createElement('div');
+      roleEl.className = 'nav-role';
+      const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+      roleEl.textContent = roleNames[currentProfile.abonelik] || '👤 Üye';
+      info.appendChild(nickEl);
+      info.appendChild(roleEl);
+      userWrap.appendChild(info);
+    }
+    right.appendChild(userWrap);
   } else {
     const loginBtn = document.createElement('a');
     loginBtn.href = 'giris.html';
@@ -524,7 +543,7 @@ async function verifySMSCode() {
     const navAmt = document.getElementById('nav-lcoin-amount');
     if (navAmt) navAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
 
-    showToast('Ödeme ve yükleme tamamlandı! 🪙', 'success');
+    showToast('Ödeme ve yükleme tamamlandı! <span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span>', 'success');
   } catch (err) {
     console.error("Purchase processing failed:", err);
     showToast('Yükleme sırasında hata oluştu, yerel hafızaya kaydedildi.', 'success');

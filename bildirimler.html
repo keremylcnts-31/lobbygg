@@ -605,7 +605,7 @@ function buildNav() {
   lcoin.className = 'nav-lcoin';
   const lcoinIcon = document.createElement('span');
   lcoinIcon.className = 'nav-lcoin-icon';
-  lcoinIcon.textContent = '🪙';
+  lcoinIcon.innerHTML = '';
   const lcoinAmt = document.createElement('span');
   lcoinAmt.id = 'nav-lcoin-amount';
   lcoinAmt.textContent = currentProfile ? currentProfile.lcoin ?? 0 : '—';
@@ -625,7 +625,26 @@ function buildNav() {
     avatarImg.src = currentProfile?.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${currentUser.id}`;
     avatarImg.alt = 'Profil';
     avatarLink.appendChild(avatarImg);
-    right.appendChild(avatarLink);
+
+    const userWrap = document.createElement('div');
+    userWrap.className = 'nav-user';
+    userWrap.appendChild(avatarLink);
+
+    if (currentProfile) {
+      const info = document.createElement('div');
+      info.className = 'nav-user-info';
+      const nickEl = document.createElement('div');
+      nickEl.className = 'nav-nick';
+      nickEl.textContent = currentProfile.kullanici_adi || 'Kullanıcı';
+      const roleEl = document.createElement('div');
+      roleEl.className = 'nav-role';
+      const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+      roleEl.textContent = roleNames[currentProfile.abonelik] || '👤 Üye';
+      info.appendChild(nickEl);
+      info.appendChild(roleEl);
+      userWrap.appendChild(info);
+    }
+    right.appendChild(userWrap);
 
     // Show admin link if staff
     if (currentProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(currentProfile.abonelik)) {

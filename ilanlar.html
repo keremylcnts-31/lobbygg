@@ -417,7 +417,26 @@
       avatarImg.alt = 'Profil';
       
       avatarLink.appendChild(avatarImg);
-      navRight.appendChild(avatarLink);
+
+      const userWrap = document.createElement('div');
+      userWrap.className = 'nav-user';
+      userWrap.appendChild(avatarLink);
+
+      if (kuProfile) {
+        const info = document.createElement('div');
+        info.className = 'nav-user-info';
+        const nickEl = document.createElement('div');
+        nickEl.className = 'nav-nick';
+        nickEl.textContent = kuProfile.kullanici_adi || 'Kullanıcı';
+        const roleEl = document.createElement('div');
+        roleEl.className = 'nav-role';
+        const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+        roleEl.textContent = roleNames[kuProfile.abonelik] || '👤 Üye';
+        info.appendChild(nickEl);
+        info.appendChild(roleEl);
+        userWrap.appendChild(info);
+      }
+      navRight.appendChild(userWrap);
 
       // Check if user is staff to show admin/management panel
       if (kuProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(kuProfile.abonelik)) {

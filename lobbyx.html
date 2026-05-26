@@ -899,6 +899,7 @@
       <div class="feed-tabs" id="feed-tabs">
         <button class="feed-tab-btn active" id="tab-takip">👥 Takip Edilenler</button>
         <button class="feed-tab-btn" id="tab-kesif">🌎 LobbyX</button>
+        <button class="feed-tab-btn" id="tab-klan">🛡️ Klanın</button>
       </div>
 
       <!-- New Drop Pill -->
@@ -1146,11 +1147,16 @@ function createAvatar(url, nick, size = 40, rounded = true) {
 function createBadge(abonelik) {
   const badge = document.createElement('span');
   const map = {
-    'premium': { cls: 'b-premium', label: '⭐ Premium' },
+    'uye': { cls: 'b-uye', label: '👤 Üye' },
     'abone': { cls: 'b-abone', label: '🟢 Abone' },
-    'admin': { cls: 'b-admin', label: '🛡 Admin' }
+    'premium': { cls: 'b-premium', label: '⭐ Premium' },
+    'rehber': { cls: 'b-rehber', label: '📞 Rehber' },
+    'moderator': { cls: 'b-moderator', label: '🛡️ Moderatör' },
+    'admin': { cls: 'b-admin', label: '🛡️ Admin' },
+    'yonetici': { cls: 'b-yonetici', label: '👑 Yönetici' },
+    'kurucu': { cls: 'b-kurucu', label: '🚀 Kurucu' }
   };
-  const info = map[abonelik] || { cls: 'b-uye', label: '👤 Üye' };
+  const info = map[abonelik] || { cls: 'b-uye', label: abonelik ? abonelik.toUpperCase() : '👤 Üye' };
   badge.className = `badge ${info.cls}`;
   badge.textContent = info.label;
   return badge;
@@ -1220,18 +1226,37 @@ function buildNav() {
     right.appendChild(lcoin);
 
     // Avatar
-    const avWrap = document.createElement('a');
-    avWrap.href = 'profil.html';
-    avWrap.className = 'nav-avatar pp-wrap';
-    avWrap.title = currentProfile.kullanici_adi;
-    avWrap.dataset.frame = currentProfile.aktif_cerceve || 'none';
-    const avImg = document.createElement('img');
-    avImg.className = 'pp-img shape-rounded';
-    avImg.src = currentProfile.avatar_url || '';
-    avImg.alt = currentProfile.kullanici_adi;
-    avImg.onerror = () => { avImg.style.display = 'none'; };
-    avWrap.appendChild(avImg);
-    right.appendChild(avWrap);
+    const avatarLink = document.createElement('a');
+    avatarLink.href = 'profil.html';
+    avatarLink.className = 'nav-avatar pp-wrap';
+    avatarLink.title = currentProfile.kullanici_adi;
+    avatarLink.dataset.frame = currentProfile.aktif_cerceve || 'none';
+    const avatarImg = document.createElement('img');
+    avatarImg.className = 'pp-img shape-rounded';
+    avatarImg.src = currentProfile.avatar_url || '';
+    avatarImg.alt = currentProfile.kullanici_adi;
+    avatarImg.onerror = () => { avatarImg.style.display = 'none'; };
+    avatarLink.appendChild(avatarImg);
+
+    const userWrap = document.createElement('div');
+    userWrap.className = 'nav-user';
+    userWrap.appendChild(avatarLink);
+
+    if (currentProfile) {
+      const info = document.createElement('div');
+      info.className = 'nav-user-info';
+      const nickEl = document.createElement('div');
+      nickEl.className = 'nav-nick';
+      nickEl.textContent = currentProfile.kullanici_adi || 'Kullanıcı';
+      const roleEl = document.createElement('div');
+      roleEl.className = 'nav-role';
+      const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+      roleEl.textContent = roleNames[currentProfile.abonelik] || '👤 Üye';
+      info.appendChild(nickEl);
+      info.appendChild(roleEl);
+      userWrap.appendChild(info);
+    }
+    right.appendChild(userWrap);
 
     // Admin checking
     if (['admin', 'yonetici', 'moderator', 'rehber'].includes(currentProfile.abonelik)) {
@@ -2041,7 +2066,31 @@ async function loadDrops(append = false) {
       .order('created_at', { ascending: false })
       .range(dropOffset, dropOffset + DROP_LIMIT - 1);
 
-    if (currentTab === 'takip' && currentUser && followedUsers.size > 0) {
+    if (currentTab === 'klan') {
+      if (!currentUser || !currentUser.klan_tag) {
+        document.getElementById('feed-loading').innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `
+          <div class="empty-state-icon">🛡️</div>
+          <div class="empty-state-title">Herhangi bir klana üye değilsin</div>
+          <div class="empty-state-sub">Klan feed'ini görebilmek için bir klana katılmalı veya kendi klanını kurmalısın.</div>
+          <button class="btn mc-green" style="margin-top:16px;" onclick="window.location.href='klanlar.html'">🛡️ Klanlara Göz At</button>
+        `;
+        document.getElementById('drop-feed').appendChild(empty);
+        isLoadingDrops = false;
+        return;
+      }
+      
+      // Get clan members
+      const { data: clanMembers } = await sb.from('kullanicilar').select('id').eq('klan_tag', currentUser.klan_tag);
+      if (clanMembers && clanMembers.length > 0) {
+        const clanMemberIds = clanMembers.map(m => m.id);
+        query = query.in('kullanici_id', clanMemberIds);
+      } else {
+        query = query.eq('kullanici_id', currentUser.id); // fallback
+      }
+    } else if (currentTab === 'takip' && currentUser && followedUsers.size > 0) {
       query = query.in('kullanici_id', [...followedUsers]);
     } else if (currentTab === 'takip' && currentUser && followedUsers.size === 0) {
       // No follows yet
@@ -2448,7 +2497,6 @@ function buildDropCard(drop) {
 
     const { data: rd, error } = await sb.from('droplar').insert({
       kullanici_id: currentUser.id,
-      kullanici_nick: currentProfile.kullanici_adi,
       icerik: JSON.stringify(redropPayload),
       gorsel_url: null,
       begeni_sayisi: 0,
@@ -2993,8 +3041,9 @@ function setupAutoRefresh() {
 // GOTO KESIF BUTTON
 // =============================================
 document.getElementById('goto-kesif-btn').addEventListener('click', () => {
-  currentTab = 'keşif';
+  currentTab = 'kesif';
   document.getElementById('tab-takip').classList.remove('active');
+  document.getElementById('tab-klan').classList.remove('active');
   document.getElementById('tab-kesif').classList.add('active');
   document.getElementById('following-empty').classList.remove('visible');
   loadDrops();
@@ -3008,6 +3057,7 @@ document.getElementById('tab-takip').addEventListener('click', () => {
   currentTab = 'takip';
   document.getElementById('tab-takip').classList.add('active');
   document.getElementById('tab-kesif').classList.remove('active');
+  document.getElementById('tab-klan').classList.remove('active');
   loadDrops();
 });
 
@@ -3016,6 +3066,16 @@ document.getElementById('tab-kesif').addEventListener('click', () => {
   currentTab = 'kesif';
   document.getElementById('tab-kesif').classList.add('active');
   document.getElementById('tab-takip').classList.remove('active');
+  document.getElementById('tab-klan').classList.remove('active');
+  loadDrops();
+});
+
+document.getElementById('tab-klan').addEventListener('click', () => {
+  if (currentTab === 'klan') return;
+  currentTab = 'klan';
+  document.getElementById('tab-klan').classList.add('active');
+  document.getElementById('tab-takip').classList.remove('active');
+  document.getElementById('tab-kesif').classList.remove('active');
   loadDrops();
 });
 

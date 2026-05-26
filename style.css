@@ -206,6 +206,12 @@ a.nav-bell { display: flex; }
 .nav-avatar:hover { border-color: var(--accent); }
 .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
+.nav-user { display: flex; align-items: center; gap: 10px; }
+.nav-user-info { display: none; flex-direction: column; }
+@media (min-width: 768px) { .nav-user-info { display: flex; } }
+.nav-nick { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; }
+.nav-role { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;}
+
 /* =====================
    Minecraft Buttons
    ===================== */
@@ -398,6 +404,9 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 .b-premium { background: #1a1200; color: var(--gold); border: 1px solid #3a2a00; }
 .b-admin   { background: #1a0d2a; color: var(--purple); border: 1px solid #2a1a3a; }
 .b-yonetici { background: #1a0d0d; color: var(--red); border: 1px solid #3a0d0d; }
+.b-rehber   { background: rgba(57,255,20,0.1); color: var(--accent); border: 1px solid rgba(57,255,20,0.3); }
+.b-moderator{ background: rgba(0,212,255,0.1); color: var(--blue); border: 1px solid rgba(0,212,255,0.3); }
+.b-kurucu   { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.4); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
 
 /* Category badges */
 .b-cat {

@@ -358,7 +358,7 @@
           document.getElementById('navRight').innerHTML = `
             <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
             <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
-            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${(profile.lcoin || 0).toLocaleString('tr-TR')}</a>
+            <a href="market.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${(profile.lcoin || 0).toLocaleString('tr-TR')}</a>
             <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
               <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
             </a>
@@ -416,11 +416,16 @@
         return matchSearch && matchFilter;
       });
 
-      // Sort verified players first
+      // Sort verified players and boosted profiles
+      const now = Date.now();
       filtered.sort((a, b) => {
         const aVerify = a.dogrulama_rozeti ? 1 : 0;
         const bVerify = b.dogrulama_rozeti ? 1 : 0;
-        return bVerify - aVerify;
+        if (aVerify !== bVerify) return bVerify - aVerify;
+        
+        const aBoost = (a.profil_one_cikan_bitis && new Date(a.profil_one_cikan_bitis).getTime() > now) ? 1 : 0;
+        const bBoost = (b.profil_one_cikan_bitis && new Date(b.profil_one_cikan_bitis).getTime() > now) ? 1 : 0;
+        return bBoost - aBoost;
       });
 
       if (filtered.length === 0) {
@@ -689,3 +694,4 @@
   </script>
 </body>
 </html>
+

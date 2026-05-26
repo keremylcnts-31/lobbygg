@@ -1374,10 +1374,12 @@ function buildNav() {
   lcoin.appendChild(lcoinVal);
   navRight.appendChild(lcoin);
 
+  const userWrap = el('div', {className:'nav-user', id:'navUserWrap'});
   const avatarWrap = el('a', {className:'nav-avatar pp-wrap', id:'navAvatar', attrs:{href:'profil.html'}});
   const avatarImg = el('img', {className:'pp-img shape-rounded', attrs:{src:'https://ui-avatars.com/api/?name=?&background=1a1a1a&color=39ff14', alt:'Avatar'}});
   avatarWrap.appendChild(avatarImg);
-  navRight.appendChild(avatarWrap);
+  userWrap.appendChild(avatarWrap);
+  navRight.appendChild(userWrap);
 
   nav.appendChild(navRight);
 
@@ -1385,6 +1387,15 @@ function buildNav() {
     lcoinVal.textContent = (currentUser.lcoin || 0).toLocaleString();
     avatarImg.src = ppSrc(currentUser);
     avatarWrap.setAttribute('data-frame', currentUser.aktif_cerceve || 'none');
+    
+    // Add nick and role info
+    const info = el('div', {className:'nav-user-info'});
+    const nickEl = el('div', {className:'nav-nick', textContent:currentUser.kullanici_adi || 'Kullanıcı'});
+    const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+    const roleEl = el('div', {className:'nav-role', textContent:roleNames[currentUser.abonelik] || '👤 Üye'});
+    info.appendChild(nickEl);
+    info.appendChild(roleEl);
+    document.getElementById('navUserWrap').appendChild(info);
     
     // Show admin link if staff
     if (['admin', 'yonetici', 'moderator', 'rehber'].includes(currentUser.abonelik)) {
@@ -1564,8 +1575,8 @@ function renderProfileHeader() {
 
   // Badges row
   const badgesRow = el('div', {className:'profile-badges-row'});
-  const abonelikMap = {uye:'b-uye',abone:'b-abone',premium:'b-premium',admin:'b-admin'};
-  const abonelikLabel = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin'};
+  const abonelikMap = {uye:'b-uye',abone:'b-abone',premium:'b-premium',admin:'b-admin',yonetici:'b-yonetici',kurucu:'b-kurucu',moderator:'b-moderator',rehber:'b-rehber'};
+  const abonelikLabel = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin',yonetici:'Yönetici',kurucu:'Kurucu',moderator:'Moderatör',rehber:'Rehber'};
   const ab = profileUser.abonelik || 'uye';
   const abBadge = el('span', {className:`badge ${abonelikMap[ab]||'b-uye'}`, textContent:abonelikLabel[ab]||'Üye'});
   badgesRow.appendChild(abBadge);
@@ -1648,10 +1659,12 @@ function renderProfileHeader() {
     const row = el('div', {className:'profile-actions-row'});
     const editBtn = el('button', {className:'btn mc-gray', textContent:'Profili Düzenle'});
     editBtn.addEventListener('click', () => switchTab('ozellestir'));
-    const msgBtn = el('button', {className:'btn mc-blue', textContent:'💬 Mesajlar'});
-    msgBtn.addEventListener('click', () => { window.location.href='mesajlar.html'; });
+    
+    const boostProfileBtn = el('button', {className:'btn mc-gold', textContent:'🚀 Profili Öne Çıkar'});
+    boostProfileBtn.addEventListener('click', () => handleProfileBoost(boostProfileBtn));
+    
     row.appendChild(editBtn);
-    row.appendChild(msgBtn);
+    row.appendChild(boostProfileBtn);
     
     // YETKİLİ PANELİ
     const staffRoles = ['yonetici', 'admin', 'moderator', 'rehber', 'kurucu'];
@@ -1881,7 +1894,8 @@ const TAB_DEFS = [
   {id:'droplar',    icon:'💬', label:'Droplar'},
   {id:'ilanlar',   icon:'📣', label:'İlanlar'},
   {id:'takipciler',icon:'👥', label:'Takipçiler'},
-  {id:'takip',     icon:'👤', label:'Takip'},
+  {id:'takip',     icon:'👤', label:'Takip Edilen'},
+  {id:'favoriler', icon:'⭐', label:'Favoriler'},
 ];
 const OWN_TABS = [
   {id:'hediyeler', icon:'🎁', label:'Hediyelerim'},
@@ -1927,7 +1941,7 @@ function renderMainContent() {
   // Private overlay logic
   const isPrivate = profileUser.profil_gizli && !isOwnProfile && !isFollower;
 
-  if (isPrivate && (activeTab==='droplar'||activeTab==='ilanlar'||activeTab==='takipciler'||activeTab==='takip')) {
+  if (isPrivate && (activeTab==='droplar'||activeTab==='ilanlar'||activeTab==='takipciler'||activeTab==='takip'||activeTab==='favoriler')) {
     const overlay = el('div', {className:'private-overlay fade-in-up'});
     const ico = el('div', {className:'private-overlay-icon', textContent:'🔒'});
     const tit = el('div', {className:'private-overlay-title', textContent:'Bu hesap gizli'});
@@ -1956,9 +1970,67 @@ function renderMainContent() {
   else if (activeTab === 'ilanlar') renderIlanlarTab(mc);
   else if (activeTab === 'takipciler') renderFollowList(mc, 'takipciler');
   else if (activeTab === 'takip') renderFollowList(mc, 'takip');
+  else if (activeTab === 'favoriler') renderFavorilerTab(mc);
   else if (activeTab === 'ozellestir') renderOzellestirTab(mc);
   else if (activeTab === 'hesap') renderHesapTab(mc);
   else if (activeTab === 'hediyeler') renderHediyelerTab(mc);
+}
+
+const SERVERS = [
+  {name:'HanedanMC', ip:'play.hanedanmc.com'},
+  {name:'ChickenNW', ip:'oyna.chickennw.com'},
+  {name:'BLOKYA', ip:'oyna.blokya.com'},
+  {name:'DugeCraft', ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC', ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+  {name:'SOULCRAFT', ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC', ip:'atlantikmc.com'},
+  {name:'NAVELYA', ip:'navelya.net'},
+  {name:'CRAFTLUNA', ip:'play.craftluna.net'},
+  {name:'Melonya', ip:'melonya.net'},
+  {name:'Rush Craft', ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft', ip:'play.reborncraft.pw'},
+  {name:'LuneCraft', ip:'mc.lunecraft.net'},
+  {name:'SimitSMP', ip:'simitsmp.net'},
+  {name:'MC4FUN', ip:'play.mc4fun.net'},
+  {name:'İmibiyum', ip:'play.imibiyum.com'}
+];
+
+async function renderFavorilerTab(container) {
+  const wrap = el('div', {className:'fade-in-up'});
+  const favIps = profileUser.favori_sunucular || [];
+  const favServers = SERVERS.filter(s => favIps.includes(s.ip));
+
+  if (!favServers.length) {
+    const es = el('div', {className:'empty-state'});
+    es.appendChild(el('div', {className:'empty-state-icon', textContent:'⭐'}));
+    es.appendChild(el('div', {className:'empty-state-title', textContent:'Favori Yok'}));
+    es.appendChild(el('div', {className:'empty-state-sub', textContent:'Bu kullanıcının favori sunucusu bulunmuyor.'}));
+    wrap.appendChild(es);
+    container.appendChild(wrap);
+    return;
+  }
+
+  const grid = el('div', {style:{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'20px'}});
+  favServers.forEach(srv => {
+    const card = el('div', {className:'ilan-card', style:{display:'flex', alignItems:'center', gap:'16px', padding:'16px'}});
+    
+    const logo = el('img', {className:'shape-rounded', attrs:{src:`https://api.mcsrvstat.us/icon/${srv.ip}`, alt:srv.name}, style:{width:'48px', height:'48px', objectFit:'cover'}});
+    card.appendChild(logo);
+    
+    const info = el('div', {style:{flex:1}});
+    const nameEl = el('div', {style:{fontWeight:'900', fontSize:'16px', color:'var(--text-1)'}, textContent:srv.name});
+    const ipEl = el('div', {style:{fontSize:'12px', color:'var(--gold)', fontWeight:'800', marginTop:'4px'}, textContent:srv.ip});
+    info.appendChild(nameEl);
+    info.appendChild(ipEl);
+    
+    card.appendChild(info);
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+  container.appendChild(wrap);
 }
 
 // ===== HEDİYELERİM TAB =====
@@ -2069,6 +2141,7 @@ async function renderHediyelerTab(container) {
 
 // ===== DROPS TAB =====
 async function renderDropsTab(container) {
+  container.innerHTML = '';
   const wrap = el('div', {className:'fade-in-up'});
 
   if (isOwnProfile) {
@@ -2177,7 +2250,6 @@ function buildDropComposer() {
 
     await sb.from('droplar').insert({
       kullanici_id: currentUser.id,
-      kullanici_nick: currentUser.kullanici_adi,
       icerik: text,
       gorsel_url: imgUrl,
       begeni_sayisi: 0,
@@ -2504,6 +2576,76 @@ function openImgModal(src) {
 }
 
 // ===== İLANLAR TAB =====
+async function handleProfileBoost(btn) {
+  if (!currentUser) return;
+  const daysStr = prompt("Kaç günlüğüne profilinizi öne çıkarmak istiyorsunuz? (1 Gün = 5 LCoin)\n\nMaksimum 15 gün seçebilirsiniz.", "3");
+  if (!daysStr) return;
+  const days = parseInt(daysStr);
+  if (isNaN(days) || days <= 0 || days > 15) {
+    showToast('Geçersiz gün sayısı (1-15 arası giriniz).', true);
+    return;
+  }
+  
+  const cost = days * 5;
+  if ((currentUser.lcoin || 0) < cost) {
+    showToast(`Yetersiz bakiye! ${cost} LCoin gerekiyor. (Mevcut: ${currentUser.lcoin || 0})`, true);
+    return;
+  }
+  
+  if (!confirm(`Profilinizi ${days} günlüğüne öne çıkarmak için ${cost} LCoin harcanacaktır. Onaylıyor musunuz?`)) {
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.textContent = '🚀 İşleniyor...';
+  
+  try {
+    const bitisDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Update local currentUser
+    currentUser.lcoin -= cost;
+    currentUser.profil_one_cikan_bitis = bitisDate;
+    profileUser.lcoin = currentUser.lcoin;
+    profileUser.profil_one_cikan_bitis = currentUser.profil_one_cikan_bitis;
+    
+    if (sb) {
+      // 1. Deduct LCoin and update bitis date
+      const { error } = await sb.from('kullanicilar').update({
+        lcoin: currentUser.lcoin,
+        profil_one_cikan_bitis: currentUser.profil_one_cikan_bitis
+      }).eq('id', currentUser.id);
+      
+      if (error) {
+        // Fallback or ignore if column doesn't exist
+        console.warn("Supabase update error (maybe column missing):", error);
+      }
+    }
+    
+    // LocalStorage Sync
+    try {
+      const localUsers = localStorage.getItem('lobby_kullanicilar');
+      if (localUsers) {
+        const users = JSON.parse(localUsers);
+        const uIdx = users.findIndex(u => u.id === currentUser.id);
+        if (uIdx !== -1) {
+          users[uIdx] = { ...users[uIdx], ...currentUser };
+          localStorage.setItem('lobby_kullanicilar', JSON.stringify(users));
+        }
+      }
+    } catch(e) {}
+    
+    showToast(`🚀 Profiliniz başarıyla ${days} gün öne çıkarıldı!`);
+    renderProfileHeader();
+    
+  } catch(err) {
+    console.error(err);
+    showToast('Bir hata oluştu.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Profili Öne Çıkar';
+  }
+}
+
 async function handleBoostClick(ilan, btn) {
   if (!currentUser) {
     showToast('Lütfen giriş yapın.', true);
@@ -2775,7 +2917,7 @@ async function renderFollowList(container, type) {
 
     const info = el('div', {className:'follow-item-info'});
     const nick = el('div', {className:'follow-item-nick', textContent:u.kullanici_adi});
-    const abMap2 = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin'};
+    const abMap2 = {uye:'Üye',abone:'Abone',premium:'Premium',admin:'Admin',yonetici:'Yönetici',kurucu:'Kurucu',moderator:'Moderatör',rehber:'Rehber'};
     const sub = el('div', {className:'follow-item-sub', textContent:abMap2[u.abonelik||'uye']||'Üye'});
     info.appendChild(nick);
     info.appendChild(sub);

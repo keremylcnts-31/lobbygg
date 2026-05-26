@@ -1168,6 +1168,7 @@ function showSection(id) {
   currentSection = id;
   const content = document.getElementById('content');
   content.innerHTML = '';
+  content.innerHTML = '';
   switch (id) {
     case 'dashboard': renderDashboard(); break;
     case 'users':     renderUsers();     break;
@@ -1190,6 +1191,7 @@ function showSection(id) {
 ================================================================ */
 async function renderDashboard() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   // Header
   const header = document.createElement('div');
@@ -1410,6 +1412,7 @@ const USERS_PER_PAGE = 20;
 
 async function renderUsers() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('👥', 'Kullanıcılar', 'Tüm kayıtlı oyuncular');
   content.appendChild(header);
@@ -1567,7 +1570,7 @@ async function renderUsers() {
         // LCoin / Bakiye Aktar
         const lcoinBtn = document.createElement('button');
         lcoinBtn.className = 'btn-s btn-s-green';
-        lcoinBtn.textContent = '🪙 Bakiye';
+        lcoinBtn.innerHTML = '<span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span> Bakiye';
         lcoinBtn.addEventListener('click', () => openLcoinModal(u, loadUsers));
 
         actGrp.appendChild(rozetBtn);
@@ -1676,7 +1679,7 @@ function openLcoinModal(user, onDone) {
   openModal(box => {
     const title = document.createElement('div');
     title.className = 'modal-title';
-    title.textContent = `🪙 Bakiye Yönetimi — ${user.kullanici_adi}`;
+    title.innerHTML = `<span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span> Bakiye Yönetimi — ${user.kullanici_adi}`;
     box.appendChild(title);
 
     const sub = document.createElement('div');
@@ -1848,6 +1851,7 @@ let ilanTab = 'beklemede';
 
 async function renderIlanlar() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('📣', 'İlanlar', 'Bekleyen ve onaylanan ilanları yönet');
   content.appendChild(header);
@@ -2172,6 +2176,7 @@ function openIlanInceleModal(ilanData) {
 ================================================================ */
 async function renderKlanlar() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('🛡️', 'Klanlar', 'Tüm klanları görüntüle ve yönet');
   content.appendChild(header);
@@ -2348,6 +2353,7 @@ function openKlanAbonelikModal(klan, onDone) {
 ================================================================ */
 async function renderStats() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('📈', 'İstatistikler', 'Platform analitiği ve grafikler');
   content.appendChild(header);
@@ -2548,6 +2554,7 @@ function buildBarChart(items) {
 ================================================================ */
 async function renderDestek() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('📞', 'Destek Talepleri', 'Kullanıcı destek taleplerini yanıtlayın ve yönetin');
   content.appendChild(header);
@@ -2790,6 +2797,7 @@ async function renderDestek() {
 ================================================================ */
 async function renderAyarlar() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
 
   const header = buildPageHeader('⚙️', 'Sistem Ayarları', 'Lcoin paket fiyatları, limitler ve fiyatlandırma seçenekleri');
   content.appendChild(header);
@@ -2809,7 +2817,7 @@ async function renderAyarlar() {
 
   const categories = [
     {
-      title: '🪙 LCoin Paket Fiyatları (TL)',
+      title: '<span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span> LCoin Paket Fiyatları (TL)',
       fields: [
         { label: '50 LCoin', key: 'lcoin_50_price', type: 'number' },
         { label: '120 LCoin', key: 'lcoin_120_price', type: 'number' },
@@ -2850,7 +2858,7 @@ async function renderAyarlar() {
 
     const cardTitle = document.createElement('div');
     cardTitle.className = 'settings-card-title';
-    cardTitle.textContent = cat.title;
+    cardTitle.innerHTML = cat.title;
     card.appendChild(cardTitle);
 
     cat.fields.forEach(f => {
@@ -2975,6 +2983,7 @@ function buildPageHeader(icon, title, subtitle) {
 ================================================================ */
 function renderKilavuz() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('📚', 'Yetkili Kılavuzu', 'LOBBY.GG Ekip ve Departman Hiyerarşisi');
   content.appendChild(header);
 
@@ -3076,6 +3085,7 @@ function renderKilavuz() {
 ================================================================ */
 async function renderBasvurular() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('📝', 'Yetkili Başvuruları', 'Gelen başvuruları incele ve onayla');
   content.appendChild(header);
 
@@ -3177,6 +3187,7 @@ async function renderBasvurular() {
 ================================================================ */
 async function renderSunucular() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('🖥️', 'Sunucular', 'Global sunucu listesini yönet');
   content.appendChild(header);
   
@@ -3321,6 +3332,7 @@ async function renderSunucular() {
 ================================================================ */
 async function renderOneCikanlar() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('⭐', 'Öne Çıkan İlanlar', 'Öne çıkan ilanları sıralayın ve yönetin');
   content.appendChild(header);
 
@@ -3454,6 +3466,7 @@ async function renderOneCikanlar() {
 ================================================================ */
 async function renderCark() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('🎡', 'Çark Ayarları', 'Çark ödülleri ve kazanma olasılıklarını yönet');
   content.appendChild(header);
 
@@ -3569,6 +3582,7 @@ async function renderCark() {
 ================================================================ */
 async function renderDroplar() {
   const content = document.getElementById('content');
+  content.innerHTML = '';
   const header = buildPageHeader('💧', 'Droplar', 'Tüm oyuncu paylaşımlarını (dropları) yönet');
   content.appendChild(header);
 

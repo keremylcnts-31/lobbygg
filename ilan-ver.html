@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="db-helper.js"></script>
   <style>
@@ -336,7 +338,26 @@
       avatarImg.alt = 'Profil';
       
       avatarLink.appendChild(avatarImg);
-      navRight.appendChild(avatarLink);
+
+      const userWrap = document.createElement('div');
+      userWrap.className = 'nav-user';
+      userWrap.appendChild(avatarLink);
+
+      if (userProfile) {
+        const info = document.createElement('div');
+        info.className = 'nav-user-info';
+        const nickEl = document.createElement('div');
+        nickEl.className = 'nav-nick';
+        nickEl.textContent = userProfile.kullanici_adi || 'Kullanıcı';
+        const roleEl = document.createElement('div');
+        roleEl.className = 'nav-role';
+        const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+        roleEl.textContent = roleNames[userProfile.abonelik] || '👤 Üye';
+        info.appendChild(nickEl);
+        info.appendChild(roleEl);
+        userWrap.appendChild(info);
+      }
+      navRight.appendChild(userWrap);
 
       // Check if user is staff to show admin/management panel
       if (userProfile && ['admin', 'yonetici', 'moderator', 'rehber', 'kurucu'].includes(userProfile.abonelik)) {
@@ -430,23 +451,38 @@
     const settings = await window.dbHelper.getSiteSettings();
     const role = (userProfile && userProfile.abonelik) ? userProfile.abonelik : 'uye';
     
-    let limit = settings.limit_uye || 3;
-    if (role === 'abone') limit = settings.limit_abone || 10;
-    else if (['premium', 'yonetici', 'admin', 'moderator', 'rehber'].includes(role)) {
+    let limit = 2; // Default Üye limiti (Aylık)
+    let isMonthlyQuota = true;
+
+    if (role === 'abone') {
+      limit = settings.limit_abone || 10;
+      isMonthlyQuota = false;
+    } else if (['premium', 'yonetici', 'admin', 'moderator', 'rehber'].includes(role)) {
       limit = settings.limit_premium || 9999;
+      isMonthlyQuota = false;
     }
 
-    let activeCount = 0;
+    let count = 0;
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
     if (sb) {
       try {
-        const { data, error } = await sb.from('ilanlar')
-          .select('id, durum')
-          .eq('kullanici_id', currentUser.id);
+        let query = sb.from('ilanlar').select('id, durum, created_at').eq('kullanici_id', currentUser.id);
+        
+        if (isMonthlyQuota) {
+          query = query.gte('created_at', thirtyDaysAgo);
+        }
+        
+        const { data, error } = await query;
         if (!error && data) {
-          activeCount = data.filter(i => ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
+          if (isMonthlyQuota) {
+            count = data.length; // Aylık açılan toplam ilan sayısı
+          } else {
+            count = data.filter(i => ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
+          }
         }
       } catch (err) {
-        console.warn("Supabase active listings query failed, using localStorage fallback.");
+        console.warn("Supabase limit query failed, using localStorage fallback.");
       }
     }
     
@@ -454,19 +490,25 @@
       const local = localStorage.getItem('lobby_ilanlar');
       if (local) {
         const arr = JSON.parse(local);
-        const localCount = arr.filter(i => i.kullanici_id === currentUser.id && ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
-        if (localCount > activeCount) activeCount = localCount;
+        let localCount = 0;
+        if (isMonthlyQuota) {
+           const limitTime = Date.now() - 30 * 24 * 60 * 60 * 1000;
+           localCount = arr.filter(i => i.kullanici_id === currentUser.id && new Date(i.created_at).getTime() > limitTime).length;
+        } else {
+           localCount = arr.filter(i => i.kullanici_id === currentUser.id && ['onaylandi', 'aktif', 'beklemede'].includes(i.durum)).length;
+        }
+        if (localCount > count) count = localCount;
       }
     } catch(e) {}
 
-    if (activeCount >= limit) {
-      renderLimitGate(limit, activeCount);
+    if (count >= limit) {
+      renderLimitGate(limit, count, isMonthlyQuota);
       return false;
     }
     return true;
   }
 
-  function renderLimitGate(limit, count) {
+  function renderLimitGate(limit, count, isMonthlyQuota) {
     const container = document.getElementById('pageContainer');
     container.innerHTML = '';
 
@@ -492,7 +534,12 @@
     titleGate.textContent = 'İlan Limitine Ulaştın';
     const txt = document.createElement('div');
     txt.className = 'login-gate-text';
-    txt.innerHTML = `Mevcut aktif veya onay bekleyen ilan sayınız: <strong>${count}</strong>.<br>Mevcut abonelik türünüz için tanımlanan sınır: <strong>${limit}</strong>.<br><br>Daha fazla ilan yayınlamak için Mağaza sayfamızdan aboneliğinizi yükseltebilirsiniz.`;
+    
+    if (isMonthlyQuota) {
+      txt.innerHTML = `Bu ay içerisinde yayınlayabileceğiniz maksimum ilan sayısına ulaştınız (Kullanılan: <strong>${count}</strong> / Sınır: <strong>${limit}</strong>).<br><br>Aylık ilan hakkınızı doldurduğunuz için yeni ilan veremezsiniz. Daha fazla ilan yayınlamak veya bu kısıtlamayı kaldırmak için Mağaza sayfamızdan aboneliğinizi yükseltebilirsiniz.`;
+    } else {
+      txt.innerHTML = `Mevcut aktif veya onay bekleyen ilan sayınız: <strong>${count}</strong>.<br>Mevcut abonelik türünüz için tanımlanan sınır: <strong>${limit}</strong>.<br><br>Daha fazla ilan yayınlamak için Mağaza sayfamızdan aboneliğinizi yükseltebilirsiniz.`;
+    }
     const btn = document.createElement('button');
     btn.className = 'login-gate-btn mc-gold';
     btn.textContent = '🛒 Mağazaya Git';
@@ -804,7 +851,7 @@
 
     const priceOpts = [
       { id: 'free', icon: '🟢', label: 'Ücretsiz' },
-      { id: 'paid', icon: '🟡', label: 'Ücretli' },
+      { id: 'paid', icon: '<span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span>', label: 'Ücretli' },
       { id: 'anlasmali', icon: '🤝', label: 'Anlaşmalı' },
     ];
 
@@ -826,7 +873,7 @@
       optEl.className = 'price-option' + (formData.fiyatTuru === opt.id ? ' selected' : '');
       const optIco = document.createElement('div');
       optIco.className = 'price-option-icon';
-      optIco.textContent = opt.icon;
+      optIco.innerHTML = opt.icon;
       const optLbl = document.createElement('div');
       optLbl.className = 'price-option-label';
       optLbl.textContent = opt.label;
@@ -1047,18 +1094,97 @@
       if (fileInput.files[0]) handleFile(fileInput.files[0]);
     });
 
+    let cropperInstance = null;
+
     function handleFile(file) {
       if (file.size > 5 * 1024 * 1024) { showToast('Dosya 5MB\'dan büyük olamaz!', true); return; }
-      formData.bannerFile = file;
       const reader = new FileReader();
       reader.onload = e => {
-        formData.bannerUrl = e.target.result;
-        preview.src = e.target.result;
-        preview.classList.add('show');
-        uploadContent.style.display = 'none';
-        removeBtn.classList.add('show');
+        openCropModal(e.target.result);
       };
       reader.readAsDataURL(file);
+    }
+
+    function openCropModal(imgSrc) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.style.zIndex = '9999';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      
+      const cropBox = document.createElement('div');
+      cropBox.style.background = '#1a1a1a';
+      cropBox.style.padding = '20px';
+      cropBox.style.borderRadius = '8px';
+      cropBox.style.width = '100%';
+      cropBox.style.maxWidth = '600px';
+      cropBox.style.border = '1px solid var(--border)';
+      
+      const cropTitle = document.createElement('h3');
+      cropTitle.textContent = 'Banner Kırp (Önerilen: 4:1)';
+      cropTitle.style.marginBottom = '15px';
+      cropTitle.style.color = '#fff';
+      
+      const imgWrap = document.createElement('div');
+      imgWrap.style.width = '100%';
+      imgWrap.style.height = '300px';
+      imgWrap.style.background = '#000';
+      
+      const cImg = document.createElement('img');
+      cImg.src = imgSrc;
+      cImg.style.maxWidth = '100%';
+      cImg.style.display = 'block';
+      imgWrap.appendChild(cImg);
+      
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.gap = '10px';
+      actions.style.marginTop = '20px';
+      
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn mc-gray';
+      cancelBtn.textContent = 'İptal';
+      cancelBtn.style.flex = '1';
+      cancelBtn.onclick = () => {
+        overlay.remove();
+        fileInput.value = '';
+      };
+      
+      const okBtn = document.createElement('button');
+      okBtn.className = 'btn mc-green';
+      okBtn.textContent = 'Onayla';
+      okBtn.style.flex = '1';
+      okBtn.onclick = () => {
+        if (cropperInstance) {
+          const canvas = cropperInstance.getCroppedCanvas({ width: 800, height: 200 });
+          canvas.toBlob(blob => {
+            formData.bannerFile = new File([blob], 'banner.png', { type: 'image/png' });
+            formData.bannerUrl = canvas.toDataURL('image/png');
+            preview.src = formData.bannerUrl;
+            preview.classList.add('show');
+            uploadContent.style.display = 'none';
+            removeBtn.classList.add('show');
+            overlay.remove();
+          }, 'image/png', 0.9);
+        }
+      };
+      
+      actions.appendChild(cancelBtn);
+      actions.appendChild(okBtn);
+      
+      cropBox.appendChild(cropTitle);
+      cropBox.appendChild(imgWrap);
+      cropBox.appendChild(actions);
+      overlay.appendChild(cropBox);
+      document.body.appendChild(overlay);
+      
+      cropperInstance = new Cropper(cImg, {
+        aspectRatio: 4 / 1,
+        viewMode: 1,
+        autoCropArea: 1,
+        background: false
+      });
     }
 
     panel.appendChild(uploadZone);

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klan — LOBBY.GG</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .page-wrapper { padding-top: var(--nav-h); }
+    .klan-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+    
+    .klan-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .klan-logo {
+      width: 100px; height: 100px;
+      border-radius: var(--radius);
+      border: 2px solid var(--border);
+      object-fit: cover;
+      position: relative;
+      z-index: 2;
+    }
+    .klan-info {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+    .klan-name { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+    .klan-tag { font-size: 14px; font-weight: 800; color: var(--accent); }
+    .klan-desc { font-size: 13px; color: var(--text-2); margin-top: 12px; max-width: 600px; }
+    
+    .klan-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .stat-box {
+      background: var(--bg-card2);
+      border: 1px solid var(--border-thin);
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      text-align: center;
+    }
+    .stat-val { font-size: 20px; font-weight: 900; color: var(--text-1); }
+    .stat-lbl { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; }
+    
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 10px; margin: 30px 0 20px;
+      border-bottom: 1px solid var(--border-thin);
+      padding-bottom: 10px;
+    }
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 800; color: var(--text-2);
+      cursor: pointer; border-radius: var(--radius-sm);
+    }
+    .tab.active { background: rgba(57,255,20,0.1); color: var(--accent); }
+    
+    /* Content Area */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .member-list {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+    }
+    .member-card {
+      background: var(--bg-card); border: 1px solid var(--border-thin);
+      border-radius: var(--radius); padding: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .member-pp { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); }
+    .member-nick { font-size: 13px; font-weight: 800; }
+    .member-rank { font-size: 10px; color: var(--gold); font-weight: 800; }
+    
+    .treasury-box {
+      background: var(--bg-card); border: 1px solid var(--border-thin);
+      border-radius: var(--radius-lg); padding: 30px; text-align: center;
+    }
+    .treasury-box h3 { font-size: 14px; color: var(--text-2); margin-bottom: 10px; }
+    .treasury-val { font-size: 40px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+    
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <nav class="nav" id="nav"></nav>
+  
+  <div class="klan-container" id="klan-container" style="display:none;">
+    <div class="klan-header" id="k-header">
+      <img src="" id="k-logo" class="klan-logo" />
+      <div class="klan-info">
+        <div class="klan-name" id="k-name"></div>
+        <div class="klan-tag" id="k-tag"></div>
+        <div class="klan-desc" id="k-desc"></div>
+        <div class="klan-stats">
+          <div class="stat-box">
+            <div class="stat-val" id="k-uyesayisi">1</div>
+            <div class="stat-lbl">Üye</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="k-votesayisi">0</div>
+            <div class="stat-lbl">Oy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('uyeler')">Üyeler</div>
+      <div class="tab" onclick="switchTab('hazine')">Klan Hazinesi</div>
+      <div class="tab" onclick="switchTab('diplomasi')">Diplomasi</div>
+    </div>
+    
+    <div id="tab-uyeler" class="tab-content active">
+      <div class="member-list" id="member-list"></div>
+    </div>
+    
+    <div id="tab-hazine" class="tab-content">
+      <div class="treasury-box">
+        <h3>Klan Hazinesi (Ortak LCoin Havuzu)</h3>
+        <div class="treasury-val" id="k-hazine">0 LC</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:20px;">Sadece Liderler harcama yapabilir.</div>
+        <button class="btn mc-gold" onclick="bagisYap()">💰 Hazinye Bağış Yap (10 LC)</button>
+      </div>
+    </div>
+    
+    <div id="tab-diplomasi" class="tab-content">
+      <div class="treasury-box" style="text-align:left;">
+        <h3>Savaş / Barış</h3>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:20px;">
+          Diğer klanlara savaş açmak için klan üyelerinin %50'sinden fazlasının oyu gerekmektedir.
+        </p>
+        <button class="btn mc-red">⚔️ Savaş İlan Et</button>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const urlParams = new URLSearchParams(window.location.search);
+const clanTag = urlParams.get('tag');
+
+let clanData = null;
+let currentUser = null;
+
+async function init() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) {
+    const { data: profile } = await sb.from('kullanicilar').select('*').eq('email', user.email).single();
+    currentUser = { ...user, ...profile };
+  }
+  
+  if (!clanTag) {
+    document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:100px;">Klan bulunamadı!</h2>';
+    return;
+  }
+  
+  await loadClan();
+}
+
+async function loadClan() {
+  const { data, error } = await sb.from('klanlar').select('*').eq('tag', clanTag).single();
+  if (error || !data) {
+    document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:100px;">Klan bulunamadı!</h2>';
+    return;
+  }
+  
+  clanData = data;
+  document.getElementById('klan-container').style.display = 'block';
+  
+  document.getElementById('k-name').textContent = data.isim;
+  document.getElementById('k-tag').textContent = '#' + data.tag;
+  document.getElementById('k-desc').textContent = data.aciklama || 'Açıklama yok.';
+  document.getElementById('k-uyesayisi').textContent = data.uye_sayisi;
+  document.getElementById('k-votesayisi').textContent = data.vote_sayisi;
+  document.getElementById('k-hazine').textContent = (data.hazine || 0) + ' LC';
+  
+  if (data.logo_url) {
+    document.getElementById('k-logo').src = data.logo_url;
+  } else {
+    document.getElementById('k-logo').src = 'https://via.placeholder.com/100/111/39FF14?text=' + data.tag;
+  }
+  
+  if (data.renk) {
+    document.getElementById('k-header').style.borderTop = `4px solid ${data.renk}`;
+  }
+  
+  loadMembers();
+}
+
+async function loadMembers() {
+  const { data } = await sb.from('kullanicilar').select('id, kullanici_adi, avatar_url, klan_rutbe').eq('klan_tag', clanTag);
+  const list = document.getElementById('member-list');
+  list.innerHTML = '';
+  
+  if (data) {
+    data.forEach(m => {
+      const card = document.createElement('div');
+      card.className = 'member-card';
+      
+      const img = document.createElement('img');
+      img.className = 'member-pp';
+      img.src = m.avatar_url || 'https://via.placeholder.com/40/333/fff?text=?';
+      
+      const div = document.createElement('div');
+      const nick = document.createElement('div'); nick.className = 'member-nick'; nick.textContent = m.kullanici_adi;
+      const rank = document.createElement('div'); rank.className = 'member-rank'; rank.textContent = m.klan_rutbe || 'Üye';
+      
+      div.appendChild(nick);
+      div.appendChild(rank);
+      card.appendChild(img);
+      card.appendChild(div);
+      list.appendChild(card);
+    });
+  }
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+async function bagisYap() {
+  if (!currentUser) return alert("Giriş yapmalısın.");
+  if (currentUser.klan_tag !== clanData.tag) return alert("Sadece klan üyeleri bağış yapabilir.");
+  if (currentUser.lcoin < 10) return alert("Yeterli LCoin yok.");
+  
+  await sb.from('kullanicilar').update({ lcoin: currentUser.lcoin - 10 }).eq('id', currentUser.id);
+  await sb.from('klanlar').update({ hazine: (clanData.hazine || 0) + 10 }).eq('tag', clanData.tag);
+  
+  // Log to drop feed
+  await sb.from('droplar').insert({
+    kullanici_id: currentUser.id,
+    icerik: `💰 Klan hazinesine 10 LC bağışladı!`,
+    tur: 'klan_sistem'
+  });
+  
+  currentUser.lcoin -= 10;
+  clanData.hazine = (clanData.hazine || 0) + 10;
+  document.getElementById('k-hazine').textContent = clanData.hazine + ' LC';
+  alert("Bağış başarılı!");
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('nav.html').then(r=>r.text()).then(html=>{
+    document.getElementById('nav').innerHTML=html;
+    const s = document.createElement('script');
+    s.src = 'nav.js';
+    document.body.appendChild(s);
+  });
+  init();
+});
+</script>
+</body>
+</html>

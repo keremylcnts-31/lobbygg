@@ -407,10 +407,16 @@
             ${panelBtn}
             <a href="mesajlar.html" class="nav-bell" title="Mesajlar">💬</a>
             <a href="bildirimler.html" class="nav-bell" title="Bildirimler">🔔</a>
-            <a href="profil.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>
-            <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
-              <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
-            </a>
+            <a href="market.html" class="nav-lcoin"><span class="nav-lcoin-icon"></span> ${profile.lcoin || 0}</a>
+            <div class="nav-user">
+              <a href="profil.html" class="nav-avatar pp-wrap" data-frame="${profile.aktif_cerceve || 'none'}">
+                <img src="${profile.avatar_url || 'https://api.dicebear.com/7.x/minecraft/svg?seed='+profile.kullanici_adi}" class="pp-img shape-rounded" alt="Avatar">
+              </a>
+              <div class="nav-user-info">
+                <div class="nav-nick">${profile.kullanici_adi}</div>
+                <div class="nav-role">${{yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'}[profile.abonelik] || '👤 Üye'}</div>
+              </div>
+            </div>
           `;
           
           // Enable actions
@@ -716,7 +722,7 @@
         const navL = document.getElementById('nav-lcoin-amount');
         if (navL) navL.textContent = newLcoin.toLocaleString();
 
-        toast('Başarıyla 5 Çevirme Hakkı satın aldınız! 🪙 -50', 'success');
+        toast('Başarıyla 5 Çevirme Hakkı satın aldınız! <span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span> -50', 'success');
         checkSpinRights();
       } catch (err) {
         console.error(err);
@@ -967,3 +973,4 @@
   </script>
 </body>
 </html>
+
