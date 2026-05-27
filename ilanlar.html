@@ -181,8 +181,8 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <a href="lobbyx.html" class="nav-logo">
-    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+  <a href="lobbyx.html">
+    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" class="nav-logo" />
   </a>
   <div class="nav-links">
     <a href="lobbyx.html">Ana Sayfa</a>
@@ -376,7 +376,7 @@
     currentUser = session ? session.user : null;
     let kuProfile = null;
     if (currentUser) {
-      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, aktif_cerceve, abonelik').eq('email', currentUser.email).maybeSingle();
+      const { data: ku } = await sb.from('kullanicilar').select('id, lcoin, avatar_url, aktif_cerceve, abonelik, kullanici_adi').eq('email', currentUser.email).maybeSingle();
       if (ku) {
         currentUser = { ...session.user, id: ku.id };
         kuProfile = ku;
@@ -572,9 +572,10 @@
     const banner = document.createElement('div');
     banner.className = 'card-banner';
 
-    if (ilan.banner_url) {
+    const bannerSrc = ilan.banner_url || ilan.gorsel_url;
+    if (bannerSrc) {
       const img = document.createElement('img');
-      img.src = ilan.banner_url;
+      img.src = bannerSrc;
       img.alt = ilan.baslik;
       img.loading = 'lazy';
       banner.appendChild(img);

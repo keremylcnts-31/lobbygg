@@ -193,8 +193,8 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <a href="lobbyx.html" class="nav-logo">
-    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+  <a href="lobbyx.html">
+    <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" class="nav-logo" />
   </a>
   <div class="nav-links">
     <a href="lobbyx.html">Ana Sayfa</a>
@@ -1396,7 +1396,7 @@
     // Upload image if exists
     if (formData.bannerFile) {
       const ext = formData.bannerFile.name.split('.').pop();
-      const fileName = `ilanlar/${currentUser.id}_${Date.now()}.${ext}`;
+      const fileName = `banners/ilan_${currentUser.id}_${Date.now()}.${ext}`;
       const { data: upData, error: upErr } = await sb.storage.from('media').upload(fileName, formData.bannerFile, { upsert: true });
       if (upErr) { console.error(upErr); showToast('Görsel yüklenemedi, devam ediliyor...', true); }
       else {
