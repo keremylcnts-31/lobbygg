@@ -1416,6 +1416,16 @@ async function init() {
     const { data: u } = await sb.from('kullanicilar').select('*').eq('email', session.user.email).maybeSingle();
     if (u) {
       currentUser = u;
+      if (typeof currentUser.favori_sunucular === 'string') {
+        try {
+          currentUser.favori_sunucular = JSON.parse(currentUser.favori_sunucular);
+        } catch(e) {
+          currentUser.favori_sunucular = [];
+        }
+      }
+      if (!currentUser.favori_sunucular) {
+        currentUser.favori_sunucular = [];
+      }
       buildNav();
     } else {
       window.location.href = 'giris.html';
@@ -1464,6 +1474,18 @@ async function init() {
   }
 
   profileUser = targetUser;
+  if (profileUser) {
+    if (typeof profileUser.favori_sunucular === 'string') {
+      try {
+        profileUser.favori_sunucular = JSON.parse(profileUser.favori_sunucular);
+      } catch(e) {
+        profileUser.favori_sunucular = [];
+      }
+    }
+    if (!profileUser.favori_sunucular) {
+      profileUser.favori_sunucular = [];
+    }
+  }
   isOwnProfile = currentUser && currentUser.id === profileUser.id;
 
   // Track visitor
@@ -2410,6 +2432,14 @@ function buildDropCard(drop, isLiked) {
   actDiv.appendChild(commentBtn);
   card.appendChild(actDiv);
   card.appendChild(cmtPanel);
+
+  // Navigate to drop details on card background click
+  card.style.cursor = 'pointer';
+  card.addEventListener('click', (e) => {
+    const interactive = e.target.closest('button, a, img, input, .nested-drop-card, .drop-card-pp, .drop-card-nick, .drop-card-actions, .comment-panel');
+    if (interactive) return;
+    window.location.href = `drop.html?id=${drop.id}`;
+  });
 
   return card;
 }

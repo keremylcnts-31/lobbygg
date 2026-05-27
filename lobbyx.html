@@ -2560,6 +2560,15 @@ function buildDropCard(drop) {
   actions.appendChild(shareBtn);
 
   inner.appendChild(actions);
+
+  // Navigate to drop details on card background click
+  inner.style.cursor = 'pointer';
+  inner.addEventListener('click', (e) => {
+    const interactive = e.target.closest('button, a, img, input, .drop-readmore, .nested-drop-card');
+    if (interactive) return;
+    window.location.href = `drop.html?id=${drop.id}`;
+  });
+
   card.appendChild(inner);
 
   // --- Comments Section ---
@@ -2935,7 +2944,8 @@ function showDropContextMenu(e, drop, card) {
   copyLink.className = 'ctx-item';
   copyLink.textContent = '🔗 Linki Kopyala';
   copyLink.addEventListener('click', () => {
-    navigator.clipboard.writeText(`${window.location.origin}/drop.html?id=${drop.id}`);
+    const dropUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/drop.html') + '?id=' + drop.id;
+    navigator.clipboard.writeText(dropUrl);
     showToast('Link kopyalandı!', 'success');
     menu.style.display = 'none';
   });
@@ -3191,6 +3201,16 @@ async function init() {
     if (profile) {
       currentUser = { ...session.user, id: profile.id };
       currentProfile = profile;
+      if (typeof currentProfile.favori_sunucular === 'string') {
+        try {
+          currentProfile.favori_sunucular = JSON.parse(currentProfile.favori_sunucular);
+        } catch (e) {
+          currentProfile.favori_sunucular = [];
+        }
+      }
+      if (!currentProfile.favori_sunucular) {
+        currentProfile.favori_sunucular = [];
+      }
       await loadFollowedUsers();
     } else {
       window.location.href = 'giris.html';
