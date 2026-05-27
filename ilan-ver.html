@@ -197,12 +197,12 @@
     <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" class="nav-logo" />
   </a>
   <div class="nav-links">
-    <a href="lobbyx.html">Ana Sayfa</a>
-    <a href="ilanlar.html">İlanlar</a>
-    <a href="klanlar.html">Klanlar</a>
-    <a href="kesfet.html">Keşfet</a>
-    <a href="market.html">Mağaza</a>
-    <a href="destek.html">Destek</a>
+    <a href="lobbyx.html" class="nav-link">Ana Sayfa</a>
+    <a href="ilanlar.html" class="nav-link active">İlanlar</a>
+    <a href="klanlar.html" class="nav-link">Klanlar</a>
+    <a href="kesfet.html" class="nav-link">Keşfet</a>
+    <a href="market.html" class="nav-link">Mağaza</a>
+    <a href="destek.html" class="nav-link">Destek</a>
   </div>
   <div class="nav-right" id="navRight"></div>
 </nav>
@@ -374,10 +374,10 @@
       formData.email = (userProfile && userProfile.email) ? userProfile.email : (currentUser.email || '');
       formData.discord = (userProfile && userProfile.discord) ? userProfile.discord : '';
     } else {
-      const loginBtn = document.createElement('button');
-      loginBtn.className = 'nav-login-btn';
+      const loginBtn = document.createElement('a');
+      loginBtn.className = 'btn mc-green mc-sm';
       loginBtn.textContent = 'Giriş Yap';
-      loginBtn.addEventListener('click', () => { window.location.href = 'giris.html'; });
+      loginBtn.href = 'giris.html?next=ilan-ver.html';
       navRight.appendChild(loginBtn);
     }
   }
@@ -1397,18 +1397,33 @@
     if (formData.bannerFile) {
       const ext = formData.bannerFile.name.split('.').pop();
       const fileName = `banners/ilan_${currentUser.id}_${Date.now()}.${ext}`;
-      const { data: upData, error: upErr } = await sb.storage.from('media').upload(fileName, formData.bannerFile, { upsert: true });
-      if (upErr) { console.error(upErr); showToast('Görsel yüklenemedi, devam ediliyor...', true); }
-      else {
-        const { data: urlData } = sb.storage.from('media').getPublicUrl(fileName);
-        bannerUrl = urlData.publicUrl;
+      try {
+        const { data: upData, error: upErr } = await sb.storage.from('media').upload(fileName, formData.bannerFile, { upsert: true });
+        if (upErr) {
+          console.error('Storage upload error:', upErr);
+          // Try alternative bucket 'ilanlar'
+          const { data: upData2, error: upErr2 } = await sb.storage.from('ilanlar').upload(fileName, formData.bannerFile, { upsert: true });
+          if (upErr2) {
+            console.error('Alt storage upload error:', upErr2);
+            showToast('Banner yuklenemedi, ilan bannersiz yayınlanacak', true);
+          } else {
+            const { data: urlData2 } = sb.storage.from('ilanlar').getPublicUrl(fileName);
+            bannerUrl = urlData2.publicUrl;
+          }
+        } else {
+          const { data: urlData } = sb.storage.from('media').getPublicUrl(fileName);
+          bannerUrl = urlData.publicUrl;
+        }
+      } catch(storageErr) {
+        console.error('Storage exception:', storageErr);
+        showToast('Banner yuklenemedi, ilan bannersiz yayınlanacak', true);
       }
     }
 
     const nick = userProfile ? userProfile.kullanici_adi : (currentUser.email ? currentUser.email.split('@')[0] : 'kullanici');
     const fiyatValue = formData.fiyatTuru === 'free' ? 0 : (formData.fiyatTuru === 'anlasmali' ? 'Anlaşmalı' : formData.fiyat);
 
-    const { error } = await sb.from('ilanlar').insert({
+    const insertData = {
       kullanici_id: currentUser.id,
       kullanici_nick: nick,
       baslik: formData.baslik,
@@ -1421,14 +1436,30 @@
       durum: 'beklemede',
       one_cikan: false,
       banner_url: bannerUrl || null,
-    });
+      gorsel_url: bannerUrl || null,   // fallback column
+    };
+
+    const { error } = await sb.from('ilanlar').insert(insertData);
 
     if (error) {
-      console.error(error);
-      btn.disabled = false;
-      btn.textContent = '🚀 Yayınla';
-      showToast('Hata: ' + (error.message || 'İlan gönderilemedi'), true);
-      return;
+      // If banner_url column doesn't exist, try without it
+      if (error.message && (error.message.includes('banner_url') || error.message.includes('column'))) {
+        delete insertData.banner_url;
+        const { error: error2 } = await sb.from('ilanlar').insert(insertData);
+        if (error2) {
+          console.error(error2);
+          btn.disabled = false;
+          btn.textContent = '🚀 Yayınla';
+          showToast('Hata: ' + (error2.message || 'İlan gönderilemedi'), true);
+          return;
+        }
+      } else {
+        console.error(error);
+        btn.disabled = false;
+        btn.textContent = '🚀 Yayınla';
+        showToast('Hata: ' + (error.message || 'İlan gönderilemedi'), true);
+        return;
+      }
     }
 
     // Success

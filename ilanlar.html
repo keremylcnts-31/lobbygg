@@ -185,12 +185,12 @@
     <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" class="nav-logo" />
   </a>
   <div class="nav-links">
-    <a href="lobbyx.html">Ana Sayfa</a>
-    <a href="ilanlar.html" class="active">İlanlar</a>
-    <a href="klanlar.html">Klanlar</a>
-    <a href="kesfet.html">Keşfet</a>
-    <a href="market.html">Mağaza</a>
-    <a href="destek.html">Destek</a>
+    <a href="lobbyx.html" class="nav-link">Ana Sayfa</a>
+    <a href="ilanlar.html" class="nav-link active">İlanlar</a>
+    <a href="klanlar.html" class="nav-link">Klanlar</a>
+    <a href="kesfet.html" class="nav-link">Keşfet</a>
+    <a href="market.html" class="nav-link">Mağaza</a>
+    <a href="destek.html" class="nav-link">Destek</a>
   </div>
   <div class="nav-right" id="navRight"></div>
 </nav>
@@ -448,10 +448,10 @@
         document.querySelector('.nav-links').appendChild(adminBtn);
       }
     } else {
-      const loginBtn = document.createElement('button');
-      loginBtn.className = 'nav-login-btn';
+      const loginBtn = document.createElement('a');
+      loginBtn.className = 'btn mc-green mc-sm';
       loginBtn.textContent = 'Giriş Yap';
-      loginBtn.addEventListener('click', () => { window.location.href = 'giris.html'; });
+      loginBtn.href = 'giris.html?next=ilanlar.html';
       navRight.appendChild(loginBtn);
     }
   }
@@ -572,7 +572,7 @@
     const banner = document.createElement('div');
     banner.className = 'card-banner';
 
-    const bannerSrc = ilan.banner_url || ilan.gorsel_url;
+    const bannerSrc = ilan.banner_url || ilan.gorsel_url || ilan.resim_url;
     if (bannerSrc) {
       const img = document.createElement('img');
       img.src = bannerSrc;
