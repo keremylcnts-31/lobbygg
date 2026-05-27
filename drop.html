@@ -1221,12 +1221,8 @@ function buildNav() {
     lcoin.className = 'nav-lcoin';
     lcoin.style.cursor = 'pointer';
     lcoin.onclick = () => window.location.href = 'market.html';
-    const coinIcon = document.createElement('img');
-    coinIcon.className = 'lcoin-icon';
-    coinIcon.src = 'https://i.hizliresim.com/978w3n3.png'; // Lcoin Pixel Art or 3D icon
-    coinIcon.style.width = '24px';
-    coinIcon.style.height = '24px';
-    coinIcon.style.objectFit = 'contain';
+    const coinIcon = document.createElement('span');
+    coinIcon.className = 'nav-lcoin-icon';
     const coinAmt = document.createElement('span');
     coinAmt.id = 'nav-lcoin-amount';
     coinAmt.textContent = (currentProfile.lcoin || 0).toLocaleString('tr-TR');
@@ -1644,12 +1640,7 @@ async function buildRightSidebar() {
     name.className = 'server-name';
     name.textContent = srv.name;
     
-    const favDisplay = document.createElement('div');
-    favDisplay.style.cssText = 'font-size:10px; font-weight:800; color:var(--gold);';
-    favDisplay.innerHTML = `★ ${serverFavCount[srv.ip]}`;
-    
     nameWrap.appendChild(name);
-    nameWrap.appendChild(favDisplay);
     
     const players = document.createElement('div');
     players.className = 'server-players';
@@ -3186,9 +3177,26 @@ async function openEditDropModal(drop, card) {
   textarea.className = 'input-field';
   textarea.style.minHeight = '100px';
   textarea.style.marginBottom = '15px';
+  textarea.style.resize = 'none';
   
   let content = drop.icerik || '';
-  let cleanText = content.replace(/\n\n\(Düzenlendi: .*\)$/, '');
+  let cleanText = '';
+  let isRedrop = false;
+  let parsedPayload = null;
+
+  try {
+    const payload = JSON.parse(content);
+    if (payload.is_redrop) {
+      isRedrop = true;
+      parsedPayload = payload;
+      cleanText = payload.quote_comment || '';
+    } else {
+      cleanText = content.replace(/\n\n\(Düzenlendi: .*\)$/, '');
+    }
+  } catch (e) {
+    cleanText = content.replace(/\n\n\(Düzenlendi: .*\)$/, '');
+  }
+  
   textarea.value = cleanText;
 
   const btnRow = document.createElement('div');
@@ -3227,7 +3235,14 @@ async function openEditDropModal(drop, card) {
     try {
       const now = new Date();
       const dateStr = now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const finalContent = newText + `\n\n(Düzenlendi: ${dateStr})`;
+      let finalContent = newText;
+
+      if (isRedrop && parsedPayload) {
+        parsedPayload.quote_comment = newText;
+        finalContent = JSON.stringify(parsedPayload);
+      } else {
+        finalContent = newText + `\n\n(Düzenlendi: ${dateStr})`;
+      }
 
       const { error } = await sb.from('droplar').update({ icerik: finalContent }).eq('id', drop.id);
       if (error) throw error;
@@ -3270,11 +3285,18 @@ async function openReDropModal(originalDrop, redropData, originalUser) {
   textarea.className = 'input-field';
   textarea.style.minHeight = '60px';
   textarea.style.marginBottom = '15px';
+  textarea.style.resize = 'none';
   textarea.placeholder = 'Düşüncelerini ekle... (İsteğe bağlı)';
+
+  let rawContent = originalDrop.icerik || '';
+  if (redropData && redropData.original_content) rawContent = redropData.original_content;
+  try { const parsed = JSON.parse(rawContent); if(parsed.is_redrop) rawContent = parsed.original_content; } catch(e){}
+  
+  const snippet = rawContent.length > 60 ? rawContent.substring(0, 60) + '...' : rawContent;
 
   const previewBox = document.createElement('div');
   previewBox.style.cssText = 'border: 1px solid var(--border); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; color: var(--text-2); background: rgba(0,0,0,0.2);';
-  previewBox.innerHTML = `<strong>@${originalUser.kullanici_adi || 'Anonim'}</strong> kullanıcısının dropu alıntılanacak.`;
+  previewBox.innerHTML = `<strong>@${originalUser.kullanici_adi || 'Anonim'}</strong>: "${snippet}"`;
 
   const btnRow = document.createElement('div');
   btnRow.style.display = 'flex';
