@@ -1346,7 +1346,7 @@ function buildLeftSidebar() {
 // =============================================
 // SERVER DETAIL MODAL
 // =============================================
-async function openServerDetailModal(srv) {
+async function openServerDetailModal(srv, initialFavCount = 0) {
   const modalWrap = document.createElement('div');
   modalWrap.className = 'modal-overlay';
   modalWrap.id = 'server-detail-modal';
@@ -1421,7 +1421,7 @@ async function openServerDetailModal(srv) {
   statFavsLabel.textContent = 'Sitedeki Favori';
   const statFavsVal = document.createElement('div');
   statFavsVal.style.cssText = 'font-size:14px;font-weight:900;color:var(--gold);margin-top:4px;';
-  statFavsVal.textContent = '...';
+  statFavsVal.textContent = initialFavCount + ' kişi';
   statFavs.appendChild(statFavsLabel);
   statFavs.appendChild(statFavsVal);
 
@@ -1452,15 +1452,25 @@ async function openServerDetailModal(srv) {
       favBtn.textContent = '☆ Favorilere Ekle';
       showToast('Favorilerden çıkarıldı.', 'info');
     } else {
+      if (list.length >= 8) {
+        showToast('En fazla 8 sunucu favorileyebilirsin!', 'error');
+        favBtn.disabled = false;
+        return;
+      }
       list.push(srv.ip);
       favBtn.className = 'btn mc-gold mc-lg';
       favBtn.textContent = '★ Favorilerden Çıkar';
       showToast('Favorilere eklendi! ★', 'success');
     }
     currentProfile.favori_sunucular = list;
-    await sb.from('kullanicilar').update({ favori_sunucular: list }).eq('id', currentUser.id);
-    
-    updateFavCount();
+    const { error } = await sb.from('kullanicilar').update({ favori_sunucular: list }).eq('id', currentUser.id);
+    if (error) {
+      showToast('Güncellenemedi: ' + error.message, 'error');
+    } else {
+      await updateFavCount();
+      // Refresh the sidebar fav counts
+      buildRightSidebar();
+    }
     favBtn.disabled = false;
   });
 
@@ -1612,11 +1622,11 @@ async function buildRightSidebar() {
   displayServers.forEach((srv, index) => {
     const item = document.createElement('div');
     item.className = 'server-item';
-    
-    // No gold border - removed by request
-
     item.style.cursor = 'pointer';
-    item.addEventListener('click', () => openServerDetailModal(srv));
+    item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;cursor:pointer;transition:background 0.2s;';
+    item.addEventListener('mouseenter', () => item.style.background = 'rgba(255,255,255,0.04)');
+    item.addEventListener('mouseleave', () => item.style.background = '');
+    item.addEventListener('click', () => openServerDetailModal(srv, serverFavCount[srv.ip] || 0));
 
     const logo = document.createElement('img');
     logo.className = 'server-logo';
@@ -1625,22 +1635,38 @@ async function buildRightSidebar() {
     logo.onerror = () => { logo.src = 'https://i.imgur.com/6l08Y4k.png'; };
 
     const info = document.createElement('div');
-    info.className = 'server-info';
     info.style.flex = '1';
+    info.style.minWidth = '0';
     
-    const nameWrap = document.createElement('div');
-    nameWrap.style.display = 'flex';
-    nameWrap.style.alignItems = 'center';
-    nameWrap.style.justifyContent = 'space-between';
+    // Name row
+    const nameRow = document.createElement('div');
+    nameRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:4px;';
     
     const name = document.createElement('div');
     name.className = 'server-name';
     name.textContent = srv.name;
+    // First 5 get gold names
+    if (index < 5) {
+      name.style.color = 'var(--gold)';
+      name.style.textShadow = '0 0 6px rgba(255,215,0,0.3)';
+    }
+
+    // Fav count badge
+    const favBadge = document.createElement('div');
+    favBadge.style.cssText = 'font-size:10px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:2px;flex-shrink:0;';
+    favBadge.innerHTML = `♥ ${serverFavCount[srv.ip] || 0}`;
+
+    nameRow.appendChild(name);
+    nameRow.appendChild(favBadge);
     
-    nameWrap.appendChild(name);
-    
+    // IP row
+    const ipRow = document.createElement('div');
+    ipRow.style.cssText = 'font-size:9px;color:var(--text-dim);margin:1px 0;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    ipRow.textContent = srv.ip;
+
     const players = document.createElement('div');
     players.className = 'server-players';
+    players.style.marginTop = '1px';
     const dot = document.createElement('div');
     dot.className = 'server-online-dot';
     const playerText = document.createElement('span');
@@ -1648,7 +1674,8 @@ async function buildRightSidebar() {
     players.appendChild(dot);
     players.appendChild(playerText);
     
-    info.appendChild(nameWrap);
+    info.appendChild(nameRow);
+    info.appendChild(ipRow);
     info.appendChild(players);
 
     item.appendChild(logo);
@@ -1700,76 +1727,93 @@ async function buildRightSidebar() {
   ilanBox.appendChild(ilanHeader);
 
   try {
-    const { data: ilanlar } = await sb.from('ilanlar')
+    // First try featured listings, fallback to any active listings
+    let { data: ilanlar } = await sb.from('ilanlar')
       .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
       .eq('one_cikan', true)
-      .or('durum.eq.onaylandi,durum.eq.aktif');
+      .or('durum.eq.onaylandi,durum.eq.aktif')
+      .limit(5);
 
-    // Retrieve global featured order
-    const orderList = await dbHelper.getFeaturedOrder();
+    // If no featured, load latest active ones
+    if (!ilanlar || ilanlar.length === 0) {
+      const fallback = await sb.from('ilanlar')
+        .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
+        .or('durum.eq.onaylandi,durum.eq.aktif')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      ilanlar = fallback.data;
+    }
+
     let sortedIlanlar = [];
-    if (ilanlar) {
-      sortedIlanlar = [...ilanlar];
-      if (orderList && orderList.length > 0) {
-        sortedIlanlar.sort((a, b) => {
-          const idxA = orderList.indexOf(a.id);
-          const idxB = orderList.indexOf(b.id);
-          if (idxA === -1 && idxB === -1) return 0;
-          if (idxA === -1) return 1;
-          if (idxB === -1) return -1;
-          return idxA - idxB;
-        });
+    if (ilanlar && ilanlar.length > 0) {
+      try {
+        const orderList = await dbHelper.getFeaturedOrder();
+        sortedIlanlar = [...ilanlar];
+        if (orderList && orderList.length > 0) {
+          sortedIlanlar.sort((a, b) => {
+            const idxA = orderList.indexOf(a.id);
+            const idxB = orderList.indexOf(b.id);
+            if (idxA === -1 && idxB === -1) return 0;
+            if (idxA === -1) return 1;
+            if (idxB === -1) return -1;
+            return idxA - idxB;
+          });
+        }
+      } catch(e) {
+        sortedIlanlar = [...ilanlar];
       }
-      sortedIlanlar = sortedIlanlar.slice(0, 10); // Limit to top 10
+      sortedIlanlar = sortedIlanlar.slice(0, 5);
     }
 
     sortedIlanlar.forEach(ilan => {
       const item = document.createElement('div');
-      item.className = 'ilan-item';
-      item.style.cssText = 'position:relative;height:80px;margin:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:8px;';
+      item.style.cssText = 'position:relative;height:110px;margin:8px 12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;';
       item.addEventListener('click', () => { window.location.href = `ilan-detay.html?id=${ilan.id}`; });
 
       // Banner background
       const bg = document.createElement('div');
-      bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.3s;background-color:#1a1a1a;';
+      bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.35s ease;background-color:#1a1a1a;';
       if (ilan.banner_url || ilan.resim_url) {
         bg.style.backgroundImage = `url('${ilan.banner_url || ilan.resim_url}')`;
       } else {
         const gradients = {
-          'PvP': 'linear-gradient(135deg, #1a0008, #3d0015)',
-          'İçerik': 'linear-gradient(135deg, #140020, #2d0050)',
-          'Developer': 'linear-gradient(135deg, #001a20, #003040)',
-          'Builder': 'linear-gradient(135deg, #1a1000, #3d2800)'
+          'PvP': 'linear-gradient(135deg, #3d0015, #1a0008)',
+          'İçerik': 'linear-gradient(135deg, #2d0050, #140020)',
+          'Developer': 'linear-gradient(135deg, #003040, #001a20)',
+          'Builder': 'linear-gradient(135deg, #3d2800, #1a1000)'
         };
-        bg.style.background = gradients[ilan.kategori] || 'linear-gradient(135deg, #111, #222)';
+        bg.style.background = gradients[ilan.kategori] || 'linear-gradient(135deg, #1a1a1a, #2a2a2a)';
       }
       item.appendChild(bg);
 
       // Dark overlay
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.2) 100%);z-index:2;';
+      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.92) 40%, transparent 100%);z-index:2;';
       item.appendChild(overlay);
 
-      // Hover zoom effect
+      // Hover zoom
       item.addEventListener('mouseenter', () => { bg.style.transform = 'scale(1.06)'; });
-      item.addEventListener('mouseleave', () => { bg.style.transform = ''; });
+      item.addEventListener('mouseleave', () => { bg.style.transform = 'scale(1)'; });
 
-      // Info container
+      // Info
       const info = document.createElement('div');
-      info.style.cssText = 'position:relative;z-index:3;display:flex;flex-direction:column;gap:2px;';
-      
+      info.style.cssText = 'position:relative;z-index:3;padding:8px 10px;display:flex;flex-direction:column;gap:3px;';
+
+      const catBadge = document.createElement('div');
+      catBadge.style.cssText = 'font-size:8px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;';
+      catBadge.textContent = ilan.kategori || 'İlan';
+
       const title = document.createElement('div');
-      title.className = 'ilan-title';
-      title.style.cssText = 'font-size:11px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      title.style.cssText = 'font-size:12px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       title.textContent = ilan.baslik;
 
-      const price = document.createElement('div');
-      price.className = 'ilan-price';
-      price.style.cssText = 'font-size:9px;font-weight:900;color:var(--accent);';
-      price.textContent = ilan.fiyat ? (typeof ilan.fiyat === 'number' ? `${ilan.fiyat} ₺` : ilan.fiyat) : 'Ücretsiz';
+      const priceRow = document.createElement('div');
+      priceRow.style.cssText = 'font-size:10px;font-weight:900;color:var(--gold);';
+      priceRow.textContent = ilan.fiyat ? (typeof ilan.fiyat === 'number' ? `${ilan.fiyat} ₺` : ilan.fiyat) : 'Ücretsiz';
 
+      info.appendChild(catBadge);
       info.appendChild(title);
-      info.appendChild(price);
+      info.appendChild(priceRow);
       item.appendChild(info);
       ilanBox.appendChild(item);
     });
