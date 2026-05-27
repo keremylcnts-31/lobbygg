@@ -3363,6 +3363,97 @@ async function openReDropModal(originalDrop, redropData, originalUser) {
   };
 }
 
+// =============================================
+// SINGLE DROP LOGIC OVERRIDE
+// =============================================
+// Hide feed elements
+document.getElementById('feed-tabs').style.display = 'none';
+document.getElementById('new-drops-pill').style.display = 'none';
+document.getElementById('composer-container').style.display = 'none';
+document.getElementById('following-empty').style.display = 'none';
+
+// Redefine loadDrops for single item
+loadDrops = async function(append = false) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const dropId = urlParams.get('id');
+  if (!dropId) {
+    document.getElementById('feed-loading').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Geçersiz URL</div><div class="empty-state-sub">Drop ID bulunamadı.</div></div>';
+    return;
+  }
+  
+  if (isLoadingDrops) return;
+  isLoadingDrops = true;
+
+  document.getElementById('drop-feed').innerHTML = '';
+  buildSkeletons();
+  document.getElementById('load-more-btn').style.display = 'none';
+
+  try {
+    const { data: drops, error } = await sb.from('droplar').select('*').eq('id', dropId);
+    if (error) throw error;
+
+    if (drops && drops.length > 0) {
+      const authorIds = [...new Set(drops.map(d => d.kullanici_id).filter(id => id !== null))];
+      if (authorIds.length > 0) {
+        const { data: authors } = await sb.from('kullanicilar')
+          .select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti')
+          .in('id', authorIds);
+        if (authors) {
+          const authorMap = {};
+          authors.forEach(a => { authorMap[a.id] = a; });
+          drops.forEach(d => {
+            d.kullanicilar = authorMap[d.kullanici_id] || null;
+          });
+        }
+      }
+    }
+
+    document.getElementById('feed-loading').innerHTML = '';
+
+    if (!drops || drops.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="empty-state-icon">🗑️</div>
+        <div class="empty-state-title">Drop Bulunamadı</div>
+        <div class="empty-state-sub">Bu drop silinmiş veya hiç var olmamış olabilir.</div>
+      `;
+      document.getElementById('drop-feed').appendChild(empty);
+    } else {
+      const feed = document.getElementById('drop-feed');
+      const card = buildDropCard(drops[0]);
+      feed.appendChild(card);
+      
+      // Auto open comments if wanted
+      setTimeout(() => {
+         const commentBtn = card.querySelectorAll('.drop-action-btn')[1];
+         if (commentBtn) commentBtn.click();
+      }, 200);
+    }
+
+    if (currentUser && drops && drops.length > 0) {
+      const ids = drops.map(d => d.id);
+      const { data: likes } = await sb.from('drop_begeniler')
+        .select('drop_id')
+        .eq('kullanici_id', currentUser.id)
+        .in('drop_id', ids);
+      (likes || []).forEach(l => {
+        likedDrops.add(l.drop_id);
+        const btn = document.querySelector(`[data-like-btn="${l.drop_id}"]`);
+        if (btn) {
+          btn.classList.add('liked');
+          btn.querySelector('.like-icon').textContent = '❤️';
+        }
+      });
+    }
+  } catch (e) {
+    document.getElementById('feed-loading').innerHTML = '';
+    showToast('Drop yüklenirken hata oluştu', 'error');
+  } finally {
+    isLoadingDrops = false;
+  }
+}
+
 init();
 </script>
 </body>
