@@ -2340,15 +2340,20 @@ function buildDropCard(drop, isLiked) {
     nestedCard.style.cssText = 'border: 1px solid var(--border); background: rgba(255,255,255,0.015); border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; display: flex; flex-direction: column; gap: 8px;';
     nestedCard.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.location.href = `profil.html?id=${redropData.original_author_id}`;
+      const isProfileClick = e.target.closest('.orig-av, .orig-nick');
+      if (isProfileClick) {
+        window.location.href = `profil.html?id=${redropData.original_author_id}`;
+      } else {
+        window.location.href = `drop.html?id=${redropData.original_drop_id}`;
+      }
     });
 
     const origHeader = el('div', {className:'orig-header'});
     origHeader.style.cssText = 'display:flex;align-items:center;gap:8px;';
     
-    const origAv = el('img', {attrs:{src:redropData.original_author_avatar || 'https://i.imgur.com/6l08Y4k.png'}, style:{width:'24px',height:'24px',borderRadius:'50%',objectFit:'cover'}});
-    const origNick = el('span');
-    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);';
+    const origAv = el('img', {className:'orig-av', attrs:{src:redropData.original_author_avatar || 'https://i.imgur.com/6l08Y4k.png'}, style:{width:'24px',height:'24px',borderRadius:'50%',objectFit:'cover',cursor:'pointer'}});
+    const origNick = el('span', {className:'orig-nick'});
+    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);cursor:pointer;';
     origNick.textContent = redropData.original_author_nick;
 
     origHeader.appendChild(origAv);

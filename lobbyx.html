@@ -2411,7 +2411,12 @@ function buildDropCard(drop) {
     nestedCard.style.cssText = 'border: 1px solid var(--border); background: rgba(255,255,255,0.015); border-radius: 8px; padding: 12px; margin-bottom: 10px; cursor: pointer; display: flex; flex-direction: column; gap: 8px;';
     nestedCard.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.location.href = `profil.html?id=${redropData.original_author_id}`;
+      const isProfileClick = e.target.closest('.pp-wrap, .orig-nick');
+      if (isProfileClick) {
+        window.location.href = `profil.html?id=${redropData.original_author_id}`;
+      } else {
+        window.location.href = `drop.html?id=${redropData.original_drop_id}`;
+      }
     });
 
     // Original author header
@@ -2420,8 +2425,10 @@ function buildDropCard(drop) {
     origHeader.style.cssText = 'display:flex;align-items:center;gap:8px;';
 
     const origAv = createAvatar(redropData.original_author_avatar, redropData.original_author_nick, 24);
+    origAv.style.cursor = 'pointer';
     const origNick = document.createElement('span');
-    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);';
+    origNick.className = 'orig-nick';
+    origNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);cursor:pointer;';
     origNick.textContent = redropData.original_author_nick;
 
     origHeader.appendChild(origAv);
