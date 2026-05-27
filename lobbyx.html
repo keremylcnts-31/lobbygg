@@ -1498,14 +1498,20 @@ async function openServerDetailModal(srv, initialFavCount = 0) {
       statPlayersVal.textContent = 'Bilinmiyor';
     });
 
-  // Fetch fav count
+  // Fetch fav count - handle both native array and JSON string formats
   async function updateFavCount() {
     try {
-      const { data: usersWithFav } = await sb.from('kullanicilar').select('favori_sunucular');
+      const { data: usersWithFav, error } = await sb.from('kullanicilar').select('favori_sunucular');
+      if (error) { statFavsVal.textContent = '? kişi'; return; }
       let count = 0;
       if (usersWithFav) {
         usersWithFav.forEach(u => {
-          if (Array.isArray(u.favori_sunucular) && u.favori_sunucular.includes(srv.ip)) {
+          let favs = u.favori_sunucular;
+          // Handle JSON string format
+          if (typeof favs === 'string') {
+            try { favs = JSON.parse(favs); } catch(e) { favs = []; }
+          }
+          if (Array.isArray(favs) && favs.includes(srv.ip)) {
             count++;
           }
         });
@@ -1541,7 +1547,7 @@ async function buildRightSidebar() {
 
   // Load suggested users
   try {
-    let q = sb.from('kullanicilar').select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, kategori').limit(5);
+    let q = sb.from('kullanicilar').select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, kategori, dogrulama_rozeti').limit(5);
     if (currentUser) q = q.neq('id', currentUser.id);
     const { data: users } = await q;
     (users || []).forEach(u => {
@@ -1557,13 +1563,33 @@ async function buildRightSidebar() {
       info.style.cursor = 'pointer';
       info.addEventListener('click', () => { window.location.href = `profil.html?id=${u.id}`; });
 
+      // Nick row with verify icon
+      const nickRow = document.createElement('div');
+      nickRow.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:wrap;';
       const nick = document.createElement('div');
       nick.className = 'suggest-nick';
       nick.textContent = u.kullanici_adi;
+      nickRow.appendChild(nick);
+      if (u.dogrulama_rozeti) {
+        const vfy = document.createElement('img');
+        vfy.src = 'https://i.imgur.com/VDpHaPy.png';
+        vfy.alt = 'Doğrulandı';
+        vfy.style.cssText = 'width:13px;height:13px;flex-shrink:0;';
+        nickRow.appendChild(vfy);
+      }
+      // Role badge (yonetici, admin, moderator, premium, kurucu, rehber)
+      const badge = createBadge(u.abonelik);
+      if (badge.style.display !== 'none') {
+        badge.style.cssText = (badge.style.cssText || '') + 'font-size:8px;padding:1px 4px;margin-left:2px;';
+        nickRow.appendChild(badge);
+      }
+
+      // Kategori / subtitle
       const cat = document.createElement('div');
       cat.style.cssText = 'font-size:10px;color:var(--text-3);margin-top:2px;';
       cat.textContent = u.kategori || 'Oyuncu';
-      info.appendChild(nick);
+
+      info.appendChild(nickRow);
       info.appendChild(cat);
 
       const followBtn = document.createElement('button');
@@ -1605,11 +1631,14 @@ async function buildRightSidebar() {
     const { data: usersWithFav } = await sb.from('kullanicilar').select('favori_sunucular');
     if (usersWithFav) {
       usersWithFav.forEach(u => {
-        if (Array.isArray(u.favori_sunucular)) {
-          u.favori_sunucular.forEach(ip => {
-            if (serverFavCount[ip] !== undefined) {
-              serverFavCount[ip]++;
-            }
+        let favs = u.favori_sunucular;
+        if (typeof favs === 'string') {
+          try { favs = JSON.parse(favs); } catch(e) { favs = []; }
+        }
+        if (Array.isArray(favs)) {
+          favs.forEach(ip => {
+            if (serverFavCount[ip] !== undefined) serverFavCount[ip]++;
+            else serverFavCount[ip] = 1; // Count even unknown servers
           });
         }
       });
