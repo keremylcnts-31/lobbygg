@@ -179,16 +179,33 @@ a.nav-bell { display: flex; }
   cursor: default;
 }
 
-/* Pixel Gold Coin Icon */
+/* 3D Golden L Button Coin Icon */
 .nav-lcoin-icon {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='0' width='8' height='2' fill='%23cc8800'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='12' y='2' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='1' y='4' width='1' height='8' fill='%23cc8800'/%3E%3Crect x='14' y='4' width='1' height='8' fill='%23cc8800'/%3E%3Crect x='2' y='12' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='12' y='12' width='2' height='2' fill='%23cc8800'/%3E%3Crect x='4' y='14' width='8' height='2' fill='%23cc8800'/%3E%3Crect x='2' y='4' width='12' height='8' fill='%23FFD700'/%3E%3Crect x='3' y='3' width='10' height='1' fill='%23FFD700'/%3E%3Crect x='3' y='12' width='10' height='1' fill='%23FFD700'/%3E%3Crect x='5' y='5' width='1' height='6' fill='%23cc8800'/%3E%3Crect x='8' y='5' width='1' height='4' fill='%23cc8800'/%3E%3Crect x='6' y='4' width='2' height='1' fill='%23cc8800'/%3E%3Crect x='8' y='8' width='2' height='1' fill='%23cc8800'/%3E%3Crect x='10' y='9' width='1' height='2' fill='%23cc8800'/%3E%3Crect x='6' y='11' width='4' height='1' fill='%23cc8800'/%3E%3Crect x='6' y='5' width='2' height='6' fill='%23FFBF00'/%3E%3Crect x='6' y='9' width='4' height='2' fill='%23FFBF00'/%3E%3Crect x='6' y='6' width='1' height='1' fill='%2300D2FF'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%23FFFFFF'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%230066FF'/%3E%3Crect x='7' y='7' width='1' height='1' fill='%2300D2FF'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23ffe566'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: contain;
-  image-rendering: pixelated;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #ffe066 0%, #FFD700 40%, #cc8800 100%);
+  border-radius: 5px;
+  box-shadow:
+    0 3px 0 #7a5000,
+    0 4px 8px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+  font-size: 14px;
+  font-weight: 900;
+  font-style: italic;
+  color: #3a1a00;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+  letter-spacing: -1px;
   flex-shrink: 0;
+  line-height: 1;
+  transition: box-shadow 0.1s, transform 0.1s;
+  cursor: pointer;
+  user-select: none;
+}
+.nav-lcoin-icon::before {
+  content: 'L';
 }
 
 .nav-avatar {
@@ -1535,30 +1552,10 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
   border: 1px solid rgba(225, 48, 108, 0.35) !important;
 }
 
-/* Gold Border Server Card (Admin Feature) */
+/* Gold Border Server Card - subtle, no star */
 .gold-border-server {
-  border: 2px solid var(--gold) !important;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 8px rgba(255, 215, 0, 0.2) !important;
-  position: relative;
-}
-.gold-border-server::after {
-  content: '★';
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  font-size: 10px;
-  background: var(--gold);
-  color: #000000;
-  border: 1.5px solid #000000;
-  border-radius: 50%;
-  width: 14px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  font-weight: 900;
+  border-left: 2px solid rgba(255, 215, 0, 0.5) !important;
+  background: linear-gradient(90deg, rgba(255,215,0,0.04) 0%, transparent 30%) !important;
 }
 
 /* Nav Avatar Link Wrapper */

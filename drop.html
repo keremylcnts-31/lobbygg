@@ -1613,10 +1613,7 @@ async function buildRightSidebar() {
     const item = document.createElement('div');
     item.className = 'server-item';
     
-    // Top 5 gets gold border
-    if (index < 5 || srv.altin_cerceve) {
-      item.classList.add('gold-border-server');
-    }
+    // No gold border - removed by request
 
     item.style.cursor = 'pointer';
     item.addEventListener('click', () => openServerDetailModal(srv));
@@ -3288,15 +3285,73 @@ async function openReDropModal(originalDrop, redropData, originalUser) {
   textarea.style.resize = 'none';
   textarea.placeholder = 'Düşüncelerini ekle... (İsteğe bağlı)';
 
+  // Build full drop preview card inside modal
   let rawContent = originalDrop.icerik || '';
-  if (redropData && redropData.original_content) rawContent = redropData.original_content;
-  try { const parsed = JSON.parse(rawContent); if(parsed.is_redrop) rawContent = parsed.original_content; } catch(e){}
-  
-  const snippet = rawContent.length > 60 ? rawContent.substring(0, 60) + '...' : rawContent;
+  let previewAuthorNick = originalUser.kullanici_adi || 'Anonim';
+  let previewAuthorAvatar = originalUser.avatar_url || '';
+  let previewAuthorVerify = !!originalUser.dogrulama_rozeti;
+  let previewCreatedAt = originalDrop.created_at;
+  let previewGorselUrl = originalDrop.gorsel_url;
+
+  if (redropData) {
+    rawContent = redropData.original_content || '';
+    previewAuthorNick = redropData.original_author_nick || 'Anonim';
+    previewAuthorAvatar = redropData.original_author_avatar || '';
+    previewAuthorVerify = !!redropData.original_author_verify;
+    previewCreatedAt = redropData.original_created_at;
+    previewGorselUrl = redropData.original_gorsel_url;
+  } else {
+    try {
+      const parsed = JSON.parse(rawContent);
+      if (parsed.is_redrop) {
+        rawContent = parsed.original_content || '';
+        previewAuthorNick = parsed.original_author_nick || 'Anonim';
+        previewAuthorAvatar = parsed.original_author_avatar || '';
+        previewAuthorVerify = !!parsed.original_author_verify;
+        previewCreatedAt = parsed.original_created_at;
+        previewGorselUrl = parsed.original_gorsel_url;
+      }
+    } catch(e) {}
+  }
 
   const previewBox = document.createElement('div');
-  previewBox.style.cssText = 'border: 1px solid var(--border); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; color: var(--text-2); background: rgba(0,0,0,0.2);';
-  previewBox.innerHTML = `<strong>@${originalUser.kullanici_adi || 'Anonim'}</strong>: "${snippet}"`;
+  previewBox.style.cssText = 'border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 15px; background: rgba(255,255,255,0.02);';
+
+  const previewHead = document.createElement('div');
+  previewHead.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
+  const previewAv = createAvatar(previewAuthorAvatar, previewAuthorNick, 28);
+  const previewNick = document.createElement('span');
+  previewNick.style.cssText = 'font-size:12px;font-weight:800;color:var(--text-1);';
+  previewNick.textContent = previewAuthorNick;
+  const previewTime = document.createElement('span');
+  previewTime.style.cssText = 'font-size:10px;color:var(--text-dim);margin-left:auto;';
+  previewTime.textContent = relativeTime(previewCreatedAt);
+  if (previewAuthorVerify) {
+    const vfy = document.createElement('img');
+    vfy.src = 'https://i.imgur.com/VDpHaPy.png';
+    vfy.style.cssText = 'width:13px;height:13px;';
+    previewHead.appendChild(previewAv);
+    previewHead.appendChild(previewNick);
+    previewHead.appendChild(vfy);
+  } else {
+    previewHead.appendChild(previewAv);
+    previewHead.appendChild(previewNick);
+  }
+  previewHead.appendChild(previewTime);
+
+  const previewContent = document.createElement('div');
+  previewContent.style.cssText = 'font-size:12px;color:var(--text-2);line-height:1.5;white-space:pre-wrap;word-break:break-word;';
+  previewContent.textContent = rawContent;
+
+  previewBox.appendChild(previewHead);
+  previewBox.appendChild(previewContent);
+
+  if (previewGorselUrl) {
+    const previewImg = document.createElement('img');
+    previewImg.src = previewGorselUrl;
+    previewImg.style.cssText = 'max-width:100%;max-height:150px;object-fit:cover;border-radius:6px;margin-top:8px;';
+    previewBox.appendChild(previewImg);
+  }
 
   const btnRow = document.createElement('div');
   btnRow.style.display = 'flex';
