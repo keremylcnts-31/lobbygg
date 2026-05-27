@@ -1436,7 +1436,6 @@
       durum: 'beklemede',
       one_cikan: false,
       banner_url: bannerUrl || null,
-      gorsel_url: bannerUrl || null,   // fallback column
     };
 
     const { error } = await sb.from('ilanlar').insert(insertData);
