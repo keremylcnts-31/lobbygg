@@ -1816,7 +1816,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 .card-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%);
+  background: none; /* Removed the dark overlay to keep banner clean */
 }
 .card-badges {
   position: absolute;
