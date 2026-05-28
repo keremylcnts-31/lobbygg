@@ -12,18 +12,18 @@
        ===================== */
     :root {
       --bg:          #bae6fd;
-      --bg-card:     #ffffff;
-      --bg-card2:    #f8fafc;
-      --border-thin: #e2e8f0;
+      --bg-card:     #dcdcdc;
+      --bg-card2:    #cbcbcb;
+      --border-thin: #a8a8a8;
       --border:      #000000;
       --border-hover:#000000;
       --accent:      #facc15;
       --accent-glow: rgba(250, 204, 21, 0.45);
       
-      --text-1:      #0f172a !important;
-      --text-2:      #334155 !important;
-      --text-3:      #475569 !important;
-      --text-dim:    #94a3b8 !important;
+      --text-1:      #000000 !important;
+      --text-2:      #111111 !important;
+      --text-3:      #222222 !important;
+      --text-dim:    #555555 !important;
     }
 
     body {
@@ -112,14 +112,14 @@
       color: #0f172a !important;
       cursor: pointer;
       transition: all 0.15s ease;
-      background: #ffffff !important;
+      background: var(--bg-card) !important;
       border: 2px solid #000000 !important;
       box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -3px 0 rgba(0,0,0,0.15);
       text-decoration: none;
       transform: translate(0, 0);
     }
     .sidebar-nav-item:hover {
-      background: #f1f5f9 !important;
+      background: var(--bg-card2) !important;
       color: #000000 !important;
       transform: translate(-3px, -3px);
       box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -3px 0 rgba(0,0,0,0.15), 3px 3px 0 #000000;
@@ -213,7 +213,7 @@
       transition: all 0.15s ease;
       border-bottom: 3px solid transparent;
     }
-    .feed-tab-btn:hover { color: #000000; background: #f1f5f9; }
+    .feed-tab-btn:hover { color: #000000; background: var(--bg-card2); }
     .feed-tab-btn.active {
       color: #000000 !important;
       background: var(--accent) !important;
