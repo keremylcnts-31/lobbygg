@@ -11,14 +11,14 @@
        CSS VARIABLES OVERRIDE
        ===================== */
     :root {
-      --bg:          #09090e;
-      --bg-card:     #14141e;
-      --bg-card2:    #1c1c2a;
-      --border-thin: #252538;
-      --border:      #2c2a47;
-      --border-hover:#3f3c64;
-      --accent:      #ff007f;
-      --accent-glow: rgba(255, 0, 127, 0.45);
+      --bg:          #14151a;
+      --bg-card:     #1f2026;
+      --bg-card2:    #262832;
+      --border-thin: #2b2d37;
+      --border:      #000000;
+      --border-hover:#2b2d37;
+      --accent:      #facc15;
+      --accent-glow: rgba(250, 204, 21, 0.45);
     }
 
     /* =====================
@@ -1115,7 +1115,7 @@ let realtimeSub = null;
 
   function animate() {
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#09090e';
+    ctx.fillStyle = '#14151a';
     ctx.fillRect(0, 0, w, h);
 
     beams.forEach(b => {
@@ -1127,9 +1127,9 @@ let realtimeSub = null;
       ctx.translate(b.x, b.y);
       ctx.rotate(-Math.PI / 4);
       const grad = ctx.createLinearGradient(0, -300, 0, 300);
-      grad.addColorStop(0, `rgba(255,0,127,0)`);
-      grad.addColorStop(0.5, `rgba(255,0,127,${b.opacity})`);
-      grad.addColorStop(1, `rgba(255,0,127,0)`);
+      grad.addColorStop(0, `rgba(250,204,21,0)`);
+      grad.addColorStop(0.5, `rgba(250,204,21,${b.opacity})`);
+      grad.addColorStop(1, `rgba(250,204,21,0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(-b.width / 2, -300, b.width, 600);
       ctx.restore();
