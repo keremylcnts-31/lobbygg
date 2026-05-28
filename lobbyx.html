@@ -1890,21 +1890,56 @@ async function buildRightSidebar() {
   ilanBox.appendChild(ilanHeader);
 
   try {
-    // First try featured listings, fallback to any active listings
-    let { data: ilanlar } = await sb.from('ilanlar')
-      .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
-      .eq('one_cikan', true)
-      .or('durum.eq.onaylandi,durum.eq.aktif')
-      .limit(5);
+    let ilanlar = [];
 
-    // If no featured, load latest active ones
+    // 1. Try fetching featured listings from Supabase
+    if (typeof sb !== 'undefined' && sb) {
+      try {
+        const { data, error } = await sb.from('ilanlar')
+          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
+          .eq('one_cikan', true)
+          .in('durum', ['onaylandi', 'aktif'])
+          .limit(5);
+        if (!error && data) {
+          ilanlar = data;
+        }
+      } catch (dbErr) {
+        console.warn("Supabase featured query failed:", dbErr);
+      }
+    }
+
+    // 2. If no featured found, try fallback to active listings from Supabase
+    if ((!ilanlar || ilanlar.length === 0) && typeof sb !== 'undefined' && sb) {
+      try {
+        const { data, error } = await sb.from('ilanlar')
+          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
+          .in('durum', ['onaylandi', 'aktif'])
+          .order('id', { ascending: false })
+          .limit(5);
+        if (!error && data) {
+          ilanlar = data;
+        }
+      } catch (dbErr2) {
+        console.warn("Supabase fallback query failed:", dbErr2);
+      }
+    }
+
+    // 3. Fallback to localStorage if still empty (offline/local mode support)
     if (!ilanlar || ilanlar.length === 0) {
-      const fallback = await sb.from('ilanlar')
-        .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
-        .or('durum.eq.onaylandi,durum.eq.aktif')
-        .order('created_at', { ascending: false })
-        .limit(5);
-      ilanlar = fallback.data;
+      try {
+        const local = localStorage.getItem('lobby_ilanlar');
+        if (local) {
+          const arr = JSON.parse(local);
+          const activeList = arr.filter(i => ['aktif', 'onaylandi'].includes(i.durum));
+          let featured = activeList.filter(i => i.one_cikan === true);
+          if (featured.length === 0) {
+            featured = activeList;
+          }
+          ilanlar = featured;
+        }
+      } catch (localErr) {
+        console.warn("localStorage fallback failed:", localErr);
+      }
     }
 
     let sortedIlanlar = [];
@@ -1930,12 +1965,22 @@ async function buildRightSidebar() {
 
     sortedIlanlar.forEach(ilan => {
       const item = document.createElement('div');
-      item.style.cssText = 'position:relative;height:110px;margin:8px 12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;';
+      item.style.cssText = 'position:relative;height:110px;margin:8px 12px;border-radius:10px;overflow:hidden;border:2px solid #000;box-shadow:3px 3px 0 #000;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;transition:all 0.15s ease;background-color:#141414;';
       item.addEventListener('click', () => { window.location.href = `ilan-detay.html?id=${ilan.id}`; });
+
+      // Hover card movement (neobrutalist 3D press feel)
+      item.addEventListener('mouseenter', () => { 
+        item.style.transform = 'translate(-2px, -2px)';
+        item.style.boxShadow = '5px 5px 0 #000';
+      });
+      item.addEventListener('mouseleave', () => { 
+        item.style.transform = 'translate(0, 0)';
+        item.style.boxShadow = '3px 3px 0 #000';
+      });
 
       // Banner background
       const bg = document.createElement('div');
-      bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.35s ease;background-color:#1a1a1a;';
+      bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.35s ease;';
       if (ilan.banner_url || ilan.resim_url) {
         bg.style.backgroundImage = `url('${ilan.banner_url || ilan.resim_url}')`;
       } else {
@@ -1945,18 +1990,26 @@ async function buildRightSidebar() {
           'Developer': 'linear-gradient(135deg, #003040, #001a20)',
           'Builder': 'linear-gradient(135deg, #3d2800, #1a1000)'
         };
-        bg.style.background = gradients[ilan.kategori] || 'linear-gradient(135deg, #1a1a1a, #2a2a2a)';
+        bg.style.background = gradients[ilan.kategori] || 'linear-gradient(135deg, #212121, #1b1b1b)';
       }
       item.appendChild(bg);
 
       // Dark overlay
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.92) 40%, transparent 100%);z-index:2;';
+      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.95) 45%, transparent 100%);z-index:2;';
       item.appendChild(overlay);
 
-      // Hover zoom
+      // Hover zoom for background
       item.addEventListener('mouseenter', () => { bg.style.transform = 'scale(1.06)'; });
       item.addEventListener('mouseleave', () => { bg.style.transform = 'scale(1)'; });
+
+      // neobrutalist 3D "ÖNE ÇIKAN" gold badge
+      if (ilan.one_cikan) {
+        const ocBadge = document.createElement('div');
+        ocBadge.style.cssText = 'position:absolute;top:8px;right:8px;z-index:4;font-size:7px;font-weight:900;color:#000;background:var(--accent);padding:3px 6px;border:1.5px solid #000;box-shadow:1px 1px 0 #000;text-transform:uppercase;letter-spacing:0.5px;font-family:inherit;';
+        ocBadge.textContent = '⚡ ÖNE ÇIKAN';
+        item.appendChild(ocBadge);
+      }
 
       // Info
       const info = document.createElement('div');
