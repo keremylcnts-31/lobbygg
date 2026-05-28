@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2.3" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -775,6 +775,15 @@
 
     const contactWrap = document.createElement('div');
     contactWrap.className = 'card-contact';
+    if (ilan.kullanici_nick) {
+      const pBtn = document.createElement('a');
+      pBtn.className = 'card-contact-btn btn mc-gray mc-sm';
+      pBtn.href = 'profil.html?nick=' + ilan.kullanici_nick;
+      pBtn.innerHTML = `👤 Profil`;
+      pBtn.title = 'Profili Ziyaret Et';
+      pBtn.addEventListener('click', e => e.stopPropagation());
+      contactWrap.appendChild(pBtn);
+    }
     if (ilan.discord) {
       const dBtn = document.createElement('a');
       dBtn.className = 'card-contact-btn btn discord-gradient mc-sm';
