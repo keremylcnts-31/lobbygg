@@ -1101,6 +1101,20 @@
 
     function handleFile(file) {
       if (file.size > 5 * 1024 * 1024) { showToast('Dosya 5MB\'dan büyük olamaz!', true); return; }
+      if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) {
+        formData.bannerFile = file;
+        const reader = new FileReader();
+        reader.onload = e => {
+          formData.bannerUrl = e.target.result;
+          preview.src = formData.bannerUrl;
+          preview.classList.add('show');
+          uploadContent.style.display = 'none';
+          uploadZone.classList.add('has-file');
+          removeBtn.classList.add('show');
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
       const reader = new FileReader();
       reader.onload = e => {
         openCropModal(e.target.result);
