@@ -11,14 +11,69 @@
        CSS VARIABLES OVERRIDE
        ===================== */
     :root {
-      --bg:          #14151a;
-      --bg-card:     #1f2026;
-      --bg-card2:    #262832;
-      --border-thin: #2b2d37;
+      --bg:          #bae6fd;
+      --bg-card:     #ffffff;
+      --bg-card2:    #f8fafc;
+      --border-thin: #e2e8f0;
       --border:      #000000;
-      --border-hover:#2b2d37;
+      --border-hover:#000000;
       --accent:      #facc15;
       --accent-glow: rgba(250, 204, 21, 0.45);
+      
+      --text-1:      #0f172a !important;
+      --text-2:      #334155 !important;
+      --text-3:      #475569 !important;
+      --text-dim:    #94a3b8 !important;
+    }
+
+    body {
+      background: linear-gradient(180deg, #38bdf8 0%, #bae6fd 40%, #e0f2fe 100%) !important;
+      color: #0f172a !important;
+    }
+    
+    /* Header nav overrides to keep it dark & beautiful like Melonya's dark header */
+    .nav {
+      background: rgba(15, 23, 42, 0.95) !important;
+      border-bottom: 2px solid #000000 !important;
+    }
+    .nav-link {
+      color: #94a3b8 !important;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .nav-link.active {
+      color: var(--accent) !important;
+    }
+    .nav-bell {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: #cbd5e1 !important;
+    }
+    .nav-bell:hover {
+      color: #ffffff !important;
+      border-color: var(--accent) !important;
+    }
+    .nav-lcoin {
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: var(--gold) !important;
+    }
+    .nav-avatar img {
+      border: 2px solid #ffffff !important;
+    }
+    
+    /* Mobile bottom navigation overrides */
+    .mobile-bottom-nav {
+      background: rgba(15, 23, 42, 0.96) !important;
+      border-top: 2px solid #000000 !important;
+    }
+    .mobile-nav-item {
+      color: #94a3b8 !important;
+    }
+    .mobile-nav-item:hover, .mobile-nav-item.active {
+      color: var(--accent) !important;
     }
 
     /* =====================
@@ -54,30 +109,30 @@
       border-radius: 0px !important;
       font-size: 13px;
       font-weight: 900;
-      color: var(--text-2);
+      color: #0f172a !important;
       cursor: pointer;
       transition: all 0.15s ease;
-      background: #191921;
+      background: #ffffff !important;
       border: 2px solid #000000 !important;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), inset 0 -3px 0 rgba(0,0,0,0.5);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -3px 0 rgba(0,0,0,0.15);
       text-decoration: none;
       transform: translate(0, 0);
     }
     .sidebar-nav-item:hover {
-      background: #21212c;
-      color: var(--text-1);
+      background: #f1f5f9 !important;
+      color: #000000 !important;
       transform: translate(-3px, -3px);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.08), inset 0 -3px 0 rgba(0,0,0,0.5), 3px 3px 0 #000000;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -3px 0 rgba(0,0,0,0.15), 3px 3px 0 #000000;
     }
     .sidebar-nav-item:active {
       transform: translate(0px, 0px);
-      box-shadow: inset 0 2px 0 rgba(0,0,0,0.5), inset 0 -1px 0 rgba(0,0,0,0.2);
+      box-shadow: inset 0 2px 0 rgba(0,0,0,0.15), inset 0 -1px 0 rgba(0,0,0,0.1);
     }
     .sidebar-nav-item.active {
-      background: #141419 !important;
-      color: var(--accent) !important;
+      background: var(--accent) !important;
+      color: #000000 !important;
       border-color: #000000 !important;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), inset 0 -3px 0 rgba(0,0,0,0.8) !important;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.3) !important;
       transform: translate(0, 0);
     }
     .sidebar-nav-icon { 
@@ -88,16 +143,16 @@
       transition: transform 0.2s, filter 0.2s;
     }
     .sidebar-nav-item:hover .sidebar-nav-icon {
-      filter: drop-shadow(0 0 5px var(--accent));
+      filter: drop-shadow(0 0 5px #000000);
       transform: scale(1.2);
     }
     .sidebar-nav-item.active .sidebar-nav-icon {
-      filter: drop-shadow(0 0 6px var(--accent));
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.3));
       transform: scale(1.1);
     }
 
     .lcoin-card {
-      background: linear-gradient(135deg, #1a1200, #2a1f00);
+      background: linear-gradient(135deg, #ffd700, #facc15) !important;
       border: 2px solid #000000 !important;
       border-radius: 0px !important;
       padding: 14px;
@@ -105,16 +160,16 @@
       align-items: center;
       gap: 10px;
       margin-top: 8px;
-      box-shadow: inset 0 2px 0 rgba(255,215,0,0.2), inset 0 -3px 0 rgba(0,0,0,0.6), 0px 0px 0px #000000;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.3), 0px 0px 0px #000000;
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .lcoin-card:hover {
       transform: translate(-5px, -5px);
-      box-shadow: inset 0 2px 0 rgba(255,215,0,0.2), inset 0 -3px 0 rgba(0,0,0,0.6), 5px 5px 0px #000000;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.3), 5px 5px 0 #000000;
     }
     .lcoin-card-icon { font-size: 28px; }
-    .lcoin-card-label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: var(--text-3); letter-spacing: 0.5px; }
-    .lcoin-card-amount { font-size: 20px; font-weight: 900; color: var(--gold); line-height: 1; text-shadow: 1px 1px 0 #000; }
+    .lcoin-card-label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #78350f !important; letter-spacing: 0.5px; }
+    .lcoin-card-amount { font-size: 20px; font-weight: 900; color: #000000 !important; line-height: 1; text-shadow: none !important; }
 
     .sidebar-divider { height: 2px; background: #000000; margin: 8px 0; }
 
@@ -137,12 +192,12 @@
     /* Feed Tabs */
     .feed-tabs {
       display: flex;
-      background: #141419;
+      background: var(--bg-card);
       border: 3px solid #000000;
       border-radius: 0px !important;
       overflow: hidden;
       margin-bottom: 16px;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), inset 0 -4px 0 rgba(0,0,0,0.4);
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0;
     }
     .feed-tab-btn {
       flex: 1;
@@ -151,14 +206,14 @@
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-3);
+      color: var(--text-2);
       background: none;
       border: none;
       cursor: pointer;
       transition: all 0.15s ease;
       border-bottom: 3px solid transparent;
     }
-    .feed-tab-btn:hover { color: var(--text-2); background: rgba(255,255,255,0.02); }
+    .feed-tab-btn:hover { color: #000000; background: #f1f5f9; }
     .feed-tab-btn.active {
       color: #000000 !important;
       background: var(--accent) !important;
@@ -199,17 +254,17 @@
        DROP COMPOSER
        ===================== */
     .composer-card {
-      background: #212126;
+      background: var(--bg-card);
       border: 3px solid #000000;
       border-radius: 0px !important;
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 0px 0px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 0px 0px 0px #000000;
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s;
     }
     .composer-card:hover {
       transform: translate(-5px, -5px);
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 5px 5px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 5px 5px 0px #000000;
     }
     .composer-card:focus-within { border-color: #000000 !important; }
 
@@ -245,9 +300,9 @@
 
     .composer-textarea {
       width: 100%;
-      background: #141419;
+      background: var(--bg-card2);
       border: 2px solid #000000;
-      box-shadow: inset -2px -2px 0 #2a2a2a, inset 2px 2px 0 #08080a;
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05);
       color: var(--text-1);
       font-family: var(--font);
       font-size: 14px;
@@ -259,7 +314,7 @@
     .composer-textarea::placeholder { color: var(--text-dim); }
     .composer-textarea:focus {
       border-color: #000000 !important;
-      background: #181822;
+      background: #ffffff;
       outline: none;
     }
 
@@ -364,18 +419,18 @@
     .drop-feed { display: flex; flex-direction: column; gap: 1px; }
 
     .drop-card {
-      background: #212126;
+      background: var(--bg-card);
       border: 3px solid #000000 !important;
       border-radius: 0px !important;
       margin-bottom: 12px;
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 0px 0px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 0px 0px 0px #000000;
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       animation: drop-in 0.3s ease;
       overflow: hidden;
     }
     .drop-card:hover {
       transform: translate(-5px, -5px);
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 5px 5px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 5px 5px 0px #000000;
     }
     @keyframes drop-in {
       from { opacity: 0; transform: translateY(-8px); }
@@ -567,10 +622,10 @@
 
     .comment-body {
       flex: 1;
-      background: #1d1d24;
+      background: var(--bg-card2);
       border: 2px solid #000000;
       border-radius: 0px !important;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.05), inset 0 -3px 0 rgba(0,0,0,0.4);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.05);
       padding: 8px 12px;
     }
     .comment-nick {
@@ -686,16 +741,16 @@
     }
 
     .sidebar-box {
-      background: #212126;
+      background: var(--bg-card);
       border: 3px solid #000000;
       border-radius: 0px !important;
       overflow: hidden;
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 0px 0px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 0px 0px 0px #000000;
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .sidebar-box:hover {
       transform: translate(-5px, -5px);
-      box-shadow: inset 0 3px 0 #3e3e46, inset 0 -6px 0 #111114, 5px 5px 0px #000000;
+      box-shadow: inset 0 2px 0 #ffffff, inset 0 -3px 0 #e2e8f0, 5px 5px 0px #000000;
     }
     .sidebar-box-header {
       display: flex;
@@ -1090,49 +1145,43 @@ let realtimeSub = null;
   resize();
   window.addEventListener('resize', resize);
 
-  for (let i = 0; i < 16; i++) {
-    beams.push({
-      x: Math.random() * 1600 - 200,
-      y: Math.random() * 1200 - 200,
-      width: Math.random() * 3 + 1,
-      speed: Math.random() * 0.4 + 0.15,
-      opacity: Math.random() * 0.08 + 0.03
+  const clouds = [];
+  for (let i = 0; i < 12; i++) {
+    clouds.push({
+      x: Math.random() * 1800 - 200,
+      y: Math.random() * 400,
+      width: Math.random() * 80 + 100,
+      height: Math.random() * 20 + 20,
+      speed: Math.random() * 0.1 + 0.05,
+      opacity: Math.random() * 0.2 + 0.1
     });
   }
 
   const logoImg = new Image();
   logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 8; i++) {
     logos.push({
       x: Math.random() * 1600 - 100,
       y: Math.random() * 1200 - 100,
-      size: Math.random() * 60 + 35,
-      speedX: (Math.random() - 0.5) * 0.35,
-      speedY: (Math.random() - 0.5) * 0.2,
-      opacity: Math.random() * 0.05 + 0.02
+      size: Math.random() * 50 + 30,
+      speedX: (Math.random() - 0.5) * 0.2,
+      speedY: (Math.random() - 0.5) * 0.1,
+      opacity: Math.random() * 0.04 + 0.02
     });
   }
 
   function animate() {
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#14151a';
-    ctx.fillRect(0, 0, w, h);
 
-    beams.forEach(b => {
-      b.x += b.speed * 0.5;
-      b.y += b.speed;
-      if (b.y > h + 200) { b.y = -200; b.x = Math.random() * w; }
-
-      ctx.save();
-      ctx.translate(b.x, b.y);
-      ctx.rotate(-Math.PI / 4);
-      const grad = ctx.createLinearGradient(0, -300, 0, 300);
-      grad.addColorStop(0, `rgba(250,204,21,0)`);
-      grad.addColorStop(0.5, `rgba(250,204,21,${b.opacity})`);
-      grad.addColorStop(1, `rgba(250,204,21,0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(-b.width / 2, -300, b.width, 600);
-      ctx.restore();
+    // Draw floating fluffy Minecraft clouds
+    clouds.forEach(c => {
+      c.x += c.speed;
+      if (c.x > w + 200) {
+        c.x = -200;
+        c.y = Math.random() * 400;
+      }
+      ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`;
+      ctx.fillRect(c.x, c.y, c.width, c.height);
     });
 
     logos.forEach(l => {
