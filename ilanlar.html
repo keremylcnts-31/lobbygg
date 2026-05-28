@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2.5" />
+  <link rel="stylesheet" href="style.css?v=2.6" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -702,21 +702,27 @@
 
     const userData = usersMap[ilan.kullanici_id];
 
-    // Overlapping Avatar
+    // Body
+    const body = document.createElement('div');
+    body.className = 'card-body';
+
+    // Inline Author Bar (No banner overlap)
+    const authorBar = document.createElement('div');
+    authorBar.className = 'card-author-bar';
+
     const avatar = document.createElement('img');
-    avatar.className = 'card-avatar-overlap';
+    avatar.className = 'card-author-avatar';
     avatar.src = (userData && userData.avatar_url) ? userData.avatar_url : ('https://api.dicebear.com/7.x/minecraft/svg?seed=' + (ilan.kullanici_nick || 'user'));
     avatar.alt = ilan.kullanici_nick;
-    card.appendChild(avatar);
+    authorBar.appendChild(avatar);
 
-    // Card User Header next to avatar
-    const userHeader = document.createElement('div');
-    userHeader.className = 'card-user-header';
-    
+    const authorInfo = document.createElement('div');
+    authorInfo.className = 'card-author-info';
+
     const authorNick = document.createElement('div');
     authorNick.className = 'card-author-nick';
     authorNick.textContent = ilan.kullanici_nick || 'Anonim';
-    
+
     if (userData && userData.dogrulama_rozeti) {
       const verifyBadge = document.createElement('img');
       verifyBadge.className = 'profile-verify-badge';
@@ -724,18 +730,16 @@
       verifyBadge.title = 'Doğrulanmış';
       authorNick.appendChild(verifyBadge);
     }
-    
+
     const authorTime = document.createElement('div');
     authorTime.className = 'card-author-time';
     authorTime.textContent = relativeTime(ilan.created_at);
-    
-    userHeader.appendChild(authorNick);
-    userHeader.appendChild(authorTime);
-    card.appendChild(userHeader);
 
-    // Body
-    const body = document.createElement('div');
-    body.className = 'card-body';
+    authorInfo.appendChild(authorNick);
+    authorInfo.appendChild(authorTime);
+    authorBar.appendChild(authorInfo);
+    
+    body.appendChild(authorBar);
 
     const title = document.createElement('div');
     title.className = 'card-title';
