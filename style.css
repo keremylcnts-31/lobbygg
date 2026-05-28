@@ -1683,11 +1683,12 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 .ilan-card-wrapper {
   position: relative;
   border-radius: 0px !important;
-  background: #ffffff; /* White offset for normal */
+  background: #000000; /* Dark solid shadow offset for normal */
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 .ilan-card-wrapper.featured {
-  background: #ffd700; /* Gold offset for featured */
+  background: var(--accent); /* Glowing Gold offset for featured */
+  box-shadow: 0 0 20px rgba(255, 209, 59, 0.15);
 }
 
 /* Card content block (the actual sliding card) */
@@ -1698,8 +1699,8 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   flex-direction: column;
   border-radius: 0px !important;
   border: 3px solid #000000 !important;
-  background-color: #313131;
-  box-shadow: inset 0 3px 0 #5a5a5a, inset 0 -6px 0 #181818;
+  background-color: #212121; /* Sleek obsidian/dark slate */
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.05), inset 0 -6px 0 rgba(0,0,0,0.5);
   color: #ffffff;
   transform: translate(0, 0);
   transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1709,9 +1710,10 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 
 /* Featured Card styling */
 .ilan-card.featured {
-  background-color: #fdb813;
-  box-shadow: inset 0 3px 0 #fff176, inset 0 -6px 0 #b27a00;
-  color: #000000;
+  background: radial-gradient(circle at top right, rgba(255, 209, 59, 0.08) 0%, #1b1b1b 70%) !important;
+  box-shadow: inset 0 3px 0 rgba(255, 209, 59, 0.35), inset 0 -6px 0 rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff;
+  border-color: var(--accent) !important;
 }
 
 /* Hover translation - shifts the card sol üst çapraza (top-left) */
@@ -1803,7 +1805,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   gap: 6px;
 }
 .ilan-card.featured .card-title {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 .card-subtitle {
@@ -1815,7 +1817,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   text-transform: uppercase;
 }
 .ilan-card.featured .card-subtitle {
-  color: #5c3d00 !important;
+  color: var(--accent) !important;
 }
 
 .card-desc {
@@ -1830,7 +1832,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   margin-bottom: 16px;
 }
 .ilan-card.featured .card-desc {
-  color: #332200 !important;
+  color: #aaaaaa !important;
 }
 
 .card-price {
@@ -1849,7 +1851,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 }
 .ilan-card.featured .card-footer {
   border-top-color: #000000;
-  background: rgba(0,0,0,0.06);
+  background: rgba(0,0,0,0.2) !important;
 }
 
 .card-user-info-footer {
@@ -1863,7 +1865,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   color: #ffffff;
 }
 .ilan-card.featured .card-nick-footer {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 .card-time {
@@ -1872,7 +1874,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   font-weight: 600;
 }
 .ilan-card.featured .card-time {
-  color: #5c3d00 !important;
+  color: #888888 !important;
 }
 
 .card-contact {
