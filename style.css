@@ -268,15 +268,20 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn),
   cursor: pointer;
   white-space: nowrap;
   
-  /* 3D Minecraft style */
+  /* 3D Neobrutalist Minecraft style */
   border-radius: 0px !important;
-  border: 2px solid #000000 !important;
-  box-shadow: inset 0 2px 0 var(--btn-light, #6f6f6f), inset 0 -4px 0 var(--btn-dark, #262626) !important;
+  border: none !important;
   background-color: var(--btn-bg, #4c4c4c) !important;
   color: var(--btn-text, #ffffff) !important;
-  transition: background 0.1s, transform 0.05s, box-shadow 0.05s;
+  box-shadow: 
+    inset -4px -4px 0px 0px var(--btn-dark-shadow, rgba(0, 0, 0, 0.45)), 
+    0px 6px 8px 0px rgba(0, 0, 0, 0.35), 
+    inset 3px 4px 0px 0px rgba(255, 255, 255, 0.25) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   transform: translateY(0);
   text-decoration: none;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
 .mc-btn:hover,
@@ -294,9 +299,13 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover,
 .btn-full:hover, 
 .btn-full-cancel:hover {
   background-color: var(--btn-hover, #595959) !important;
-  filter: brightness(1.05) !important;
-  border-color: #000000 !important;
+  filter: brightness(1.08) !important;
   color: var(--btn-text, #ffffff) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 
+    inset -4px -4px 0px 0px var(--btn-dark-shadow, rgba(0, 0, 0, 0.45)), 
+    0px 10px 14px 0px rgba(0, 0, 0, 0.45), 
+    inset 3px 4px 0px 0px rgba(255, 255, 255, 0.3) !important;
 }
 
 .mc-btn:active,
@@ -313,8 +322,11 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):active
 .btn-s:active, 
 .btn-full:active, 
 .btn-full-cancel:active {
-  transform: translateY(2px) !important;
-  box-shadow: inset 0 2px 0 var(--btn-light, #6f6f6f), inset 0 -2px 0 var(--btn-dark, #262626) !important;
+  transform: translateY(3px) !important;
+  box-shadow: 
+    inset -1px -1px 0px 0px var(--btn-dark-shadow, rgba(0, 0, 0, 0.45)), 
+    0px 2px 4px 0px rgba(0, 0, 0, 0.2), 
+    inset 3px 4px 0px 0px rgba(255, 255, 255, 0.2) !important;
 }
 
 .mc-btn:disabled,
@@ -332,75 +344,69 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 .btn-full:disabled, 
 .btn-full-cancel:disabled {
   --btn-bg: #555555;
-  --btn-light: #777777;
-  --btn-dark: #333333;
+  --btn-dark-shadow: #333333;
   --btn-text: #aaaaaa;
   cursor: not-allowed;
   pointer-events: none;
   opacity: 0.8;
+  transform: none !important;
+  box-shadow: inset -2px -2px 0px 0px #333333 !important;
 }
 
 /* Minecraft Button Colors */
 .mc-green, .btn-green, .btn-next, .btn-publish, .btn-s-green, .btn-full-green, .btn-accept, button.green {
   --btn-bg: #4c7e2b;
-  --btn-light: #86af49;
-  --btn-dark: #2c4e1b;
+  --btn-dark-shadow: rgba(44, 78, 27, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #5c8e32;
 }
 
 .mc-red, .btn-red, .btn-reject, .btn-s-red, button.red {
   --btn-bg: #7d1e1e;
-  --btn-light: #b83232;
-  --btn-dark: #3a0909;
+  --btn-dark-shadow: rgba(58, 9, 9, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #8a2222;
 }
 
 .mc-gray, .btn-gray, .btn-back, .btn-full-cancel, .load-more-btn, .back-btn, .btn-s-gray, button.gray {
   --btn-bg: #4c4c4c;
-  --btn-light: #6f6f6f;
-  --btn-dark: #262626;
+  --btn-dark-shadow: rgba(38, 38, 38, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #595959;
 }
 
 .mc-blue, .btn-blue, .btn-s-blue, button.blue {
   --btn-bg: #1d4d8c;
-  --btn-light: #3a6fb3;
-  --btn-dark: #0d274a;
+  --btn-dark-shadow: rgba(13, 39, 74, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #2b5fa3;
 }
 
 .mc-gold, .btn-gold, .btn-s-gold, button.gold {
-  --btn-bg: #ffbc2c;
-  --btn-light: #ffd83b;
-  --btn-dark: #c88c0c;
-  --btn-text: #111111;
-  --btn-hover: #ffd13b;
+  --btn-bg: rgb(250, 204, 21);
+  --btn-dark-shadow: rgba(134, 63, 23, 0.83);
+  --btn-text: rgb(146, 64, 14);
+  --btn-hover: rgb(255, 215, 30);
+  text-shadow: 0.5px 0.5px 0 rgba(255,255,255,0.2) !important;
 }
 
 .mc-purple, .btn-purple, button.purple {
   --btn-bg: #4a1a8a;
-  --btn-light: #7832b8;
-  --btn-dark: #1e0939;
+  --btn-dark-shadow: rgba(30, 9, 57, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #5f26ac;
 }
 
 .mc-discord, .btn-discord, button.discord {
   --btn-bg: #4752c4;
-  --btn-light: #5865f2;
-  --btn-dark: #2f358a;
+  --btn-dark-shadow: rgba(47, 53, 138, 0.85);
   --btn-text: #ffffff;
   --btn-hover: #525ed9;
 }
 
 .btn-ghost, button.ghost {
   --btn-bg: transparent;
-  --btn-light: rgba(255,255,255,0.1);
-  --btn-dark: rgba(0,0,0,0.25);
+  --btn-dark-shadow: rgba(0,0,0,0.25);
   --btn-text: var(--text-2);
   --btn-hover: rgba(255,255,255,0.05);
 }
@@ -408,6 +414,56 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 .mc-sm, .btn-sm { padding: 5px 10px; font-size: 9px; }
 .mc-lg, .btn-lg { padding: 11px 20px; font-size: 12px; }
 .mc-xl, .btn-xl { padding: 14px 28px; font-size: 14px; }
+
+/* Premium Glass Sheen Effect on Hover */
+.mc-btn::after,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn)::after,
+.btn::after, 
+.load-more-btn::after, 
+.back-btn::after, 
+.sidebar-new-btn::after, 
+.btn-accept::after, 
+.btn-reject::after, 
+.btn-back::after, 
+.btn-next::after, 
+.btn-publish::after, 
+.btn-s::after, 
+.btn-full::after, 
+.btn-full-cancel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  pointer-events: none;
+  transition: none;
+}
+
+.mc-btn:hover::after,
+button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover::after,
+.btn:hover::after, 
+.load-more-btn:hover::after, 
+.back-btn:hover::after, 
+.sidebar-new-btn:hover::after, 
+.btn-accept:hover::after, 
+.btn-reject:hover::after, 
+.btn-back:hover::after, 
+.btn-next:hover::after, 
+.btn-publish:hover::after, 
+.btn-s:hover::after, 
+.btn-full:hover::after, 
+.btn-full-cancel:hover::after {
+  left: 150%;
+  transition: left 0.75s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 
 
 /* =====================
