@@ -98,32 +98,48 @@
     /* MAIN GRID */
     .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
+    /* CARD WRAPPER & HOVER SHADOW (KONECT.GG STYLE) */
+    .ilan-card-wrapper {
+      position: relative;
+      border-radius: 16px;
+      background: #ffffff; /* White offset block for normal cards */
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .ilan-card-wrapper.featured {
+      background: #FFD700; /* Gold offset block for featured cards */
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    }
+
     /* CARD */
-    .ilan-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 16px; overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; display: flex; flex-direction: column; }
-    .ilan-card:hover { transform: translateY(-6px); border-color: #39ff14; box-shadow: 0 16px 40px rgba(57,255,20,0.1); }
+    .ilan-card { 
+      background: #0d0d0d; 
+      border: 1px solid #1a1a1a; 
+      border-radius: 16px; 
+      overflow: hidden; 
+      display: flex; 
+      flex-direction: column;
+      position: relative;
+      z-index: 2;
+      transform: translate(0, 0);
+      transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.25s, box-shadow 0.25s;
+    }
+    
+    .ilan-card-wrapper:hover .ilan-card { 
+      transform: translate(-8px, -8px); 
+      border-color: #39ff14; 
+      box-shadow: 0 16px 40px rgba(57,255,20,0.15); 
+    }
+    
     .ilan-card.featured { 
       background: linear-gradient(135deg, #171302 0%, #0d0b01 100%);
-      border: 1px solid rgba(255, 215, 0, 0.25);
-      box-shadow: 0 0 24px rgba(255, 215, 0, 0.08);
-      position: relative;
+      border: 1px solid rgba(255, 215, 0, 0.3);
     }
-    .ilan-card.featured::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 16px;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,215,0,0.05) 50%, rgba(255,215,0,0.2) 100%);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
+    
+    .ilan-card-wrapper.featured:hover .ilan-card.featured { 
+      border-color: rgba(255, 215, 0, 0.8);
+      box-shadow: 0 24px 48px rgba(255, 215, 0, 0.25), 0 0 32px rgba(255, 215, 0, 0.15);
     }
-    .ilan-card.featured:hover { 
-      transform: translateY(-10px) scale(1.03);
-      border-color: rgba(255, 215, 0, 0.6);
-      box-shadow: 0 24px 48px rgba(255, 215, 0, 0.18), 0 0 32px rgba(255, 215, 0, 0.1);
-    }
+    
     .ilan-card.featured .card-title {
       background: linear-gradient(120deg, #ffffff 20%, #ffd700 40%, #fff7cc 50%, #ffd700 60%, #ffffff 80%);
       background-size: 200% auto;
@@ -152,10 +168,30 @@
     .cat-badge.sunucu { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.4); }
     .one-cikan-badge { background: rgba(255,215,0,0.2); color: #FFD700; border: 1px solid rgba(255,215,0,0.5); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; }
 
+    /* OVERLAPPING AVATAR */
+    .card-avatar-overlap {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #0d0d0d;
+      background: #1a1a1a;
+      position: absolute;
+      left: 16px;
+      top: 140px; /* Overlaps bottom 40px of 180px banner */
+      z-index: 5;
+    }
+    .ilan-card.featured .card-avatar-overlap {
+      border-color: #120e02; /* Match gold gradient card background */
+    }
+
     /* CARD BODY */
-    .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-    .card-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 8px; line-height: 1.3; }
-    .card-desc { font-size: 12px; color: #777; line-height: 1.6; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; }
+    .card-body { padding: 26px 16px 16px; flex: 1; display: flex; flex-direction: column; }
+    .card-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 4px; line-height: 1.3; }
+    .card-subtitle { font-size: 11px; font-weight: 700; color: #666; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .ilan-card.featured .card-subtitle { color: #bca03c; }
+    .card-desc { font-size: 12px; color: #888; line-height: 1.6; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; }
+    .ilan-card.featured .card-desc { color: #d6cb9a; }
     .card-price { margin-bottom: 14px; }
     .price-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
     .price-badge.free { background: rgba(57,255,20,0.12); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); }
@@ -163,11 +199,13 @@
     .price-badge.anlasmali { background: rgba(0,212,255,0.12); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
 
     /* CARD FOOTER */
-    .card-footer { border-top: 1px solid #1a1a1a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .card-user { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .card-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #2a2a2a; background: #1a1a1a; flex-shrink: 0; }
-    .card-nick { font-size: 12px; font-weight: 700; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
-    .card-time { font-size: 10px; color: #555; }
+    .card-footer { border-top: 1px solid #1a1a1a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.15); }
+    .ilan-card.featured .card-footer { border-top-color: rgba(255, 215, 0, 0.15); }
+    .card-user-info-footer { display: flex; flex-direction: column; gap: 2px; }
+    .card-nick-footer { font-size: 12px; font-weight: 800; color: #fff; }
+    .ilan-card.featured .card-nick-footer { color: #ffd700; }
+    .card-time { font-size: 10px; color: #555; font-weight: 600; }
+    .ilan-card.featured .card-time { color: #887431; }
     .card-contact { display: flex; gap: 6px; flex-shrink: 0; }
     .card-contact-btn { display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid; transition: all 0.2s; text-decoration: none; font-family: 'Montserrat', sans-serif; }
     .card-contact-btn.discord { background: rgba(114,137,218,0.12); border-color: rgba(114,137,218,0.4); color: #7289da; }
@@ -598,8 +636,11 @@
 
   // ─── RENDER CARD ──────────────────────────────────────────────────────────
   function createCard(ilan, isFeatured = false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ilan-card-wrapper' + (isFeatured ? ' featured' : '');
+
     const card = document.createElement('div');
-    card.className = 'ilan-card fade-in' + (isFeatured ? ' featured' : '');
+    card.className = 'ilan-card' + (isFeatured ? ' featured' : '');
 
     // Banner
     const banner = document.createElement('div');
@@ -651,6 +692,15 @@
     banner.appendChild(badges);
     card.appendChild(banner);
 
+    const userData = usersMap[ilan.kullanici_id];
+
+    // Overlapping Avatar
+    const avatar = document.createElement('img');
+    avatar.className = 'card-avatar-overlap';
+    avatar.src = (userData && userData.avatar_url) ? userData.avatar_url : ('https://api.dicebear.com/7.x/minecraft/svg?seed=' + (ilan.kullanici_nick || 'user'));
+    avatar.alt = ilan.kullanici_nick;
+    card.appendChild(avatar);
+
     // Body
     const body = document.createElement('div');
     body.className = 'card-body';
@@ -658,7 +708,22 @@
     const title = document.createElement('div');
     title.className = 'card-title';
     title.textContent = ilan.baslik || 'İsimsiz İlan';
+    
+    if (userData && userData.dogrulama_rozeti) {
+      const verifyBadge = document.createElement('img');
+      verifyBadge.className = 'profile-verify-badge';
+      verifyBadge.src = 'https://i.imgur.com/VDpHaPy.png';
+      verifyBadge.title = 'Doğrulanmış';
+      verifyBadge.style.marginLeft = '6px';
+      verifyBadge.style.verticalAlign = 'middle';
+      title.appendChild(verifyBadge);
+    }
     body.appendChild(title);
+
+    const sub = document.createElement('div');
+    sub.className = 'card-subtitle';
+    sub.textContent = `${ilan.kategori} • ${ilan.alt_kategori || 'Genel'}`;
+    body.appendChild(sub);
 
     const desc = document.createElement('div');
     desc.className = 'card-desc';
@@ -687,38 +752,15 @@
     footer.className = 'card-footer';
 
     const userWrap = document.createElement('div');
-    userWrap.className = 'card-user';
-
-    const userData = usersMap[ilan.kullanici_id];
-
-    const avatar = document.createElement('img');
-    avatar.className = 'card-avatar';
-    avatar.src = (userData && userData.avatar_url) ? userData.avatar_url : ('https://api.dicebear.com/7.x/minecraft/svg?seed=' + (ilan.kullanici_nick || 'user'));
-    avatar.alt = ilan.kullanici_nick;
-    userWrap.appendChild(avatar);
-
-    const userInfo = document.createElement('div');
+    userWrap.className = 'card-user-info-footer';
     const nick = document.createElement('div');
-    nick.className = 'card-nick';
-    nick.style.display = 'flex';
-    nick.style.alignItems = 'center';
-    nick.style.gap = '4px';
+    nick.className = 'card-nick-footer';
     nick.textContent = ilan.kullanici_nick || 'Anonim';
-    
-    if (userData && userData.dogrulama_rozeti) {
-      const verifyBadge = document.createElement('img');
-      verifyBadge.className = 'profile-verify-badge';
-      verifyBadge.src = 'https://i.imgur.com/VDpHaPy.png';
-      verifyBadge.title = 'Doğrulanmış';
-      nick.appendChild(verifyBadge);
-    }
-    
-    userInfo.appendChild(nick);
     const timeEl = document.createElement('div');
     timeEl.className = 'card-time';
     timeEl.textContent = relativeTime(ilan.created_at);
-    userInfo.appendChild(timeEl);
-    userWrap.appendChild(userInfo);
+    userWrap.appendChild(nick);
+    userWrap.appendChild(timeEl);
     footer.appendChild(userWrap);
 
     const contactWrap = document.createElement('div');
@@ -746,13 +788,15 @@
     footer.appendChild(contactWrap);
     card.appendChild(footer);
 
-    card.addEventListener('click', (e) => {
+    wrapper.appendChild(card);
+
+    wrapper.addEventListener('click', (e) => {
       if (e.target.closest('.card-contact-btn')) return;
       window.location.href = `ilan-detay.html?id=${ilan.id}`;
     });
 
-    setTimeout(() => card.classList.add('visible'), 50);
-    return card;
+    setTimeout(() => wrapper.classList.add('visible'), 50);
+    return wrapper;
   }
 
   function formatRemainingTime(createdDateStr) {
