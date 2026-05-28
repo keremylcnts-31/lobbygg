@@ -1837,7 +1837,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 .card-author-avatar {
   width: 56px;
   height: 56px;
-  border-radius: 50% !important;
+  border-radius: 14px !important; /* Oval corners square (rounded square) */
   border: 2.5px solid #000000 !important;
   object-fit: cover;
   background: #1a1a1a;
