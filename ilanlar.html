@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2.4" />
+  <link rel="stylesheet" href="style.css?v=2.5" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,9 +32,10 @@
       z-index: 5;
     }
     .profile-verify-badge {
-      width: 14px;
-      height: 14px;
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
+      vertical-align: middle;
     }
 
     /* MAIN WRAPPER */
@@ -708,6 +709,30 @@
     avatar.alt = ilan.kullanici_nick;
     card.appendChild(avatar);
 
+    // Card User Header next to avatar
+    const userHeader = document.createElement('div');
+    userHeader.className = 'card-user-header';
+    
+    const authorNick = document.createElement('div');
+    authorNick.className = 'card-author-nick';
+    authorNick.textContent = ilan.kullanici_nick || 'Anonim';
+    
+    if (userData && userData.dogrulama_rozeti) {
+      const verifyBadge = document.createElement('img');
+      verifyBadge.className = 'profile-verify-badge';
+      verifyBadge.src = 'https://i.imgur.com/VDpHaPy.png';
+      verifyBadge.title = 'Doğrulanmış';
+      authorNick.appendChild(verifyBadge);
+    }
+    
+    const authorTime = document.createElement('div');
+    authorTime.className = 'card-author-time';
+    authorTime.textContent = relativeTime(ilan.created_at);
+    
+    userHeader.appendChild(authorNick);
+    userHeader.appendChild(authorTime);
+    card.appendChild(userHeader);
+
     // Body
     const body = document.createElement('div');
     body.className = 'card-body';
@@ -715,16 +740,6 @@
     const title = document.createElement('div');
     title.className = 'card-title';
     title.textContent = ilan.baslik || 'İsimsiz İlan';
-    
-    if (userData && userData.dogrulama_rozeti) {
-      const verifyBadge = document.createElement('img');
-      verifyBadge.className = 'profile-verify-badge';
-      verifyBadge.src = 'https://i.imgur.com/VDpHaPy.png';
-      verifyBadge.title = 'Doğrulanmış';
-      verifyBadge.style.marginLeft = '6px';
-      verifyBadge.style.verticalAlign = 'middle';
-      title.appendChild(verifyBadge);
-    }
     body.appendChild(title);
 
     const sub = document.createElement('div');
@@ -757,24 +772,15 @@
     body.appendChild(priceWrap);
     card.appendChild(body);
 
-    // Footer
+    // Footer (Clean button shelf)
     const footer = document.createElement('div');
     footer.className = 'card-footer';
 
-    const userWrap = document.createElement('div');
-    userWrap.className = 'card-user-info-footer';
-    const nick = document.createElement('div');
-    nick.className = 'card-nick-footer';
-    nick.textContent = ilan.kullanici_nick || 'Anonim';
-    const timeEl = document.createElement('div');
-    timeEl.className = 'card-time';
-    timeEl.textContent = relativeTime(ilan.created_at);
-    userWrap.appendChild(nick);
-    userWrap.appendChild(timeEl);
-    footer.appendChild(userWrap);
-
     const contactWrap = document.createElement('div');
     contactWrap.className = 'card-contact';
+    contactWrap.style.width = '100%';
+    contactWrap.style.justifyContent = 'space-between';
+    
     if (ilan.kullanici_nick) {
       const pBtn = document.createElement('a');
       pBtn.className = 'card-contact-btn btn mc-gold mc-sm';

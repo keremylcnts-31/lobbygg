@@ -473,9 +473,9 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1695,38 +1695,43 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 /* Card Wrapper (acts as the 3D offset background block) */
 .ilan-card-wrapper {
   position: relative;
-  border-radius: 12px !important;
+  border-radius: 24px !important;
   background: #000000; /* Dark solid shadow offset for normal */
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease;
+  perspective: 1000px; /* Enable perspective for 3D tilt */
 }
 .ilan-card-wrapper.featured {
   background: var(--accent); /* Glowing Gold offset for featured */
-  box-shadow: 0 0 20px rgba(255, 209, 59, 0.15);
+  box-shadow: 0 10px 30px rgba(255, 209, 59, 0.15);
 }
 
-/* Card content block (the actual sliding card) */
+/* Card content block (The Holographic RPG Adventure Card) */
 .ilan-card {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  border-radius: 12px !important;
+  border-radius: 24px !important;
   border: 3px solid #000000 !important;
-  background-color: #212121; /* Sleek obsidian/dark slate */
-  box-shadow: inset 0 3px 0 rgba(255,255,255,0.05), inset 0 -6px 0 rgba(0,0,0,0.5);
+  background: linear-gradient(180deg, #26262b 0%, #17171a 100%); /* Premium obsidian gradient */
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.5);
   color: #ffffff;
-  transform: translate(0, 0);
-  transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   overflow: hidden;
   cursor: pointer;
+  backface-visibility: hidden;
 }
 
 /* Featured Card styling */
 .ilan-card.featured {
-  background: radial-gradient(circle at top right, rgba(255, 209, 59, 0.08) 0%, #1b1b1b 70%) !important;
-  box-shadow: inset 0 3px 0 rgba(255, 209, 59, 0.35), inset 0 -6px 0 rgba(0, 0, 0, 0.6) !important;
-  color: #ffffff;
-  border-color: var(--accent) !important;
+  background: linear-gradient(135deg, #ffd13b 0%, #cca72f 100%) !important;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.45), 
+    inset 0 -6px 0 rgba(0, 0, 0, 0.25),
+    0 12px 32px rgba(0,0,0,0.6) !important;
+  border-color: #000000 !important; /* Neobrutalist bold black borders */
+  color: #000000;
 }
 
 /* Premium Sweeping Light Beam */
@@ -1739,29 +1744,29 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   height: 200%;
   background: linear-gradient(
     90deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.15) 45%,
-    rgba(255, 255, 255, 0.25) 50%,
-    rgba(255, 255, 255, 0.15) 55%,
-    transparent 70%
+    transparent 35%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.1) 55%,
+    transparent 65%
   );
   transform: rotate(25deg);
   pointer-events: none;
   z-index: 10;
-  animation: sweep-shine 5s ease-in-out infinite;
+  animation: sweep-shine 4s ease-in-out infinite;
 }
 .ilan-card.featured:hover::after {
-  animation-duration: 2.5s;
+  animation-duration: 2s;
 }
 
-/* Hover translation - shifts the card sol üst çapraza (top-left) */
+/* Hover translation & 3D Tilt - shifts card top-left with a subtle tilting effect */
 .ilan-card-wrapper:hover .ilan-card {
-  transform: translate(-8px, -8px);
+  transform: translate3d(-8px, -8px, 15px) rotateX(2deg) rotateY(-2deg);
 }
 
-/* Click translation - compresses the card back down (Tactile 3D button click animation) */
+/* Click translation - snaps the card back down (Tactile 3D button click animation) */
 .ilan-card-wrapper:active .ilan-card {
-  transform: translate(-2px, -2px);
+  transform: translate3d(-2px, -2px, 2px) rotateX(0deg) rotateY(0deg);
 }
 
 /* Square Server Card for decoupling in profil.html */
@@ -1776,19 +1781,26 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   border-color: var(--border);
 }
 
-/* Card components inside .ilan-card */
+/* Inset Framed Illustration for Card Banner */
 .card-banner {
   position: relative;
+  margin: 14px 14px 0 14px; /* Creates the border margin/frame of a card game illustration */
   height: 140px;
   overflow: hidden;
   flex-shrink: 0;
-  border-bottom: 3px solid #000000;
+  border: 2.5px solid #000000 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 .card-banner img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0px !important;
+  border-radius: 12px !important; /* Fits nicely inside the 16px banner border */
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card-banner:hover img {
+  transform: scale(1.08); /* Illustration zoom on hover */
 }
 .card-banner-gradient {
   width: 100%;
@@ -1819,7 +1831,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 .card-avatar-overlap {
   width: 96px;
   height: 96px;
-  border-radius: 12px !important;
+  border-radius: 50% !important; /* Fully circular avatar for maximum premium aesthetic */
   object-fit: cover;
   border: 3px solid #000000 !important;
   background: #1a1a1a;
@@ -1830,29 +1842,61 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 }
 
 /* Card Body */
+/* Card User Header (positioned next to overlapping PP) */
+.card-user-header {
+  position: absolute;
+  left: 134px;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 5;
+}
+.card-author-nick {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+.ilan-card.featured .card-author-nick {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+.card-author-time {
+  font-size: 10px;
+  color: #888888;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+.ilan-card.featured .card-author-time {
+  color: #444444 !important;
+  text-shadow: none !important;
+}
+
+/* Card Body */
 .card-body {
-  padding: 60px 24px 20px;
+  padding: 62px 24px 20px;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
 .card-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   color: #ffffff;
   margin-bottom: 4px;
-  line-height: 1.2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  line-height: 1.25;
 }
 .ilan-card.featured .card-title {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .card-subtitle {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
   color: #666;
   margin-bottom: 12px;
@@ -1860,13 +1904,13 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   text-transform: uppercase;
 }
 .ilan-card.featured .card-subtitle {
-  color: var(--accent) !important;
+  color: #5c4c1a !important;
 }
 
 .card-desc {
-  font-size: 13px;
-  color: #aaaaaa;
-  line-height: 1.6;
+  font-size: 11.5px;
+  color: #999999;
+  line-height: 1.5;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1875,26 +1919,27 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   margin-bottom: 16px;
 }
 .ilan-card.featured .card-desc {
-  color: #aaaaaa !important;
+  color: #333333 !important;
 }
 
 .card-price {
   margin-bottom: 14px;
 }
 
-/* Card Footer */
+/* Card Footer (Clean Button Shelf) */
 .card-footer {
   border-top: 3px solid #000000;
-  padding: 12px 24px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: center;
   background: rgba(0,0,0,0.2);
+  border-radius: 0 0 25px 25px;
 }
 .ilan-card.featured .card-footer {
   border-top-color: #000000;
   background: rgba(0,0,0,0.2) !important;
+  border-radius: 0 0 25px 25px !important;
 }
 
 .card-user-info-footer {
@@ -1908,7 +1953,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   color: #ffffff;
 }
 .ilan-card.featured .card-nick-footer {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .card-time {
@@ -1917,7 +1962,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   font-weight: 600;
 }
 .ilan-card.featured .card-time {
-  color: #888888 !important;
+  color: #444444 !important;
 }
 
 .card-contact {
