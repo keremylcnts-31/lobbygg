@@ -6,6 +6,7 @@
   <title>LOBBY.GG — Ana Sayfa</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="db-helper.js"></script>
   <style>
     /* =====================
        CSS VARIABLES OVERRIDE
@@ -1896,7 +1897,7 @@ async function buildRightSidebar() {
     if (typeof sb !== 'undefined' && sb) {
       try {
         const { data, error } = await sb.from('ilanlar')
-          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
+          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, durum')
           .eq('one_cikan', true)
           .in('durum', ['onaylandi', 'aktif'])
           .limit(5);
@@ -1912,7 +1913,7 @@ async function buildRightSidebar() {
     if ((!ilanlar || ilanlar.length === 0) && typeof sb !== 'undefined' && sb) {
       try {
         const { data, error } = await sb.from('ilanlar')
-          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, resim_url, durum')
+          .select('id, baslik, kategori, fiyat, one_cikan, banner_url, durum')
           .in('durum', ['onaylandi', 'aktif'])
           .order('id', { ascending: false })
           .limit(5);
@@ -1981,8 +1982,8 @@ async function buildRightSidebar() {
       // Banner background
       const bg = document.createElement('div');
       bg.style.cssText = 'position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;transition:transform 0.35s ease;';
-      if (ilan.banner_url || ilan.resim_url) {
-        bg.style.backgroundImage = `url('${ilan.banner_url || ilan.resim_url}')`;
+      if (ilan.banner_url) {
+        bg.style.backgroundImage = `url('${ilan.banner_url}')`;
       } else {
         const gradients = {
           'PvP': 'linear-gradient(135deg, #3d0015, #1a0008)',
