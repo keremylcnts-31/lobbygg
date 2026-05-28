@@ -11,53 +11,56 @@
        CSS VARIABLES OVERRIDE
        ===================== */
     :root {
-      --bg:          #060810;
-      --bg-card:     #121724;
-      --bg-card2:    #1a2030;
-      --border-thin: #252e42;
+      --bg:          #141414;
+      --bg-card:     #212121;
+      --bg-card2:    #1b1b1b;
+      --border-thin: #333333;
       --border:      #000000;
       --border-hover:#000000;
-      --accent:      #facc15;
-      --accent-glow: rgba(250, 204, 21, 0.45);
+      --accent:      #ffd13b;
+      --accent-glow: rgba(255, 209, 59, 0.45);
       
       --text-1:      #ffffff !important;
-      --text-2:      #cbd5e1 !important;
-      --text-3:      #94a3b8 !important;
-      --text-dim:    #64748b !important;
+      --text-2:      #e0e0e0 !important;
+      --text-3:      #aaaaaa !important;
+      --text-dim:    #777777 !important;
+      
+      --green:       #3c8527;
+      --green-dark:  #2a5e1b;
     }
 
     body {
-      background: linear-gradient(180deg, #0b0f19 0%, #060810 100%) !important;
+      background: #141414 !important;
       color: #ffffff !important;
     }
     
     /* Header nav overrides to keep it dark & beautiful like Melonya's dark header */
     .nav {
-      background: rgba(15, 23, 42, 0.95) !important;
+      background: #111111 !important;
       border-bottom: 2px solid #000000 !important;
     }
     .nav-link {
-      color: #94a3b8 !important;
+      color: #aaaaaa !important;
     }
     .nav-link:hover, .nav-link.active {
       color: #ffffff !important;
-      background: rgba(255, 255, 255, 0.08) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
     }
     .nav-link.active {
       color: var(--accent) !important;
     }
     .nav-bell {
-      background: #1e293b !important;
-      border: 1px solid #334155 !important;
-      color: #cbd5e1 !important;
+      background: #222222 !important;
+      border: 1px solid #333333 !important;
+      color: #cccccc !important;
     }
     .nav-bell:hover {
       color: #ffffff !important;
       border-color: var(--accent) !important;
     }
     .nav-lcoin {
-      background: #1e293b !important;
-      border: 1px solid #334155 !important;
+      background: #222222 !important;
+      border: 1px solid #333333 !important;
       color: var(--gold) !important;
     }
     .nav-avatar img {
@@ -66,11 +69,11 @@
     
     /* Mobile bottom navigation overrides */
     .mobile-bottom-nav {
-      background: rgba(15, 23, 42, 0.96) !important;
+      background: #111111 !important;
       border-top: 2px solid #000000 !important;
     }
     .mobile-nav-item {
-      color: #94a3b8 !important;
+      color: #aaaaaa !important;
     }
     .mobile-nav-item:hover, .mobile-nav-item.active {
       color: var(--accent) !important;
@@ -314,7 +317,7 @@
     .composer-textarea::placeholder { color: var(--text-dim); }
     .composer-textarea:focus {
       border-color: #000000 !important;
-      background: #1b2336;
+      background: #2c2c2c;
       outline: none;
     }
 
@@ -685,7 +688,7 @@
       padding: 8px 14px;
       transition: border-color 0.2s;
     }
-    .comment-input:focus { border-color: #000000 !important; background: #1b2336; outline: none; }
+    .comment-input:focus { border-color: #000000 !important; background: #2c2c2c; outline: none; }
     .comment-input::placeholder { color: var(--text-dim); }
 
     .comment-send-btn {
@@ -1145,24 +1148,16 @@ let realtimeSub = null;
   resize();
   window.addEventListener('resize', resize);
 
-  const stars = [];
-  for (let i = 0; i < 40; i++) {
-    stars.push({
+  const particles = [];
+  for (let i = 0; i < 35; i++) {
+    particles.push({
       x: Math.random() * 1600,
       y: Math.random() * 1200,
-      size: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.5 + 0.2,
-      fadeSpeed: (Math.random() * 0.02 + 0.005) * (Math.random() > 0.5 ? 1 : -1)
-    });
-  }
-
-  for (let i = 0; i < 12; i++) {
-    beams.push({
-      x: Math.random() * 1600 - 200,
-      y: Math.random() * 1200 - 200,
-      width: Math.random() * 3 + 1,
-      speed: Math.random() * 0.3 + 0.1,
-      opacity: Math.random() * 0.08 + 0.03
+      size: Math.random() * 3 + 2,
+      speedY: -(Math.random() * 0.35 + 0.15),
+      speedX: (Math.random() - 0.5) * 0.1,
+      color: Math.random() > 0.6 ? '#ffd13b' : '#3c8527',
+      opacity: Math.random() * 0.5 + 0.15
     });
   }
 
@@ -1182,32 +1177,17 @@ let realtimeSub = null;
   function animate() {
     ctx.clearRect(0, 0, w, h);
 
-    // Draw glowing twinkling stars
-    stars.forEach(s => {
-      s.opacity += s.fadeSpeed;
-      if (s.opacity > 0.8 || s.opacity < 0.1) {
-        s.fadeSpeed = -s.fadeSpeed;
+    // Draw floating Minecraft experience pixel particles
+    particles.forEach(p => {
+      p.y += p.speedY;
+      p.x += p.speedX;
+      if (p.y < -20) {
+        p.y = h + 20;
+        p.x = Math.random() * w;
       }
-      ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
-      ctx.fillRect(s.x, s.y, s.size, s.size);
-    });
-
-    // Draw glowing cyan lasers
-    beams.forEach(b => {
-      b.x += b.speed * 0.5;
-      b.y += b.speed;
-      if (b.y > h + 200) { b.y = -200; b.x = Math.random() * w; }
-
-      ctx.save();
-      ctx.translate(b.x, b.y);
-      ctx.rotate(-Math.PI / 4);
-      const grad = ctx.createLinearGradient(0, -300, 0, 300);
-      grad.addColorStop(0, `rgba(0, 245, 255, 0)`);
-      grad.addColorStop(0.5, `rgba(0, 245, 255, ${b.opacity})`);
-      grad.addColorStop(1, `rgba(0, 245, 255, 0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(-b.width / 2, -300, b.width, 600);
-      ctx.restore();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.opacity;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
     });
 
     logos.forEach(l => {
