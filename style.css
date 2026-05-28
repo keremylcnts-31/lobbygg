@@ -1576,7 +1576,21 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
    NEW STYLES: LOBBYX, PREMIUM BADGES, GOLD SERVERS, NAV AVATAR
    ================================================================ */
 
-/* Mavi 3D Button Style for Active LobbyX Tab */
+/* 3D Button Styles for Active Feed Tabs (Option B) */
+.feed-tab-btn.active#tab-takip {
+  color: #000000 !important;
+  background-color: #ffd13b !important;
+  border: 2px solid #000000 !important;
+  box-shadow: inset 0 2px 0 #ffe566, inset 0 -4px 0 #cc9900 !important;
+  border-radius: 0px !important;
+  border-bottom: 2px solid #000000 !important;
+  transform: translateY(0);
+}
+.feed-tab-btn.active#tab-takip:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 #ffe566, inset 0 -2px 0 #cc9900 !important;
+}
+
 .feed-tab-btn.active#tab-kesif {
   color: #ffffff !important;
   background-color: #1d4d8c !important;
@@ -1590,6 +1604,21 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   transform: translateY(2px);
   box-shadow: inset 0 2px 0 #3a6fb3, inset 0 -2px 0 #0d274a !important;
 }
+
+.feed-tab-btn.active#tab-klan {
+  color: #ffffff !important;
+  background-color: #b02e26 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: inset 0 2px 0 #d94141, inset 0 -4px 0 #5e0d0d !important;
+  border-radius: 0px !important;
+  border-bottom: 2px solid #000000 !important;
+  transform: translateY(0);
+}
+.feed-tab-btn.active#tab-klan:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 0 #d94141, inset 0 -2px 0 #5e0d0d !important;
+}
+
 
 /* Content Creator Subcategory Badge Styles */
 .badge.b-youtube, .badge.b-youtube-cat {
