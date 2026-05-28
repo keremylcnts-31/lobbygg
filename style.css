@@ -448,6 +448,7 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 .b-developer { background: rgba(185,51,255,0.1); color: var(--purple); border: 1px solid rgba(185,51,255,0.25); }
 .b-builder  { background: rgba(255,215,0,0.1);  color: var(--gold); border: 1px solid rgba(255,215,0,0.25); }
 .b-yonetici-cat { background: rgba(57,255,20,0.1); color: var(--accent); border: 1px solid rgba(57,255,20,0.25); }
+.b-gold     { background: rgba(255,215,0,0.15); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
 .b-diger    { background: #1a1a1a; color: var(--text-3); border: 1px solid #2a2a2a; }
 
 /* =====================
@@ -1580,5 +1581,228 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):disabl
 }
 .nav-avatar-link .pp-wrap::after {
   font-size: 8px !important;
+}
+
+/* ================================================================
+   NEW STYLES: 3D MINECRAFT LISTING CARDS
+   ================================================================ */
+
+/* Card Grid */
+.listings-grid, .ilan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Card Wrapper (acts as the 3D offset background block) */
+.ilan-card-wrapper {
+  position: relative;
+  border-radius: 0px !important;
+  background: #ffffff; /* White offset for normal */
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.ilan-card-wrapper.featured {
+  background: #ffd700; /* Gold offset for featured */
+}
+
+/* Card content block (the actual sliding card) */
+.ilan-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0px !important;
+  border: 3px solid #000000 !important;
+  background-color: #313131;
+  box-shadow: inset 0 3px 0 #5a5a5a, inset 0 -6px 0 #181818;
+  color: #ffffff;
+  transform: translate(0, 0);
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Featured Card styling */
+.ilan-card.featured {
+  background-color: #fdb813;
+  box-shadow: inset 0 3px 0 #fff176, inset 0 -6px 0 #b27a00;
+  color: #000000;
+}
+
+/* Hover translation - shifts the card sol üst çapraza (top-left) */
+.ilan-card-wrapper:hover .ilan-card {
+  transform: translate(-8px, -8px);
+}
+
+/* Square Server Card for decoupling in profil.html */
+.server-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-thin);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: border-color var(--transition);
+}
+.server-card:hover {
+  border-color: var(--border);
+}
+
+/* Card components inside .ilan-card */
+.card-banner {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-bottom: 3px solid #000000;
+}
+.card-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0px !important;
+}
+.card-banner-gradient {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-banner-icon {
+  font-size: 56px;
+  opacity: 0.35;
+}
+.card-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%);
+}
+.card-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Overlapping square avatar */
+.card-avatar-overlap {
+  width: 96px;
+  height: 96px;
+  border-radius: 0px !important;
+  object-fit: cover;
+  border: 3px solid #000000 !important;
+  background: #1a1a1a;
+  position: absolute;
+  left: 24px;
+  top: 90px; /* Overlaps bottom 50px of 140px banner */
+  z-index: 5;
+}
+
+/* Card Body */
+.card-body {
+  padding: 60px 24px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 4px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ilan-card.featured .card-title {
+  color: #000000 !important;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: #666;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.ilan-card.featured .card-subtitle {
+  color: #5c3d00 !important;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: #aaaaaa;
+  line-height: 1.6;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.ilan-card.featured .card-desc {
+  color: #332200 !important;
+}
+
+.card-price {
+  margin-bottom: 14px;
+}
+
+/* Card Footer */
+.card-footer {
+  border-top: 3px solid #000000;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(0,0,0,0.2);
+}
+.ilan-card.featured .card-footer {
+  border-top-color: #000000;
+  background: rgba(0,0,0,0.06);
+}
+
+.card-user-info-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.card-nick-footer {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+}
+.ilan-card.featured .card-nick-footer {
+  color: #000000 !important;
+}
+
+.card-time {
+  font-size: 10px;
+  color: #888888;
+  font-weight: 600;
+}
+.ilan-card.featured .card-time {
+  color: #5c3d00 !important;
+}
+
+.card-contact {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.discord-gradient {
+  background: linear-gradient(135deg, #8592ff, #4752c4) !important;
+  color: #ffffff !important;
+  --btn-light: #a3adff;
+  --btn-dark: #202456;
+  border-color: #000 !important;
+}
+.discord-gradient:hover {
+  background: linear-gradient(135deg, #99a5ff, #525ed9) !important;
 }
 
