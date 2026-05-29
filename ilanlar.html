@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2.9" />
+  <link rel="stylesheet" href="style.css?v=3.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -783,7 +783,8 @@
     const contactWrap = document.createElement('div');
     contactWrap.className = 'card-contact';
     contactWrap.style.width = '100%';
-    contactWrap.style.justifyContent = 'space-between';
+    contactWrap.style.justifyContent = 'center';
+    contactWrap.style.gap = '8px';
     
     if (ilan.kullanici_nick) {
       const pBtn = document.createElement('a');
