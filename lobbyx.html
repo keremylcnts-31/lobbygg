@@ -251,6 +251,74 @@
       transform: scale(1.1);
     }
 
+    /* Brand Header Sync Animations */
+    .brand-logo-anim {
+      animation: brandLogoBreath 10s infinite ease-in-out;
+      transform-origin: center;
+    }
+    .brand-text-anim {
+      background: linear-gradient(120deg, #ffffff 35%, #ffd13b 48%, #ffffff 52%, #ffd13b 56%, #ffffff 68%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+      transform-origin: left center;
+      filter: drop-shadow(2px 2px 0px #000000);
+      animation: brandShine 10s infinite linear, brandTextBreath 10s infinite ease-in-out;
+    }
+
+    @keyframes brandShine {
+      0% { background-position: 120% 0; }
+      10% { background-position: -20% 0; }
+      100% { background-position: -20% 0; }
+    }
+
+    @keyframes brandLogoBreath {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+      }
+      3% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 4px 10px rgba(0,212,255,0.45));
+      }
+      6% {
+        transform: scale(1.08);
+        filter: drop-shadow(0 4px 10px rgba(0,212,255,0.45));
+      }
+      10% {
+        transform: scale(1);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+      }
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+      }
+    }
+
+    @keyframes brandTextBreath {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(2px 2px 0px #000000);
+      }
+      3% {
+        transform: scale(1.04);
+        filter: drop-shadow(3px 3px 0px #000000) drop-shadow(0 0 6px rgba(255,209,59,0.3));
+      }
+      6% {
+        transform: scale(1.04);
+        filter: drop-shadow(3px 3px 0px #000000) drop-shadow(0 0 6px rgba(255,209,59,0.3));
+      }
+      10% {
+        transform: scale(1);
+        filter: drop-shadow(2px 2px 0px #000000);
+      }
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(2px 2px 0px #000000);
+      }
+    }
+
     .lcoin-card {
       background: linear-gradient(135deg, #ffd700, #facc15) !important;
       border: 2px solid #000000 !important;
@@ -1700,11 +1768,13 @@ function buildLeftSidebar() {
   const logo = document.createElement('img');
   logo.src = 'logo.png';
   logo.alt = 'LOBBY.GG';
-  logo.style.cssText = 'width: 34px; height: 34px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); transition: transform 0.15s ease;';
+  logo.className = 'brand-logo-anim';
+  logo.style.cssText = 'width: 34px; height: 34px; object-fit: contain; transition: transform 0.15s ease;';
   
   const brandText = document.createElement('span');
   brandText.textContent = 'LOBBY.GG';
-  brandText.style.cssText = 'font-size: 18px; font-weight: 900; color: #ffffff; letter-spacing: 0.5px; text-shadow: 2px 2px 0px #000000; text-transform: uppercase; transition: color 0.1s ease;';
+  brandText.className = 'brand-text-anim';
+  brandText.style.cssText = 'font-size: 18px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; transition: color 0.1s ease;';
   
   brandHeader.appendChild(logo);
   brandHeader.appendChild(brandText);
