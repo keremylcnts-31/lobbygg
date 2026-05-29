@@ -1424,7 +1424,7 @@ let realtimeSub = null;
   }
 
   const logoImg = new Image();
-  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
+  logoImg.src = 'logo.png';
   for (let i = 0; i < 8; i++) {
     logos.push({
       x: Math.random() * 1600 - 100,
@@ -1463,7 +1463,7 @@ let realtimeSub = null;
       if (logoImg.complete) {
         ctx.save();
         ctx.globalAlpha = l.opacity;
-        ctx.drawImage(logoImg, l.x - l.size / 2, l.y - l.size / 4, l.size, l.size / 2.5);
+        ctx.drawImage(logoImg, l.x - l.size / 2, l.y - l.size / 2, l.size, l.size);
         ctx.restore();
       }
     });
@@ -1571,7 +1571,7 @@ function buildNav() {
 
   // Logo
   const logo = document.createElement('img');
-  logo.src = 'https://i.imgur.com/6l08Y4k.png';
+  logo.src = 'logo.png';
   logo.alt = 'LOBBY.GG';
   logo.className = 'nav-logo';
   logo.style.cursor = 'pointer';
@@ -1687,12 +1687,24 @@ function buildLeftSidebar() {
   sidebar.innerHTML = '';
 
   // Logo
+  const logoContainer = document.createElement('div');
+  logoContainer.style.cssText = 'width: 80px; height: 80px; margin: 10px auto 20px auto; border-radius: 6px; border: 3px solid #000000; overflow: hidden; background: #ffffff; box-shadow: 4px 4px 0px #000000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s ease; transform: translate(0, 0);';
+  logoContainer.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
+  logoContainer.addEventListener('mouseenter', () => {
+    logoContainer.style.transform = 'translate(-2px, -2px)';
+    logoContainer.style.boxShadow = '6px 6px 0px #000000';
+  });
+  logoContainer.addEventListener('mouseleave', () => {
+    logoContainer.style.transform = 'translate(0, 0)';
+    logoContainer.style.boxShadow = '4px 4px 0px #000000';
+  });
+
   const logo = document.createElement('img');
-  logo.src = 'https://i.imgur.com/6l08Y4k.png';
+  logo.src = 'logo.png';
   logo.alt = 'LOBBY.GG';
-  logo.style.cssText = 'width: 68px; height: auto; margin: 10px auto 20px auto; cursor: pointer; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));';
-  logo.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
-  sidebar.appendChild(logo);
+  logo.style.cssText = 'width: 85%; height: 85%; object-fit: contain;';
+  logoContainer.appendChild(logo);
+  sidebar.appendChild(logoContainer);
 
   // LCoin Balance Widget
   if (currentUser && currentProfile) {
@@ -1851,7 +1863,7 @@ async function openServerDetailModal(srv, initialFavCount = 0) {
   logo.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
   logo.alt = srv.name;
   logo.style.cssText = 'width:64px;height:64px;border-radius:12px;border:2px solid var(--border);background:#1a1a1a;';
-  logo.onerror = () => { logo.src = 'https://i.imgur.com/6l08Y4k.png'; };
+  logo.onerror = () => { logo.src = 'logo.png'; };
 
   const nameEl = document.createElement('div');
   nameEl.style.cssText = 'font-size:20px;font-weight:900;color:var(--text-1);text-transform:uppercase;';
@@ -2132,7 +2144,7 @@ async function buildRightSidebar() {
     logo.className = 'server-logo';
     logo.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
     logo.alt = srv.name;
-    logo.onerror = () => { logo.src = 'https://i.imgur.com/6l08Y4k.png'; };
+    logo.onerror = () => { logo.src = 'logo.png'; };
 
     const info = document.createElement('div');
     info.style.flex = '1';
