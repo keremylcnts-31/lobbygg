@@ -1687,24 +1687,14 @@ function buildLeftSidebar() {
   sidebar.innerHTML = '';
 
   // Logo
-  const logoContainer = document.createElement('div');
-  logoContainer.style.cssText = 'width: 80px; height: 80px; margin: 10px auto 20px auto; border-radius: 6px; border: 3px solid #000000; overflow: hidden; background: #ffffff; box-shadow: 4px 4px 0px #000000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s ease; transform: translate(0, 0);';
-  logoContainer.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
-  logoContainer.addEventListener('mouseenter', () => {
-    logoContainer.style.transform = 'translate(-2px, -2px)';
-    logoContainer.style.boxShadow = '6px 6px 0px #000000';
-  });
-  logoContainer.addEventListener('mouseleave', () => {
-    logoContainer.style.transform = 'translate(0, 0)';
-    logoContainer.style.boxShadow = '4px 4px 0px #000000';
-  });
-
   const logo = document.createElement('img');
   logo.src = 'logo.png';
   logo.alt = 'LOBBY.GG';
-  logo.style.cssText = 'width: 85%; height: 85%; object-fit: contain;';
-  logoContainer.appendChild(logo);
-  sidebar.appendChild(logoContainer);
+  logo.style.cssText = 'width: 130px; height: auto; margin: 15px auto 25px auto; cursor: pointer; display: block; transition: transform 0.15s ease; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));';
+  logo.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
+  logo.addEventListener('mouseenter', () => { logo.style.transform = 'scale(1.06)'; });
+  logo.addEventListener('mouseleave', () => { logo.style.transform = 'scale(1)'; });
+  sidebar.appendChild(logo);
 
   // LCoin Balance Widget
   if (currentUser && currentProfile) {
