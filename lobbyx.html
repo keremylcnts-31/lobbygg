@@ -1686,15 +1686,36 @@ function buildLeftSidebar() {
   const sidebar = document.getElementById('left-sidebar');
   sidebar.innerHTML = '';
 
-  // Logo
+  // Logo & Title Header Container
+  const logoHeader = document.createElement('div');
+  logoHeader.style.cssText = 'display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 8px auto 16px auto; cursor: pointer;';
+  logoHeader.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
+
+  // Logo Image
   const logo = document.createElement('img');
   logo.src = 'logo.png';
   logo.alt = 'LOBBY.GG';
-  logo.style.cssText = 'width: 130px; height: auto; margin: 15px auto 25px auto; cursor: pointer; display: block; transition: transform 0.15s ease; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));';
-  logo.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
-  logo.addEventListener('mouseenter', () => { logo.style.transform = 'scale(1.06)'; });
-  logo.addEventListener('mouseleave', () => { logo.style.transform = 'scale(1)'; });
-  sidebar.appendChild(logo);
+  logo.style.cssText = 'width: 52px; height: 52px; object-fit: contain; transition: transform 0.15s ease; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));';
+  
+  // Title Text
+  const logoText = document.createElement('span');
+  logoText.textContent = 'LOBBY.GG';
+  logoText.style.cssText = 'font-size: 14px; font-weight: 900; color: #ffffff; letter-spacing: 1px; text-shadow: 2px 2px 0px #000000; text-transform: uppercase; transition: color 0.1s ease;';
+
+  logoHeader.appendChild(logo);
+  logoHeader.appendChild(logoText);
+
+  // Hover Effect
+  logoHeader.addEventListener('mouseenter', () => {
+    logo.style.transform = 'scale(1.08)';
+    logoText.style.color = 'var(--accent)';
+  });
+  logoHeader.addEventListener('mouseleave', () => {
+    logo.style.transform = 'scale(1)';
+    logoText.style.color = '#ffffff';
+  });
+
+  sidebar.appendChild(logoHeader);
 
   // LCoin Balance Widget
   if (currentUser && currentProfile) {
