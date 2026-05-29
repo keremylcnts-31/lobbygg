@@ -1762,7 +1762,7 @@ function buildLeftSidebar() {
 
   // Logo & Brand Name Header (Sleek Horizontal Layout)
   const brandHeader = document.createElement('div');
-  brandHeader.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin: 4px 0 10px 0; cursor: pointer; border-radius: 6px; transition: background 0.15s ease;';
+  brandHeader.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 1px 1px; margin: 4px 0px 10px 0px; cursor: pointer; border-radius: 6px; transition: background 0.15s ease;';
   brandHeader.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
   
   const logo = document.createElement('img');
@@ -2429,7 +2429,7 @@ async function buildRightSidebar() {
 
       // Dark overlay
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.95) 45%, transparent 100%);z-index:2;';
+      overlay.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 70%);z-index:2;';
       item.appendChild(overlay);
 
       // Hover zoom for background
