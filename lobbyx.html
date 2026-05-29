@@ -52,12 +52,7 @@
        VIBRANT GAMING HEADER NAV OVERRIDES
        ===================== */
     .nav {
-      background: rgba(12, 17, 30, 0.6) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border-bottom: 3px solid #000000 !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
-      gap: 12px !important;
+      display: none !important;
     }
     
     .nav-links {
@@ -181,7 +176,7 @@
       display: flex;
       max-width: 1200px;
       margin: 0 auto;
-      padding: calc(var(--nav-h) + 20px) 16px 80px;
+      padding: 20px 16px 80px;
       gap: 20px;
       align-items: flex-start;
     }
@@ -193,7 +188,8 @@
       width: 240px;
       flex-shrink: 0;
       position: sticky;
-      top: calc(var(--nav-h) + 20px);
+      top: 20px;
+      height: calc(100vh - 40px);
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -838,7 +834,7 @@
       width: 300px;
       flex-shrink: 0;
       position: sticky;
-      top: calc(var(--nav-h) + 20px);
+      top: 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -1241,6 +1237,41 @@
       background: linear-gradient(135deg, #ffd700, #ff8800) !important;
       color: #000000 !important;
       box-shadow: 1.5px 1.5px 0px #000000, 0px 0px 10px rgba(255, 215, 0, 0.4) !important;
+    }
+
+    /* Sidebar User Card (Twitter Style) */
+    .sidebar-user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-card) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid #000000;
+      border-radius: 6px !important;
+      box-shadow: 2px 2px 0px #000000;
+      margin-top: auto;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+    .sidebar-user-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0px #000000;
+    }
+    .sidebar-settings-btn {
+      background: none;
+      border: none;
+      color: var(--text-3);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .sidebar-settings-btn:hover {
+      color: #ffffff;
+      background: rgba(255,255,255,0.05);
     }
   </style>
 </head>
@@ -1655,6 +1686,31 @@ function buildLeftSidebar() {
   const sidebar = document.getElementById('left-sidebar');
   sidebar.innerHTML = '';
 
+  // Logo
+  const logo = document.createElement('img');
+  logo.src = 'https://i.imgur.com/6l08Y4k.png';
+  logo.alt = 'LOBBY.GG';
+  logo.style.cssText = 'width: 140px; height: auto; margin: 10px auto 20px 10px; cursor: pointer; display: block; filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.25));';
+  logo.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
+  sidebar.appendChild(logo);
+
+  // LCoin Balance Widget
+  if (currentUser && currentProfile) {
+    const lcoinCard = document.createElement('div');
+    lcoinCard.className = 'lcoin-card';
+    lcoinCard.style.cssText = 'margin: 0 0 16px 0; width: 100%; display: flex; align-items: center; gap: 10px; cursor: pointer;';
+    lcoinCard.innerHTML = `
+      <span class="lcoin-card-icon" style="font-size: 24px;">🪙</span>
+      <div style="text-align: left; flex: 1;">
+        <div class="lcoin-card-label" style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #78350f; letter-spacing: 0.5px;">Bakiye</div>
+        <div class="lcoin-card-amount" style="font-size: 16px; font-weight: 900; color: #000000; line-height: 1.1;">${(currentProfile.lcoin || 0).toLocaleString('tr-TR')} LC</div>
+      </div>
+    `;
+    lcoinCard.addEventListener('click', () => window.location.href = 'market.html');
+    sidebar.appendChild(lcoinCard);
+  }
+
+  // Navigation Items
   const navItems = [
     { icon: '🏠', label: 'Ana Sayfa', href: 'lobbyx.html', active: true },
     { icon: '🌎', label: 'Keşfet', href: 'kesfet.html' },
@@ -1662,8 +1718,14 @@ function buildLeftSidebar() {
     { icon: '🛡️', label: 'Klanlar', href: 'klanlar.html' },
     { icon: '💬', label: 'Mesajlar', href: 'mesajlar.html' },
     { icon: '🔔', label: 'Bildirimler', href: 'bildirimler.html' },
-    { icon: '👤', label: 'Profilim', href: 'profil.html' }
+    { icon: '👤', label: 'Profilim', href: 'profil.html' },
+    { icon: '🛒', label: 'Mağaza', href: 'market.html' },
+    { icon: '❓', label: 'Destek', href: 'destek.html' }
   ];
+
+  if (currentUser && currentProfile && ['admin', 'yonetici', 'moderator', 'rehber'].includes(currentProfile.abonelik)) {
+    navItems.push({ icon: '🛠️', label: 'Panel', href: 'admin.html' });
+  }
 
   navItems.forEach(item => {
     const a = document.createElement('a');
@@ -1687,8 +1749,6 @@ function buildLeftSidebar() {
   div.className = 'sidebar-divider';
   sidebar.appendChild(div);
 
-  // LCoin card (if logged in) removed by request
-
   // Drop Share button
   const shareBtn = document.createElement('button');
   shareBtn.className = 'btn mc-green drop-share-btn';
@@ -1699,10 +1759,56 @@ function buildLeftSidebar() {
       composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => composer.focus(), 300);
     } else {
-      window.location.href = 'login.html';
+      window.location.href = 'giris.html';
     }
   });
   sidebar.appendChild(shareBtn);
+
+  // User Profile Account Card (Bottom sticky)
+  if (currentUser && currentProfile) {
+    const userCard = document.createElement('div');
+    userCard.className = 'sidebar-user-card';
+    
+    const avatar = createAvatar(currentProfile.avatar_url, currentProfile.kullanici_adi, 36);
+    avatar.style.borderRadius = '6px !important';
+    
+    const info = document.createElement('div');
+    info.style.cssText = 'flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left;';
+    
+    const nick = document.createElement('div');
+    nick.style.cssText = 'font-size: 12px; font-weight: 900; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+    nick.textContent = currentProfile.kullanici_adi;
+    
+    const role = document.createElement('div');
+    role.style.cssText = 'font-size: 9px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px;';
+    const roleNames = {yonetici:'👑 Yönetici', admin:'🔑 Admin', moderator:'🛡️ Moderatör', rehber:'📞 Rehber', kurucu:'🚀 Kurucu', premium:'⭐ Premium', abone:'💎 Abone', uye:'👤 Üye'};
+    role.textContent = roleNames[currentProfile.abonelik] || '👤 Oyuncu';
+    
+    info.appendChild(nick);
+    info.appendChild(role);
+    
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'sidebar-settings-btn';
+    settingsBtn.innerHTML = '⚙️';
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = 'profil.html';
+    });
+    
+    userCard.appendChild(avatar);
+    userCard.appendChild(info);
+    userCard.appendChild(settingsBtn);
+    userCard.addEventListener('click', () => { window.location.href = 'profil.html'; });
+    
+    sidebar.appendChild(userCard);
+  } else {
+    const loginBtn = document.createElement('a');
+    loginBtn.href = 'giris.html';
+    loginBtn.className = 'btn mc-green';
+    loginBtn.style.cssText = 'width: 100%; margin-top: auto; padding: 12px; font-size: 11px; text-align: center; text-decoration: none;';
+    loginBtn.textContent = '🚪 Giriş Yap';
+    sidebar.appendChild(loginBtn);
+  }
 }
 
 // =============================================
