@@ -1686,51 +1686,34 @@ function buildLeftSidebar() {
   const sidebar = document.getElementById('left-sidebar');
   sidebar.innerHTML = '';
 
-  // Logo & Title Header Container
-  const logoHeader = document.createElement('div');
-  logoHeader.style.cssText = 'display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 8px auto 16px auto; cursor: pointer;';
-  logoHeader.addEventListener('click', () => { window.location.href = 'lobbyx.html'; });
-
-  // Logo Image
-  const logo = document.createElement('img');
-  logo.src = 'logo.png';
-  logo.alt = 'LOBBY.GG';
-  logo.style.cssText = 'width: 52px; height: 52px; object-fit: contain; transition: transform 0.15s ease; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));';
-  
-  // Title Text
-  const logoText = document.createElement('span');
-  logoText.textContent = 'LOBBY.GG';
-  logoText.style.cssText = 'font-size: 14px; font-weight: 900; color: #ffffff; letter-spacing: 1px; text-shadow: 2px 2px 0px #000000; text-transform: uppercase; transition: color 0.1s ease;';
-
-  logoHeader.appendChild(logo);
-  logoHeader.appendChild(logoText);
-
-  // Hover Effect
-  logoHeader.addEventListener('mouseenter', () => {
-    logo.style.transform = 'scale(1.08)';
-    logoText.style.color = 'var(--accent)';
-  });
-  logoHeader.addEventListener('mouseleave', () => {
-    logo.style.transform = 'scale(1)';
-    logoText.style.color = '#ffffff';
-  });
-
-  sidebar.appendChild(logoHeader);
-
-  // LCoin Balance Widget
+  // Branding & LCoin Balance Widget (Option 2: Logo inside Bakiye Card)
   if (currentUser && currentProfile) {
     const lcoinCard = document.createElement('div');
     lcoinCard.className = 'lcoin-card';
     lcoinCard.style.cssText = 'margin: 0 0 16px 0; width: 100%; display: flex; align-items: center; gap: 10px; cursor: pointer;';
     lcoinCard.innerHTML = `
-      <span class="lcoin-card-icon" style="font-size: 24px;">🪙</span>
+      <img src="logo.png" class="lcoin-card-icon" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));" />
       <div style="text-align: left; flex: 1;">
-        <div class="lcoin-card-label" style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #78350f; letter-spacing: 0.5px;">Bakiye</div>
+        <div class="lcoin-card-label" style="font-size: 9px; font-weight: 900; text-transform: uppercase; color: #78350f; letter-spacing: 0.5px;">Bakiye</div>
         <div class="lcoin-card-amount" style="font-size: 16px; font-weight: 900; color: #000000; line-height: 1.1;">${(currentProfile.lcoin || 0).toLocaleString('tr-TR')} LC</div>
       </div>
     `;
     lcoinCard.addEventListener('click', () => window.location.href = 'market.html');
     sidebar.appendChild(lcoinCard);
+  } else {
+    // Elegant fallback brand card for logged-out users so logo & branding are always present
+    const brandCard = document.createElement('div');
+    brandCard.className = 'lcoin-card';
+    brandCard.style.cssText = 'margin: 0 0 16px 0; width: 100%; display: flex; align-items: center; gap: 10px; cursor: pointer;';
+    brandCard.innerHTML = `
+      <img src="logo.png" class="lcoin-card-icon" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));" />
+      <div style="text-align: left; flex: 1;">
+        <div class="lcoin-card-label" style="font-size: 9px; font-weight: 900; text-transform: uppercase; color: #78350f; letter-spacing: 0.5px;">Hoş Geldiniz</div>
+        <div class="lcoin-card-amount" style="font-size: 16px; font-weight: 900; color: #000000; line-height: 1.1;">LOBBY.GG</div>
+      </div>
+    `;
+    brandCard.addEventListener('click', () => window.location.href = 'giris.html');
+    sidebar.appendChild(brandCard);
   }
 
   // Navigation Items
