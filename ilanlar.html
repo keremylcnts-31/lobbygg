@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3.0" />
+  <link rel="stylesheet" href="style.css?v=3.1" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -603,7 +603,7 @@
     const userIds = [...new Set(allListings.map(i => i.kullanici_id).filter(id => id))];
     if (userIds.length > 0) {
       const { data: users, error: usersErr } = await sb.from('kullanicilar')
-        .select('id, avatar_url, kullanici_adi, dogrulama_rozeti')
+        .select('id, avatar_url, kullanici_adi, dogrulama_rozeti, desteklenen_sunucu')
         .in('id', userIds);
       if (!usersErr && users) {
         users.forEach(u => {
@@ -640,6 +640,40 @@
     else if (activeSort === 'one_cikan') list.sort((a, b) => (b.one_cikan ? 1 : 0) - (a.one_cikan ? 1 : 0));
 
     return list;
+  }
+
+  function getServerLogoUrl(serverName) {
+    if (!serverName) return 'https://api.dicebear.com/7.x/identicon/svg?seed=default';
+    const lower = serverName.toLowerCase().trim();
+    const ipMap = {
+      'hypixel': 'play.hypixel.net',
+      'sonoyuncu': 'play.sonoyuncu.com',
+      'craftrise': 'play.craftrise.tc',
+      'mineland': 'play.mineland.net',
+      'cubecraft': 'play.cubecraft.net',
+      'wynncraft': 'play.wynncraft.com',
+      '2b2t': '2b2t.org',
+      'manacube': 'play.manacube.com',
+      'mineplex': 'us.mineplex.com',
+      'mushmc': 'play.mushmc.com.tr'
+    };
+    if (lower.includes('.')) {
+      return `https://api.mcsrvstat.us/icon/${lower}`;
+    }
+    if (ipMap[lower]) {
+      return `https://api.mcsrvstat.us/icon/${ipMap[lower]}`;
+    }
+    return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(lower)}`;
+  }
+
+  function formatPrice(val) {
+    if (!val || val == 0 || val === 'Ücretsiz' || val === '0') return { text: 'Ücretsiz', type: 'free' };
+    if (val === 'Anlaşmalı' || val === 'Anlasmalı') return { text: 'Anlaşmalı', type: 'anlasmali' };
+    const num = parseInt(val.toString().replace(/\D/g, ''));
+    if (!isNaN(num)) {
+      return { text: num.toLocaleString('tr-TR') + ' TL', type: 'paid' };
+    }
+    return { text: val + ' TL', type: 'paid' };
   }
 
   // ─── RENDER CARD ──────────────────────────────────────────────────────────
@@ -684,12 +718,6 @@
 
     const badges = document.createElement('div');
     badges.className = 'card-badges';
-
-    const catBadge = document.createElement('span');
-    const catMap = { PvP: 'b-pvp', 'İçerik': 'b-icerik', Developer: 'b-developer', Builder: 'b-builder', Sunucu: 'b-yonetici-cat' };
-    catBadge.className = 'badge b-cat ' + (catMap[ilan.kategori] || 'b-diger');
-    catBadge.textContent = (CAT_ICONS[ilan.kategori] || '') + ' ' + (ilan.kategori || '');
-    badges.appendChild(catBadge);
 
     if (ilan.one_cikan) {
       const ocBadge = document.createElement('span');
@@ -759,19 +787,43 @@
     desc.textContent = ilan.aciklama || '';
     body.appendChild(desc);
 
+    // Supported Server section
+    if (userData && userData.desteklenen_sunucu) {
+      const serverSupport = document.createElement('div');
+      serverSupport.className = 'card-server-support';
+      
+      const serverLogo = document.createElement('img');
+      serverLogo.className = 'server-support-logo';
+      serverLogo.src = getServerLogoUrl(userData.desteklenen_sunucu);
+      serverLogo.alt = userData.desteklenen_sunucu;
+      serverLogo.onerror = () => {
+        serverLogo.src = 'https://api.dicebear.com/7.x/identicon/svg?seed=' + encodeURIComponent(userData.desteklenen_sunucu.toLowerCase());
+      };
+      
+      const serverInfo = document.createElement('div');
+      serverInfo.className = 'server-support-info';
+      
+      const serverLabel = document.createElement('div');
+      serverLabel.className = 'server-support-label';
+      serverLabel.textContent = 'DESTEKLEDİĞİ SUNUCU';
+      
+      const serverName = document.createElement('div');
+      serverName.className = 'server-support-name';
+      serverName.textContent = userData.desteklenen_sunucu;
+      
+      serverInfo.appendChild(serverLabel);
+      serverInfo.appendChild(serverName);
+      serverSupport.appendChild(serverLogo);
+      serverSupport.appendChild(serverInfo);
+      body.appendChild(serverSupport);
+    }
+
     const priceWrap = document.createElement('div');
     priceWrap.className = 'card-price';
     const priceBadge = document.createElement('span');
-    if (!ilan.fiyat || ilan.fiyat == 0 || ilan.fiyat === 'Ücretsiz') {
-      priceBadge.className = 'price-badge free';
-      priceBadge.textContent = '✅ Ücretsiz';
-    } else if (ilan.fiyat === 'Anlaşmalı' || ilan.fiyat === 'Anlasmalı') {
-      priceBadge.className = 'price-badge anlasmali';
-      priceBadge.textContent = '🤝 Anlaşmalı';
-    } else {
-      priceBadge.className = 'price-badge paid';
-      priceBadge.textContent = '💰 ' + ilan.fiyat + ' ₺';
-    }
+    const pInfo = formatPrice(ilan.fiyat);
+    priceBadge.className = 'price-badge ' + pInfo.type;
+    priceBadge.textContent = pInfo.text;
     priceWrap.appendChild(priceBadge);
     body.appendChild(priceWrap);
     card.appendChild(body);

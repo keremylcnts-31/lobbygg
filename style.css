@@ -1827,22 +1827,25 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
   flex-wrap: wrap;
 }
 
-/* Card Author Bar at the top of card body (inline layout, no banner overlap) */
+/* Card Author Bar at the top of card body (overlapping the banner) */
 .card-author-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
+  margin-top: -46px; /* Pull it up to overlap the banner */
   margin-bottom: 16px;
+  position: relative;
+  z-index: 6;
 }
 .card-author-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px !important; /* Oval corners square (rounded square) */
-  border: 2.5px solid #000000 !important;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px !important; /* Oval corners square (rounded square) */
+  border: 3px solid #000000 !important;
   object-fit: cover;
   background: #1a1a1a;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
 }
 .card-author-info {
   display: flex;
@@ -1972,5 +1975,95 @@ button:not(.pw-toggle):not(.chip):not(.modal-close):not(.comment-del-btn):hover:
 }
 .discord-gradient:hover {
   background: linear-gradient(135deg, #99a5ff, #525ed9) !important;
+}
+
+/* Profile Listings Avatar Overlap */
+.card-avatar-overlap {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px !important;
+  border: 3px solid #000000 !important;
+  object-fit: cover;
+  background: #1a1a1a;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  margin-left: 24px;
+  margin-top: -46px;
+  margin-bottom: 0px;
+  position: relative;
+  z-index: 6;
+  flex-shrink: 0;
+}
+
+/* Premium Pricing Styles */
+.price-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.price-badge.free {
+  color: #2ecc71;
+}
+.price-badge.paid {
+  color: #ffd13b;
+}
+.price-badge.anlasmali {
+  color: #3498db;
+}
+.ilan-card.featured .price-badge {
+  color: #000000 !important;
+}
+
+/* Supported Server Section */
+.card-server-support {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1.5px solid #000000;
+  padding: 8px 12px;
+  border-radius: 12px !important;
+  margin-top: 2px;
+  margin-bottom: 14px;
+}
+.ilan-card.featured .card-server-support {
+  background: rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+.server-support-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px !important;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid #000;
+}
+.server-support-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.server-support-label {
+  font-size: 8px;
+  font-weight: 900;
+  color: #777;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.ilan-card.featured .server-support-label {
+  color: #5c4c1a;
+}
+.server-support-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ilan-card.featured .server-support-name {
+  color: #000000;
 }
 
