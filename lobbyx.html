@@ -48,36 +48,118 @@
     }
     
     /* Header nav overrides to keep it dark & beautiful like Melonya's dark header */
+    /* =====================
+       VIBRANT GAMING HEADER NAV OVERRIDES
+       ===================== */
     .nav {
-      background: #111111 !important;
-      border-bottom: 2px solid #000000 !important;
+      background: rgba(12, 17, 30, 0.6) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border-bottom: 3px solid #000000 !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+      gap: 12px !important;
     }
+    
+    .nav-links {
+      gap: 8px !important;
+    }
+
     .nav-link {
-      color: #aaaaaa !important;
-    }
-    .nav-link:hover, .nav-link.active {
       color: #ffffff !important;
-      background: rgba(255, 255, 255, 0.05) !important;
+      background: rgba(18, 62, 103, 0.65) !important;
+      border: 2px solid #000000 !important;
+      border-radius: 0px !important;
+      box-shadow: 2px 2px 0px #000000;
+      padding: 8px 14px !important;
+      font-weight: 800 !important;
+      transition: all 0.1s ease !important;
+      transform: translate(0, 0);
     }
+
+    .nav-link:hover {
+      color: #000000 !important;
+      background: var(--accent) !important;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0px #000000;
+    }
+
+    .nav-link:active {
+      transform: translate(0px, 0px);
+      box-shadow: 1px 1px 0px #000000;
+    }
+
     .nav-link.active {
-      color: var(--accent) !important;
+      color: #000000 !important;
+      background: var(--accent) !important;
+      box-shadow: 2px 2px 0px #000000 !important;
+      transform: translate(0, 0) !important;
     }
+    
     .nav-bell {
-      background: #222222 !important;
-      border: 1px solid #333333 !important;
-      color: #cccccc !important;
-    }
-    .nav-bell:hover {
+      background: rgba(18, 62, 103, 0.65) !important;
+      border: 2px solid #000000 !important;
+      border-radius: 0px !important;
       color: #ffffff !important;
-      border-color: var(--accent) !important;
+      box-shadow: 2px 2px 0px #000000;
+      transition: all 0.1s ease !important;
     }
+
+    .nav-bell:hover {
+      color: #000000 !important;
+      background: var(--accent) !important;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0px #000000;
+      border-color: #000000 !important;
+    }
+
+    .nav-bell:active {
+      transform: translate(0, 0);
+      box-shadow: 1px 1px 0px #000000;
+    }
+
     .nav-lcoin {
-      background: #222222 !important;
-      border: 1px solid #333333 !important;
-      color: var(--gold) !important;
+      background: linear-gradient(135deg, #ffd700, #facc15) !important;
+      border: 2px solid #000000 !important;
+      border-radius: 0px !important;
+      color: #000000 !important;
+      box-shadow: 2px 2px 0px #000000;
+      transition: all 0.1s ease !important;
+      font-weight: 900 !important;
     }
+
+    .nav-lcoin:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0px #000000;
+    }
+
+    .nav-lcoin:active {
+      transform: translate(0, 0);
+      box-shadow: 1px 1px 0px #000000;
+    }
+
     .nav-avatar img {
-      border: 2px solid #ffffff !important;
+      border: 2px solid #000000 !important;
+      border-radius: 0px !important;
+    }
+    
+    .nav-user {
+      border: 2px solid #000000 !important;
+      background: rgba(18, 62, 103, 0.65) !important;
+      padding: 4px 10px !important;
+      border-radius: 0px !important;
+      box-shadow: 2px 2px 0px #000000;
+      transition: all 0.1s ease !important;
+      cursor: pointer;
+    }
+
+    .nav-user:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0px #000000;
+    }
+
+    .nav-user:active {
+      transform: translate(0, 0);
+      box-shadow: 1px 1px 0px #000000;
     }
     
     /* Mobile bottom navigation overrides */
