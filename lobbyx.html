@@ -1407,6 +1407,100 @@
       padding-bottom: 12px;
       margin-bottom: 12px;
     }
+
+    /* =============================================
+       COMMENT DETAIL VIEW (Twitter/X style)
+       ============================================= */
+    .comment-detail-container {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+    .comment-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0 16px;
+      border-bottom: 2px solid #000;
+      margin-bottom: 0;
+    }
+    /* The focused comment shown big at top */
+    .comment-detail-focus {
+      background: var(--bg-card);
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 0;
+    }
+    .comment-detail-focus .cdf-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .comment-detail-focus .cdf-nick {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text-1);
+      cursor: pointer;
+    }
+    .comment-detail-focus .cdf-nick:hover { color: var(--accent); }
+    .comment-detail-focus .cdf-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    .comment-detail-focus .cdf-text {
+      font-size: 15px;
+      color: var(--text-1);
+      line-height: 1.6;
+      word-break: break-word;
+      margin-bottom: 12px;
+    }
+    .comment-detail-focus .cdf-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-thin);
+    }
+    /* Separator between focused comment and replies */
+    .replies-section-label {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      padding: 10px 0 6px;
+      border-bottom: 1px solid var(--border-thin);
+      margin-bottom: 0;
+    }
+    /* Reply count badge on comment items */
+    .comment-reply-count {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .comment-reply-count:hover { color: var(--accent); }
+    /* Make comment items look clickable */
+    .comment-item.has-replies {
+      cursor: pointer;
+    }
+    .comment-item.has-replies:hover .comment-body {
+      background: rgba(57,255,20,0.03);
+    }
+    /* Reply input row in comment detail */
+    .comment-detail-replies {
+      background: rgba(0,0,0,0.15);
+      border-top: 2px solid #000;
+      padding: 12px 14px;
+    }
   </style>
 </head>
 <body>
@@ -1460,6 +1554,9 @@
 
       <!-- Detail View (Twitter Style Inline) -->
       <div class="detail-container" id="detail-container" style="display: none;"></div>
+
+      <!-- Comment Detail View (Twitter/X Thread Style) -->
+      <div class="comment-detail-container" id="comment-detail-container" style="display: none;"></div>
 
     </main>
 
@@ -3346,17 +3443,19 @@ async function loadComments(dropId, section, loadAll = false) {
   sendBtn.textContent = '↑';
   sendBtn.style.display = currentUser ? 'flex' : 'none';
 
-  const sendComment = async () => {
+  const sendComment = async (parentId = null) => {
     const text = input.value.trim();
     if (!text || !currentUser) return;
     input.value = '';
     try {
-      const { data: newComment } = await sb.from('drop_yorumlar').insert({
+      const insertPayload = {
         drop_id: dropId,
         kullanici_id: currentUser.id,
         yorum: text,
         begeni_sayisi: 0
-      }).select().single();
+      };
+      if (parentId) insertPayload.parent_id = parentId;
+      const { data: newComment } = await sb.from('drop_yorumlar').insert(insertPayload).select().single();
 
       if (newComment) {
         const newCount = (parseInt(section.dataset.commentCount || 0) + 1);
@@ -3384,7 +3483,8 @@ async function loadComments(dropId, section, loadAll = false) {
   try {
     let commentsQuery = sb.from('drop_yorumlar')
       .select('*')
-      .eq('drop_id', dropId);
+      .eq('drop_id', dropId)
+      .is('parent_id', null); // Only top-level comments
 
     if (loadAll) {
       commentsQuery = commentsQuery.order('created_at', { ascending: true });
@@ -3433,6 +3533,7 @@ async function loadComments(dropId, section, loadAll = false) {
           const { data: allComments } = await sb.from('drop_yorumlar')
             .select('*')
             .eq('drop_id', dropId)
+            .is('parent_id', null)
             .order('created_at', { ascending: true });
 
           if (allComments && allComments.length > 0) {
@@ -3610,7 +3711,279 @@ function buildCommentItem(comment, dropId, commentsList, dropOwnerId) {
   body.appendChild(likeRow);
   item.appendChild(av);
   item.appendChild(body);
+
+  // Load reply count and make item clickable
+  (async () => {
+    try {
+      const { count } = await sb.from('drop_yorumlar')
+        .select('*', { count: 'exact', head: true })
+        .eq('parent_id', comment.id);
+      if (count > 0) {
+        item.classList.add('has-replies');
+        const replyCountEl = document.createElement('span');
+        replyCountEl.className = 'comment-reply-count';
+        replyCountEl.innerHTML = `💬 ${count} yanıt`;
+        likeRow.appendChild(replyCountEl);
+      }
+    } catch (e) {}
+  })();
+
+  // Click on comment body/text → open comment detail (X/Twitter style)
+  body.addEventListener('click', (e) => {
+    const isBtn = e.target.closest('button, a');
+    if (isBtn) return;
+    showCommentDetail(comment, dropId);
+  });
+  text.style.cursor = 'pointer';
+  nick.style.cursor = 'pointer';
+
   return item;
+}
+
+// =============================================
+// SHOW COMMENT DETAIL (Twitter/X style)
+// =============================================
+let currentCommentDetailId = null;
+
+async function showCommentDetail(comment, dropId, pushState = true) {
+  currentCommentDetailId = comment.id;
+
+  // Hide feed or drop detail
+  const detailContainer = document.getElementById('detail-container');
+  const commentDetailContainer = document.getElementById('comment-detail-container');
+
+  // Save feed scroll if needed
+  if (currentDetailDropId === null) {
+    feedScrollPosition = window.scrollY;
+  }
+
+  // Hide drop detail card while keeping container visible
+  // Instead, swap detail-container content with comment detail
+  document.getElementById('feed-tabs').style.display = 'none';
+  const pill = document.getElementById('new-drops-pill');
+  if (pill) pill.style.display = 'none';
+  document.getElementById('composer-container').style.display = 'none';
+  document.getElementById('following-empty').style.display = 'none';
+  document.getElementById('drop-feed').style.display = 'none';
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+  document.getElementById('feed-loading').style.display = 'none';
+  detailContainer.style.display = 'none';
+
+  commentDetailContainer.style.display = 'flex';
+  commentDetailContainer.innerHTML = '';
+
+  if (pushState) {
+    history.pushState(
+      { dropId: dropId, commentId: comment.id },
+      '',
+      '?drop=' + dropId + '&comment=' + comment.id
+    );
+  }
+
+  // --- Header (back button) ---
+  const header = document.createElement('div');
+  header.className = 'comment-detail-header';
+
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn mc-gray mc-sm back-btn';
+  backBtn.innerHTML = '←';
+  backBtn.style.cssText = 'border-radius:6px!important;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;padding:0;cursor:pointer;';
+  backBtn.addEventListener('click', () => {
+    // Go back to drop detail
+    currentCommentDetailId = null;
+    commentDetailContainer.style.display = 'none';
+    if (currentDetailDropId) {
+      showDropDetail(currentDetailDropId, true);
+    } else {
+      showFeed();
+    }
+  });
+
+  const headerTitle = document.createElement('span');
+  headerTitle.style.cssText = 'font-size:16px;font-weight:900;color:#fff;font-family:var(--font);text-shadow:1px 1px 0 #000;';
+  headerTitle.textContent = 'Yorum';
+
+  header.appendChild(backBtn);
+  header.appendChild(headerTitle);
+  commentDetailContainer.appendChild(header);
+
+  // --- Focused comment (shown big, like a post) ---
+  const user = comment.kullanicilar || {};
+  const focusBox = document.createElement('div');
+  focusBox.className = 'comment-detail-focus';
+
+  const cdfHeader = document.createElement('div');
+  cdfHeader.className = 'cdf-header';
+
+  const cdfAv = createAvatar(user.avatar_url, user.kullanici_adi, 40);
+  if (user.id) {
+    cdfAv.style.cursor = 'pointer';
+    cdfAv.addEventListener('click', () => { window.location.href = `profil.html?id=${user.id}`; });
+  }
+
+  const cdfNick = document.createElement('span');
+  cdfNick.className = 'cdf-nick';
+  cdfNick.textContent = user.kullanici_adi || 'Anonim';
+  if (user.id) {
+    cdfNick.addEventListener('click', () => { window.location.href = `profil.html?id=${user.id}`; });
+  }
+
+  const cdfTime = document.createElement('span');
+  cdfTime.className = 'cdf-time';
+  cdfTime.textContent = relativeTime(comment.created_at);
+
+  cdfHeader.appendChild(cdfAv);
+  cdfHeader.appendChild(cdfNick);
+  cdfHeader.appendChild(cdfTime);
+  focusBox.appendChild(cdfHeader);
+
+  // Show what drop this is replying to (context)
+  if (comment.yorum) {
+    // If it's a reply, also show parent context
+    if (comment.parent_id) {
+      const contextDiv = document.createElement('div');
+      contextDiv.style.cssText = 'font-size:12px;color:var(--accent);margin-bottom:8px;cursor:pointer;font-weight:700;';
+      contextDiv.textContent = '↩ Yanıtlıyor';
+      focusBox.appendChild(contextDiv);
+    }
+  }
+
+  const cdfText = document.createElement('div');
+  cdfText.className = 'cdf-text';
+  cdfText.textContent = comment.yorum;
+  focusBox.appendChild(cdfText);
+
+  // Actions on focused comment
+  const cdfActions = document.createElement('div');
+  cdfActions.className = 'cdf-actions';
+
+  // Like button
+  const likeKey = `comment_liked_${comment.id}`;
+  const countKey = `comment_like_count_${comment.id}`;
+  let isLiked = localStorage.getItem(likeKey) === 'true';
+  let likeCountVal = parseInt(localStorage.getItem(countKey));
+  if (isNaN(likeCountVal)) likeCountVal = comment.begeni_sayisi || 0;
+
+  const cdfLike = document.createElement('button');
+  cdfLike.className = 'comment-like-btn' + (isLiked ? ' liked' : '');
+  cdfLike.innerHTML = `❤️ ${likeCountVal}`;
+  cdfLike.addEventListener('click', async () => {
+    if (!currentUser) { showToast('Giriş yap!', 'error'); return; }
+    isLiked = !isLiked;
+    if (isLiked) {
+      cdfLike.classList.add('liked'); likeCountVal++;
+      localStorage.setItem(likeKey, 'true');
+    } else {
+      cdfLike.classList.remove('liked'); likeCountVal = Math.max(0, likeCountVal - 1);
+      localStorage.removeItem(likeKey);
+    }
+    localStorage.setItem(countKey, likeCountVal);
+    cdfLike.innerHTML = `❤️ ${likeCountVal}`;
+    try { await sb.from('drop_yorumlar').update({ begeni_sayisi: likeCountVal }).eq('id', comment.id); } catch(e) {}
+  });
+  cdfActions.appendChild(cdfLike);
+
+  focusBox.appendChild(cdfActions);
+  commentDetailContainer.appendChild(focusBox);
+
+  // --- Replies section label ---
+  const repliesLabel = document.createElement('div');
+  repliesLabel.className = 'replies-section-label';
+  repliesLabel.textContent = 'Yanıtlar';
+  commentDetailContainer.appendChild(repliesLabel);
+
+  // --- Replies list ---
+  const repliesSection = document.createElement('div');
+  repliesSection.className = 'drop-comments comment-detail-replies open';
+  repliesSection.dataset.commentCount = '0';
+  repliesSection.dataset.ownerId = comment.kullanici_id || '';
+  commentDetailContainer.appendChild(repliesSection);
+
+  // --- Reply input ---
+  const replyInputRow = document.createElement('div');
+  replyInputRow.className = 'comment-input-row';
+  replyInputRow.style.cssText = 'border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:12px;';
+
+  const replyAv = createAvatar(currentProfile?.avatar_url, currentProfile?.kullanici_adi, 28);
+  const replyInput = document.createElement('input');
+  replyInput.className = 'comment-input';
+  replyInput.placeholder = currentUser ? 'Yanıtını yaz... (Enter)' : 'Yanıtlamak için giriş yap';
+  replyInput.disabled = !currentUser;
+
+  const replySendBtn = document.createElement('button');
+  replySendBtn.className = 'comment-send-btn';
+  replySendBtn.textContent = '↑';
+  replySendBtn.style.display = currentUser ? 'flex' : 'none';
+
+  const sendReply = async () => {
+    const text = replyInput.value.trim();
+    if (!text || !currentUser) return;
+    replyInput.value = '';
+    try {
+      const { data: newReply } = await sb.from('drop_yorumlar').insert({
+        drop_id: dropId,
+        kullanici_id: currentUser.id,
+        yorum: text,
+        begeni_sayisi: 0,
+        parent_id: comment.id
+      }).select().single();
+      if (newReply) {
+        newReply.kullanicilar = currentProfile;
+        const replyEl = buildCommentItem(newReply, dropId, repliesSection, Number(comment.kullanici_id));
+        repliesSection.insertBefore(replyEl, replyInputRow);
+        // Update reply count badge on parent
+        const parentBadges = document.querySelectorAll('.comment-reply-count');
+        // Update DB yorum_sayisi
+        const currentCount = parseInt(repliesSection.dataset.commentCount || 0) + 1;
+        repliesSection.dataset.commentCount = currentCount;
+        showToast('Yanıt gönderildi!', 'success');
+      }
+    } catch (e) { showToast('Yanıt gönderilemedi', 'error'); }
+  };
+
+  replyInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendReply(); });
+  replySendBtn.addEventListener('click', sendReply);
+
+  replyInputRow.appendChild(replyAv);
+  replyInputRow.appendChild(replyInput);
+  replyInputRow.appendChild(replySendBtn);
+  repliesSection.appendChild(replyInputRow);
+
+  // --- Load existing replies ---
+  try {
+    const { data: replies } = await sb.from('drop_yorumlar')
+      .select('*')
+      .eq('parent_id', comment.id)
+      .order('created_at', { ascending: true });
+
+    if (replies && replies.length > 0) {
+      const userIds = [...new Set(replies.map(r => r.kullanici_id).filter(Boolean))];
+      if (userIds.length > 0) {
+        const { data: users } = await sb.from('kullanicilar')
+          .select('id, kullanici_adi, avatar_url')
+          .in('id', userIds);
+        if (users) {
+          const userMap = {};
+          users.forEach(u => { userMap[u.id] = u; });
+          replies.forEach(r => { r.kullanicilar = userMap[r.kullanici_id] || null; });
+        }
+      }
+      const dropOwnerId = Number(comment.kullanici_id);
+      replies.forEach(reply => {
+        const el = buildCommentItem(reply, dropId, repliesSection, dropOwnerId);
+        repliesSection.insertBefore(el, replyInputRow);
+      });
+      repliesSection.dataset.commentCount = replies.length;
+    } else {
+      const emptyEl = document.createElement('div');
+      emptyEl.style.cssText = 'text-align:center;color:var(--text-dim);font-size:11px;padding:12px 0;';
+      emptyEl.textContent = 'Henüz yanıt yok. İlk yanıtı sen gönder!';
+      repliesSection.insertBefore(emptyEl, replyInputRow);
+    }
+  } catch(e) { console.error(e); }
+
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // =============================================
@@ -4042,9 +4415,11 @@ async function showDropDetail(dropId, pushState = true, focusComment = false) {
 
 function showFeed() {
   currentDetailDropId = null;
+  currentCommentDetailId = null;
   
-  // Hide detail container
+  // Hide detail containers
   document.getElementById('detail-container').style.display = 'none';
+  document.getElementById('comment-detail-container').style.display = 'none';
 
   // Restore feed elements display
   document.getElementById('feed-tabs').style.display = 'flex';
@@ -4069,10 +4444,25 @@ function showFeed() {
 
 // Listen to browser popstate to handle back/forward correctly
 window.addEventListener('popstate', (e) => {
-  if (e.state && e.state.dropId) {
+  if (e.state && e.state.commentId) {
+    // Navigating back/forward within a comment detail
+    // Rebuild the comment from scratch
+    sb.from('drop_yorumlar').select('*, kullanicilar:kullanici_id(id, kullanici_adi, avatar_url)')
+      .eq('id', e.state.commentId).maybeSingle().then(({ data: comment }) => {
+        if (comment) {
+          // Flatten join
+          if (comment.kullanicilar && !Array.isArray(comment.kullanicilar)) {
+            // already single object
+          }
+          showCommentDetail(comment, e.state.dropId, false);
+        }
+      });
+  } else if (e.state && e.state.dropId) {
     showDropDetail(e.state.dropId, false);
   } else {
     // Show main feed if no drop state
+    currentCommentDetailId = null;
+    document.getElementById('comment-detail-container').style.display = 'none';
     if (currentDetailDropId !== null) {
       showFeed();
     }
