@@ -1222,11 +1222,21 @@
     .nav-bell,
     .nav-lcoin,
     .nav-user,
+    .nav-user img,
+    .pp-img,
+    .pp-wrap,
+    .pp-wrap img,
+    .drop-avatar-wrap img,
+    .comment-item img,
+    .suggest-item img,
+    .sidebar-user-card img,
+    .composer-row img,
     .following-empty,
     .skeleton-card,
     .skeleton-circle,
     .suggest-follow-btn,
     .btn,
+    .mc-btn,
     .mc-btn,
     button,
     .load-more-btn {
@@ -1370,7 +1380,7 @@
       margin-bottom: 4px;
     }
     .detail-header .back-btn {
-      border-radius: 50% !important;
+      border-radius: 6px !important;
       width: 32px;
       height: 32px;
       display: flex;
@@ -1650,17 +1660,17 @@ function createAvatar(url, nick, size = 40, rounded = true) {
     const img = document.createElement('img');
     img.src = url;
     img.alt = nick;
-    img.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};object-fit:cover;border:2px solid var(--border);flex-shrink:0;`;
+    img.style.cssText = `width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;border:2px solid var(--border);flex-shrink:0;`;
     img.onerror = () => {
       const ph = document.createElement('div');
-      ph.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
+      ph.style.cssText = `width:${size}px;height:${size}px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
       ph.textContent = (nick || '?')[0].toUpperCase();
       img.replaceWith(ph);
     };
     return img;
   } else {
     const ph = document.createElement('div');
-    ph.style.cssText = `width:${size}px;height:${size}px;border-radius:${rounded ? '50%' : '8px'};background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
+    ph.style.cssText = `width:${size}px;height:${size}px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:900;color:var(--text-2);flex-shrink:0;`;
     ph.textContent = (nick || '?')[0].toUpperCase();
     return ph;
   }
