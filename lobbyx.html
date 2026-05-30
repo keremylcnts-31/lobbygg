@@ -1525,6 +1525,7 @@
       flex-direction: column;
       text-decoration: none;
       color: inherit;
+      height: 100%;
     }
     .player-card:hover {
       transform: translate(-2px, -2px);
@@ -4250,6 +4251,8 @@ function showDropContextMenu(e, drop, card) {
     menu.appendChild(report);
   }
 
+
+
   menu.style.display = 'block';
   const x = Math.min(e.clientX, window.innerWidth - 180);
   const y = Math.min(e.clientY, window.innerHeight - 120);
@@ -5141,12 +5144,12 @@ function renderExploreGrid() {
   }
 
   filtered.forEach(u => {
-    const avatarSrc = u.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${u.kullanici_adi}`;
+    const avatarSrc = u.avatar_url || `https://mc-heads.net/avatar/${encodeURIComponent(u.kullanici_adi)}`;
     let bannerHtml = '';
     if (u.banner_url) {
       bannerHtml = `<img src="${u.banner_url}" class="pc-banner" alt="Banner">`;
     } else {
-      bannerHtml = `<canvas class="pc-banner-canvas" style="width: 100%; height: 100%; display: block;"></canvas>`;
+      bannerHtml = `<img src="default_banner.jpg" class="pc-banner" alt="Banner">`;
     }
     
     let subBadge = '';

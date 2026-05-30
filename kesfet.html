@@ -175,7 +175,15 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+    }
+
+    /* Top info section grows to fill space, pushing actions down */
+    .pc-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .pc-name-row {
@@ -256,11 +264,14 @@
       min-height: 34px;
     }
 
+    /* Actions always at the bottom, never float up */
     .pc-actions {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-thin);
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -434,12 +445,17 @@
       }
 
       filtered.forEach(u => {
-        const avatarSrc = u.avatar_url || `https://api.dicebear.com/7.x/minecraft/svg?seed=${u.kullanici_adi}`;
+        // Avatar: if no avatar, use Minecraft skin via mc-heads or crafatar
+        const mcSeed = encodeURIComponent(u.kullanici_adi || 'Steve');
+        const avatarSrc = u.avatar_url || `https://mc-heads.net/avatar/${mcSeed}/128`;
+        const avatarFallback = `https://crafatar.com/avatars/${mcSeed}?size=128&overlay`;
+        
+        // Banner: if no banner, use default banner image
         let bannerHtml = '';
         if (u.banner_url) {
           bannerHtml = `<img src="${u.banner_url}" class="pc-banner" alt="Banner">`;
         } else {
-          bannerHtml = `<canvas class="pc-banner-canvas" style="width: 100%; height: 100%; display: block;"></canvas>`;
+          bannerHtml = `<img src="mc_bg.png" class="pc-banner" alt="Banner" onerror="this.src='mc_bg.png'">`;
         }
         
         let subBadge = '';
@@ -507,19 +523,22 @@
             <div class="pc-banner-overlay"></div>
           </div>
           <div class="pc-avatar-wrap" data-frame="${u.aktif_cerceve || 'none'}">
-            <img src="${avatarSrc}" class="pc-avatar ${u.pp_sekil === 'rounded' ? 'shape-rounded' : ''}" alt="Avatar">
+            <img src="${avatarSrc}" class="pc-avatar ${u.pp_sekil === 'rounded' ? 'shape-rounded' : ''}" alt="Avatar"
+              onerror="this.onerror=null; this.src='https://crafatar.com/avatars/${mcSeed}?size=128&overlay'; this.onerror=function(){this.src='https://api.mcsrvstat.us/icon/hypixel.net';}">
           </div>
           <div class="pc-body">
-            <div class="pc-name-row">
-              <span class="pc-name">${u.kullanici_adi || 'Anonim'}</span>
-              ${u.dogrulama_rozeti ? '<img src="https://i.imgur.com/VDpHaPy.png" class="profile-verify-badge" title="Doğrulanmış">' : ''}
-              ${roleBadge}
-              ${subBadge}
-            </div>
-            ${clanHtml}
-            ${serverHtml}
-            <div class="pc-bio">
-              ${u.bio || 'Henüz bir açıklama yazılmamış.'}
+            <div class="pc-info">
+              <div class="pc-name-row">
+                <span class="pc-name">${u.kullanici_adi || 'Anonim'}</span>
+                ${u.dogrulama_rozeti ? '<img src="https://i.imgur.com/VDpHaPy.png" class="profile-verify-badge" title="Doğrulanmış">' : ''}
+                ${roleBadge}
+                ${subBadge}
+              </div>
+              ${clanHtml}
+              ${serverHtml}
+              <div class="pc-bio">
+                ${u.bio || 'Henüz bir açıklama yazılmamış.'}
+              </div>
             </div>
             <div class="pc-actions">
               <span class="btn mc-gold" style="width: 100%; justify-content: center; font-size: 11px;">PROFİLİ ZİYARET ET</span>
@@ -530,10 +549,7 @@
         grid.appendChild(card);
       });
 
-      // Initialize canvas animations for cards without banners
-      grid.querySelectorAll('.pc-banner-canvas').forEach(canvas => {
-        initBannerCanvas(canvas);
-      });
+      // No canvas needed anymore - using default banner image instead
     }
 
     function initBannerCanvas(canvas) {
