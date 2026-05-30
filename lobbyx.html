@@ -1347,6 +1347,56 @@
       color: #ffffff;
       background: rgba(255,255,255,0.05);
     }
+
+    /* =====================
+       DETAIL VIEW (SPA)
+       ===================== */
+    .detail-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 3px solid #000000;
+      border-radius: 6px !important;
+      box-shadow: 3px 3px 0px #000000;
+      margin-bottom: 4px;
+    }
+    .detail-header .back-btn {
+      border-radius: 50% !important;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 0;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .detail-container .drop-card {
+      border: 3px solid #000000 !important;
+      box-shadow: 4px 4px 0px #000000 !important;
+      margin-bottom: 0px !important;
+    }
+    .detail-container .drop-comments {
+      display: block !important;
+      border-top: 3px solid #000000 !important;
+      background: var(--bg-card2) !important;
+    }
+    .detail-container .comment-input-row {
+      border-bottom: 2px solid #000000;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -1397,6 +1447,9 @@
       </div>
       <div class="drop-feed" id="drop-feed"></div>
       <button class="load-more-btn" id="load-more-btn" style="display:none;">⬇ Daha Fazla Yükle</button>
+
+      <!-- Detail View (Twitter Style Inline) -->
+      <div class="detail-container" id="detail-container" style="display: none;"></div>
 
     </main>
 
@@ -1466,6 +1519,8 @@ let likedDrops = new Set();
 let followedUsers = new Set();
 let autoRefreshInterval = null;
 let realtimeSub = null;
+let feedScrollPosition = 0;
+let currentDetailDropId = null;
 
 // =============================================
 // CANVAS ANIMATION
@@ -2931,7 +2986,7 @@ function buildSkeletons() {
 // =============================================
 // BUILD DROP CARD
 // =============================================
-function buildDropCard(drop) {
+function buildDropCard(drop, isDetailView = false) {
   const user = drop.kullanicilar || {};
   const card = document.createElement('div');
   card.className = 'drop-card';
@@ -3035,7 +3090,7 @@ function buildDropCard(drop) {
       if (isProfileClick) {
         window.location.href = `profil.html?id=${redropData.original_author_id}`;
       } else {
-        window.location.href = `drop.html?id=${redropData.original_drop_id}`;
+        showDropDetail(redropData.original_drop_id, true);
       }
     });
 
@@ -3090,7 +3145,7 @@ function buildDropCard(drop) {
     content.className = 'drop-content';
 
     if (drop.icerik) {
-      const isLong = drop.icerik.length > 200 || drop.icerik.split('\n').length > 3;
+      const isLong = !isDetailView && (drop.icerik.length > 200 || drop.icerik.split('\n').length > 3);
       if (isLong) {
         content.classList.add('drop-content-collapsed');
         content.textContent = drop.icerik;
@@ -3154,8 +3209,13 @@ function buildDropCard(drop) {
   commentBtn.appendChild(commentIcon);
   commentBtn.appendChild(commentCount);
 
-  let commentsOpen = false;
+  let commentsOpen = isDetailView;
   commentBtn.addEventListener('click', () => {
+    if (isDetailView) {
+      const input = card.querySelector('.comment-input');
+      if (input) input.focus();
+      return;
+    }
     commentsOpen = !commentsOpen;
     const commentSection = card.querySelector('.drop-comments');
     if (commentsOpen) {
@@ -3193,7 +3253,8 @@ function buildDropCard(drop) {
   inner.addEventListener('click', (e) => {
     const interactive = e.target.closest('button, a, img, input, .drop-readmore, .nested-drop-card');
     if (interactive) return;
-    window.location.href = `drop.html?id=${drop.id}`;
+    if (isDetailView) return;
+    showDropDetail(drop.id, true);
   });
 
   card.appendChild(inner);
@@ -3203,6 +3264,12 @@ function buildDropCard(drop) {
   commentSection.className = 'drop-comments';
   commentSection.dataset.ownerId = drop.kullanici_id;
   card.appendChild(commentSection);
+
+  if (isDetailView) {
+    commentSection.classList.add('open');
+    commentBtn.classList.add('comment-active');
+    loadComments(drop.id, commentSection, true);
+  }
 
   return card;
 }
@@ -3260,7 +3327,7 @@ async function toggleLike(dropId, btn, icon, countEl) {
 // =============================================
 // LOAD COMMENTS
 // =============================================
-async function loadComments(dropId, section) {
+async function loadComments(dropId, section, loadAll = false) {
   section.innerHTML = '';
 
   // Comment input row
@@ -3270,7 +3337,7 @@ async function loadComments(dropId, section) {
   const av = createAvatar(currentProfile?.avatar_url, currentProfile?.kullanici_adi, 28);
   const input = document.createElement('input');
   input.className = 'comment-input';
-  input.placeholder = currentUser ? 'Yorum yaz... (Enter)' : 'Yorum yapmak için giriş yap';
+  input.placeholder = currentUser ? (loadAll ? 'Yanıtını gönder... (Enter)' : 'Yorum yaz... (Enter)') : 'Yorum yapmak için giriş yap';
   input.disabled = !currentUser;
 
   const sendBtn = document.createElement('button');
@@ -3314,11 +3381,18 @@ async function loadComments(dropId, section) {
 
   // Load comments from DB
   try {
-    const { data: comments } = await sb.from('drop_yorumlar')
+    let commentsQuery = sb.from('drop_yorumlar')
       .select('*')
-      .eq('drop_id', dropId)
-      .order('created_at', { ascending: false })
-      .limit(3);
+      .eq('drop_id', dropId);
+
+    if (loadAll) {
+      commentsQuery = commentsQuery.order('created_at', { ascending: true });
+    } else {
+      commentsQuery = commentsQuery.order('created_at', { ascending: false })
+        .limit(3);
+    }
+
+    const { data: comments } = await commentsQuery;
 
     if (comments && comments.length > 0) {
       const userIds = [...new Set(comments.map(c => c.kullanici_id).filter(id => id !== null))];
@@ -3346,51 +3420,61 @@ async function loadComments(dropId, section) {
 
     section.dataset.commentCount = comments.length;
 
-    // Check total count
-    const { count } = await sb.from('drop_yorumlar').select('*', { count: 'exact', head: true }).eq('drop_id', dropId);
-    if (count > 3) {
-      const seeAll = document.createElement('a');
-      seeAll.className = 'comment-see-all';
-      seeAll.textContent = `${count} yorumun tamamını gör →`;
-      seeAll.addEventListener('click', async () => {
-        seeAll.remove();
-        const { data: allComments } = await sb.from('drop_yorumlar')
-          .select('*')
-          .eq('drop_id', dropId)
-          .order('created_at', { ascending: true });
+    // Check total count (only if not loading all at once)
+    if (!loadAll) {
+      const { count } = await sb.from('drop_yorumlar').select('*', { count: 'exact', head: true }).eq('drop_id', dropId);
+      if (count > 3) {
+        const seeAll = document.createElement('a');
+        seeAll.className = 'comment-see-all';
+        seeAll.textContent = `${count} yorumun tamamını gör →`;
+        seeAll.addEventListener('click', async () => {
+          seeAll.remove();
+          const { data: allComments } = await sb.from('drop_yorumlar')
+            .select('*')
+            .eq('drop_id', dropId)
+            .order('created_at', { ascending: true });
 
-        if (allComments && allComments.length > 0) {
-          const userIds = [...new Set(allComments.map(c => c.kullanici_id).filter(id => id !== null))];
-          if (userIds.length > 0) {
-            const { data: users } = await sb.from('kullanicilar')
-              .select('id, kullanici_adi, avatar_url')
-              .in('id', userIds);
-            if (users) {
-              const userMap = {};
-              users.forEach(u => { userMap[u.id] = u; });
-              allComments.forEach(c => {
-                c.kullanicilar = userMap[c.kullanici_id] || null;
-              });
+          if (allComments && allComments.length > 0) {
+            const userIds = [...new Set(allComments.map(c => c.kullanici_id).filter(id => id !== null))];
+            if (userIds.length > 0) {
+              const { data: users } = await sb.from('kullanicilar')
+                .select('id, kullanici_adi, avatar_url')
+                .in('id', userIds);
+              if (users) {
+                const userMap = {};
+                users.forEach(u => { userMap[u.id] = u; });
+                allComments.forEach(c => {
+                  c.kullanicilar = userMap[c.kullanici_id] || null;
+                });
+              }
             }
           }
-        }
 
-        section.innerHTML = '';
-        section.appendChild(inputRow);
-        const dropOwnerId = Number(section.dataset.ownerId);
-        (allComments || []).forEach(c => {
-          const el = buildCommentItem(c, dropId, section, dropOwnerId);
-          section.insertBefore(el, inputRow);
+          section.innerHTML = '';
+          section.appendChild(inputRow);
+          const dropOwnerId = Number(section.dataset.ownerId);
+          (allComments || []).forEach(c => {
+            const el = buildCommentItem(c, dropId, section, dropOwnerId);
+            section.insertBefore(el, inputRow);
+          });
         });
-      });
-      section.insertBefore(seeAll, inputRow);
+        section.insertBefore(seeAll, inputRow);
+      }
     }
 
     const dropOwnerId = Number(section.dataset.ownerId);
-    comments.reverse().forEach(comment => {
-      const el = buildCommentItem(comment, dropId, section, dropOwnerId);
-      section.insertBefore(el, inputRow);
-    });
+    
+    if (loadAll) {
+      comments.forEach(comment => {
+        const el = buildCommentItem(comment, dropId, section, dropOwnerId);
+        section.insertBefore(el, inputRow);
+      });
+    } else {
+      comments.reverse().forEach(comment => {
+        const el = buildCommentItem(comment, dropId, section, dropOwnerId);
+        section.insertBefore(el, inputRow);
+      });
+    }
 
   } catch (e) {
     console.error(e);
@@ -3809,6 +3893,185 @@ function buildCarkWidget() {
 }
 
 // =============================================
+// SPA NAV AND DETAIL VIEWS
+// =============================================
+async function showDropDetail(dropId, pushState = true) {
+  if (!dropId) return;
+  
+  // If we were in feed view, save scroll position
+  if (currentDetailDropId === null) {
+    feedScrollPosition = window.scrollY;
+  }
+  
+  currentDetailDropId = dropId;
+  
+  // Hide feed elements
+  document.getElementById('feed-tabs').style.display = 'none';
+  const pill = document.getElementById('new-drops-pill');
+  if (pill) pill.style.display = 'none';
+  document.getElementById('composer-container').style.display = 'none';
+  document.getElementById('following-empty').style.display = 'none';
+  document.getElementById('drop-feed').style.display = 'none';
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+  document.getElementById('feed-loading').style.display = 'none';
+
+  // Show and render detail view
+  const detailContainer = document.getElementById('detail-container');
+  detailContainer.style.display = 'flex';
+  detailContainer.innerHTML = '';
+
+  // Back button and header
+  const header = document.createElement('div');
+  header.className = 'detail-header';
+  
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn mc-gray mc-sm back-btn';
+  backBtn.innerHTML = '←';
+  backBtn.addEventListener('click', () => {
+    showFeed();
+  });
+  
+  const title = document.createElement('span');
+  title.style.cssText = 'font-size: 16px; font-weight: 900; color: #fff; font-family: var(--font); text-shadow: 1px 1px 0 #000;';
+  title.textContent = 'Gönderi';
+  
+  header.appendChild(backBtn);
+  header.appendChild(title);
+  detailContainer.appendChild(header);
+
+  // Skeleton loading state
+  const loading = document.createElement('div');
+  loading.className = 'feed-loading';
+  loading.style.display = 'block';
+  
+  // Build single skeleton card inside detail view
+  const skCard = document.createElement('div');
+  skCard.className = 'skeleton-card';
+  skCard.style.cssText = 'margin-bottom: 0; border: 3px solid #000000; box-shadow: 4px 4px 0px #000000; padding: 14px;';
+  const skRow = document.createElement('div');
+  skRow.className = 'skeleton-row';
+  const skCircle = document.createElement('div');
+  skCircle.className = 'skeleton-circle';
+  skCircle.style.cssText = 'width:40px;height:40px;';
+  const skLines = document.createElement('div');
+  skLines.style.cssText = 'flex:1;display:flex;flex-direction:column;gap:6px;';
+  const skL1 = document.createElement('div');
+  skL1.className = 'skeleton-line';
+  skL1.style.width = '40%';
+  const skL2 = document.createElement('div');
+  skL2.className = 'skeleton-line';
+  skL2.style.width = '80%';
+  skLines.appendChild(skL1);
+  skLines.appendChild(skL2);
+  skRow.appendChild(skCircle);
+  skRow.appendChild(skLines);
+  skCard.appendChild(skRow);
+  loading.appendChild(skCard);
+  detailContainer.appendChild(loading);
+
+  if (pushState) {
+    history.pushState({ dropId: dropId }, '', '?drop=' + dropId);
+  }
+
+  // Fetch the drop details
+  try {
+    const { data: drops, error } = await sb.from('droplar').select('*').eq('id', dropId);
+    if (error) throw error;
+
+    loading.remove();
+
+    if (!drops || drops.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `
+        <div class="empty-state-icon">🗑️</div>
+        <div class="empty-state-title">Drop Bulunamadı</div>
+        <div class="empty-state-sub">Bu drop silinmiş veya hiç var olmamış olabilir.</div>
+      `;
+      detailContainer.appendChild(empty);
+      return;
+    }
+
+    const drop = drops[0];
+    
+    // Fetch author details
+    if (drop.kullanici_id) {
+      const { data: author } = await sb.from('kullanicilar')
+        .select('id, kullanici_adi, avatar_url, abonelik, aktif_cerceve, dogrulama_rozeti')
+        .eq('id', drop.kullanici_id)
+        .maybeSingle();
+      if (author) {
+        drop.kullanicilar = author;
+      }
+    }
+
+    const card = buildDropCard(drop, true);
+    detailContainer.appendChild(card);
+
+    // Sync liked state for this card
+    if (currentUser) {
+      const { data: likes } = await sb.from('drop_begeniler')
+        .select('drop_id')
+        .eq('kullanici_id', currentUser.id)
+        .eq('drop_id', dropId);
+      if (likes && likes.length > 0) {
+        likedDrops.add(dropId);
+        const likeBtn = card.querySelector(`[data-like-btn="${dropId}"]`);
+        if (likeBtn) {
+          likeBtn.classList.add('liked');
+          likeBtn.querySelector('.like-icon').textContent = '❤️';
+        }
+      }
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  } catch (e) {
+    if (loading) loading.remove();
+    showToast('Drop yüklenirken hata oluştu', 'error');
+  }
+}
+
+function showFeed() {
+  currentDetailDropId = null;
+  
+  // Hide detail container
+  document.getElementById('detail-container').style.display = 'none';
+
+  // Restore feed elements display
+  document.getElementById('feed-tabs').style.display = 'flex';
+  const pill = document.getElementById('new-drops-pill');
+  if (pill && pendingNewDropIds.length > 0) pill.style.display = 'block';
+  document.getElementById('composer-container').style.display = 'block';
+  document.getElementById('drop-feed').style.display = 'block';
+  
+  if (document.getElementById('drop-feed').children.length === 0) {
+    document.getElementById('following-empty').style.display = 'block';
+  }
+  
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  if (loadMoreBtn && hasMoreDrops) loadMoreBtn.style.display = 'block';
+
+  // Clean URL parameters
+  history.pushState(null, '', window.location.pathname);
+
+  // Restore scroll position
+  window.scrollTo({ top: feedScrollPosition, behavior: 'instant' });
+}
+
+// Listen to browser popstate to handle back/forward correctly
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.dropId) {
+    showDropDetail(e.state.dropId, false);
+  } else {
+    // Show main feed if no drop state
+    if (currentDetailDropId !== null) {
+      showFeed();
+    }
+  }
+});
+
+// =============================================
 // INIT
 // =============================================
 async function init() {
@@ -3862,6 +4125,12 @@ async function init() {
   buildRightSidebar();
   setupRealtime();
   setupAutoRefresh();
+
+  // Check for deep-linked drop
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('drop')) {
+    showDropDetail(urlParams.get('drop'), false);
+  }
 }
 
 // =============================================
