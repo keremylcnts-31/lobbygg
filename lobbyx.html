@@ -3483,20 +3483,25 @@ async function loadComments(dropId, section, loadAll = false) {
   try {
     let commentsQuery = sb.from('drop_yorumlar')
       .select('*')
-      .eq('drop_id', dropId)
-      .is('parent_id', null); // Only top-level comments
+      .eq('drop_id', dropId);
+    // Note: filter top-level only (parent_id IS NULL) client-side
+    // to avoid 400 if column doesn't exist yet
 
     if (loadAll) {
       commentsQuery = commentsQuery.order('created_at', { ascending: true });
     } else {
       commentsQuery = commentsQuery.order('created_at', { ascending: false })
-        .limit(3);
+        .limit(20); // fetch more, we'll filter client-side
     }
 
-    const { data: comments } = await commentsQuery;
+    const { data: rawComments } = await commentsQuery;
+    // Filter top-level only (no parent_id)
+    const comments = rawComments ? rawComments.filter(c => !c.parent_id) : [];
+    // Apply limit after filter for non-loadAll mode
+    const displayComments = loadAll ? comments : comments.slice(0, 3);
 
-    if (comments && comments.length > 0) {
-      const userIds = [...new Set(comments.map(c => c.kullanici_id).filter(id => id !== null))];
+    if (displayComments && displayComments.length > 0) {
+      const userIds = [...new Set(displayComments.map(c => c.kullanici_id).filter(id => id !== null))];
       if (userIds.length > 0) {
         const { data: users } = await sb.from('kullanicilar')
           .select('id, kullanici_adi, avatar_url')
@@ -3504,14 +3509,14 @@ async function loadComments(dropId, section, loadAll = false) {
         if (users) {
           const userMap = {};
           users.forEach(u => { userMap[u.id] = u; });
-          comments.forEach(c => {
+          displayComments.forEach(c => {
             c.kullanicilar = userMap[c.kullanici_id] || null;
           });
         }
       }
     }
 
-    if (!comments || comments.length === 0) {
+    if (!displayComments || displayComments.length === 0) {
       const emptyEl = document.createElement('div');
       emptyEl.style.cssText = 'text-align:center;color:var(--text-dim);font-size:11px;padding:12px 0;';
       emptyEl.textContent = 'Henüz yorum yok. İlk yorumu sen yap!';
@@ -3519,22 +3524,22 @@ async function loadComments(dropId, section, loadAll = false) {
       return;
     }
 
-    section.dataset.commentCount = comments.length;
+    section.dataset.commentCount = displayComments.length;
 
     // Check total count (only if not loading all at once)
     if (!loadAll) {
-      const { count } = await sb.from('drop_yorumlar').select('*', { count: 'exact', head: true }).eq('drop_id', dropId);
-      if (count > 3) {
+      const totalTopLevel = comments.length; // already filtered
+      if (totalTopLevel > 3) {
         const seeAll = document.createElement('a');
         seeAll.className = 'comment-see-all';
-        seeAll.textContent = `${count} yorumun tamamını gör →`;
+        seeAll.textContent = `${totalTopLevel} yorumun tamamını gör →`;
         seeAll.addEventListener('click', async () => {
           seeAll.remove();
-          const { data: allComments } = await sb.from('drop_yorumlar')
+          const { data: rawAll } = await sb.from('drop_yorumlar')
             .select('*')
             .eq('drop_id', dropId)
-            .is('parent_id', null)
             .order('created_at', { ascending: true });
+          const allComments = (rawAll || []).filter(c => !c.parent_id);
 
           if (allComments && allComments.length > 0) {
             const userIds = [...new Set(allComments.map(c => c.kullanici_id).filter(id => id !== null))];
@@ -3567,12 +3572,12 @@ async function loadComments(dropId, section, loadAll = false) {
     const dropOwnerId = Number(section.dataset.ownerId);
     
     if (loadAll) {
-      comments.forEach(comment => {
+      displayComments.forEach(comment => {
         const el = buildCommentItem(comment, dropId, section, dropOwnerId);
         section.insertBefore(el, inputRow);
       });
     } else {
-      comments.reverse().forEach(comment => {
+      displayComments.slice().reverse().forEach(comment => {
         const el = buildCommentItem(comment, dropId, section, dropOwnerId);
         section.insertBefore(el, inputRow);
       });
