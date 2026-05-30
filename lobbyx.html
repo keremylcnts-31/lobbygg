@@ -3209,23 +3209,14 @@ function buildDropCard(drop, isDetailView = false) {
   commentBtn.appendChild(commentIcon);
   commentBtn.appendChild(commentCount);
 
-  let commentsOpen = isDetailView;
-  commentBtn.addEventListener('click', () => {
+  commentBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (isDetailView) {
       const input = card.querySelector('.comment-input');
       if (input) input.focus();
       return;
     }
-    commentsOpen = !commentsOpen;
-    const commentSection = card.querySelector('.drop-comments');
-    if (commentsOpen) {
-      commentSection.classList.add('open');
-      commentBtn.classList.add('comment-active');
-      loadComments(drop.id, commentSection);
-    } else {
-      commentSection.classList.remove('open');
-      commentBtn.classList.remove('comment-active');
-    }
+    showDropDetail(drop.id, true, true);
   });
   actions.appendChild(commentBtn);
 
@@ -3895,7 +3886,7 @@ function buildCarkWidget() {
 // =============================================
 // SPA NAV AND DETAIL VIEWS
 // =============================================
-async function showDropDetail(dropId, pushState = true) {
+async function showDropDetail(dropId, pushState = true, focusComment = false) {
   if (!dropId) return;
   
   // If we were in feed view, save scroll position
@@ -4008,6 +3999,13 @@ async function showDropDetail(dropId, pushState = true) {
 
     const card = buildDropCard(drop, true);
     detailContainer.appendChild(card);
+
+    if (focusComment) {
+      setTimeout(() => {
+        const input = card.querySelector('.comment-input');
+        if (input) input.focus();
+      }, 50);
+    }
 
     // Sync liked state for this card
     if (currentUser) {
