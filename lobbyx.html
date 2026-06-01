@@ -1507,6 +1507,205 @@
     .explore-container {
       animation: fade-in-up 0.4s ease-out;
     }
+
+    /* =========================================
+       ILANLAR INLINE STYLES
+       ========================================= */
+    .ilanlar-container {
+      animation: fade-in-up 0.4s ease-out;
+    }
+    .ilanlar-header {
+      margin-bottom: 20px;
+    }
+    .ilanlar-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text-1);
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000;
+      margin-bottom: 6px;
+    }
+    .ilanlar-subtitle {
+      font-size: 12px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+    .ilanlar-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .ilanlar-search-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .ilanlar-search-wrap input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 2px solid #000;
+      border-radius: var(--radius);
+      padding: 10px 14px 10px 36px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 2px 2px 0 #000;
+      font-family: var(--font);
+    }
+    .ilanlar-search-wrap input:focus { outline: none; border-color: var(--accent); }
+    .ilanlar-search-wrap span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .ilanlar-cats {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ilanlar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+      margin-top: 15px;
+    }
+    .ilan-card-inline {
+      background: var(--bg-card);
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .ilan-card-inline:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+    }
+    .ilan-card-banner {
+      height: 110px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid #000;
+    }
+    .ilan-card-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .ilan-card-banner-gradient {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    .ilan-card-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));
+    }
+    .ilan-card-badges {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .ilan-card-remaining {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid #000;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #aaa;
+    }
+    .ilan-card-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ilan-card-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ilan-card-author-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      border: 2px solid #000;
+      object-fit: cover;
+    }
+    .ilan-card-author-nick {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ilan-card-author-time {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    .ilan-card-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text-1);
+      line-height: 1.3;
+    }
+    .ilan-card-cat {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ilan-card-desc {
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+    .ilan-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin-top: auto;
+    }
+    .ilan-card-price {
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .ilan-card-price.free { color: #39ff14; }
+    .ilan-card-price.paid { color: var(--gold); }
+    .ilan-card-price.anlasmali { color: var(--blue); }
+    .explore-container {
+      animation: fade-in-up 0.4s ease-out;
+    }
     .player-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1751,6 +1950,29 @@
         </div>
 
         <div class="player-grid" id="explore-player-grid"></div>
+      </div>
+
+      <!-- İlanlar Container -->
+      <div class="ilanlar-container" id="ilanlar-container" style="display: none;">
+        <div class="ilanlar-header">
+          <h2 class="ilanlar-title">📋 İlanlar</h2>
+          <div class="ilanlar-subtitle">Minecraft topluluğunda takım ara, iş bul, yeteneklerini sergile.</div>
+        </div>
+        <div class="ilanlar-toolbar">
+          <div class="ilanlar-search-wrap">
+            <input type="text" id="ilanlar-search-input" placeholder="İlan ara...">
+            <span>🔍</span>
+          </div>
+          <div class="ilanlar-cats" id="ilanlar-cats">
+            <button class="btn mc-green mc-sm" data-ilancat="all">Tümü</button>
+            <button class="btn mc-gray mc-sm" data-ilancat="PvP">⚔️ PvP</button>
+            <button class="btn mc-gray mc-sm" data-ilancat="İçerik">🎬 İçerik</button>
+            <button class="btn mc-gray mc-sm" data-ilancat="Developer">💻 Developer</button>
+            <button class="btn mc-gray mc-sm" data-ilancat="Builder">🏗️ Builder</button>
+            <button class="btn mc-gray mc-sm" data-ilancat="Sunucu">👑 Sunucu</button>
+          </div>
+        </div>
+        <div class="ilanlar-grid" id="ilanlar-grid"></div>
       </div>
 
     </main>
@@ -4619,11 +4841,13 @@ function showFeed() {
   currentDetailDropId = null;
   currentCommentDetailId = null;
   exploreActive = false;
+  ilanlarActive = false;
   
   // Hide detail containers and explore
   document.getElementById('detail-container').style.display = 'none';
   document.getElementById('comment-detail-container').style.display = 'none';
   document.getElementById('explore-container').style.display = 'none';
+  document.getElementById('ilanlar-container').style.display = 'none';
 
   // Restore feed elements display
   document.getElementById('feed-tabs').style.display = 'flex';
@@ -5043,6 +5267,7 @@ async function openReDropModal(originalDrop, redropData, originalUser) {
 // EXPLORE VIEW STATE AND LOGIC
 // =============================================
 let exploreActive = false;
+let ilanlarActive = false;
 let exploreUsers = [];
 let exploreClans = [];
 let exploreFilter = 'Tümü';
@@ -5315,15 +5540,259 @@ function updateActiveNav(pageKey) {
     const text = el.textContent.trim();
     const isHome = text.includes('Ana Sayfa') || el.getAttribute('href') === 'lobbyx.html';
     const isExplore = text.includes('Keşfet') || el.getAttribute('href') === 'kesfet.html';
+    const isIlanlar = text.includes('İlanlar') || el.getAttribute('href') === 'ilanlar.html';
 
-    if (pageKey === 'home') {
-      if (isHome) el.classList.add('active');
-      else if (isExplore) el.classList.remove('active');
-    } else if (pageKey === 'explore') {
-      if (isExplore) el.classList.add('active');
-      else if (isHome) el.classList.remove('active');
-    }
+    el.classList.remove('active');
+    if (pageKey === 'home' && isHome) el.classList.add('active');
+    else if (pageKey === 'explore' && isExplore) el.classList.add('active');
+    else if (pageKey === 'ilanlar' && isIlanlar) el.classList.add('active');
   });
+}
+
+// =============================================
+// ILANLAR INLINE VIEW
+// =============================================
+let ilanlarAllData = [];
+let ilanlarUsersMap = {};
+let ilanlarCatFilter = 'all';
+let ilanlarSearchQ = '';
+
+const ILAN_CAT_COLORS = { PvP: '#ff1a3c', 'İçerik': '#b933ff', Developer: '#00d4ff', Builder: '#ffa500', Sunucu: '#FFD700' };
+const ILAN_CAT_ICONS = { PvP: '⚔️', 'İçerik': '🎬', Developer: '💻', Builder: '🏗️', Sunucu: '👑' };
+const ILAN_CAT_GRADIENT = {
+  PvP: 'linear-gradient(135deg, #1a0008, #3d0015)',
+  'İçerik': 'linear-gradient(135deg, #140020, #2d0050)',
+  Developer: 'linear-gradient(135deg, #001a20, #003040)',
+  Builder: 'linear-gradient(135deg, #1a1000, #3d2800)',
+  Sunucu: 'linear-gradient(135deg, #1a1500, #3d3000)',
+};
+
+function formatIlanPrice(val) {
+  if (!val || val == 0 || val === 'Ücretsiz' || val === '0') return { text: 'Ücretsiz', cls: 'free' };
+  if (val === 'Anlaşmalı' || val === 'Anlasmalı') return { text: 'Anlaşmalı', cls: 'anlasmali' };
+  const num = parseInt(String(val).replace(/\D/g, ''));
+  return { text: (isNaN(num) ? val : num.toLocaleString('tr-TR')) + ' TL', cls: 'paid' };
+}
+
+function formatIlanRemaining(createdAt) {
+  const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
+  const left = 30 - days;
+  if (left <= 0) return 'Süresi doldu';
+  return left + ' gün kaldı';
+}
+
+async function showIlanlarView(pushState = true) {
+  ilanlarActive = true;
+  exploreActive = false;
+  currentDetailDropId = null;
+  currentCommentDetailId = null;
+
+  if (document.getElementById('drop-feed').style.display !== 'none') {
+    feedScrollPosition = window.scrollY;
+  }
+
+  document.getElementById('feed-tabs').style.display = 'none';
+  const pill = document.getElementById('new-drops-pill');
+  if (pill) pill.style.display = 'none';
+  document.getElementById('composer-container').style.display = 'none';
+  document.getElementById('following-empty').style.display = 'none';
+  document.getElementById('drop-feed').style.display = 'none';
+  document.getElementById('feed-loading').style.display = 'none';
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+  document.getElementById('detail-container').style.display = 'none';
+  document.getElementById('comment-detail-container').style.display = 'none';
+  document.getElementById('explore-container').style.display = 'none';
+
+  document.getElementById('ilanlar-container').style.display = 'block';
+
+  if (pushState) history.pushState({ ilanlar: true }, '', '?page=ilanlar');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  updateActiveNav('ilanlar');
+  await loadIlanlarData();
+}
+
+async function loadIlanlarData() {
+  const grid = document.getElementById('ilanlar-grid');
+  grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px 0;grid-column:1/-1;">Yükleniyor...</div>';
+  try {
+    const { data, error } = await sb.from('ilanlar').select('*').eq('durum', 'onaylandi').order('id', { ascending: false });
+    if (error) throw error;
+    ilanlarAllData = data || [];
+
+    const userIds = [...new Set(ilanlarAllData.map(i => i.kullanici_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      const { data: users } = await sb.from('kullanicilar')
+        .select('id, avatar_url, kullanici_adi, dogrulama_rozeti')
+        .in('id', userIds);
+      (users || []).forEach(u => { ilanlarUsersMap[u.id] = u; });
+    }
+    renderIlanlarGrid();
+  } catch (e) {
+    console.error(e);
+    grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px 0;grid-column:1/-1;">İlanlar yüklenemedi.</div>';
+  }
+}
+
+function renderIlanlarGrid() {
+  const grid = document.getElementById('ilanlar-grid');
+  grid.innerHTML = '';
+
+  let list = [...ilanlarAllData];
+  if (ilanlarCatFilter !== 'all') list = list.filter(i => i.kategori === ilanlarCatFilter);
+  if (ilanlarSearchQ) list = list.filter(i =>
+    (i.baslik || '').toLowerCase().includes(ilanlarSearchQ) ||
+    (i.aciklama || '').toLowerCase().includes(ilanlarSearchQ) ||
+    (i.kullanici_nick || '').toLowerCase().includes(ilanlarSearchQ)
+  );
+  // öne çıkanlar önce
+  list.sort((a, b) => (b.one_cikan ? 1 : 0) - (a.one_cikan ? 1 : 0));
+
+  if (list.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-3);font-size:14px;text-align:center;padding:40px 0;grid-column:1/-1;">Sonuç bulunamadı.</div>';
+    return;
+  }
+
+  list.forEach(ilan => {
+    const card = document.createElement('a');
+    card.href = 'ilan-detay.html?id=' + ilan.id;
+    card.className = 'ilan-card-inline';
+
+    // Banner
+    const banner = document.createElement('div');
+    banner.className = 'ilan-card-banner';
+    const bannerSrc = ilan.banner_url || ilan.gorsel_url || ilan.resim_url;
+    if (bannerSrc) {
+      const img = document.createElement('img');
+      img.src = bannerSrc;
+      img.alt = ilan.baslik;
+      img.loading = 'lazy';
+      banner.appendChild(img);
+    } else {
+      const grad = document.createElement('div');
+      grad.className = 'ilan-card-banner-gradient';
+      grad.style.background = ILAN_CAT_GRADIENT[ilan.kategori] || 'linear-gradient(135deg,#0d0d0d,#1a1a1a)';
+      grad.textContent = ILAN_CAT_ICONS[ilan.kategori] || '📋';
+      banner.appendChild(grad);
+    }
+    const overlay = document.createElement('div');
+    overlay.className = 'ilan-card-banner-overlay';
+    banner.appendChild(overlay);
+
+    // Badges
+    const badgesEl = document.createElement('div');
+    badgesEl.className = 'ilan-card-badges';
+    if (ilan.one_cikan) {
+      const ocBadge = document.createElement('span');
+      ocBadge.className = 'badge b-gold';
+      ocBadge.textContent = '⭐ Öne Çıkan';
+      badgesEl.appendChild(ocBadge);
+    }
+    const catBadge = document.createElement('span');
+    catBadge.className = 'badge';
+    catBadge.style.background = ILAN_CAT_COLORS[ilan.kategori] || '#555';
+    catBadge.style.color = '#fff';
+    catBadge.textContent = ILAN_CAT_ICONS[ilan.kategori] + ' ' + (ilan.kategori || '');
+    badgesEl.appendChild(catBadge);
+    banner.appendChild(badgesEl);
+
+    const remaining = document.createElement('div');
+    remaining.className = 'ilan-card-remaining';
+    remaining.textContent = formatIlanRemaining(ilan.created_at);
+    banner.appendChild(remaining);
+
+    card.appendChild(banner);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'ilan-card-body';
+
+    // Author
+    const userData = ilanlarUsersMap[ilan.kullanici_id];
+    const author = document.createElement('div');
+    author.className = 'ilan-card-author';
+    const av = document.createElement('img');
+    av.className = 'ilan-card-author-avatar';
+    av.src = (userData && userData.avatar_url) ? userData.avatar_url : `https://mc-heads.net/avatar/${encodeURIComponent(ilan.kullanici_nick || 'Steve')}/32`;
+    av.onerror = () => { av.src = 'https://mc-heads.net/avatar/Steve/32'; };
+    av.alt = ilan.kullanici_nick;
+    author.appendChild(av);
+
+    const authorNickEl = document.createElement('div');
+    authorNickEl.className = 'ilan-card-author-nick';
+    authorNickEl.textContent = ilan.kullanici_nick || 'Anonim';
+    if (userData && userData.dogrulama_rozeti) {
+      const vbadge = document.createElement('img');
+      vbadge.src = 'https://i.imgur.com/VDpHaPy.png';
+      vbadge.style.cssText = 'width:12px;height:12px;';
+      authorNickEl.appendChild(vbadge);
+    }
+    author.appendChild(authorNickEl);
+
+    const timeEl = document.createElement('div');
+    timeEl.className = 'ilan-card-author-time';
+    timeEl.textContent = relativeTime(ilan.created_at);
+    author.appendChild(timeEl);
+    body.appendChild(author);
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'ilan-card-title';
+    titleEl.textContent = ilan.baslik || 'İsimsiz İlan';
+    body.appendChild(titleEl);
+
+    const descEl = document.createElement('div');
+    descEl.className = 'ilan-card-desc';
+    descEl.textContent = ilan.aciklama || '';
+    body.appendChild(descEl);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'ilan-card-footer';
+    const price = formatIlanPrice(ilan.fiyat);
+    const priceEl = document.createElement('div');
+    priceEl.className = 'ilan-card-price ' + price.cls;
+    priceEl.textContent = price.text;
+    footer.appendChild(priceEl);
+
+    const detailBtn = document.createElement('span');
+    detailBtn.className = 'btn mc-gold mc-sm';
+    detailBtn.style.fontSize = '10px';
+    detailBtn.textContent = 'İncele →';
+    footer.appendChild(detailBtn);
+    body.appendChild(footer);
+
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
+
+function initIlanlarEvents() {
+  const search = document.getElementById('ilanlar-search-input');
+  if (search) {
+    let timer;
+    search.addEventListener('input', e => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        ilanlarSearchQ = e.target.value.toLowerCase().trim();
+        renderIlanlarGrid();
+      }, 300);
+    });
+  }
+  const cats = document.getElementById('ilanlar-cats');
+  if (cats) {
+    cats.addEventListener('click', e => {
+      const btn = e.target.closest('[data-ilancat]');
+      if (!btn) return;
+      ilanlarCatFilter = btn.dataset.ilancat;
+      cats.querySelectorAll('button').forEach(b => {
+        b.classList.remove('mc-green');
+        b.classList.add('mc-gray');
+      });
+      btn.classList.remove('mc-gray');
+      btn.classList.add('mc-green');
+      renderIlanlarGrid();
+    });
+  }
 }
 
 // Global click interceptor for SPA navigation
@@ -5334,25 +5803,32 @@ document.addEventListener('click', (e) => {
   const text = link.textContent.trim();
   if (text.includes('Keşfet') || link.getAttribute('href') === 'kesfet.html') {
     e.preventDefault();
+    ilanlarActive = false;
     showExploreView(true);
+  } else if (text.includes('İlanlar') || link.getAttribute('href') === 'ilanlar.html') {
+    e.preventDefault();
+    exploreActive = false;
+    showIlanlarView(true);
   } else if (text.includes('Ana Sayfa') || link.getAttribute('href') === 'lobbyx.html') {
-    if (exploreActive || currentDetailDropId !== null || currentCommentDetailId !== null) {
+    if (exploreActive || ilanlarActive || currentDetailDropId !== null || currentCommentDetailId !== null) {
       e.preventDefault();
       showFeed();
     }
   }
 });
 
-// Update init to check for explore param and bind events
+// Update init to check for explore/ilanlar param and bind events
 const originalInit = init;
 init = async function() {
   await originalInit();
   initExploreEvents();
+  initIlanlarEvents();
   
-  // Check for deep-linked explore page
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('page') === 'explore') {
     showExploreView(false);
+  } else if (urlParams.get('page') === 'ilanlar') {
+    showIlanlarView(false);
   }
 };
 
