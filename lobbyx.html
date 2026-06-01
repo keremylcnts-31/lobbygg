@@ -6081,31 +6081,8 @@ async function showIlanDetayInline(ilanId) {
 
 
 
-    // --- MAIN COLUMN ---
-    const mainCol = document.createElement('div');
-    mainCol.className = 'ilan-detay-inline-main';
 
-    // Hero image or gradient
-    const bannerSrc = ilan.banner_url || ilan.gorsel_url || ilan.resim_url;
-    if (bannerSrc) {
-      const heroWrap = document.createElement('div');
-      heroWrap.className = 'ilan-detay-inline-hero';
-      const heroImg = document.createElement('img');
-      heroImg.src = bannerSrc;
-      heroImg.alt = ilan.baslik;
-      heroWrap.appendChild(heroImg);
-      mainCol.appendChild(heroWrap);
-    } else {
-      const gradBanner = document.createElement('div');
-      gradBanner.className = 'ilan-detay-inline-gradient-banner';
-      gradBanner.style.background = ILAN_CAT_GRADIENT[ilan.kategori] || 'linear-gradient(135deg,#0d0d0d,#1a1a1a)';
-      gradBanner.textContent = ILAN_CAT_ICONS[ilan.kategori] || '📋';
-      mainCol.appendChild(gradBanner);
-    }
 
-    // Main card: title + meta + desc
-    const mainCard = document.createElement('div');
-    mainCard.className = 'ilan-detay-inline-card';
 
       const gDiv = document.createElement('div');
       gDiv.style.cssText = `width:100%;height:100%;background:${catGrad};display:flex;align-items:center;justify-content:center;font-size:90px;`;
