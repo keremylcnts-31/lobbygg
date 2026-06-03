@@ -5965,7 +5965,22 @@ async function showIlanDetayInline(ilanId) {
     const mcSeed   = encodeURIComponent(owner.kullanici_adi || ilan.kullanici_nick || 'Steve');
     const avSrc    = owner.avatar_url || `https://mc-heads.net/avatar/${mcSeed}/128`;
 
+    // ── GERİ DÖN HEADER ──
+    const backHeader = document.createElement('div');
+    backHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:10px;';
+    const backHeaderBtn = document.createElement('button');
+    backHeaderBtn.className = 'btn mc-gray mc-sm';
+    backHeaderBtn.innerHTML = '&#8592; &#0304;lanlara D&#246;n';
+    backHeaderBtn.addEventListener('click', goBack);
+    backHeader.appendChild(backHeaderBtn);
+    const backTitle = document.createElement('span');
+    backTitle.style.cssText = 'font-size:13px;font-weight:800;color:var(--text-3);';
+    backTitle.textContent = ilan.baslik || '';
+    backHeader.appendChild(backTitle);
+    container.appendChild(backHeader);
+
     // ===== HERO BANNER — full-width =====
+
     const hero = document.createElement('div');
     hero.style.cssText = 'position:relative;width:100%;height:230px;overflow:hidden;border:3px solid #000;border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.6);';
     if (bannerSrc) {
