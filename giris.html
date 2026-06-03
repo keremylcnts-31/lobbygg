@@ -5,571 +5,524 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Giriş / Kayıt — LOBBY.GG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #050505;
-      --card: #0d0d0d;
-      --border: #1a1a1a;
-      --border2: #2a2a2a;
-      --accent: #39ff14;
-      --red: #ff1a3c;
-      --gold: #FFD700;
-      --purple: #b933ff;
-      --blue: #00d4ff;
-      --discord: #5865F2;
-      --text: #e0e0e0;
-      --muted: #666;
+      --bg:        #0c0f1d;
+      --card:      rgba(12, 30, 60, 0.95);
+      --card2:     rgba(18, 45, 85, 0.85);
+      --border:    #000000;
+      --accent:    #ffd13b;
+      --accent-dim:rgba(255, 209, 59, 0.15);
+      --text-1:    #ffffff;
+      --text-2:    #d0d8f0;
+      --text-dim:  #7a8aaa;
+      --red:       #ff3b3b;
+      --green:     #39ff14;
+      --shadow:    4px 4px 0px #000;
+      --shadow-sm: 2px 2px 0px #000;
+      --radius:    4px;
     }
 
     html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
+      width: 100%; min-height: 100%;
       font-family: 'Montserrat', sans-serif;
       background: var(--bg);
-      color: var(--text);
+      color: var(--text-1);
+      overflow-x: hidden;
     }
 
-    canvas#bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
+    /* ── BG ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: url('mc_bg.png') center/cover no-repeat;
+      filter: blur(18px) brightness(0.28);
+      transform: scale(1.1);
       pointer-events: none;
     }
 
-    /* ── TOAST ── */
-    #toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .toast {
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #fff;
-      background: #1a0008;
-      border: 1px solid var(--red);
-      box-shadow: 0 4px 20px rgba(255,26,60,0.3);
-      animation: toastIn 0.3s ease;
-      max-width: 300px;
-    }
-    .toast.success {
-      background: #001a06;
-      border-color: var(--accent);
-      box-shadow: 0 4px 20px rgba(57,255,20,0.2);
-    }
-    @keyframes toastIn {
-      from { transform: translateX(120%); opacity: 0; }
-      to   { transform: translateX(0);   opacity: 1; }
-    }
-    @keyframes toastOut {
-      from { transform: translateX(0);   opacity: 1; }
-      to   { transform: translateX(120%); opacity: 0; }
+    canvas#bg {
+      position: fixed; inset: 0;
+      z-index: 1; pointer-events: none;
     }
 
     /* ── WRAPPER ── */
     #wrapper {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow-y: auto;
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px 16px;
     }
 
     /* ── CARD ── */
     .auth-card {
-      width: 100%;
-      max-width: 440px;
-      background: rgba(13,13,13,0.92);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      padding: 36px 32px 28px;
-      box-shadow:
-        0 0 0 1px rgba(57,255,20,0.05),
-        0 20px 60px rgba(0,0,0,0.7),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-      backdrop-filter: blur(20px);
+      width: 100%; max-width: 460px;
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 28px 28px;
       position: relative;
     }
 
     /* ── LOGO ── */
     .logo-wrap {
-      text-align: center;
-      margin-bottom: 24px;
+      text-align: center; margin-bottom: 22px;
     }
     .logo-wrap img {
-      height: 48px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 12px rgba(57,255,20,0.4));
+      height: 44px; object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(255,209,59,0.5));
     }
 
     /* ── PROGRESS BAR ── */
     .progress-bar {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      margin-bottom: 28px;
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 26px;
     }
     .progress-bar.hidden { display: none; }
+    .prog-step {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      flex-shrink: 0; position: relative; z-index: 1;
+    }
     .prog-dot {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid var(--border2);
-      background: var(--card);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      flex-shrink: 0;
-      transition: all 0.3s ease;
-      position: relative;
-      z-index: 1;
+      width: 30px; height: 30px;
+      border: 2px solid #333;
+      background: rgba(255,255,255,0.05);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #555;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
     }
     .prog-dot.active {
       border-color: var(--accent);
       color: var(--accent);
-      box-shadow: 0 0 12px rgba(57,255,20,0.5);
+      background: var(--accent-dim);
+      box-shadow: 2px 2px 0 var(--accent);
     }
     .prog-dot.done {
       border-color: var(--accent);
       background: var(--accent);
       color: #000;
     }
-    .prog-line {
-      flex: 1;
-      height: 2px;
-      background: var(--border2);
-      transition: background 0.3s ease;
+    .prog-label {
+      font-size: 8px; font-weight: 700;
+      color: #444; text-transform: uppercase; letter-spacing: 0.5px;
+      transition: color 0.2s;
     }
-    .prog-line.done { background: var(--accent); box-shadow: 0 0 6px rgba(57,255,20,0.5); }
+    .prog-dot.active + .prog-label,
+    .prog-dot.done + .prog-label { color: var(--accent); }
+    .prog-line {
+      flex: 1; height: 2px;
+      background: #222;
+      margin: 0 4px; margin-bottom: 14px;
+      transition: background 0.3s;
+    }
+    .prog-line.done { background: var(--accent); }
 
     /* ── STEP VIEWS ── */
-    .step-view {
-      display: none;
-      animation: fadeSlideIn 0.35s ease;
-    }
+    .step-view { display: none; animation: fadeUp 0.3s ease; }
     .step-view.active { display: block; }
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(12px); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     /* ── HEADINGS ── */
     .step-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 6px;
+      font-size: 19px; font-weight: 900;
+      color: var(--text-1); margin-bottom: 4px;
       letter-spacing: -0.3px;
     }
     .step-sub {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 22px;
-      line-height: 1.5;
+      font-size: 12px; color: var(--text-dim);
+      margin-bottom: 20px; line-height: 1.5;
     }
 
-    /* ── FORM ELEMENTS ── */
+    /* ── FORM ── */
     .field-group { margin-bottom: 14px; position: relative; }
     .field-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      display: block; font-size: 10px; font-weight: 800;
+      color: var(--text-dim); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.8px;
     }
     .field-input {
       width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: #fff;
+      background: rgba(255,255,255,0.04);
+      border: 2px solid #222;
+      border-radius: var(--radius);
+      padding: 11px 13px;
+      color: var(--text-1);
       font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px; font-weight: 600;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow-sm);
     }
     .field-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(57,255,20,0.1);
+      box-shadow: 2px 2px 0 var(--accent);
     }
-    .field-input.error {
-      border-color: var(--red);
-      box-shadow: 0 0 0 3px rgba(255,26,60,0.1);
-    }
-    .field-input.success {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(57,255,20,0.08);
-    }
-    .field-hint {
-      font-size: 11px;
-      margin-top: 5px;
-      font-weight: 600;
-    }
-    .field-hint.green { color: var(--accent); }
+    .field-input.error { border-color: var(--red); box-shadow: 2px 2px 0 var(--red); }
+    .field-input.ok    { border-color: #39ff14;   box-shadow: 2px 2px 0 #39ff14; }
+    .field-hint { font-size: 11px; margin-top: 5px; font-weight: 700; }
+    .field-hint.green { color: #39ff14; }
     .field-hint.red   { color: var(--red); }
-    .field-hint.muted { color: var(--muted); }
+    .field-hint.muted { color: var(--text-dim); }
 
-    /* password toggle */
+    .nick-preview {
+      font-size: 11px; color: var(--text-dim);
+      font-weight: 700; margin-top: 5px;
+    }
+    .nick-preview span { color: var(--accent); }
+
+    /* pw toggle */
     .pw-wrap { position: relative; }
     .pw-toggle {
-      position: absolute;
-      right: 12px; top: 50%;
+      position: absolute; right: 11px; top: 50%;
       transform: translateY(-50%);
-      background: none; border: none;
-      cursor: pointer; color: var(--muted);
-      font-size: 16px; line-height: 1;
-      padding: 0;
-      transition: color 0.2s;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); font-size: 15px;
+      transition: color 0.15s; padding: 0;
     }
     .pw-toggle:hover { color: var(--accent); }
-    .pw-wrap .field-input { padding-right: 40px; }
-
-    /* nick preview */
-    .nick-preview {
-      font-size: 12px;
-      color: var(--accent);
-      font-weight: 700;
-      margin-top: 6px;
-    }
-    .nick-status {
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 5px;
-      min-height: 18px;
-      transition: color 0.2s;
-    }
+    .pw-wrap .field-input { padding-right: 38px; }
 
     /* ── BUTTONS ── */
     .btn {
-      width: 100%;
-      padding: 13px 20px;
-      border-radius: 8px;
-      border: none;
+      width: 100%; padding: 12px 18px;
+      border-radius: var(--radius);
       cursor: pointer;
       font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px; font-weight: 800;
       letter-spacing: 0.3px;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none;
+      transition: all 0.1s;
+      display: flex; align-items: center;
+      justify-content: center; gap: 7px;
+      text-decoration: none; border: 2px solid var(--border);
     }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .mc-green {
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 0 20px rgba(57,255,20,0.3);
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: var(--shadow-sm) !important; }
+
+    .btn-gold {
+      background: var(--accent); color: #000;
+      box-shadow: var(--shadow);
     }
-    .mc-green:not(:disabled):hover {
-      background: #50ff2a;
-      box-shadow: 0 0 30px rgba(57,255,20,0.5);
-      transform: translateY(-1px);
+    .btn-gold:not(:disabled):hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #000;
     }
-    .mc-discord {
-      background: var(--discord);
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(88,101,242,0.3);
+    .btn-gold:not(:disabled):active {
+      transform: translate(0,0);
+      box-shadow: var(--shadow-sm);
     }
-    .mc-discord:hover {
-      background: #6b77f5;
-      transform: translateY(-1px);
-    }
+
     .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-dim);
+      box-shadow: var(--shadow-sm);
+      border-color: #333;
     }
-    .btn-ghost:hover { border-color: var(--border); color: var(--text); }
+    .btn-ghost:hover { color: var(--text-1); border-color: #555; }
 
-    .mc-sm {
-      width: auto;
-      padding: 9px 16px;
-      font-size: 13px;
+    .btn-discord {
+      background: #5865F2; color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .btn-discord:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 6px 6px 0px #000;
     }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
+    .btn-sm {
+      width: auto; padding: 8px 14px;
+      font-size: 12px;
     }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 6px; }
     .btn-row .btn { flex: 1; }
 
-    /* divider */
     .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 14px 0;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
+      display: flex; align-items: center;
+      gap: 12px; margin: 14px 0;
+      color: var(--text-dim); font-size: 11px; font-weight: 700;
     }
     .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border2);
+      content: ''; flex: 1; height: 1px; background: #222;
     }
 
-    /* ── ROLE CARDS ── */
-    .role-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
+    /* ── TAG CARDS (Ana seçim) ── */
+    .tag-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 14px;
     }
-    .role-card {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 14px 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
+    .tag-card {
+      background: var(--card2);
+      border: 2px solid #222;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 18px 12px 14px;
+      cursor: pointer; text-align: center;
+      transition: all 0.1s;
       user-select: none;
     }
-    .role-card:hover {
-      border-color: rgba(57,255,20,0.3);
-      background: rgba(57,255,20,0.04);
+    .tag-card:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 4px 4px 0 #000;
+      border-color: #444;
     }
-    .role-card.selected {
+    .tag-card.selected {
       border-color: var(--accent);
-      background: rgba(57,255,20,0.08);
-      box-shadow: 0 0 16px rgba(57,255,20,0.15);
+      background: var(--accent-dim);
+      box-shadow: 3px 3px 0 var(--accent);
     }
-    .role-card .role-icon { font-size: 22px; margin-bottom: 6px; }
-    .role-card .role-name { font-size: 11px; font-weight: 700; color: var(--text); }
+    .tag-card .tc-icon { font-size: 26px; margin-bottom: 8px; line-height: 1; }
+    .tag-card .tc-name {
+      font-size: 12px; font-weight: 800;
+      color: var(--text-1); line-height: 1.2;
+    }
+    .tag-card .tc-desc {
+      font-size: 10px; color: var(--text-dim);
+      margin-top: 3px; font-weight: 600;
+    }
 
-    /* sub-role chips */
-    .subrole-wrap {
-      display: none;
-      margin-bottom: 16px;
-      animation: fadeSlideIn 0.25s ease;
+    /* ── SUB TAG (Platform / Uzmanlık) ── */
+    .sub-section {
+      display: none; animation: fadeUp 0.25s ease;
+      margin-bottom: 14px;
     }
-    .subrole-wrap.visible { display: block; }
-    .subrole-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
+    .sub-section.visible { display: block; }
+    .sub-label {
+      font-size: 10px; font-weight: 800;
+      color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 8px;
     }
-    .chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip {
-      padding: 5px 11px;
-      border-radius: 20px;
-      border: 1px solid var(--border2);
-      background: rgba(255,255,255,0.03);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
+    .sub-grid {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+
+    /* Platform cards (Medya) */
+    .platform-card {
+      background: var(--card2);
+      border: 2px solid #222;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 10px 14px;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 8px;
+      transition: all 0.1s;
+      user-select: none;
+      flex: 0 0 auto;
+    }
+    .platform-card:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 4px 4px 0 #000;
+      border-color: #444;
+    }
+    .platform-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: 3px 3px 0 var(--accent);
+    }
+    .platform-card img {
+      width: 18px; height: 18px;
+      object-fit: contain; flex-shrink: 0;
+    }
+    .platform-card .pc-name {
+      font-size: 12px; font-weight: 800;
+      color: var(--text-1);
+    }
+
+    /* Dev chip cards */
+    .dev-chip {
+      background: var(--card2);
+      border: 2px solid #222;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 12px; font-weight: 800;
+      color: var(--text-2);
+      transition: all 0.1s;
       user-select: none;
     }
-    .chip:hover { border-color: rgba(57,255,20,0.4); color: var(--text); }
-    .chip.selected {
+    .dev-chip:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 4px 4px 0 #000;
+      border-color: #444;
+    }
+    .dev-chip.selected {
       border-color: var(--accent);
-      background: rgba(57,255,20,0.1);
+      background: var(--accent-dim);
       color: var(--accent);
+      box-shadow: 3px 3px 0 var(--accent);
     }
 
     /* ── SERVER GRID ── */
     .server-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-      max-height: 260px;
-      overflow-y: auto;
-      padding-right: 4px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 14px;
+      max-height: 250px; overflow-y: auto; padding-right: 4px;
     }
     .server-grid::-webkit-scrollbar { width: 4px; }
-    .server-grid::-webkit-scrollbar-track { background: var(--border); border-radius: 2px; }
-    .server-grid::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+    .server-grid::-webkit-scrollbar-track { background: #111; }
+    .server-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
     .server-card {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
+      background: var(--card2);
+      border: 2px solid #222;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
       padding: 10px 6px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-      user-select: none;
+      cursor: pointer; text-align: center;
+      transition: all 0.1s; user-select: none;
     }
     .server-card:hover {
-      border-color: rgba(57,255,20,0.3);
-      background: rgba(57,255,20,0.04);
+      transform: translate(-2px,-2px);
+      box-shadow: 4px 4px 0 #000;
     }
     .server-card.selected {
       border-color: var(--accent);
-      background: rgba(57,255,20,0.08);
-      box-shadow: 0 0 10px rgba(57,255,20,0.2);
+      background: var(--accent-dim);
+      box-shadow: 3px 3px 0 var(--accent);
     }
     .server-card img {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      object-fit: cover;
-      margin-bottom: 5px;
-      background: var(--border);
+      width: 34px; height: 34px;
+      border-radius: 3px; border: 2px solid #000;
+      object-fit: cover; margin-bottom: 5px;
+      background: #111;
     }
     .server-card .srv-name {
-      font-size: 9px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.2;
+      font-size: 9px; font-weight: 800;
+      color: var(--text-2); line-height: 1.2;
       word-break: break-word;
     }
 
-    /* ── SUCCESS STEP ── */
-    .success-wrap {
-      text-align: center;
-      padding: 16px 0;
-    }
+    /* ── SUCCESS ── */
+    .success-wrap { text-align: center; padding: 14px 0; }
     .check-circle {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
+      width: 72px; height: 72px;
       border: 3px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      box-shadow: 0 0 40px rgba(57,255,20,0.4);
-      animation: checkPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+      border-radius: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+      box-shadow: 4px 4px 0 var(--accent);
+      animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
     }
-    @keyframes checkPop {
-      0%  { transform: scale(0); opacity: 0; }
-      70% { transform: scale(1.1); opacity: 1; }
-      100%{ transform: scale(1); opacity: 1; }
+    @keyframes popIn {
+      0%  { transform: scale(0) rotate(-10deg); opacity: 0; }
+      70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+      100%{ transform: scale(1) rotate(0); opacity: 1; }
     }
-    .check-mark {
-      font-size: 36px;
-      color: var(--accent);
-      animation: checkMark 0.4s 0.2s both;
-    }
-    @keyframes checkMark {
-      from { opacity: 0; transform: scale(0.5); }
-      to   { opacity: 1; transform: scale(1); }
-    }
+    .check-mark { font-size: 32px; color: var(--accent); }
     .success-title {
-      font-size: 22px;
-      font-weight: 900;
-      color: #fff;
+      font-size: 20px; font-weight: 900; color: var(--text-1);
       margin-bottom: 6px;
     }
     .success-title span { color: var(--accent); }
-    .success-sub {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
+    .success-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 18px; }
     .lcoin-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,215,0,0.08);
-      border: 1px solid rgba(255,215,0,0.3);
-      border-radius: 20px;
-      padding: 6px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--gold);
-      margin-bottom: 22px;
-      box-shadow: 0 0 16px rgba(255,215,0,0.15);
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,209,59,0.1);
+      border: 2px solid var(--accent);
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius);
+      padding: 7px 18px;
+      font-size: 13px; font-weight: 800;
+      color: var(--accent); margin-bottom: 20px;
     }
 
-    /* ── TOGGLE ── */
+    /* ── TAG BADGE (preview) ── */
+    .tag-preview-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 5px 12px;
+      font-size: 11px; font-weight: 800;
+      color: var(--accent); margin-top: 10px;
+    }
+    .tag-preview-badge img { width: 14px; height: 14px; }
+
+    /* ── TOGGLE LINK ── */
     .toggle-link {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 12px;
-      color: var(--muted);
+      text-align: center; margin-top: 16px;
+      font-size: 12px; color: var(--text-dim);
     }
     .toggle-link button {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
+      background: none; border: none;
+      color: var(--accent); font-weight: 800;
+      font-size: 12px; cursor: pointer;
       font-family: 'Montserrat', sans-serif;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      text-decoration: underline; text-underline-offset: 2px;
     }
-    .toggle-link button:hover { color: #50ff2a; }
+    .toggle-link button:hover { color: #ffe066; }
+
+    /* ── TOAST ── */
+    #toast-container {
+      position: fixed; top: 20px; right: 20px;
+      z-index: 9999; display: flex;
+      flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 11px 16px; font-size: 12px;
+      font-weight: 700; color: #fff;
+      background: #0d0010; border: 2px solid var(--red);
+      box-shadow: var(--shadow);
+      animation: toastIn 0.3s ease;
+      max-width: 300px; font-family: 'Montserrat', sans-serif;
+    }
+    .toast.success { background: #001208; border-color: #39ff14; color: #39ff14; }
+    @keyframes toastIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to   { transform: translateX(0); opacity: 1; }
+    }
 
     /* ── SPINNER ── */
     .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-top-color: #fff;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #000;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── SCROLLBAR global ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0a0a0a; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-    /* loading overlay */
+    /* load overlay */
     #load-overlay {
       position: fixed; inset: 0;
-      background: var(--bg);
-      z-index: 9999;
+      background: var(--bg); z-index: 9999;
       display: flex; align-items: center; justify-content: center;
       transition: opacity 0.4s ease;
     }
     #load-overlay.hidden { opacity: 0; pointer-events: none; }
-    .load-logo { height: 56px; filter: drop-shadow(0 0 20px rgba(57,255,20,0.6)); animation: pulse 1.2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+    .load-logo {
+      height: 52px;
+      filter: drop-shadow(0 0 18px rgba(255,209,59,0.7));
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100%{opacity:0.7;transform:scale(1)}
+      50%{opacity:1;transform:scale(1.06)}
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0c14; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
   </style>
 </head>
 <body>
 
-<!-- Loading Overlay -->
 <div id="load-overlay">
   <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
 </div>
 
-<!-- Canvas Background -->
 <canvas id="bg"></canvas>
-
-<!-- Toast Container -->
 <div id="toast-container"></div>
 
-<!-- Wrapper -->
 <div id="wrapper">
   <div class="auth-card" id="auth-card">
 
@@ -578,12 +531,10 @@
       <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
     </div>
 
-    <!-- Progress Bar (hidden in login mode) -->
-    <div class="progress-bar hidden" id="progress-bar">
-      <!-- built by JS -->
-    </div>
+    <!-- Progress Bar -->
+    <div class="progress-bar hidden" id="progress-bar"></div>
 
-    <!-- ── LOGIN VIEW ── -->
+    <!-- ── GİRİŞ ── -->
     <div class="step-view active" id="view-login">
       <div class="step-title">Tekrar Hoş Geldin!</div>
       <div class="step-sub">Hesabına giriş yap veya yeni bir hesap oluştur.</div>
@@ -601,34 +552,30 @@
       </div>
 
       <div id="btn-login-wrap" style="margin-bottom:10px;"></div>
-
       <div class="divider">veya</div>
-
       <div id="btn-google-login-wrap"></div>
 
       <div class="toggle-link">
-        Hesabın yok mu?
-        <button id="go-register">Kayıt ol</button>
+        Hesabın yok mu? <button id="go-register">Kayıt ol</button>
       </div>
     </div>
 
     <!-- ── STEP 0: Nick ── -->
     <div class="step-view" id="view-step0">
       <div class="step-title">Kullanıcı Adın</div>
-      <div class="step-sub">Bu isim profilinde görünecek. Değiştiremezsin, dikkatli seç!</div>
+      <div class="step-sub">Profilinde görünecek. Daha sonra değiştiremezsin, dikkatli seç!</div>
 
       <div class="field-group">
         <label class="field-label">Kullanıcı Adı</label>
-        <input class="field-input" type="text" id="nick-input" placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
-        <div class="nick-preview" id="nick-preview">lobbygg.com.tr/...</div>
-        <div class="nick-status" id="nick-status"></div>
+        <input class="field-input" type="text" id="nick-input"
+          placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
+        <div class="nick-preview" id="nick-preview">lobby.gg/<span>...</span></div>
+        <div class="field-hint muted" id="nick-status"></div>
       </div>
 
       <div id="btn-step0-next" style="margin-top:8px;"></div>
-
       <div class="toggle-link">
-        Hesabın var mı?
-        <button id="go-login-from-reg">Giriş yap</button>
+        Hesabın var mı? <button id="go-login-from-reg">Giriş yap</button>
       </div>
     </div>
 
@@ -651,28 +598,84 @@
       </div>
 
       <div id="btn-step1-next" style="margin-bottom:10px;"></div>
-
       <div class="divider">veya</div>
-
       <div id="btn-google-reg-wrap"></div>
-
-      <div class="btn-row" style="margin-top:14px;">
+      <div class="btn-row" style="margin-top:12px;">
         <div id="btn-step1-back" style="flex:1;"></div>
       </div>
     </div>
 
-    <!-- ── STEP 2: Rol ── -->
+    <!-- ── STEP 2: TAG ── -->
     <div class="step-view" id="view-step2">
       <div class="step-title">Topluluktaki Rolün</div>
-      <div class="step-sub">Seni en iyi tanımlayan rolü seç.</div>
+      <div class="step-sub">Seni en iyi tanımlayan seçeneği seç. Bu bilgi profilinde tag olarak görünecek.</div>
 
-      <div class="role-grid" id="role-grid"></div>
-      <div class="subrole-wrap" id="subrole-wrap">
-        <div class="subrole-title" id="subrole-title">Alt Kategori</div>
-        <div class="chips-wrap" id="subrole-chips"></div>
+      <!-- Ana 4 kart -->
+      <div class="tag-grid" id="main-tag-grid">
+        <div class="tag-card" data-main="Oyuncu">
+          <div class="tc-icon">⚔️</div>
+          <div class="tc-name">Oyuncu</div>
+          <div class="tc-desc">Minecraft oynuyorum</div>
+        </div>
+        <div class="tag-card" data-main="Developer">
+          <div class="tc-icon">💻</div>
+          <div class="tc-name">Developer</div>
+          <div class="tc-desc">Kod yazıyorum</div>
+        </div>
+        <div class="tag-card" data-main="Medya">
+          <div class="tc-icon">🎬</div>
+          <div class="tc-name">Medya</div>
+          <div class="tc-desc">İçerik üretiyorum</div>
+        </div>
+        <div class="tag-card" data-main="Diger">
+          <div class="tc-icon">🎮</div>
+          <div class="tc-name">Diğer</div>
+          <div class="tc-desc">Bunlar değilim</div>
+        </div>
       </div>
 
-      <div class="btn-row">
+      <!-- Developer alt seçim -->
+      <div class="sub-section" id="sub-developer">
+        <div class="sub-label">Uzmanlık Alanın</div>
+        <div class="sub-grid" id="dev-chips">
+          <div class="dev-chip" data-sub="Plugin Dev">🔌 Plugin Dev</div>
+          <div class="dev-chip" data-sub="Web Dev">🌐 Web Dev</div>
+          <div class="dev-chip" data-sub="Skripter">📜 Skripter</div>
+          <div class="dev-chip" data-sub="Builder">🏗️ Builder</div>
+        </div>
+      </div>
+
+      <!-- Medya platform seçim -->
+      <div class="sub-section" id="sub-medya">
+        <div class="sub-label">Platform Seçin</div>
+        <div class="sub-grid" id="platform-chips">
+          <div class="platform-card" data-sub="YouTube" data-tag="YouTuber">
+            <img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YouTube" />
+            <span class="pc-name">YouTuber</span>
+          </div>
+          <div class="platform-card" data-sub="TikTok" data-tag="TikToker">
+            <img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TikTok" />
+            <span class="pc-name">TikToker</span>
+          </div>
+          <div class="platform-card" data-sub="Kick" data-tag="Kick">
+            <img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick" />
+            <span class="pc-name">Kick</span>
+          </div>
+          <div class="platform-card" data-sub="Twitch" data-tag="Twitch">
+            <img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch" />
+            <span class="pc-name">Twitch</span>
+          </div>
+          <div class="platform-card" data-sub="Instagram" data-tag="Instagram">
+            <img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="Instagram" />
+            <span class="pc-name">Instagram</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seçilen tag önizleme -->
+      <div id="tag-preview" style="min-height:32px;"></div>
+
+      <div class="btn-row" style="margin-top:14px;">
         <div id="btn-step2-back" style="flex:0 0 auto;"></div>
         <div id="btn-step2-next" style="flex:1;"></div>
       </div>
@@ -681,7 +684,7 @@
     <!-- ── STEP 3: Sunucu ── -->
     <div class="step-view" id="view-step3">
       <div class="step-title">Aktif Oynadığın Sunucu</div>
-      <div class="step-sub">Hangi sunucuda oynuyorsun? İstersen geç.</div>
+      <div class="step-sub">Hangi sunucuda oynuyorsun? İstersen geçebilirsin.</div>
 
       <div class="server-grid" id="server-grid"></div>
 
@@ -700,10 +703,7 @@
         </div>
         <div class="success-title">Hoş geldin, <span id="welcome-nick">—</span>!</div>
         <div class="success-sub">Hesabın başarıyla oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
-        <div class="lcoin-badge">
-          <span><span class="lcoin-icon" style="display:inline-block; vertical-align:middle;"></span></span>
-          <span>+5 LC Giriş Bonusu!</span>
-        </div>
+        <div class="lcoin-badge">🪙 +5 LC Giriş Bonusu!</div>
         <div id="btn-goto-profile"></div>
       </div>
     </div>
@@ -722,86 +722,40 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 /* ================================================================
    CANVAS BACKGROUND
 ================================================================ */
-(function initCanvas() {
+(function() {
   const canvas = document.getElementById('bg');
   const ctx = canvas.getContext('2d');
+  let W, H, beams = [];
 
-  let W, H, beams = [], logos = [], logoImg;
-
-  logoImg = new Image();
-  logoImg.src = 'https://i.imgur.com/6l08Y4k.png';
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
   resize();
   window.addEventListener('resize', resize);
 
-  // Beams
-  for (let i = 0; i < 8; i++) {
-    beams.push({
-      x: Math.random() * 1.5 - 0.25,
-      speed: 0.0002 + Math.random() * 0.0003,
-      width: 60 + Math.random() * 120,
-      alpha: 0.03 + Math.random() * 0.06,
-      offset: Math.random() * Math.PI * 2
-    });
-  }
-
-  // Logos
   for (let i = 0; i < 6; i++) {
-    logos.push({
-      x: Math.random(),
-      y: Math.random(),
-      size: 40 + Math.random() * 60,
-      alpha: 0.015 + Math.random() * 0.025,
-      speedX: (Math.random() - 0.5) * 0.00015,
-      speedY: (Math.random() - 0.5) * 0.00015,
-      rot: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.0005
+    beams.push({
+      x: Math.random() * 1.4 - 0.2,
+      speed: 0.00015 + Math.random() * 0.0002,
+      width: 80 + Math.random() * 140,
+      alpha: 0.02 + Math.random() * 0.04,
+      offset: Math.random() * Math.PI * 2
     });
   }
 
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
-
-    // Light beams
     beams.forEach(b => {
       const cx = (Math.sin(t * b.speed + b.offset) * 0.5 + b.x) * W;
-      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.5);
-      grad.addColorStop(0,   `rgba(57,255,20,0)`);
-      grad.addColorStop(0.3, `rgba(57,255,20,${b.alpha})`);
-      grad.addColorStop(0.7, `rgba(57,255,20,${b.alpha * 0.6})`);
-      grad.addColorStop(1,   `rgba(57,255,20,0)`);
+      const grad = ctx.createLinearGradient(cx - b.width, 0, cx + b.width, H * 1.4);
+      grad.addColorStop(0,   'rgba(255,209,59,0)');
+      grad.addColorStop(0.3, `rgba(255,209,59,${b.alpha})`);
+      grad.addColorStop(0.7, `rgba(255,209,59,${b.alpha * 0.5})`);
+      grad.addColorStop(1,   'rgba(255,209,59,0)');
       ctx.save();
-      ctx.translate(cx, 0);
-      ctx.rotate(-Math.PI / 6);
+      ctx.translate(cx, 0); ctx.rotate(-Math.PI / 7);
       ctx.fillStyle = grad;
       ctx.fillRect(-b.width, -H, b.width * 2, H * 3);
       ctx.restore();
     });
-
-    // Logos
-    if (logoImg.complete) {
-      logos.forEach(l => {
-        l.x += l.speedX;
-        l.y += l.speedY;
-        l.rot += l.rotSpeed;
-        if (l.x < -0.1) l.x = 1.1;
-        if (l.x > 1.1)  l.x = -0.1;
-        if (l.y < -0.1) l.y = 1.1;
-        if (l.y > 1.1)  l.y = -0.1;
-
-        ctx.save();
-        ctx.globalAlpha = l.alpha;
-        ctx.translate(l.x * W, l.y * H);
-        ctx.rotate(l.rot);
-        ctx.drawImage(logoImg, -l.size / 2, -l.size * 0.25, l.size, l.size * 0.5);
-        ctx.restore();
-      });
-    }
-
     requestAnimationFrame(draw);
   }
   requestAnimationFrame(draw);
@@ -811,159 +765,98 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
    STATE
 ================================================================ */
 const state = {
-  mode: 'login',   // 'login' | 'register'
-  step: 0,         // 0..4
-  nick: '',
-  nickValid: false,
-  nickAvailable: false,
-  email: '',
-  password: '',
-  role: '',
-  subRole: '',
+  mode: 'login',
+  step: 0,
+  nick: '', nickValid: false, nickAvailable: false,
+  email: '', password: '',
+  mainTag: '',    // 'Oyuncu' | 'Developer' | 'Medya' | 'Diger'
+  subTag: '',     // alt seçim
+  displayTag: '', // nihai görüntülenen tag
   server: ''
+};
+
+/* ================================================================
+   SERVERS & DATA
+================================================================ */
+const SERVERS = [
+  {name:'HanedanMC',   ip:'play.hanedanmc.com'},
+  {name:'ChickenNW',   ip:'oyna.chickennw.com'},
+  {name:'BLOKYA',      ip:'oyna.blokya.com'},
+  {name:'DugeCraft',   ip:'play.dugecraft.com.tr'},
+  {name:'ZENITMC',     ip:'play.zenitmc.com'},
+  {name:'SENTORCRAFT', ip:'sentorcraft.com'},
+  {name:'SOULCRAFT',   ip:'soulcraft.tc'},
+  {name:'AtlasOyuncu', ip:'play.atlasoyuncu.com'},
+  {name:'AtlantikMC',  ip:'atlantikmc.com'},
+  {name:'NAVELYA',     ip:'navelya.net'},
+  {name:'CRAFTLUNA',   ip:'play.craftluna.net'},
+  {name:'Melonya',     ip:'melonya.net'},
+  {name:'Rush Craft',  ip:'play.rushcraft.com.tr'},
+  {name:'RebornCraft', ip:'play.reborncraft.pw'},
+  {name:'LuneCraft',   ip:'mc.lunecraft.net'},
+  {name:'SimitSMP',    ip:'simitsmp.net'},
+  {name:'MC4FUN',      ip:'play.mc4fun.net'},
+  {name:'İmibiyum',    ip:'play.imibiyum.com'}
+];
+
+// Medya platform logoları
+const PLATFORM_LOGOS = {
+  YouTube: 'https://cdn.simpleicons.org/youtube/FFFFFF',
+  TikTok:  'https://cdn.simpleicons.org/tiktok/FFFFFF',
+  Kick:    'https://cdn.simpleicons.org/kick/53FC18',
+  Twitch:  'https://cdn.simpleicons.org/twitch/9146FF',
+  Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'
 };
 
 /* ================================================================
    TOAST
 ================================================================ */
-function showToast(msg, type = 'error') {
+function showToast(msg, type='error') {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div');
-  t.className = 'toast' + (type === 'success' ? ' success' : '');
+  t.className = 'toast' + (type==='success'?' success':'');
   t.textContent = msg;
   c.appendChild(t);
-  setTimeout(() => {
-    t.style.animation = 'toastOut 0.3s ease forwards';
-    setTimeout(() => t.remove(), 320);
-  }, 3500);
+  setTimeout(() => t.remove(), 3800);
 }
 
 /* ================================================================
    DOM HELPERS
 ================================================================ */
-function el(tag, props = {}, ...children) {
-  const e = document.createElement(tag);
-  Object.entries(props).forEach(([k, v]) => {
-    if (k === 'class') e.className = v;
-    else if (k === 'style') Object.assign(e.style, v);
-    else if (k.startsWith('data-')) e.setAttribute(k, v);
-    else e[k] = v;
-  });
-  children.forEach(c => {
-    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
-    else if (c) e.appendChild(c);
-  });
-  return e;
+function clearAppend(id, el) {
+  const c = document.getElementById(id);
+  c.innerHTML = ''; c.appendChild(el);
 }
 
-function makeBtn(text, cls, id, disabled = false) {
-  const b = el('button', { class: 'btn ' + cls, id, disabled });
-  b.appendChild(document.createTextNode(text));
+function makeBtn(text, cls, disabled=false) {
+  const b = document.createElement('button');
+  b.className = 'btn ' + cls;
+  b.textContent = text;
+  b.disabled = disabled;
   return b;
-}
-
-function clearAndAppend(containerId, child) {
-  const c = document.getElementById(containerId);
-  c.innerHTML = '';
-  c.appendChild(child);
-}
-
-/* ================================================================
-   BUILD BUTTONS
-================================================================ */
-function buildStaticButtons() {
-  // Login submit
-  const btnLogin = makeBtn('Giriş Yap', 'mc-green');
-  btnLogin.addEventListener('click', handleLogin);
-  clearAndAppend('btn-login-wrap', btnLogin);
-
-  // Google login
-  const btnGoogle = el('button', { class: 'btn mc-discord' });
-  btnGoogle.appendChild(document.createTextNode('G — Google ile Giriş Yap'));
-  btnGoogle.addEventListener('click', handleGoogleAuth);
-  clearAndAppend('btn-google-login-wrap', btnGoogle);
-
-  // Step0 next
-  const btnS0 = makeBtn('İleri →', 'mc-green', 'btn-s0-next', true);
-  btnS0.addEventListener('click', () => goStep(1));
-  clearAndAppend('btn-step0-next', btnS0);
-
-  // Step1 next
-  const btnS1 = makeBtn('Devam Et', 'mc-green');
-  btnS1.addEventListener('click', handleRegister);
-  clearAndAppend('btn-step1-next', btnS1);
-
-  // Step1 back
-  const btnS1b = makeBtn('← Geri', 'btn-ghost mc-sm');
-  btnS1b.addEventListener('click', () => goStep(0));
-  clearAndAppend('btn-step1-back', btnS1b);
-
-  // Step1 Google
-  const btnGR = el('button', { class: 'btn mc-discord' });
-  btnGR.appendChild(document.createTextNode('G — Google ile Kayıt Ol'));
-  btnGR.addEventListener('click', handleGoogleAuth);
-  clearAndAppend('btn-google-reg-wrap', btnGR);
-
-  // Step2 back / next
-  const btnS2b = makeBtn('←', 'btn-ghost mc-sm');
-  btnS2b.addEventListener('click', () => goStep(1));
-  clearAndAppend('btn-step2-back', btnS2b);
-
-  const btnS2n = makeBtn('İleri →', 'mc-green');
-  btnS2n.addEventListener('click', () => {
-    if (!state.role) { showToast('Lütfen bir rol seç!'); return; }
-    goStep(3);
-  });
-  clearAndAppend('btn-step2-next', btnS2n);
-
-  // Step3 back / skip / next
-  const btnS3b = makeBtn('←', 'btn-ghost mc-sm');
-  btnS3b.addEventListener('click', () => goStep(2));
-  clearAndAppend('btn-step3-back', btnS3b);
-
-  const btnS3sk = makeBtn('Geç', 'btn-ghost mc-sm');
-  btnS3sk.addEventListener('click', () => finalizeRegistration());
-  clearAndAppend('btn-step3-skip', btnS3sk);
-
-  const btnS3n = makeBtn('Tamamla ✓', 'mc-green');
-  btnS3n.addEventListener('click', () => finalizeRegistration());
-  clearAndAppend('btn-step3-next', btnS3n);
-
-  // Step4 goto profile
-  const btnP = makeBtn('Profilime Git →', 'mc-green');
-  btnP.addEventListener('click', () => {
-    window.location.href = 'profil.html?nick=' + encodeURIComponent(state.nick);
-  });
-  clearAndAppend('btn-goto-profile', btnP);
-
-  // Toggle links
-  document.getElementById('go-register').addEventListener('click', () => switchMode('register'));
-  document.getElementById('go-login-from-reg').addEventListener('click', () => switchMode('login'));
-  document.getElementById('login-pw-toggle').addEventListener('click', () => togglePw('login-password', 'login-pw-toggle'));
-  document.getElementById('reg-pw-toggle').addEventListener('click', () => togglePw('reg-password', 'reg-pw-toggle'));
-}
-
-function togglePw(inputId, btnId) {
-  const inp = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
-  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-  else { inp.type = 'password'; btn.textContent = '👁'; }
 }
 
 /* ================================================================
    PROGRESS BAR
 ================================================================ */
-const STEP_LABELS = ['Nick', 'Hesap', 'Rol', 'Sunucu'];
+const STEPS = ['Nick', 'Hesap', 'Tag', 'Sunucu'];
 
 function buildProgressBar() {
   const bar = document.getElementById('progress-bar');
   bar.innerHTML = '';
-  STEP_LABELS.forEach((lbl, i) => {
-    const dot = el('div', { class: 'prog-dot', title: lbl });
-    dot.textContent = i + 1;
-    bar.appendChild(dot);
-    if (i < STEP_LABELS.length - 1) {
-      bar.appendChild(el('div', { class: 'prog-line' }));
+  STEPS.forEach((lbl, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'prog-step';
+    const dot = document.createElement('div');
+    dot.className = 'prog-dot'; dot.textContent = i+1;
+    const label = document.createElement('div');
+    label.className = 'prog-label'; label.textContent = lbl;
+    wrap.appendChild(dot); wrap.appendChild(label);
+    bar.appendChild(wrap);
+    if (i < STEPS.length-1) {
+      const line = document.createElement('div');
+      line.className = 'prog-line';
+      bar.appendChild(line);
     }
   });
 }
@@ -971,411 +864,420 @@ function buildProgressBar() {
 function updateProgressBar(step) {
   const dots = document.querySelectorAll('.prog-dot');
   const lines = document.querySelectorAll('.prog-line');
-  dots.forEach((d, i) => {
+  dots.forEach((d,i) => {
     d.className = 'prog-dot';
     if (i < step) d.classList.add('done');
     else if (i === step) d.classList.add('active');
   });
-  lines.forEach((l, i) => {
+  lines.forEach((l,i) => {
     l.className = 'prog-line';
     if (i < step) l.classList.add('done');
   });
 }
 
 /* ================================================================
-   ROLES / SERVERS
+   BUILD STATIC BUTTONS
 ================================================================ */
-const ROLES = [
-  { key: 'pvp',      icon: '⚔️',  name: 'PvP Oyuncusu' },
-  { key: 'content',  icon: '🎬',  name: 'İçerik Üreticisi' },
-  { key: 'dev',      icon: '💻',  name: 'Developer' },
-  { key: 'builder',  icon: '🏗️',  name: 'Builder' },
-  { key: 'server_owner', icon: '👑', name: 'Sunucu Sahibi' },
-  { key: 'other',    icon: '🎮',  name: 'Diğer' }
-];
+function buildButtons() {
+  // Login
+  const btnLogin = makeBtn('Giriş Yap', 'btn-gold');
+  btnLogin.addEventListener('click', handleLogin);
+  clearAppend('btn-login-wrap', btnLogin);
 
-const SUBROLES = {
-  pvp:     ['LT5','HT5','LT4','HT4','LT3','HT3','LT2','HT2','LT1','HT1'],
-  content: ['Kick','YouTube','Twitch','TikTok','Instagram'],
-  dev:     ['Plugin Dev','Skripter','Web Dev'],
-  builder: [],
-  server_owner: [],
-  other:   []
-};
+  const btnGLogin = makeBtn('G — Google ile Giriş Yap', 'btn-discord');
+  btnGLogin.addEventListener('click', handleGoogleAuth);
+  clearAppend('btn-google-login-wrap', btnGLogin);
 
-const PVP_TIERS_HELP = {
-  'LT5': 'Low Tier 5 (Başlangıç Üstü)',
-  'HT5': 'High Tier 5 (Orta Başlangıç)',
-  'LT4': 'Low Tier 4 (Orta Seviye)',
-  'HT4': 'High Tier 4 (İyi Seviye)',
-  'LT3': 'Low Tier 3 (Uzman Seviye)',
-  'HT3': 'High Tier 3 (Profesyonel)',
-  'LT2': 'Low Tier 2 (Elit Oyuncu)',
-  'HT2': 'High Tier 2 (Yarı Efsanevi)',
-  'LT1': 'Low Tier 1 (Efsanevi)',
-  'HT1': 'High Tier 1 (İlahi Seviye)'
-};
+  // Step0
+  const btnS0 = makeBtn('İleri →', 'btn-gold', true);
+  btnS0.id = 'btn-s0-next';
+  btnS0.addEventListener('click', () => goStep(1));
+  clearAppend('btn-step0-next', btnS0);
 
-const SERVERS = [
-  {name:'HanedanMC',    ip:'play.hanedanmc.com'},
-  {name:'ChickenNW',    ip:'oyna.chickennw.com'},
-  {name:'BLOKYA',       ip:'oyna.blokya.com'},
-  {name:'DugeCraft',    ip:'play.dugecraft.com.tr'},
-  {name:'ZENITMC',      ip:'play.zenitmc.com'},
-  {name:'SENTORCRAFT',  ip:'sentorcraft.com'},
-  {name:'SOULCRAFT',    ip:'soulcraft.tc'},
-  {name:'AtlasOyuncu',  ip:'play.atlasoyuncu.com'},
-  {name:'AtlantikMC',   ip:'atlantikmc.com'},
-  {name:'NAVELYA',      ip:'navelya.net'},
-  {name:'CRAFTLUNA',    ip:'play.craftluna.net'},
-  {name:'Melonya',      ip:'melonya.net'},
-  {name:'Rush Craft',   ip:'play.rushcraft.com.tr'},
-  {name:'RebornCraft',  ip:'play.reborncraft.pw'},
-  {name:'LuneCraft',    ip:'mc.lunecraft.net'},
-  {name:'SimitSMP',     ip:'simitsmp.net'},
-  {name:'MC4FUN',       ip:'play.mc4fun.net'},
-  {name:'İmibiyum',     ip:'play.imibiyum.com'}
-];
+  // Step1
+  const btnS1 = makeBtn('Devam Et', 'btn-gold');
+  btnS1.addEventListener('click', handleRegister);
+  clearAppend('btn-step1-next', btnS1);
 
-function buildRoleGrid() {
-  const grid = document.getElementById('role-grid');
-  grid.innerHTML = '';
-  ROLES.forEach(r => {
-    const card = el('div', { class: 'role-card', 'data-key': r.key });
-    const icon = el('div', { class: 'role-icon' });
-    icon.textContent = r.icon;
-    const name = el('div', { class: 'role-name' });
-    name.textContent = r.name;
-    card.appendChild(icon);
-    card.appendChild(name);
-    card.addEventListener('click', () => selectRole(r.key));
-    grid.appendChild(card);
-  });
-}
+  const btnS1b = makeBtn('← Geri', 'btn-ghost btn-sm');
+  btnS1b.addEventListener('click', () => goStep(0));
+  clearAppend('btn-step1-back', btnS1b);
 
-function selectRole(key) {
-  state.role = key;
-  state.subRole = '';
-  document.querySelectorAll('.role-card').forEach(c => {
-    c.classList.toggle('selected', c.getAttribute('data-key') === key);
-  });
-  buildSubRoles(key);
-}
+  const btnGReg = makeBtn('G — Google ile Kayıt Ol', 'btn-discord');
+  btnGReg.addEventListener('click', handleGoogleAuth);
+  clearAppend('btn-google-reg-wrap', btnGReg);
 
-function buildSubRoles(roleKey) {
-  const wrap = document.getElementById('subrole-wrap');
-  const chips = document.getElementById('subrole-chips');
-  const subs = SUBROLES[roleKey] || [];
-  chips.innerHTML = '';
-  if (['server_owner', 'other'].includes(roleKey)) {
-    wrap.classList.add('visible');
-    document.getElementById('subrole-title').textContent = 'Alt Kategori Yazın';
-    const input = el('input', {className:'field-input', id:'reg-subrole-input', attrs:{type:'text', placeholder:'Örn: HanedanMC Sahibi veya Tasarımcı'}});
-    input.addEventListener('input', () => {
-      state.subRole = input.value.trim();
-    });
-    chips.appendChild(input);
-    return;
-  }
-  if (subs.length === 0) {
-    wrap.classList.remove('visible');
-    return;
-  }
-  document.getElementById('subrole-title').textContent = 'Alt Kategori';
-  subs.forEach(s => {
-    const chip = el('div', { class: 'chip' });
-    chip.textContent = s;
-    if (roleKey === 'pvp' && PVP_TIERS_HELP[s]) {
-      chip.title = PVP_TIERS_HELP[s];
+  // Step2
+  const btnS2b = makeBtn('←', 'btn-ghost btn-sm');
+  btnS2b.addEventListener('click', () => goStep(1));
+  clearAppend('btn-step2-back', btnS2b);
+
+  const btnS2n = makeBtn('İleri →', 'btn-gold');
+  btnS2n.addEventListener('click', () => {
+    if (!state.mainTag) { showToast('Lütfen bir tag seç!'); return; }
+    if ((state.mainTag === 'Developer' || state.mainTag === 'Medya') && !state.subTag) {
+      showToast('Lütfen alt kategori seç!'); return;
     }
-    chip.addEventListener('click', () => {
-      state.subRole = s;
-      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.textContent === s));
-    });
-    chips.appendChild(chip);
+    goStep(3);
   });
-  wrap.classList.add('visible');
-}
+  clearAppend('btn-step2-next', btnS2n);
 
-function buildServerGrid() {
-  const grid = document.getElementById('server-grid');
-  grid.innerHTML = '';
-  SERVERS.forEach(s => {
-    const card = el('div', { class: 'server-card', 'data-ip': s.ip });
-    const img = el('img', { src: 'https://api.mcsrvstat.us/icon/' + s.ip, alt: s.name });
-    img.addEventListener('error', function() { this.src = 'https://i.imgur.com/6l08Y4k.png'; });
-    const name = el('div', { class: 'srv-name' });
-    name.textContent = s.name;
-    card.appendChild(img);
-    card.appendChild(name);
-    card.addEventListener('click', () => selectServer(s.name, card));
-    grid.appendChild(card);
-  });
-}
+  // Step3
+  const btnS3b = makeBtn('←', 'btn-ghost btn-sm');
+  btnS3b.addEventListener('click', () => goStep(2));
+  clearAppend('btn-step3-back', btnS3b);
 
-function selectServer(name, card) {
-  state.server = name;
-  document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
+  const btnS3sk = makeBtn('Geç →', 'btn-ghost');
+  btnS3sk.addEventListener('click', () => { state.server=''; finishRegister(); });
+  clearAppend('btn-step3-skip', btnS3sk);
+
+  const btnS3n = makeBtn('Kayıt Ol →', 'btn-gold', true);
+  btnS3n.id = 'btn-s3-next';
+  btnS3n.addEventListener('click', finishRegister);
+  clearAppend('btn-step3-next', btnS3n);
+
+  // Step4
+  const btnProfile = makeBtn('Profili Görüntüle →', 'btn-gold');
+  btnProfile.addEventListener('click', () => { window.location.href='lobbyx.html'; });
+  clearAppend('btn-goto-profile', btnProfile);
 }
 
 /* ================================================================
-   MODE SWITCH
+   TAG SELECTION LOGIC
 ================================================================ */
-function switchMode(mode) {
-  state.mode = mode;
-  const bar = document.getElementById('progress-bar');
-  if (mode === 'login') {
-    showView('view-login');
-    bar.classList.add('hidden');
-  } else {
-    showView('view-step0');
-    bar.classList.remove('hidden');
-    state.step = 0;
-    updateProgressBar(0);
-  }
+function initTagSelection() {
+  // Ana kart seçimi
+  document.querySelectorAll('.tag-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.tag-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.mainTag = card.dataset.main;
+      state.subTag = '';
+      state.displayTag = '';
+
+      // Alt seçimleri gizle/göster
+      document.getElementById('sub-developer').classList.remove('visible');
+      document.getElementById('sub-medya').classList.remove('visible');
+      document.querySelectorAll('.dev-chip, .platform-card').forEach(c => c.classList.remove('selected'));
+
+      if (state.mainTag === 'Developer') {
+        document.getElementById('sub-developer').classList.add('visible');
+      } else if (state.mainTag === 'Medya') {
+        document.getElementById('sub-medya').classList.add('visible');
+      } else {
+        // Oyuncu veya Diğer — direkt tag
+        state.displayTag = state.mainTag === 'Diger' ? 'Diğer' : 'Oyuncu';
+        updateTagPreview();
+      }
+    });
+  });
+
+  // Developer alt seçim
+  document.querySelectorAll('.dev-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.dev-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      state.subTag = chip.dataset.sub;
+      state.displayTag = chip.dataset.sub;
+      updateTagPreview();
+    });
+  });
+
+  // Medya platform seçim
+  document.querySelectorAll('.platform-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.platform-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.subTag = card.dataset.sub;
+      state.displayTag = card.dataset.tag;
+      updateTagPreview();
+    });
+  });
 }
 
-function showView(id) {
-  document.querySelectorAll('.step-view').forEach(v => v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function updateTagPreview() {
+  const preview = document.getElementById('tag-preview');
+  if (!state.displayTag) { preview.innerHTML = ''; return; }
+
+  const badge = document.createElement('div');
+  badge.className = 'tag-preview-badge';
+
+  // Platform logo varsa ekle
+  if (state.mainTag === 'Medya' && state.subTag && PLATFORM_LOGOS[state.subTag]) {
+    const logo = document.createElement('img');
+    logo.src = PLATFORM_LOGOS[state.subTag];
+    logo.alt = state.subTag;
+    badge.appendChild(logo);
+  }
+
+  const txt = document.createTextNode('✓ ' + state.displayTag + ' tagı alacaksın');
+  badge.appendChild(txt);
+
+  preview.innerHTML = '';
+  preview.appendChild(badge);
+}
+
+/* ================================================================
+   SERVER GRID
+================================================================ */
+function buildServerGrid() {
+  const grid = document.getElementById('server-grid');
+  grid.innerHTML = '';
+  SERVERS.forEach(srv => {
+    const card = document.createElement('div');
+    card.className = 'server-card';
+
+    const img = document.createElement('img');
+    img.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
+    img.alt = srv.name;
+    img.onerror = () => {
+      img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0c1e3c&color=ffd13b&size=64&bold=true`;
+    };
+
+    const name = document.createElement('div');
+    name.className = 'srv-name';
+    name.textContent = srv.name;
+
+    card.appendChild(img); card.appendChild(name);
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.server-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.server = srv.ip;
+      document.getElementById('btn-s3-next').disabled = false;
+    });
+    grid.appendChild(card);
+  });
 }
 
 /* ================================================================
    STEP NAVIGATION
 ================================================================ */
-function goStep(n) {
-  state.step = n;
-  updateProgressBar(n);
-  const views = ['view-step0','view-step1','view-step2','view-step3','view-step4'];
-  showView(views[n]);
-  if (n === 4) {
-    document.getElementById('welcome-nick').textContent = state.nick;
-    document.getElementById('progress-bar').classList.add('hidden');
+const STEP_VIEWS = ['view-step0','view-step1','view-step2','view-step3','view-step4'];
+
+function goStep(step) {
+  STEP_VIEWS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  state.step = step;
+  const target = document.getElementById(STEP_VIEWS[step]);
+  if (target) target.classList.add('active');
+  updateProgressBar(step);
+}
+
+function switchMode(mode) {
+  state.mode = mode;
+  document.getElementById('view-login').classList.remove('active');
+  STEP_VIEWS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  const bar = document.getElementById('progress-bar');
+  if (mode === 'register') {
+    bar.classList.remove('hidden');
+    buildProgressBar();
+    goStep(0);
+  } else {
+    bar.classList.add('hidden');
+    document.getElementById('view-login').classList.add('active');
   }
 }
 
 /* ================================================================
-   NICK VALIDATION
+   NICK CHECK
 ================================================================ */
-let nickTimer = null;
-
-function initNickInput() {
+let nickTimer;
+function initNickCheck() {
   const input = document.getElementById('nick-input');
-  const preview = document.getElementById('nick-preview');
   const status = document.getElementById('nick-status');
+  const preview = document.getElementById('nick-preview');
   const nextBtn = document.getElementById('btn-s0-next');
 
   input.addEventListener('input', () => {
     const val = input.value.trim();
-    state.nick = val;
-    state.nickValid = false;
-    state.nickAvailable = false;
-
-    // Preview
-    preview.textContent = val ? 'lobbygg.com.tr/' + val : 'lobbygg.com.tr/...';
-
-    // Validate format
-    const nickRx = /^[a-zA-Z0-9_]{3,20}$/;
-    if (!val) {
-      status.textContent = '';
-      status.style.color = '';
-      input.className = 'field-input';
-      if (nextBtn) nextBtn.disabled = true;
-      clearTimeout(nickTimer);
-      return;
-    }
-
-    if (!nickRx.test(val)) {
-      status.textContent = '❌ 3-20 karakter, sadece harf, rakam ve alt çizgi kullan.';
-      status.style.color = 'var(--red)';
-      input.className = 'field-input error';
-      if (nextBtn) nextBtn.disabled = true;
-      clearTimeout(nickTimer);
-      return;
-    }
-
-    // Debounce check
-    status.textContent = '⏳ Kontrol ediliyor...';
-    status.style.color = 'var(--muted)';
-    input.className = 'field-input';
+    preview.innerHTML = `lobby.gg/<span>${val || '...'}</span>`;
+    state.nick = val; state.nickValid = false; state.nickAvailable = false;
     if (nextBtn) nextBtn.disabled = true;
-    clearTimeout(nickTimer);
 
-    nickTimer = setTimeout(async () => {
-      const { data, error } = await db
-        .from('kullanicilar')
-        .select('id')
-        .ilike('kullanici_adi', val)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        status.textContent = '⚠️ Kontrol hatası, tekrar dene.';
-        status.style.color = 'var(--red)';
-        return;
-      }
-
-      if (data) {
-        status.textContent = '❌ Alınmış';
-        status.style.color = 'var(--red)';
+    const valid = /^[a-zA-Z0-9_]{3,20}$/.test(val);
+    if (!valid) {
+      if (val.length > 0) {
         input.className = 'field-input error';
-        state.nickAvailable = false;
-        if (nextBtn) nextBtn.disabled = true;
+        status.className = 'field-hint red';
+        status.textContent = '3-20 karakter, sadece harf/rakam/alt çizgi.';
       } else {
-        status.textContent = '✅ Müsait';
-        status.style.color = 'var(--accent)';
-        input.className = 'field-input success';
-        state.nickValid = true;
-        state.nickAvailable = true;
+        input.className = 'field-input';
+        status.textContent = '';
+      }
+      return;
+    }
+
+    input.className = 'field-input';
+    status.className = 'field-hint muted';
+    status.textContent = 'Kontrol ediliyor...';
+
+    clearTimeout(nickTimer);
+    nickTimer = setTimeout(async () => {
+      const { data } = await db.from('kullanicilar')
+        .select('id').eq('kullanici_adi', val).maybeSingle();
+      if (data) {
+        input.className = 'field-input error';
+        status.className = 'field-hint red';
+        status.textContent = '✗ Bu kullanıcı adı alınmış.';
+        state.nickAvailable = false;
+      } else {
+        input.className = 'field-input ok';
+        status.className = 'field-hint green';
+        status.textContent = '✓ Kullanıcı adı uygun!';
+        state.nick = val; state.nickValid = true; state.nickAvailable = true;
         if (nextBtn) nextBtn.disabled = false;
       }
-    }, 500);
+    }, 600);
   });
 }
 
 /* ================================================================
-   AUTH HANDLERS
+   AUTH: LOGIN
 ================================================================ */
 async function handleLogin() {
-  const email    = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-
-  if (!email || !password) { showToast('E-posta ve şifre gerekli!'); return; }
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  if (!email || !pw) { showToast('E-posta ve şifreyi gir.'); return; }
 
   const btn = document.querySelector('#btn-login-wrap .btn');
-  btn.disabled = true;
-  btn.innerHTML = '';
-  const sp = el('span', { class: 'spinner' });
-  btn.appendChild(sp);
-  btn.appendChild(document.createTextNode(' Giriş yapılıyor...'));
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-
+  const { error } = await db.auth.signInWithPassword({ email, password: pw });
   if (error) {
-    showToast('Giriş hatası: ' + error.message);
-    btn.disabled = false;
-    btn.textContent = 'Giriş Yap';
-    return;
+    showToast('Giriş hatası: ' + (error.message || 'Hatalı bilgi'));
+    btn.disabled = false; btn.textContent = 'Giriş Yap';
+  } else {
+    window.location.href = 'lobbyx.html';
   }
-  showToast('Giriş başarılı! Yönlendiriliyor...', 'success');
-  setTimeout(() => { window.location.href = 'lobbyx.html'; }, 1000);
 }
 
+/* ================================================================
+   AUTH: REGISTER (Step1 → account creation)
+================================================================ */
 async function handleRegister() {
-  const email    = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
+  const email = document.getElementById('reg-email').value.trim();
+  const pw = document.getElementById('reg-password').value;
+  if (!email || !pw) { showToast('E-posta ve şifreyi gir.'); return; }
+  if (pw.length < 6) { showToast('Şifre en az 6 karakter olmalı.'); return; }
+  if (!state.nickValid || !state.nickAvailable) { showToast('Geçersiz kullanıcı adı!'); return; }
 
-  if (!email) { showToast('Geçerli bir e-posta gir!'); return; }
-  if (password.length < 6) { showToast('Şifre en az 6 karakter olmalı!'); return; }
-
-  state.email    = email;
-  state.password = password;
-
-  const btn = document.querySelector('#btn-step1-next .btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '';
-    btn.appendChild(el('span', { class: 'spinner' }));
-    btn.appendChild(document.createTextNode(' Devam ediliyor...'));
-  }
-
-  // We'll create the auth account here, then insert record after all steps
-  const { data, error } = await db.auth.signUp({ email, password });
-
-  if (error) {
-    showToast('Kayıt hatası: ' + error.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Devam Et'; }
-    return;
-  }
-
-  if (btn) { btn.disabled = false; btn.textContent = 'Devam Et'; }
+  state.email = email; state.password = pw;
   goStep(2);
 }
 
+/* ================================================================
+   AUTH: GOOGLE
+================================================================ */
 async function handleGoogleAuth() {
   const { error } = await db.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin + '/lobbyx.html' }
   });
-  if (error) showToast('Google ile giriş başarısız: ' + error.message);
-}
-
-async function finalizeRegistration() {
-  // Get current user
-  const { data: { user }, error: uErr } = await db.auth.getUser();
-  if (uErr || !user) {
-    showToast('Oturum bulunamadı, tekrar dene.');
-    return;
-  }
-
-  const ROLE_DB_MAP = {
-    pvp: 'PvP',
-    content: 'İçerik Üretici',
-    dev: 'Developer',
-    builder: 'Builder',
-    server_owner: 'Sunucu Sahibi',
-    other: 'Diğer'
-  };
-
-  const record = {
-    kullanici_adi: state.nick,
-    email: state.email || user.email,
-    abonelik: 'uye',
-    kayit_tarihi: new Date().toLocaleDateString('tr-TR'),
-    kategori: ROLE_DB_MAP[state.role] || 'Diğer',
-    alt_kategori: state.subRole,
-    desteklenen_sunucu: state.server,
-    lcoin: 5
-  };
-
-  const { data: insertedProfile, error } = await db.from('kullanicilar')
-    .upsert(record, { onConflict: 'email' })
-    .select('id')
-    .maybeSingle();
-
-  if (error || !insertedProfile) {
-    showToast('Profil kaydedilemedi: ' + (error ? error.message : 'Bilinmeyen hata'));
-    return;
-  }
-
-  showToast('Hesap oluşturuldu!', 'success');
-  goStep(4);
+  if (error) showToast('Google hatası: ' + error.message);
 }
 
 /* ================================================================
-   SESSION CHECK
+   FINISH REGISTER (Supabase + DB kayıt)
 ================================================================ */
-async function checkSession() {
-  const { data: { session } } = await db.auth.getSession();
-  if (session) {
-    // Check if user has profile
-    const { data } = await db.from('kullanicilar').select('kullanici_adi').eq('email', session.user.email).maybeSingle();
-    if (data && data.kullanici_adi) {
-      window.location.href = 'lobbyx.html';
-      return;
-    }
-  }
-  // Hide loading
-  const overlay = document.getElementById('load-overlay');
-  if (overlay) {
-    overlay.classList.add('hidden');
-    setTimeout(() => overlay.remove(), 400);
+async function finishRegister() {
+  const btn = document.getElementById('btn-s3-next') ||
+              document.querySelector('#btn-step3-skip .btn');
+
+  // Kategori bilgileri
+  const kategoriMap = {
+    'Oyuncu': 'Oyuncu',
+    'Developer': 'Developer',
+    'Medya': 'Medya',
+    'Diger': 'Diğer'
+  };
+  const kategori = kategoriMap[state.mainTag] || 'Diğer';
+  const altKategori = state.subTag || null;
+  const displayTag = state.displayTag || kategori;
+
+  try {
+    // 1. Supabase auth
+    const { data: authData, error: authErr } = await db.auth.signUp({
+      email: state.email,
+      password: state.password
+    });
+    if (authErr) throw authErr;
+
+    const userId = authData.user?.id;
+    if (!userId) throw new Error('Kullanıcı ID alınamadı.');
+
+    // 2. Kullanicilar tablosuna kayıt
+    const { error: dbErr } = await db.from('kullanicilar').insert({
+      id: userId,
+      kullanici_adi: state.nick,
+      email: state.email,
+      kategori: kategori,
+      alt_kategori: altKategori,
+      display_tag: displayTag,
+      desteklenen_sunucu: state.server || null,
+      abonelik: 'uye',
+      lcoin: 5,
+      kesfet_gorunurluk: false,
+      hesap_olusturma: new Date().toISOString()
+    });
+    if (dbErr) console.warn('DB kayıt uyarısı:', dbErr.message);
+
+    // 3. Başarı ekranı
+    document.getElementById('welcome-nick').textContent = state.nick;
+    goStep(4);
+    document.getElementById('progress-bar').classList.add('hidden');
+
+  } catch(e) {
+    showToast('Kayıt hatası: ' + (e.message || 'Bilinmeyen hata'));
   }
 }
 
 /* ================================================================
    INIT
 ================================================================ */
-function init() {
-  buildProgressBar();
-  buildStaticButtons();
-  buildRoleGrid();
-  buildServerGrid();
-  initNickInput();
-  checkSession();
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load overlay gizle
+  setTimeout(() => {
+    document.getElementById('load-overlay').classList.add('hidden');
+  }, 600);
 
-document.addEventListener('DOMContentLoaded', init);
+  // Giriş yapmış mı kontrol
+  const { data: { session } } = await db.auth.getSession();
+  if (session) { window.location.href = 'lobbyx.html'; return; }
+
+  buildButtons();
+  initNickCheck();
+  buildServerGrid();
+  initTagSelection();
+
+  // PW toggles
+  document.getElementById('login-pw-toggle').addEventListener('click', () => {
+    const inp = document.getElementById('login-password');
+    const btn = document.getElementById('login-pw-toggle');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  });
+  document.getElementById('reg-pw-toggle').addEventListener('click', () => {
+    const inp = document.getElementById('reg-password');
+    const btn = document.getElementById('reg-pw-toggle');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  });
+
+  // Mode switch
+  document.getElementById('go-register').addEventListener('click', () => switchMode('register'));
+  document.getElementById('go-login-from-reg').addEventListener('click', () => switchMode('login'));
+
+  // Enter key on login
+  document.getElementById('login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+});
 </script>
 </body>
 </html>
