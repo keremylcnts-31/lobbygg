@@ -9,642 +9,456 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --gold:    #ffd13b;
-      --gold-dk: #b89000;
-      --bg-l:    #090c18;
-      --bg-r:    #0b0f1f;
-      --input-bg:#0e1428;
-      --border:  #000;
-      --text-1:  #ffffff;
-      --text-2:  #9aa8c8;
-      --text-dim:#4a5878;
-      --red:     #ff3535;
-      --green:   #3ddc84;
+      --gold: #ffd13b; --gold-dk: #b89000;
+      --bg-l: #090c18; --bg-r: #0b0f1f;
+      --card: rgba(18,62,103,0.75);
+      --card2: rgba(12,42,70,0.85);
+      --input-bg: #0e1428;
+      --border: #000;
+      --text-1: #fff; --text-2: #9aa8c8; --text-dim: #4a5878;
+      --red: #ff3535; --green: #3ddc84;
     }
+    html, body { width:100%; height:100%; font-family:'Montserrat',sans-serif; background:var(--bg-l); color:var(--text-1); overflow:hidden; }
 
-    html, body {
-      width: 100%; height: 100%;
-      font-family: 'Montserrat', sans-serif;
-      background: var(--bg-l);
-      color: var(--text-1);
-      overflow: hidden;
-    }
+    /* ── BG ── */
+    body::before { content:''; position:fixed; inset:0; z-index:0; background:url('mc_bg.png') center/cover no-repeat; filter:blur(20px) brightness(0.2); transform:scale(1.1); pointer-events:none; }
 
-    /* ══════════════════════════════
-       SPLIT LAYOUT
-    ══════════════════════════════ */
-    .split {
-      display: flex;
-      width: 100%; height: 100%;
-    }
+    /* ── SPLIT ── */
+    .split { display:flex; width:100%; height:100%; position:relative; z-index:1; }
 
-    /* ── LEFT PANEL (Form) ── */
+    /* ── LEFT ── */
     .panel-left {
-      width: 480px;
-      flex-shrink: 0;
-      background: var(--bg-l);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 48px 52px;
-      position: relative;
-      z-index: 10;
-      overflow-y: auto;
-      border-right: 3px solid #000;
+      width:460px; flex-shrink:0;
+      background:rgba(9,12,24,0.97);
+      border-right:3px solid #000;
+      display:flex; flex-direction:column; justify-content:center;
+      padding:44px 48px;
+      overflow-y:auto; overflow-x:hidden;
+      position:relative; z-index:10;
     }
 
-    /* ── RIGHT PANEL (Visual) ── */
-    .panel-right {
-      flex: 1;
-      background: var(--bg-r);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+    /* ── RIGHT ── */
+    .panel-right { flex:1; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
 
-    /* Right panel radial glow */
+    /* Right bg glow */
     .panel-right::before {
-      content: '';
-      position: absolute;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,209,59,0.12) 0%, rgba(255,209,59,0.04) 40%, transparent 70%);
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      animation: glowPulse 4s ease-in-out infinite;
+      content:''; position:absolute;
+      width:700px; height:700px; border-radius:50%;
+      background:radial-gradient(circle, rgba(255,209,59,0.1) 0%, rgba(255,209,59,0.03) 45%, transparent 70%);
+      top:50%; left:50%; transform:translate(-50%,-50%);
+      animation:glowPulse 5s ease-in-out infinite;
+      pointer-events:none;
     }
-    @keyframes glowPulse {
-      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
-      50%      { transform: translate(-50%,-50%) scale(1.12); opacity: 1; }
-    }
+    @keyframes glowPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8} 50%{transform:translate(-50%,-50%) scale(1.1);opacity:1} }
 
-    /* Grid dots on right panel */
-    .panel-right::after {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 32px 32px;
-      pointer-events: none;
-    }
+    /* dot grid */
+    .panel-right::after { content:''; position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px); background-size:30px 30px; pointer-events:none; }
 
-    /* Right panel content */
-    .right-content {
-      position: relative; z-index: 2;
-      text-align: center;
-      padding: 40px;
+    /* ── MARKETING PANEL ── */
+    .right-marketing {
+      position:relative; z-index:2; text-align:center; padding:40px;
+      transition:opacity .4s ease, transform .4s ease;
     }
-    .right-logo {
-      width: 120px; height: 120px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 32px rgba(255,209,59,0.7))
-              drop-shadow(0 0 64px rgba(255,209,59,0.3));
-      margin-bottom: 28px;
-      animation: logoBob 3s ease-in-out infinite;
-    }
-    @keyframes logoBob {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-10px); }
-    }
-    .right-title {
-      font-size: 28px; font-weight: 900;
-      color: var(--text-1);
-      letter-spacing: -0.5px;
-      margin-bottom: 10px;
-    }
-    .right-sub {
-      font-size: 14px; color: var(--text-2);
-      font-weight: 600; line-height: 1.7;
-      margin-bottom: 32px;
-    }
-    .right-features {
-      display: flex; flex-direction: column;
-      gap: 12px; text-align: left;
-    }
-    .right-feature {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(255,255,255,0.03);
-      border: 2px solid #111828;
-      border-radius: 2px;
-      box-shadow: 3px 3px 0 #000;
-      padding: 12px 16px;
-    }
-    .right-feature-icon {
-      font-size: 20px; flex-shrink: 0; width: 28px; text-align: center;
-    }
-    .right-feature-text { font-size: 12px; font-weight: 700; color: var(--text-2); }
-    .right-feature-text strong { color: var(--text-1); display: block; font-size: 13px; margin-bottom: 1px; }
+    .right-marketing.fade-out { opacity:0; transform:scale(.95); pointer-events:none; }
+    .right-marketing.hidden { display:none; }
 
-    /* ══════════════════════════════
-       PROGRESS BAR
-    ══════════════════════════════ */
-    .progress-bar {
-      display: flex; align-items: center;
-      margin-bottom: 30px; gap: 0;
+    .r-logo { width:110px; object-fit:contain; filter:drop-shadow(0 0 28px rgba(255,209,59,.8)); animation:logoBob 3s ease-in-out infinite; margin-bottom:22px; }
+    @keyframes logoBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .r-title { font-size:26px; font-weight:900; margin-bottom:10px; }
+    .r-sub { font-size:13px; color:var(--text-2); font-weight:600; line-height:1.7; margin-bottom:28px; }
+    .r-features { display:flex; flex-direction:column; gap:10px; text-align:left; max-width:320px; margin:0 auto; }
+    .r-feature {
+      display:flex; align-items:center; gap:12px;
+      background:rgba(255,255,255,.03); border:2px solid #111828;
+      box-shadow:3px 3px 0 #000; padding:12px 14px;
     }
-    .progress-bar.hidden { display: none; }
+    .r-fi { font-size:18px; flex-shrink:0; }
+    .r-ft { font-size:12px; font-weight:700; color:var(--text-2); line-height:1.4; }
+    .r-ft strong { color:var(--text-1); display:block; font-size:12px; margin-bottom:1px; }
 
-    .prog-step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    /* ── LIVE PREVIEW PANEL ── */
+    .right-preview {
+      position:absolute; inset:0; z-index:2;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:30px;
+      opacity:0; pointer-events:none;
+      transition:opacity .5s ease;
+    }
+    .right-preview.visible { opacity:1; pointer-events:auto; }
+
+    .prev-label {
+      font-size:10px; font-weight:800; text-transform:uppercase;
+      letter-spacing:2px; color:var(--text-dim); margin-bottom:16px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .prev-label::before, .prev-label::after { content:''; flex:1; height:1px; background:#111828; max-width:60px; }
+
+    /* Profile card preview */
+    .prev-card {
+      width:100%; max-width:340px;
+      background:var(--card);
+      border:3px solid #000;
+      box-shadow:5px 5px 0 #000;
+      overflow:hidden;
+      animation:cardFloat 6s ease-in-out infinite;
+    }
+    @keyframes cardFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+    .prev-banner {
+      height:90px; position:relative;
+      background:#1a2a4a;
+      transition:background .5s ease;
+      overflow:hidden;
+    }
+    .prev-banner-overlay { position:absolute; inset:0; background:linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.4) 100%); }
+
+    .prev-avatar-wrap {
+      position:absolute; bottom:-20px; left:16px;
+      width:52px; height:52px;
+      border:3px solid #000;
+      background:#0a0f1e;
+      overflow:hidden;
+      box-shadow:2px 2px 0 #000;
+      transition:all .3s ease;
+    }
+    .prev-avatar-wrap img { width:100%; height:100%; object-fit:cover; }
+
+    .prev-body { padding:28px 16px 16px; }
+
+    .prev-name-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; flex-wrap:wrap; }
+    .prev-name {
+      font-size:16px; font-weight:900; color:var(--text-1);
+      transition:opacity .2s ease;
+      min-height:20px;
+    }
+    .prev-name.flash { animation:nameFlash .4s ease; }
+    @keyframes nameFlash { 0%,100%{opacity:1} 40%{opacity:.2} }
+
+    .prev-tag-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 10px; font-size:10px; font-weight:800;
+      border:2px solid #000; box-shadow:2px 2px 0 #000;
+      min-height:22px;
+      transition:all .3s ease;
+    }
+    .prev-tag-badge img { width:12px; height:12px; }
+
+    .prev-bio {
+      font-size:11px; color:var(--text-2); font-weight:600;
+      margin-bottom:12px; line-height:1.6;
+      min-height:16px;
+      transition:all .3s ease;
+    }
+    .prev-bio.placeholder { color:var(--text-dim); font-style:italic; }
+
+    .prev-stats { display:flex; gap:14px; }
+    .prev-stat { font-size:10px; font-weight:700; color:var(--text-dim); }
+    .prev-stat span { color:var(--text-2); font-weight:800; margin-right:3px; }
+
+    .prev-server-row {
+      display:flex; align-items:center; gap:8px;
+      margin-top:10px; padding-top:10px;
+      border-top:2px solid #000;
+      font-size:10px; font-weight:700; color:var(--text-dim);
+      min-height:32px;
+    }
+    .prev-server-row img { width:20px; height:20px; border:1px solid #000; }
+
+    /* Step progress hint on preview */
+    .prev-step-hints { margin-top:16px; width:100%; max-width:340px; }
+    .prev-hint-item {
+      display:flex; align-items:center; gap:8px;
+      font-size:10px; font-weight:700; color:var(--text-dim);
+      padding:5px 0;
+      transition:color .3s;
+    }
+    .prev-hint-item.done { color:var(--green); }
+    .prev-hint-item .hint-dot {
+      width:10px; height:10px; flex-shrink:0;
+      border:2px solid currentColor;
+      transition:all .3s;
+    }
+    .prev-hint-item.done .hint-dot { background:var(--green); border-color:var(--green); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar { display:flex; align-items:center; margin-bottom:26px; }
+    .progress-bar.hidden { display:none; }
+    .prog-step { display:flex; flex-direction:column; align-items:center; gap:4px; }
     .prog-dot {
-      width: 30px; height: 30px;
-      border: 2px solid #1a2240;
-      background: #0a0f20;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900; color: #2a3a60;
-      box-shadow: 2px 2px 0 #000;
-      transition: all 0.25s;
+      width:28px; height:28px; border:2px solid #1a2240; background:#0a0f20;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; font-weight:900; color:#2a3a60;
+      box-shadow:2px 2px 0 #000; transition:all .25s;
     }
-    .prog-dot.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: rgba(255,209,59,0.08);
-      box-shadow: 2px 2px 0 var(--gold-dk);
-    }
-    .prog-dot.done {
-      border-color: var(--gold);
-      background: var(--gold);
-      color: #000;
-      box-shadow: 2px 2px 0 var(--gold-dk);
-    }
-    .prog-label {
-      font-size: 8px; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.5px; color: #2a3a60; transition: color 0.2s;
-    }
-    .prog-step.s-active .prog-label { color: var(--gold); }
-    .prog-step.s-done .prog-label   { color: rgba(255,209,59,0.6); }
+    .prog-dot.active { border-color:var(--gold); color:var(--gold); background:rgba(255,209,59,.08); box-shadow:2px 2px 0 var(--gold-dk); }
+    .prog-dot.done   { border-color:var(--gold); background:var(--gold); color:#000; box-shadow:2px 2px 0 var(--gold-dk); }
+    .prog-label { font-size:7px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#2a3a60; transition:color .2s; }
+    .prog-step.s-active .prog-label { color:var(--gold); }
+    .prog-step.s-done .prog-label { color:rgba(255,209,59,.6); }
+    .prog-line { flex:1; height:2px; background:#111828; border:1px solid #000; margin:0 3px 12px; transition:background .4s; }
+    .prog-line.done { background:var(--gold); }
 
-    .prog-line {
-      flex: 1; height: 2px; background: #111828;
-      border: 1px solid #000; margin: 0 4px 14px;
-      transition: background 0.4s;
-    }
-    .prog-line.done { background: var(--gold); }
+    /* ── STEP VIEWS ── */
+    .step-view { display:none; }
+    .step-view.active { display:block; animation:sIn .3s ease both; }
+    @keyframes sIn { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
 
-    /* ══════════════════════════════
-       STEP VIEWS
-    ══════════════════════════════ */
-    .step-view { display: none; }
-    .step-view.active {
-      display: block;
-      animation: slideIn 0.3s ease both;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(20px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    /* ── HEADINGS ── */
-    .step-title {
-      font-size: 32px; font-weight: 900;
-      color: var(--text-1); margin-bottom: 6px;
-      letter-spacing: -1px; text-transform: uppercase;
-      line-height: 1;
-    }
-    .step-sub {
-      font-size: 13px; color: var(--text-2);
-      font-weight: 600; margin-bottom: 28px; line-height: 1.6;
-    }
-
-    /* ── INPUTS ── */
-    .field-group { margin-bottom: 16px; }
-    .field-label {
-      display: block; font-size: 11px; font-weight: 800;
-      color: var(--text-2); margin-bottom: 7px;
-      letter-spacing: 0.5px;
-    }
+    /* ── FORM ── */
+    .step-title { font-size:28px; font-weight:900; text-transform:uppercase; letter-spacing:-1px; margin-bottom:6px; line-height:1; }
+    .step-sub { font-size:12px; color:var(--text-2); font-weight:600; margin-bottom:24px; line-height:1.6; }
+    .field-group { margin-bottom:14px; }
+    .field-label { display:block; font-size:10px; font-weight:800; color:var(--text-2); margin-bottom:6px; letter-spacing:.5px; }
     .field-input {
-      width: 100%;
-      background: var(--input-bg);
-      border: 2px solid #151e38;
-      padding: 13px 15px;
-      color: var(--text-1);
-      font-family: 'Montserrat', sans-serif;
-      font-size: 14px; font-weight: 600;
-      outline: none;
-      box-shadow: 3px 3px 0 #000;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      border-radius: 0;
+      width:100%; background:var(--input-bg);
+      border:2px solid #151e38; padding:12px 14px;
+      color:var(--text-1); font-family:'Montserrat',sans-serif;
+      font-size:14px; font-weight:600; outline:none;
+      box-shadow:3px 3px 0 #000; border-radius:0;
+      transition:border-color .15s, box-shadow .15s;
     }
-    .field-input::placeholder { color: var(--text-dim); }
-    .field-input:focus {
-      border-color: var(--gold);
-      box-shadow: 3px 3px 0 var(--gold-dk);
+    .field-input::placeholder { color:var(--text-dim); }
+    .field-input:focus { border-color:var(--gold); box-shadow:3px 3px 0 var(--gold-dk); }
+    .field-input.error { border-color:var(--red); box-shadow:3px 3px 0 #800; }
+    .field-input.ok    { border-color:var(--green); box-shadow:3px 3px 0 #1a6000; }
+    textarea.field-input { resize:none; height:80px; line-height:1.5; }
+    .field-hint { font-size:11px; margin-top:4px; font-weight:700; }
+    .field-hint.green { color:var(--green); } .field-hint.red { color:var(--red); } .field-hint.muted { color:var(--text-dim); }
+    .nick-preview { font-size:11px; color:var(--text-dim); font-weight:700; margin-top:4px; }
+    .nick-preview span { color:var(--gold); }
+    .pw-wrap { position:relative; }
+    .pw-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-dim); font-size:15px; padding:0; transition:color .15s; }
+    .pw-toggle:hover { color:var(--gold); }
+    .pw-wrap .field-input { padding-right:42px; }
+    .char-count { text-align:right; font-size:10px; font-weight:700; color:var(--text-dim); margin-top:3px; }
+    .char-count.warn { color:var(--red); }
+
+    /* Skin input */
+    .skin-input-wrap { position:relative; display:flex; align-items:center; }
+    .skin-preview-mini {
+      position:absolute; left:0; top:0; bottom:0;
+      width:46px;
+      display:flex; align-items:center; justify-content:center;
+      border-right:2px solid #151e38; z-index:2;
+      background:rgba(0,0,0,.3);
+      transition:all .3s ease;
     }
-    .field-input.error { border-color: var(--red); box-shadow: 3px 3px 0 #800; }
-    .field-input.ok    { border-color: var(--green); box-shadow: 3px 3px 0 #1a6000; }
-
-    .field-hint { font-size: 11px; margin-top: 5px; font-weight: 700; }
-    .field-hint.green { color: var(--green); }
-    .field-hint.red   { color: var(--red); }
-    .field-hint.muted { color: var(--text-dim); }
-
-    .nick-preview { font-size: 11px; color: var(--text-dim); font-weight: 700; margin-top: 5px; }
-    .nick-preview span { color: var(--gold); }
-
-    .pw-wrap { position: relative; }
-    .pw-toggle {
-      position: absolute; right: 13px; top: 50%;
-      transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      color: var(--text-dim); font-size: 16px;
-      padding: 0; transition: color 0.15s;
+    .skin-preview-mini img {
+      width:28px; height:28px;
+      image-rendering:pixelated;
+      transition:opacity .3s ease;
     }
-    .pw-toggle:hover { color: var(--gold); }
-    .pw-wrap .field-input { padding-right: 44px; }
+    .skin-preview-mini.loading img { opacity:.4; animation:skinSpin 1s linear infinite; }
+    @keyframes skinSpin { to{transform:rotate(360deg)} }
+    .skin-preview-mini.loaded img { opacity:1; animation:skinPop .3s ease; }
+    @keyframes skinPop { 0%{transform:scale(.5)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
 
-    /* ══════════════════════════════
-       3D BUTTONS
-    ══════════════════════════════ */
+    /* ── 3D BUTTONS (lobbyx.html style) ── */
     .btn {
-      width: 100%; padding: 14px 20px;
-      border-radius: 0;
-      cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 13px; font-weight: 900;
-      letter-spacing: 0.5px; text-transform: uppercase;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      border: 2px solid #000;
-      user-select: none; text-decoration: none;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-      position: relative; overflow: hidden;
+      width:100%; padding:13px 18px; border-radius:0;
+      cursor:pointer; font-family:'Montserrat',sans-serif;
+      font-size:12px; font-weight:900; letter-spacing:.5px; text-transform:uppercase;
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      border:2px solid #000; user-select:none; text-decoration:none;
+      transition:transform .1s ease, box-shadow .1s ease;
+      position:relative; overflow:hidden;
     }
-    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: translate(0,0) !important; box-shadow: inset 0 2px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.3) !important; }
+    .btn:disabled { opacity:.35; cursor:not-allowed; transform:translate(0,0) !important; box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -2px 0 rgba(0,0,0,.3) !important; }
+    .btn-gold { background:var(--gold); color:#000; box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.35),4px 4px 0 #000; }
+    .btn-gold:not(:disabled):hover  { transform:translate(-3px,-3px); box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.4),7px 7px 0 #000; }
+    .btn-gold:not(:disabled):active { transform:translate(2px,2px); box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000; }
+    .btn-ghost { background:rgba(18,62,103,.65); color:var(--text-2); border-color:#000; box-shadow:inset 0 2px 0 rgba(255,255,255,.06),inset 0 -3px 0 rgba(0,0,0,.4),3px 3px 0 #000; }
+    .btn-ghost:not(:disabled):hover  { transform:translate(-2px,-2px); box-shadow:inset 0 2px 0 rgba(255,255,255,.15),inset 0 -3px 0 rgba(0,0,0,.2),5px 5px 0 #000; color:var(--text-1); }
+    .btn-ghost:not(:disabled):active { transform:translate(1px,1px); box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000; }
+    .btn-discord { background:#5865F2; color:#fff; box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.35),4px 4px 0 #000; }
+    .btn-discord:not(:disabled):hover  { transform:translate(-3px,-3px); box-shadow:inset 0 2px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.4),7px 7px 0 #000; }
+    .btn-discord:not(:disabled):active { transform:translate(2px,2px); box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000; }
+    .btn-sm { width:auto; padding:9px 14px; font-size:10px; }
+    .btn-row { display:flex; gap:10px; margin-top:8px; }
+    .btn-row .btn { flex:1; }
+    .divider { display:flex; align-items:center; gap:12px; margin:14px 0; color:var(--text-dim); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
+    .divider::before,.divider::after { content:''; flex:1; height:1px; background:#111828; }
 
-    .btn-gold {
-      background: var(--gold);
-      color: #000;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.45), inset 0 -3px 0 rgba(0,0,0,0.35), 4px 4px 0 #000;
-    }
-    .btn-gold:not(:disabled):hover {
-      transform: translate(-3px, -3px);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.55), inset 0 -3px 0 rgba(0,0,0,0.4), 7px 7px 0 #000;
-    }
-    .btn-gold:not(:disabled):active {
-      transform: translate(2px, 2px);
-      box-shadow: inset 0 3px 0 rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1), 1px 1px 0 #000;
-    }
-
-    .btn-ghost {
-      background: rgba(18, 62, 103, 0.65);
-      color: var(--text-2);
-      border-color: #000;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.06), inset 0 -3px 0 rgba(0,0,0,0.4), 3px 3px 0 #000;
-    }
-    .btn-ghost:not(:disabled):hover {
-      transform: translate(-2px, -2px);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.15), inset 0 -3px 0 rgba(0,0,0,0.2), 5px 5px 0 #000;
-      color: var(--text-1);
-    }
-    .btn-ghost:not(:disabled):active {
-      transform: translate(1px, 1px);
-      box-shadow: inset 0 3px 0 rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1), 1px 1px 0 #000;
-    }
-
-    .btn-discord {
-      background: #5865F2;
-      color: #fff;
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -3px 0 rgba(0,0,0,0.35), 4px 4px 0 #000;
-    }
-    .btn-discord:not(:disabled):hover {
-      transform: translate(-3px, -3px);
-      box-shadow: inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -3px 0 rgba(0,0,0,0.4), 7px 7px 0 #000;
-    }
-    .btn-discord:not(:disabled):active {
-      transform: translate(2px, 2px);
-      box-shadow: inset 0 3px 0 rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.1), 1px 1px 0 #000;
-    }
-
-    .btn-sm { width: auto; padding: 10px 16px; font-size: 11px; }
-    .btn-row { display: flex; gap: 10px; margin-top: 8px; }
-    .btn-row .btn { flex: 1; }
-
-    .divider {
-      display: flex; align-items: center; gap: 14px;
-      margin: 18px 0; color: var(--text-dim);
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    }
-    .divider::before, .divider::after { content:''; flex:1; height:1px; background:#111828; }
-
-    /* ══════════════════════════════
-       TAG SELECTION
-    ══════════════════════════════ */
-    .tag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    /* ── TAG GRID ── */
+    .tag-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
     .tag-card {
-      background: var(--input-bg);
-      border: 2px solid #151e38;
-      box-shadow: 4px 4px 0 #000;
-      padding: 18px 12px 14px;
-      cursor: pointer; text-align: center;
-      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
-      user-select: none;
+      background:var(--input-bg); border:2px solid #151e38;
+      box-shadow:4px 4px 0 #000; padding:16px 10px 12px;
+      cursor:pointer; text-align:center;
+      transition:transform .1s,box-shadow .1s,border-color .15s;
+      user-select:none;
     }
-    .tag-card:hover { transform: translate(-3px,-3px); box-shadow: 7px 7px 0 #000; border-color: #2a3a60; }
-    .tag-card.selected {
-      border-color: var(--gold);
-      background: rgba(255,209,59,0.05);
-      box-shadow: 4px 4px 0 var(--gold-dk);
-      transform: translate(-2px,-2px);
-    }
-    .tc-icon { font-size: 26px; margin-bottom: 8px; }
-    .tc-name { font-size: 13px; font-weight: 900; color: var(--text-1); }
-    .tc-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; font-weight: 600; }
-
-    .sub-section { display: none; margin-bottom: 12px; animation: slideIn 0.2s ease both; }
-    .sub-section.visible { display: block; }
-    .sub-label { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .sub-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-
+    .tag-card:hover { transform:translate(-3px,-3px); box-shadow:7px 7px 0 #000; border-color:#2a3a60; }
+    .tag-card.selected { border-color:var(--gold); background:rgba(255,209,59,.05); box-shadow:4px 4px 0 var(--gold-dk); transform:translate(-2px,-2px); }
+    .tc-icon { font-size:24px; margin-bottom:6px; }
+    .tc-name { font-size:12px; font-weight:900; color:var(--text-1); }
+    .tc-desc { font-size:9px; color:var(--text-dim); margin-top:2px; font-weight:600; }
+    .sub-section { display:none; margin-bottom:10px; animation:sIn .2s ease both; }
+    .sub-section.visible { display:block; }
+    .sub-label { font-size:10px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.8px; margin-bottom:7px; }
+    .sub-grid { display:flex; flex-wrap:wrap; gap:7px; }
     .platform-card {
-      background: var(--input-bg);
-      border: 2px solid #151e38;
-      box-shadow: 3px 3px 0 #000;
-      padding: 9px 14px;
-      cursor: pointer;
-      display: flex; align-items: center; gap: 8px;
-      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
-      user-select: none;
+      background:var(--input-bg); border:2px solid #151e38;
+      box-shadow:3px 3px 0 #000; padding:8px 12px;
+      cursor:pointer; display:flex; align-items:center; gap:7px;
+      transition:transform .1s,box-shadow .1s,border-color .15s; user-select:none;
     }
-    .platform-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; border-color: #2a3a60; }
-    .platform-card.selected { border-color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
-    .platform-card img { width: 18px; height: 18px; object-fit: contain; }
-    .platform-card .pc-name { font-size: 12px; font-weight: 800; color: var(--text-1); }
-
+    .platform-card:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #000; border-color:#2a3a60; }
+    .platform-card.selected { border-color:var(--gold); background:rgba(255,209,59,.05); box-shadow:3px 3px 0 var(--gold-dk); }
+    .platform-card img { width:16px; height:16px; object-fit:contain; }
+    .platform-card .pc-name { font-size:11px; font-weight:800; color:var(--text-1); }
     .dev-chip {
-      background: var(--input-bg);
-      border: 2px solid #151e38;
-      box-shadow: 3px 3px 0 #000;
-      padding: 9px 14px;
-      cursor: pointer; font-size: 12px; font-weight: 800; color: var(--text-2);
-      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
-      user-select: none;
+      background:var(--input-bg); border:2px solid #151e38;
+      box-shadow:3px 3px 0 #000; padding:8px 12px;
+      cursor:pointer; font-size:11px; font-weight:800; color:var(--text-2);
+      transition:transform .1s,box-shadow .1s,border-color .15s; user-select:none;
     }
-    .dev-chip:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; border-color: #2a3a60; }
-    .dev-chip.selected { border-color: var(--gold); color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
+    .dev-chip:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #000; border-color:#2a3a60; }
+    .dev-chip.selected { border-color:var(--gold); color:var(--gold); background:rgba(255,209,59,.05); box-shadow:3px 3px 0 var(--gold-dk); }
 
-    #tag-preview { min-height: 32px; margin-top: 6px; }
-    .tag-preview-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: rgba(255,209,59,0.07);
-      border: 2px solid var(--gold);
-      box-shadow: 3px 3px 0 var(--gold-dk);
-      padding: 6px 14px;
-      font-size: 11px; font-weight: 800;
-      color: var(--gold);
-      animation: badgePop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+    /* ── BANNER COLOR PICKER ── */
+    .banner-colors { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .banner-swatch {
+      width:36px; height:36px;
+      border:2px solid #000; box-shadow:2px 2px 0 #000;
+      cursor:pointer; transition:transform .1s, box-shadow .1s;
+      position:relative;
     }
-    @keyframes badgePop { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
-    .tag-preview-badge img { width: 14px; height: 14px; }
+    .banner-swatch:hover { transform:translate(-2px,-2px); box-shadow:4px 4px 0 #000; }
+    .banner-swatch.selected { box-shadow:0 0 0 3px var(--gold), 3px 3px 0 #000; transform:translate(-1px,-1px); }
+    .banner-swatch.selected::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; color:rgba(255,255,255,.9); text-shadow:1px 1px 0 rgba(0,0,0,.5); }
 
-    /* ══════════════════════════════
-       SERVER GRID
-    ══════════════════════════════ */
-    .server-grid {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 8px; margin-bottom: 14px;
-      max-height: 220px; overflow-y: auto; padding-right: 4px;
-    }
-    .server-grid::-webkit-scrollbar { width: 4px; }
-    .server-grid::-webkit-scrollbar-track { background: #080d1a; }
-    .server-grid::-webkit-scrollbar-thumb { background: #1a2240; }
-    .server-card {
-      background: var(--input-bg);
-      border: 2px solid #151e38;
-      box-shadow: 3px 3px 0 #000;
-      padding: 10px 6px;
-      cursor: pointer; text-align: center;
-      transition: transform 0.08s, box-shadow 0.08s;
-    }
-    .server-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; }
-    .server-card.selected { border-color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
-    .server-card img {
-      width: 36px; height: 36px;
-      border: 2px solid #000;
-      object-fit: cover; margin-bottom: 5px;
-      background: #090d1a;
-      display: block; margin-left: auto; margin-right: auto;
-    }
-    .server-card .srv-name { font-size: 9px; font-weight: 800; color: var(--text-2); line-height: 1.2; word-break: break-word; }
+    /* ── SERVER GRID ── */
+    .server-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:12px; max-height:200px; overflow-y:auto; padding-right:3px; }
+    .server-grid::-webkit-scrollbar { width:3px; }
+    .server-grid::-webkit-scrollbar-thumb { background:#1a2240; }
+    .server-card { background:var(--input-bg); border:2px solid #151e38; box-shadow:3px 3px 0 #000; padding:9px 6px; cursor:pointer; text-align:center; transition:transform .1s,box-shadow .1s; user-select:none; }
+    .server-card:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 #000; }
+    .server-card.selected { border-color:var(--gold); background:rgba(255,209,59,.05); box-shadow:3px 3px 0 var(--gold-dk); }
+    .server-card img { width:34px; height:34px; border:2px solid #000; object-fit:cover; margin-bottom:4px; background:#090d1a; display:block; margin-left:auto; margin-right:auto; }
+    .server-card .srv-name { font-size:8px; font-weight:800; color:var(--text-2); line-height:1.2; word-break:break-word; }
 
-    /* ══════════════════════════════
-       SUCCESS
-    ══════════════════════════════ */
-    .success-wrap { text-align: center; padding: 10px 0; }
-    .check-circle {
-      width: 80px; height: 80px;
-      border: 4px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
-      box-shadow: 5px 5px 0 var(--gold-dk);
-      animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
-    }
+    /* ── SUCCESS ── */
+    .success-wrap { text-align:center; padding:8px 0; }
+    .check-circle { width:72px; height:72px; border:4px solid var(--gold); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; box-shadow:4px 4px 0 var(--gold-dk); animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both; }
     @keyframes popIn { from{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.1) rotate(3deg)} to{transform:scale(1) rotate(0);opacity:1} }
-    .check-mark { font-size: 36px; color: var(--gold); }
-    .success-title { font-size: 24px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
-    .success-title span { color: var(--gold); }
-    .success-sub { font-size: 12px; color: var(--text-2); margin-bottom: 20px; line-height: 1.7; font-weight: 600; }
-    .lcoin-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,209,59,0.07);
-      border: 3px solid var(--gold);
-      box-shadow: 4px 4px 0 var(--gold-dk);
-      padding: 10px 24px;
-      font-size: 14px; font-weight: 900;
-      color: var(--gold); margin-bottom: 24px;
-    }
+    .check-mark { font-size:32px; color:var(--gold); }
+    .success-title { font-size:22px; font-weight:900; text-transform:uppercase; margin-bottom:7px; }
+    .success-title span { color:var(--gold); }
+    .success-sub { font-size:12px; color:var(--text-2); margin-bottom:18px; line-height:1.7; font-weight:600; }
+    .lcoin-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,209,59,.07); border:2px solid var(--gold); box-shadow:4px 4px 0 var(--gold-dk); padding:10px 22px; font-size:14px; font-weight:900; color:var(--gold); margin-bottom:22px; animation:badgePop .5s .3s cubic-bezier(.175,.885,.32,1.275) both; }
+    @keyframes badgePop { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
 
-    /* ══════════════════════════════
-       TOGGLE LINK
-    ══════════════════════════════ */
-    .toggle-link {
-      text-align: center; margin-top: 18px;
-      font-size: 12px; color: var(--text-dim); font-weight: 600;
-    }
-    .toggle-link button {
-      background: none; border: none; color: var(--gold);
-      font-weight: 800; font-size: 12px; cursor: pointer;
-      font-family: 'Montserrat', sans-serif;
-      text-decoration: underline; text-underline-offset: 3px;
-    }
-    .toggle-link button:hover { color: #ffe566; }
+    /* ── TOGGLE ── */
+    .toggle-link { text-align:center; margin-top:16px; font-size:12px; color:var(--text-dim); font-weight:600; }
+    .toggle-link button { background:none; border:none; color:var(--gold); font-weight:800; font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif; text-decoration:underline; text-underline-offset:3px; }
+    .toggle-link button:hover { color:#ffe566; }
 
-    /* ══════════════════════════════
-       TOAST & SPINNER
-    ══════════════════════════════ */
-    #toast-container {
-      position: fixed; top: 20px; right: 20px;
-      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
-    }
-    .toast {
-      padding: 12px 16px; font-size: 12px; font-weight: 800;
-      color: #fff; background: #100010;
-      border: 2px solid var(--red); border-left: 5px solid var(--red);
-      box-shadow: 4px 4px 0 #000; max-width: 320px;
-      font-family: 'Montserrat', sans-serif;
-      animation: toastIn 0.3s ease;
-    }
-    .toast.success { background: #001008; border-color: var(--green); border-left-color: var(--green); color: var(--green); }
+    /* ── TOAST ── */
+    #toast-c { position:fixed; top:18px; right:18px; z-index:9999; display:flex; flex-direction:column; gap:7px; }
+    .toast { padding:11px 15px; font-size:12px; font-weight:800; color:#fff; background:#100010; border:2px solid var(--red); border-left:5px solid var(--red); box-shadow:4px 4px 0 #000; max-width:300px; font-family:'Montserrat',sans-serif; animation:toastIn .3s ease; }
+    .toast.ok { background:#001008; border-color:var(--green); border-left-color:var(--green); color:var(--green); }
     @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
-
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(0,0,0,0.25);
-      border-top-color: #000;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-    }
+    .spinner { width:13px; height:13px; border:2px solid rgba(0,0,0,.2); border-top-color:#000; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
     @keyframes spin { to{transform:rotate(360deg)} }
 
-    /* Load overlay */
-    #load-overlay {
-      position: fixed; inset: 0; background: #060810; z-index: 9999;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-      transition: opacity 0.5s ease;
-    }
-    #load-overlay.hidden { opacity: 0; pointer-events: none; }
-    .load-logo {
-      height: 60px;
-      filter: drop-shadow(0 0 24px rgba(255,209,59,0.9));
-      animation: loadPulse 1s ease-in-out infinite;
-    }
-    @keyframes loadPulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
-    .load-text { font-size: 12px; font-weight: 800; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+    /* ── LOAD ── */
+    #load { position:fixed; inset:0; background:#060810; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; transition:opacity .5s; }
+    #load.out { opacity:0; pointer-events:none; }
+    .load-logo { height:56px; filter:drop-shadow(0 0 24px rgba(255,209,59,.9)); animation:lp 1s ease-in-out infinite; }
+    @keyframes lp { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
+    .load-bar { width:150px; height:3px; background:#0f1828; border:1px solid #000; overflow:hidden; }
+    .load-bar-inner { height:100%; width:0; background:var(--gold); animation:lb .8s ease forwards; }
+    @keyframes lb { to{width:100%} }
 
-    /* Mobile */
-    @media (max-width: 768px) {
-      body { overflow: auto; }
-      .split { flex-direction: column; height: auto; min-height: 100vh; }
-      .panel-left { width: 100%; padding: 36px 28px; border-right: none; border-bottom: 3px solid #000; }
-      .panel-right { min-height: 280px; }
-      .right-features { display: none; }
-    }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #080d1a; }
-    ::-webkit-scrollbar-thumb { background: #1a2240; }
+    /* mobile */
+    @media(max-width:768px){body{overflow:auto}.split{flex-direction:column;height:auto;min-height:100vh}.panel-left{width:100%;padding:32px 24px;border-right:none;border-bottom:3px solid #000}.panel-right{min-height:300px}.r-features{display:none}}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1a2240}
   </style>
 </head>
 <body>
 
-<div id="load-overlay">
-  <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
-  <div class="load-text">Yükleniyor...</div>
+<div id="load">
+  <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
+  <div class="load-bar"><div class="load-bar-inner"></div></div>
 </div>
-
-<div id="toast-container"></div>
+<div id="toast-c"></div>
 
 <div class="split">
 
-  <!-- ═══ LEFT PANEL ═══ -->
-  <div class="panel-left" id="panel-left">
+  <!-- ═══ LEFT ═══ -->
+  <div class="panel-left">
+    <div class="progress-bar hidden" id="prog-bar"></div>
 
-    <div class="progress-bar hidden" id="progress-bar"></div>
-
-    <!-- GİRİŞ -->
+    <!-- LOGIN -->
     <div class="step-view active" id="view-login">
       <div class="step-title">Giriş Yap</div>
       <div class="step-sub">Hesabına erişmek için giriş yap.</div>
-
       <div class="field-group">
-        <label class="field-label">Kullanıcı Adı veya E-posta</label>
-        <input class="field-input" type="email" id="login-email" placeholder="ornek@mail.com" />
+        <label class="field-label">E-posta</label>
+        <input class="field-input" type="email" id="l-email" placeholder="ornek@mail.com">
       </div>
       <div class="field-group">
         <label class="field-label">Şifre</label>
         <div class="pw-wrap">
-          <input class="field-input" type="password" id="login-password" placeholder="••••••••" />
-          <button class="pw-toggle" id="login-pw-toggle" type="button">👁</button>
+          <input class="field-input" type="password" id="l-pw" placeholder="••••••••">
+          <button class="pw-toggle" id="l-pw-t">👁</button>
         </div>
       </div>
-
-      <div id="btn-login-wrap" style="margin-bottom:14px;"></div>
+      <div id="b-login" style="margin-bottom:12px"></div>
       <div class="divider">veya</div>
-      <div id="btn-google-login-wrap"></div>
-
-      <div class="toggle-link">
-        Hesabın yok mu? <button id="go-register">Kayıt Ol</button>
-      </div>
+      <div id="b-google-l"></div>
+      <div class="toggle-link">Hesabın yok mu? <button id="go-reg">Kayıt Ol</button></div>
     </div>
 
     <!-- STEP 0: Nick -->
-    <div class="step-view" id="view-step0">
+    <div class="step-view" id="view-s0">
       <div class="step-title">Kullanıcı Adı</div>
-      <div class="step-sub">Profilinde görünecek. Sonradan değiştiremezsin!</div>
-
+      <div class="step-sub">Toplulukta bu isimle anılacaksın. Sonradan değiştiremezsin.</div>
       <div class="field-group">
         <label class="field-label">Kullanıcı Adı</label>
-        <input class="field-input" type="text" id="nick-input"
-          placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
-        <div class="nick-preview" id="nick-preview">lobby.gg/<span>...</span></div>
-        <div class="field-hint muted" id="nick-status"></div>
+        <input class="field-input" type="text" id="nick" placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off">
+        <div class="nick-preview" id="nick-prev">lobby.gg/<span>...</span></div>
+        <div class="field-hint muted" id="nick-st"></div>
       </div>
-
-      <div id="btn-step0-next" style="margin-top:12px;"></div>
-      <div class="toggle-link">
-        Hesabın var mı? <button id="go-login-from-reg">Giriş Yap</button>
-      </div>
+      <div id="b-s0-n" style="margin-top:10px"></div>
+      <div class="toggle-link">Hesabın var mı? <button id="go-login">Giriş Yap</button></div>
     </div>
 
     <!-- STEP 1: Hesap -->
-    <div class="step-view" id="view-step1">
-      <div class="step-title">Hesap Oluştur</div>
-      <div class="step-sub">E-posta ve şifreni gir.</div>
-
+    <div class="step-view" id="view-s1">
+      <div class="step-title">E-posta & Şifre</div>
+      <div class="step-sub">Hesabını oluşturmak için bilgilerini gir.</div>
       <div class="field-group">
         <label class="field-label">E-posta</label>
-        <input class="field-input" type="email" id="reg-email" placeholder="ornek@mail.com" />
+        <input class="field-input" type="email" id="r-email" placeholder="ornek@mail.com">
       </div>
       <div class="field-group">
         <label class="field-label">Şifre</label>
         <div class="pw-wrap">
-          <input class="field-input" type="password" id="reg-password" placeholder="En az 6 karakter" />
-          <button class="pw-toggle" id="reg-pw-toggle" type="button">👁</button>
+          <input class="field-input" type="password" id="r-pw" placeholder="En az 6 karakter">
+          <button class="pw-toggle" id="r-pw-t">👁</button>
         </div>
-        <div class="field-hint muted">En az 6 karakter kullan.</div>
       </div>
-
-      <div id="btn-step1-next" style="margin-bottom:12px;"></div>
+      <div id="b-s1-n" style="margin-bottom:12px"></div>
       <div class="divider">veya</div>
-      <div id="btn-google-reg-wrap"></div>
-      <div class="btn-row" style="margin-top:14px;">
-        <div id="btn-step1-back"></div>
-      </div>
+      <div id="b-google-r"></div>
+      <div class="btn-row" style="margin-top:12px"><div id="b-s1-bk"></div></div>
     </div>
 
     <!-- STEP 2: Tag -->
-    <div class="step-view" id="view-step2">
+    <div class="step-view" id="view-s2">
       <div class="step-title">Rolünü Seç</div>
-      <div class="step-sub">Profilinde tag olarak görünecek.</div>
-
-      <div class="tag-grid" id="main-tag-grid">
-        <div class="tag-card" data-main="Oyuncu">
-          <div class="tc-icon">⚔️</div>
-          <div class="tc-name">Oyuncu</div>
-          <div class="tc-desc">Minecraft oynuyorum</div>
-        </div>
-        <div class="tag-card" data-main="Developer">
-          <div class="tc-icon">💻</div>
-          <div class="tc-name">Developer</div>
-          <div class="tc-desc">Kod yazıyorum</div>
-        </div>
-        <div class="tag-card" data-main="Medya">
-          <div class="tc-icon">🎬</div>
-          <div class="tc-name">Medya</div>
-          <div class="tc-desc">İçerik üretiyorum</div>
-        </div>
-        <div class="tag-card" data-main="Diger">
-          <div class="tc-icon">🎮</div>
-          <div class="tc-name">Diğer</div>
-          <div class="tc-desc">Bunların hepsi değilim</div>
-        </div>
+      <div class="step-sub">Profilinde görünecek. Doğru seç!</div>
+      <div class="tag-grid">
+        <div class="tag-card" data-main="Oyuncu"><div class="tc-icon">⚔️</div><div class="tc-name">Oyuncu</div><div class="tc-desc">Minecraft oynuyorum</div></div>
+        <div class="tag-card" data-main="Developer"><div class="tc-icon">💻</div><div class="tc-name">Developer</div><div class="tc-desc">Kod yazıyorum</div></div>
+        <div class="tag-card" data-main="Medya"><div class="tc-icon">🎬</div><div class="tc-name">Medya</div><div class="tc-desc">İçerik üretiyorum</div></div>
+        <div class="tag-card" data-main="Diger"><div class="tc-icon">🎮</div><div class="tc-name">Diğer</div><div class="tc-desc">Bunların değilim</div></div>
       </div>
-
-      <div class="sub-section" id="sub-developer">
-        <div class="sub-label">Uzmanlık Alanın</div>
+      <div class="sub-section" id="sub-dev">
+        <div class="sub-label">Uzmanlık</div>
         <div class="sub-grid">
           <div class="dev-chip" data-sub="Plugin Dev">🔌 Plugin Dev</div>
           <div class="dev-chip" data-sub="Web Dev">🌐 Web Dev</div>
@@ -652,107 +466,136 @@
           <div class="dev-chip" data-sub="Builder">🏗️ Builder</div>
         </div>
       </div>
-
       <div class="sub-section" id="sub-medya">
         <div class="sub-label">Platform</div>
         <div class="sub-grid">
-          <div class="platform-card" data-sub="YouTube" data-tag="YouTuber">
-            <img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YouTube">
-            <span class="pc-name">YouTuber</span>
-          </div>
-          <div class="platform-card" data-sub="TikTok" data-tag="TikToker">
-            <img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TikTok">
-            <span class="pc-name">TikToker</span>
-          </div>
-          <div class="platform-card" data-sub="Kick" data-tag="Kick">
-            <img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick">
-            <span class="pc-name">Kick</span>
-          </div>
-          <div class="platform-card" data-sub="Twitch" data-tag="Twitch">
-            <img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch">
-            <span class="pc-name">Twitch</span>
-          </div>
-          <div class="platform-card" data-sub="Instagram" data-tag="Instagram">
-            <img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="Instagram">
-            <span class="pc-name">Instagram</span>
-          </div>
+          <div class="platform-card" data-sub="YouTube" data-tag="YouTuber"><img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YT"><span class="pc-name">YouTuber</span></div>
+          <div class="platform-card" data-sub="TikTok" data-tag="TikToker"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TT"><span class="pc-name">TikToker</span></div>
+          <div class="platform-card" data-sub="Kick" data-tag="Kick"><img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick"><span class="pc-name">Kick</span></div>
+          <div class="platform-card" data-sub="Twitch" data-tag="Twitch"><img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch"><span class="pc-name">Twitch</span></div>
+          <div class="platform-card" data-sub="Instagram" data-tag="Instagram"><img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="IG"><span class="pc-name">Instagram</span></div>
         </div>
       </div>
-
-      <div id="tag-preview"></div>
-
-      <div class="btn-row" style="margin-top:16px;">
-        <div id="btn-step2-back" style="flex:0 0 auto;"></div>
-        <div id="btn-step2-next" style="flex:1;"></div>
+      <div class="btn-row" style="margin-top:14px">
+        <div id="b-s2-bk" style="flex:0 0 auto"></div>
+        <div id="b-s2-n" style="flex:1"></div>
       </div>
     </div>
 
-    <!-- STEP 3: Sunucu -->
-    <div class="step-view" id="view-step3">
-      <div class="step-title">Sunucun</div>
-      <div class="step-sub">Aktif oynadığın sunucuyu seç. İstersen geçebilirsin.</div>
+    <!-- STEP 3: Profil -->
+    <div class="step-view" id="view-s3">
+      <div class="step-title">Profilini Kur</div>
+      <div class="step-sub">Minecraft kullanıcı adını gir — skinin profil fotoğrafın olacak. Önizlemeyi sağda görebilirsin!</div>
 
-      <div class="server-grid" id="server-grid"></div>
+      <div class="field-group">
+        <label class="field-label">⛏ Minecraft Kullanıcı Adın (IGN)</label>
+        <div style="position:relative">
+          <div class="skin-input-wrap">
+            <div class="skin-preview-mini" id="skin-mini">
+              <img id="skin-mini-img" src="https://mc-heads.net/avatar/MHF_Steve/32" alt="skin">
+            </div>
+            <input class="field-input" type="text" id="mc-ign" placeholder="örn. Notch" maxlength="16" autocomplete="off" style="padding-left:52px">
+          </div>
+        </div>
+        <div class="field-hint muted" id="mc-ign-st">Mojang API üzerinden skinin otomatik çekilecek.</div>
+      </div>
 
+      <div class="field-group">
+        <label class="field-label">Banner Rengi</label>
+        <div class="banner-colors" id="banner-colors"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Hakkımda (Bio)</label>
+        <textarea class="field-input" id="bio-input" placeholder="Kendinden kısaca bahset..." maxlength="160"></textarea>
+        <div class="char-count" id="bio-count">0 / 160</div>
+      </div>
       <div class="btn-row">
-        <div id="btn-step3-back" style="flex:0 0 auto;"></div>
-        <div id="btn-step3-skip" style="flex:1;"></div>
-        <div id="btn-step3-next" style="flex:1;"></div>
+        <div id="b-s3-bk" style="flex:0 0 auto"></div>
+        <div id="b-s3-n" style="flex:1"></div>
       </div>
     </div>
 
-    <!-- STEP 4: Başarı -->
-    <div class="step-view" id="view-step4">
+    <!-- STEP 4: Sunucu -->
+    <div class="step-view" id="view-s4">
+      <div class="step-title">Sunucun</div>
+      <div class="step-sub">Aktif oynadığın sunucuyu seç.</div>
+      <div class="server-grid" id="srv-grid"></div>
+      <div class="btn-row">
+        <div id="b-s4-bk" style="flex:0 0 auto"></div>
+        <div id="b-s4-sk" style="flex:1"></div>
+        <div id="b-s4-n" style="flex:1"></div>
+      </div>
+    </div>
+
+    <!-- STEP 5: Başarı -->
+    <div class="step-view" id="view-s5">
       <div class="success-wrap">
         <div class="check-circle"><span class="check-mark">✓</span></div>
-        <div class="success-title">Hoş Geldin, <span id="welcome-nick">—</span>!</div>
+        <div class="success-title">Hoş geldin, <span id="welcome-nick">—</span>!</div>
         <div class="success-sub">Hesabın oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
         <div class="lcoin-badge">🪙 +5 LC Giriş Bonusu!</div>
-        <div id="btn-goto-profile"></div>
+        <div id="b-go"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- ═══ RIGHT PANEL ═══ -->
+  <!-- ═══ RIGHT ═══ -->
   <div class="panel-right">
-    <div class="right-content">
-      <img class="right-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
-      <div class="right-title">LOBBY.GG</div>
-      <div class="right-sub">Türkiye'nin en büyük<br>Minecraft topluluğu.</div>
-      <div class="right-features">
-        <div class="right-feature">
-          <div class="right-feature-icon">📋</div>
-          <div class="right-feature-text">
-            <strong>İlan Sistemi</strong>
-            Developer, builder, yayıncı ilanları aç.
+
+    <!-- Marketing -->
+    <div class="right-marketing" id="right-mkt">
+      <img class="r-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
+      <div class="r-title">LOBBY.GG</div>
+      <div class="r-sub">Türkiye'nin en büyük<br>Minecraft topluluğu.</div>
+      <div class="r-features">
+        <div class="r-feature"><div class="r-fi">📋</div><div class="r-ft"><strong>İlan Sistemi</strong>Developer, builder, yayıncı ilanları aç.</div></div>
+        <div class="r-feature"><div class="r-fi">💬</div><div class="r-ft"><strong>Drop Paylaş</strong>Toplulukla anlık paylaşımlar yap.</div></div>
+        <div class="r-feature"><div class="r-fi">🛡️</div><div class="r-ft"><strong>Klanlar</strong>Klanını kur veya bir klana katıl.</div></div>
+        <div class="r-feature"><div class="r-fi">🪙</div><div class="r-ft"><strong>LCoin Ekonomisi</strong>Çark çevir, ödül kazan, harca.</div></div>
+      </div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="right-preview" id="right-prev">
+      <div class="prev-label">Profil Önizlemesi</div>
+
+      <div class="prev-card">
+        <!-- Banner -->
+        <div class="prev-banner" id="prev-banner">
+          <div class="prev-banner-overlay"></div>
+          <div class="prev-avatar-wrap">
+            <img src="https://i.imgur.com/6l08Y4k.png" id="prev-av" alt="avatar">
           </div>
         </div>
-        <div class="right-feature">
-          <div class="right-feature-icon">💬</div>
-          <div class="right-feature-text">
-            <strong>Drop Paylaş</strong>
-            Toplulukla anlık paylaşımlar yap.
+        <!-- Body -->
+        <div class="prev-body">
+          <div class="prev-name-row">
+            <div class="prev-name" id="prev-name">kullanici_adi</div>
+            <div class="prev-tag-badge" id="prev-tag" style="display:none"></div>
           </div>
-        </div>
-        <div class="right-feature">
-          <div class="right-feature-icon">🛡️</div>
-          <div class="right-feature-text">
-            <strong>Klanlar</strong>
-            Klanını kur veya bir klana katıl.
+          <div class="prev-bio placeholder" id="prev-bio">Henüz bio yazılmadı...</div>
+          <div class="prev-stats">
+            <div class="prev-stat"><span>0</span>Takipçi</div>
+            <div class="prev-stat"><span>0</span>Drop</div>
           </div>
-        </div>
-        <div class="right-feature">
-          <div class="right-feature-icon">🪙</div>
-          <div class="right-feature-text">
-            <strong>LCoin Ekonomisi</strong>
-            Çark çevir, ödül kazan, harca.
+          <div class="prev-server-row" id="prev-srv-row" style="display:none">
+            <img id="prev-srv-img" src="" alt="">
+            <span id="prev-srv-name" style="font-size:11px;font-weight:700;color:var(--text-2)"></span>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
+      <!-- Checklist -->
+      <div class="prev-step-hints" id="prev-hints">
+        <div class="prev-hint-item" id="hint-nick"><div class="hint-dot"></div>Kullanıcı adı seçildi</div>
+        <div class="prev-hint-item" id="hint-email"><div class="hint-dot"></div>Hesap bilgileri girildi</div>
+        <div class="prev-hint-item" id="hint-tag"><div class="hint-dot"></div>Tag seçildi</div>
+        <div class="prev-hint-item" id="hint-profil"><div class="hint-dot"></div>Profil düzenlendi</div>
+        <div class="prev-hint-item" id="hint-srv"><div class="hint-dot"></div>Sunucu seçildi</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
@@ -760,8 +603,36 @@ const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const state = { mode:'login', step:0, nick:'', nickValid:false, nickAvailable:false, email:'', password:'', mainTag:'', subTag:'', displayTag:'', server:'' };
+/* ── STATE ── */
+const S = {
+  nick:'', nickOk:false, email:'', pw:'',
+  mainTag:'', subTag:'', displayTag:'',
+  banner:'#1a2a4a', bio:'', mcIgn:'',
+  server:'', serverName:''
+};
 
+/* ── DATA ── */
+const BANNER_COLORS = [
+  {c:'#1a2a4a',name:'Lacivert'},{c:'#1a1a4a',name:'Mor'},
+  {c:'#4a1a1a',name:'Kırmızı'},{c:'#1a4a1a',name:'Yeşil'},
+  {c:'#4a3a1a',name:'Turuncu'},{c:'#1a3a4a',name:'Camgöbeği'},
+  {c:'#3a1a4a',name:'Mor2'},   {c:'#2a2a2a',name:'Koyu'}
+];
+const TAG_COLORS = {
+  Oyuncu:'#3a8527',Developer:'#2a5eb8',
+  'Plugin Dev':'#2a5eb8','Web Dev':'#1a7a7a',
+  Skripter:'#5e2ab8',Builder:'#b87a2a',
+  YouTuber:'#cc0000',TikToker:'#000000',
+  Kick:'#1a5a1a',Twitch:'#5a2ab8',Instagram:'#b82a8a',
+  Diğer:'#555555'
+};
+const PLATFORM_LOGOS = {
+  YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',
+  TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',
+  Kick:'https://cdn.simpleicons.org/kick/53FC18',
+  Twitch:'https://cdn.simpleicons.org/twitch/9146FF',
+  Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'
+};
 const SERVERS = [
   {name:'HanedanMC',ip:'play.hanedanmc.com'},{name:'ChickenNW',ip:'oyna.chickennw.com'},
   {name:'BLOKYA',ip:'oyna.blokya.com'},{name:'DugeCraft',ip:'play.dugecraft.com.tr'},
@@ -774,157 +645,373 @@ const SERVERS = [
   {name:'MC4FUN',ip:'play.mc4fun.net'},{name:'İmibiyum',ip:'play.imibiyum.com'}
 ];
 
-const PLATFORM_LOGOS = {YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
+/* ── HELPERS ── */
+function toast(msg,t='err'){const c=document.getElementById('toast-c');const el=document.createElement('div');el.className='toast'+(t==='ok'?' ok':'');el.textContent=msg;c.appendChild(el);setTimeout(()=>el.remove(),4000);}
+function mkBtn(txt,cls,dis=false){const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.disabled=dis;return b;}
+function ca(id,el){const c=document.getElementById(id);c.innerHTML='';c.appendChild(el);}
 
-function showToast(msg,type='error'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast'+(type==='success'?' success':'');t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),4000);}
-function clearAppend(id,el){const c=document.getElementById(id);c.innerHTML='';c.appendChild(el);}
-function makeBtn(text,cls,disabled=false){const b=document.createElement('button');b.className='btn '+cls;b.textContent=text;b.disabled=disabled;return b;}
-
-const STEPS=['Nick','Hesap','Tag','Sunucu'];
-function buildProgressBar(){const bar=document.getElementById('progress-bar');bar.innerHTML='';STEPS.forEach((lbl,i)=>{const wrap=document.createElement('div');wrap.className='prog-step';wrap.dataset.idx=i;const dot=document.createElement('div');dot.className='prog-dot';dot.textContent=i+1;const label=document.createElement('div');label.className='prog-label';label.textContent=lbl;wrap.appendChild(dot);wrap.appendChild(label);bar.appendChild(wrap);if(i<STEPS.length-1){const line=document.createElement('div');line.className='prog-line';bar.appendChild(line);}});}
-function updateProgressBar(step){document.querySelectorAll('.prog-step').forEach((w,i)=>{const d=w.querySelector('.prog-dot');d.className='prog-dot';w.className='prog-step';if(i<step){d.classList.add('done');w.classList.add('s-done');}else if(i===step){d.classList.add('active');w.classList.add('s-active');}});document.querySelectorAll('.prog-line').forEach((l,i)=>{l.className='prog-line';if(i<step)l.classList.add('done');});}
-
-function buildButtons(){
-  const bl=makeBtn('Giriş Yap','btn-gold');bl.addEventListener('click',handleLogin);clearAppend('btn-login-wrap',bl);
-  const bg=makeBtn('G — Google ile Giriş Yap','btn-discord');bg.addEventListener('click',handleGoogleAuth);clearAppend('btn-google-login-wrap',bg);
-  const bs0=makeBtn('İleri →','btn-gold',true);bs0.id='btn-s0-next';bs0.addEventListener('click',()=>goStep(1));clearAppend('btn-step0-next',bs0);
-  const bs1=makeBtn('Devam Et','btn-gold');bs1.addEventListener('click',handleRegister);clearAppend('btn-step1-next',bs1);
-  const bs1b=makeBtn('← Geri','btn-ghost btn-sm');bs1b.addEventListener('click',()=>goStep(0));clearAppend('btn-step1-back',bs1b);
-  const bgr=makeBtn('G — Google ile Kayıt Ol','btn-discord');bgr.addEventListener('click',handleGoogleAuth);clearAppend('btn-google-reg-wrap',bgr);
-  const bs2b=makeBtn('←','btn-ghost btn-sm');bs2b.addEventListener('click',()=>goStep(1));clearAppend('btn-step2-back',bs2b);
-  const bs2n=makeBtn('İleri →','btn-gold');bs2n.addEventListener('click',()=>{if(!state.mainTag){showToast('Lütfen bir tag seç!');return;}if((state.mainTag==='Developer'||state.mainTag==='Medya')&&!state.subTag){showToast('Lütfen alt kategori seç!');return;}goStep(3);});clearAppend('btn-step2-next',bs2n);
-  const bs3b=makeBtn('←','btn-ghost btn-sm');bs3b.addEventListener('click',()=>goStep(2));clearAppend('btn-step3-back',bs3b);
-  const bs3sk=makeBtn('Geç →','btn-ghost');bs3sk.addEventListener('click',()=>{state.server='';finishRegister();});clearAppend('btn-step3-skip',bs3sk);
-  const bs3n=makeBtn('Kayıt Ol →','btn-gold',true);bs3n.id='btn-s3-next';bs3n.addEventListener('click',finishRegister);clearAppend('btn-step3-next',bs3n);
-  const bp=makeBtn('Topluluğa Katıl →','btn-gold');bp.addEventListener('click',()=>window.location.href='lobbyx.html');clearAppend('btn-goto-profile',bp);
+/* ── PREVIEW UPDATE ── */
+function prevUpdate(field){
+  if(field==='nick'){
+    const n=document.getElementById('prev-name');
+    n.classList.add('flash');
+    n.textContent=S.nick||'kullanici_adi';
+    setTimeout(()=>n.classList.remove('flash'),400);
+    if(S.nick) document.getElementById('hint-nick').classList.add('done');
+    else document.getElementById('hint-nick').classList.remove('done');
+  }
+  if(field==='tag'){
+    const tb=document.getElementById('prev-tag');
+    if(S.displayTag){
+      tb.style.display='inline-flex';
+      tb.innerHTML='';
+      const color=TAG_COLORS[S.displayTag]||'#555';
+      tb.style.background=color;
+      tb.style.color='#fff';
+      tb.style.borderColor='#000';
+      if(S.mainTag==='Medya'&&PLATFORM_LOGOS[S.subTag]){
+        const im=document.createElement('img');im.src=PLATFORM_LOGOS[S.subTag];im.style.cssText='width:12px;height:12px';tb.appendChild(im);
+      }
+      tb.appendChild(document.createTextNode(S.displayTag));
+      document.getElementById('hint-tag').classList.add('done');
+    } else {
+      tb.style.display='none';
+      document.getElementById('hint-tag').classList.remove('done');
+    }
+  }
+  if(field==='banner'){
+    document.getElementById('prev-banner').style.background=S.banner;
+  }
+  if(field==='bio'){
+    const b=document.getElementById('prev-bio');
+    if(S.bio){b.textContent=S.bio;b.classList.remove('placeholder');}
+    else{b.textContent='Henüz bio yazılmadı...';b.classList.add('placeholder');}
+    if(S.nick||S.bio) document.getElementById('hint-profil').classList.add('done');
+  }
+  if(field==='server'){
+    const row=document.getElementById('prev-srv-row');
+    if(S.server){
+      row.style.display='flex';
+      const img=document.getElementById('prev-srv-img');
+      const nm=document.getElementById('prev-srv-name');
+      img.src=`https://api.mcsrvstat.us/icon/${S.server}`;
+      img.onerror=()=>img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(S.serverName)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+      nm.textContent=S.serverName;
+      document.getElementById('hint-srv').classList.add('done');
+    } else {
+      row.style.display='none';
+      document.getElementById('hint-srv').classList.remove('done');
+    }
+  }
 }
 
-function initTagSelection(){
+/* ── SWITCH TO PREVIEW ── */
+function showPreview(){
+  const mkt=document.getElementById('right-mkt');
+  const prev=document.getElementById('right-prev');
+  if(prev.classList.contains('visible')) return;
+  mkt.classList.add('fade-out');
+  setTimeout(()=>{mkt.classList.add('hidden');prev.classList.add('visible');},400);
+}
+function showMarketing(){
+  const mkt=document.getElementById('right-mkt');
+  const prev=document.getElementById('right-prev');
+  prev.classList.remove('visible');
+  mkt.classList.remove('hidden');
+  setTimeout(()=>mkt.classList.remove('fade-out'),50);
+}
+
+/* ── PROGRESS BAR ── */
+const STEPS=['Nick','Hesap','Tag','Profil','Sunucu'];
+function buildProg(){
+  const bar=document.getElementById('prog-bar');bar.innerHTML='';
+  STEPS.forEach((lbl,i)=>{
+    const w=document.createElement('div');w.className='prog-step';w.dataset.i=i;
+    const d=document.createElement('div');d.className='prog-dot';d.textContent=i+1;
+    const l=document.createElement('div');l.className='prog-label';l.textContent=lbl;
+    w.appendChild(d);w.appendChild(l);bar.appendChild(w);
+    if(i<STEPS.length-1){const ln=document.createElement('div');ln.className='prog-line';bar.appendChild(ln);}
+  });
+}
+function updProg(step){
+  document.querySelectorAll('.prog-step').forEach((w,i)=>{
+    const d=w.querySelector('.prog-dot');d.className='prog-dot';w.className='prog-step';
+    if(i<step){d.classList.add('done');w.classList.add('s-done');}
+    else if(i===step){d.classList.add('active');w.classList.add('s-active');}
+  });
+  document.querySelectorAll('.prog-line').forEach((l,i)=>{l.className='prog-line';if(i<step)l.classList.add('done');});
+}
+
+/* ── STEPS ── */
+const VIEWS=['view-s0','view-s1','view-s2','view-s3','view-s4','view-s5'];
+function goStep(step){
+  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  const t=document.getElementById(VIEWS[step]);if(t)t.classList.add('active');
+  updProg(step);
+}
+function switchMode(mode){
+  document.getElementById('view-login').classList.remove('active');
+  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  const bar=document.getElementById('prog-bar');
+  if(mode==='reg'){
+    bar.classList.remove('hidden');buildProg();goStep(0);showPreview();
+  } else {
+    bar.classList.add('hidden');
+    document.getElementById('view-login').classList.add('active');
+    showMarketing();
+  }
+}
+
+/* ── BUILD BUTTONS ── */
+function buildBtns(){
+  const bl=mkBtn('Giriş Yap','btn-gold');bl.onclick=doLogin;ca('b-login',bl);
+  const bgl=mkBtn('G — Google ile Giriş Yap','btn-discord');bgl.onclick=doGoogle;ca('b-google-l',bgl);
+
+  const bs0=mkBtn('İleri →','btn-gold',true);bs0.id='b-s0-next';bs0.onclick=()=>goStep(1);ca('b-s0-n',bs0);
+  const bs1=mkBtn('Devam Et','btn-gold');bs1.onclick=doReg;ca('b-s1-n',bs1);
+  const bs1b=mkBtn('← Geri','btn-ghost btn-sm');bs1b.onclick=()=>goStep(0);ca('b-s1-bk',bs1b);
+  const bgr=mkBtn('G — Google ile Kayıt Ol','btn-discord');bgr.onclick=doGoogle;ca('b-google-r',bgr);
+
+  const bs2b=mkBtn('←','btn-ghost btn-sm');bs2b.onclick=()=>goStep(1);ca('b-s2-bk',bs2b);
+  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{
+    if(!S.mainTag){toast('Lütfen bir tag seç!');return;}
+    if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}
+    document.getElementById('hint-tag').classList.add('done');
+    goStep(3);
+  };ca('b-s2-n',bs2n);
+
+  const bs3b=mkBtn('←','btn-ghost btn-sm');bs3b.onclick=()=>goStep(2);ca('b-s3-bk',bs3b);
+  const bs3n=mkBtn('İleri →','btn-gold');bs3n.onclick=()=>{document.getElementById('hint-profil').classList.add('done');goStep(4);};ca('b-s3-n',bs3n);
+
+  const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>goStep(3);ca('b-s4-bk',bs4b);
+  const bs4sk=mkBtn('Geç →','btn-ghost');bs4sk.onclick=()=>{S.server='';finishReg();};ca('b-s4-sk',bs4sk);
+  const bs4n=mkBtn('Kayıt Ol 🚀','btn-gold',true);bs4n.id='b-s4-next';bs4n.onclick=finishReg;ca('b-s4-n',bs4n);
+
+  const bg=mkBtn('Topluluğa Katıl →','btn-gold');bg.onclick=()=>location.href='lobbyx.html';ca('b-go',bg);
+}
+
+/* ── BANNER COLOR PICKER ── */
+function buildBanners(){
+  const wrap=document.getElementById('banner-colors');
+  BANNER_COLORS.forEach(b=>{
+    const sw=document.createElement('div');
+    sw.className='banner-swatch';
+    sw.style.background=b.c;
+    sw.title=b.name;
+    if(b.c===S.banner)sw.classList.add('selected');
+    sw.onclick=()=>{
+      document.querySelectorAll('.banner-swatch').forEach(s=>s.classList.remove('selected'));
+      sw.classList.add('selected');
+      S.banner=b.c;prevUpdate('banner');
+    };
+    wrap.appendChild(sw);
+  });
+}
+
+/* ── SERVER GRID ── */
+function buildSrvGrid(){
+  const grid=document.getElementById('srv-grid');grid.innerHTML='';
+  SERVERS.forEach(srv=>{
+    const c=document.createElement('div');c.className='server-card';
+    const im=document.createElement('img');im.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;im.alt=srv.name;
+    im.onerror=()=>im.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+    const nm=document.createElement('div');nm.className='srv-name';nm.textContent=srv.name;
+    c.appendChild(im);c.appendChild(nm);
+    c.onclick=()=>{
+      document.querySelectorAll('.server-card').forEach(x=>x.classList.remove('selected'));
+      c.classList.add('selected');S.server=srv.ip;S.serverName=srv.name;
+      prevUpdate('server');
+      const nb=document.getElementById('b-s4-next');if(nb)nb.disabled=false;
+    };
+    grid.appendChild(c);
+  });
+}
+
+/* ── TAG SELECTION ── */
+function initTags(){
   document.querySelectorAll('.tag-card').forEach(card=>{
-    card.addEventListener('click',()=>{
+    card.onclick=()=>{
       document.querySelectorAll('.tag-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');state.mainTag=card.dataset.main;state.subTag='';state.displayTag='';
-      document.getElementById('sub-developer').classList.remove('visible');
+      card.classList.add('selected');
+      S.mainTag=card.dataset.main;S.subTag='';S.displayTag='';
+      document.getElementById('sub-dev').classList.remove('visible');
       document.getElementById('sub-medya').classList.remove('visible');
       document.querySelectorAll('.dev-chip,.platform-card').forEach(c=>c.classList.remove('selected'));
-      if(state.mainTag==='Developer'){document.getElementById('sub-developer').classList.add('visible');}
-      else if(state.mainTag==='Medya'){document.getElementById('sub-medya').classList.add('visible');}
-      else{state.displayTag=state.mainTag==='Diger'?'Diğer':'Oyuncu';updateTagPreview();}
-    });
+      if(S.mainTag==='Developer') document.getElementById('sub-dev').classList.add('visible');
+      else if(S.mainTag==='Medya') document.getElementById('sub-medya').classList.add('visible');
+      else { S.displayTag=S.mainTag==='Diger'?'Diğer':'Oyuncu'; prevUpdate('tag'); }
+    };
   });
-  document.querySelectorAll('.dev-chip').forEach(chip=>{chip.addEventListener('click',()=>{document.querySelectorAll('.dev-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');state.subTag=chip.dataset.sub;state.displayTag=chip.dataset.sub;updateTagPreview();});});
-  document.querySelectorAll('.platform-card').forEach(card=>{card.addEventListener('click',()=>{document.querySelectorAll('.platform-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');state.subTag=card.dataset.sub;state.displayTag=card.dataset.tag;updateTagPreview();});});
-}
-
-function updateTagPreview(){
-  const p=document.getElementById('tag-preview');if(!state.displayTag){p.innerHTML='';return;}
-  const b=document.createElement('div');b.className='tag-preview-badge';
-  if(state.mainTag==='Medya'&&PLATFORM_LOGOS[state.subTag]){const img=document.createElement('img');img.src=PLATFORM_LOGOS[state.subTag];img.alt=state.subTag;b.appendChild(img);}
-  b.appendChild(document.createTextNode('✓ '+state.displayTag+' tagı alacaksın'));
-  p.innerHTML='';p.appendChild(b);
-}
-
-function buildServerGrid(){
-  const grid=document.getElementById('server-grid');grid.innerHTML='';
-  SERVERS.forEach(srv=>{
-    const card=document.createElement('div');card.className='server-card';
-    const img=document.createElement('img');img.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;img.alt=srv.name;
-    img.onerror=()=>{img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0e1428&color=ffd13b&size=64&bold=true`;};
-    const name=document.createElement('div');name.className='srv-name';name.textContent=srv.name;
-    card.appendChild(img);card.appendChild(name);
-    card.addEventListener('click',()=>{document.querySelectorAll('.server-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');state.server=srv.ip;const nb=document.getElementById('btn-s3-next');if(nb)nb.disabled=false;});
-    grid.appendChild(card);
+  document.querySelectorAll('.dev-chip').forEach(ch=>{
+    ch.onclick=()=>{document.querySelectorAll('.dev-chip').forEach(c=>c.classList.remove('selected'));ch.classList.add('selected');S.subTag=ch.dataset.sub;S.displayTag=ch.dataset.sub;prevUpdate('tag');};
+  });
+  document.querySelectorAll('.platform-card').forEach(pc=>{
+    pc.onclick=()=>{document.querySelectorAll('.platform-card').forEach(c=>c.classList.remove('selected'));pc.classList.add('selected');S.subTag=pc.dataset.sub;S.displayTag=pc.dataset.tag;prevUpdate('tag');};
   });
 }
 
-const STEP_VIEWS=['view-step0','view-step1','view-step2','view-step3','view-step4'];
-function goStep(step){STEP_VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});state.step=step;const t=document.getElementById(STEP_VIEWS[step]);if(t)t.classList.add('active');updateProgressBar(step);}
-
-function switchMode(mode){
-  state.mode=mode;
-  document.getElementById('view-login').classList.remove('active');
-  STEP_VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  const bar=document.getElementById('progress-bar');
-  if(mode==='register'){bar.classList.remove('hidden');buildProgressBar();goStep(0);}
-  else{bar.classList.add('hidden');document.getElementById('view-login').classList.add('active');}
-}
-
-let nickTimer;
-function initNickCheck(){
-  const input=document.getElementById('nick-input');
-  const status=document.getElementById('nick-status');
-  const preview=document.getElementById('nick-preview');
-  input.addEventListener('input',()=>{
-    const val=input.value.trim();
-    preview.innerHTML=`lobby.gg/<span>${val||'...'}</span>`;
-    state.nick=val;state.nickValid=false;state.nickAvailable=false;
-    const nb=document.getElementById('btn-s0-next');if(nb)nb.disabled=true;
-    if(!val){input.className='field-input';status.textContent='';return;}
-    const valid=/^[a-zA-Z0-9_]{3,20}$/.test(val);
-    if(!valid){input.className='field-input error';status.className='field-hint red';status.textContent='3-20 karakter, harf/rakam/alt çizgi.';return;}
-    input.className='field-input';status.className='field-hint muted';status.textContent='Kontrol ediliyor...';
-    clearTimeout(nickTimer);
-    nickTimer=setTimeout(async()=>{
-      const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',val).maybeSingle();
-      if(data){input.className='field-input error';status.className='field-hint red';status.textContent='✗ Bu kullanıcı adı alınmış.';}
-      else{input.className='field-input ok';status.className='field-hint green';status.textContent='✓ Kullanıcı adı uygun!';state.nick=val;state.nickValid=true;state.nickAvailable=true;const nb=document.getElementById('btn-s0-next');if(nb)nb.disabled=false;}
+/* ── NICK CHECK ── */
+let nickT;
+function initNick(){
+  const inp=document.getElementById('nick');
+  inp.oninput=()=>{
+    const v=inp.value.trim();
+    document.getElementById('nick-prev').innerHTML=`lobby.gg/<span>${v||'...'}</span>`;
+    S.nick=v;S.nickOk=false;
+    const nb=document.getElementById('b-s0-next');if(nb)nb.disabled=true;
+    const st=document.getElementById('nick-st');
+    if(!v){inp.className='field-input';st.textContent='';prevUpdate('nick');return;}
+    if(!/^[a-zA-Z0-9_]{3,20}$/.test(v)){inp.className='field-input error';st.className='field-hint red';st.textContent='3-20 karakter, harf/rakam/alt çizgi.';prevUpdate('nick');return;}
+    inp.className='field-input';st.className='field-hint muted';st.textContent='Kontrol ediliyor...';
+    clearTimeout(nickT);
+    nickT=setTimeout(async()=>{
+      const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',v).maybeSingle();
+      if(data){inp.className='field-input error';st.className='field-hint red';st.textContent='✗ Bu kullanıcı adı alınmış.';}
+      else{inp.className='field-input ok';st.className='field-hint green';st.textContent='✓ Kullanıcı adı uygun!';S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;prevUpdate('nick');}
     },650);
-  });
+  };
 }
 
-async function handleLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const pw=document.getElementById('login-password').value;
-  if(!email||!pw){showToast('E-posta ve şifreyi gir.');return;}
-  const btn=document.querySelector('#btn-login-wrap .btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Giriş yapılıyor...';
-  const{error}=await db.auth.signInWithPassword({email,password:pw});
-  if(error){showToast('Hatalı e-posta veya şifre.');btn.disabled=false;btn.textContent='Giriş Yap';}
-  else{window.location.href='lobbyx.html';}
+/* ── BIO ── */
+function initBio(){
+  const inp=document.getElementById('bio-input');
+  const cnt=document.getElementById('bio-count');
+  inp.oninput=()=>{
+    S.bio=inp.value;
+    cnt.textContent=`${S.bio.length} / 160`;
+    cnt.className='char-count'+(S.bio.length>140?' warn':'');
+    prevUpdate('bio');
+  };
 }
 
-async function handleRegister(){
-  const email=document.getElementById('reg-email').value.trim();
-  const pw=document.getElementById('reg-password').value;
-  if(!email||!pw){showToast('E-posta ve şifreyi gir.');return;}
-  if(pw.length<6){showToast('Şifre en az 6 karakter olmalı.');return;}
-  if(!state.nickValid||!state.nickAvailable){showToast('Geçerli bir kullanıcı adı gir!');return;}
-  state.email=email;state.password=pw;goStep(2);
+/* ── MC IGN / SKIN ── */
+let skinT;
+function initMcIgn(){
+  const inp=document.getElementById('mc-ign');
+  const mini=document.getElementById('skin-mini');
+  const miniImg=document.getElementById('skin-mini-img');
+  const st=document.getElementById('mc-ign-st');
+  const prevAv=document.getElementById('prev-av');
+
+  inp.oninput=()=>{
+    const v=inp.value.trim();
+    S.mcIgn=v;
+    clearTimeout(skinT);
+
+    if(!v){
+      const def='https://mc-heads.net/avatar/MHF_Steve/32';
+      miniImg.src=def; prevAv.src='https://mc-heads.net/avatar/MHF_Steve/64';
+      mini.className='skin-preview-mini';
+      st.className='field-hint muted';
+      st.textContent='Mojang API üzerinden skinin otomatik çekilecek.';
+      return;
+    }
+
+    if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
+      st.className='field-hint red';
+      st.textContent='Geçersiz MC kullanıcı adı.';
+      return;
+    }
+
+    mini.className='skin-preview-mini loading';
+    st.className='field-hint muted';
+    st.textContent='Skin yükleniyor...';
+
+    skinT=setTimeout(()=>{
+      const url=`https://mc-heads.net/avatar/${encodeURIComponent(v)/1||encodeURIComponent(v)}`;
+      const smallUrl=`https://mc-heads.net/avatar/${v}/32`;
+      const bigUrl=`https://mc-heads.net/avatar/${v}/64`;
+
+      const testImg=new Image();
+      testImg.onload=()=>{
+        miniImg.src=smallUrl;
+        prevAv.src=bigUrl;
+        prevAv.style.imageRendering='pixelated';
+        mini.className='skin-preview-mini loaded';
+        st.className='field-hint green';
+        st.textContent=`✓ ${v} skinini bulduk!`;
+      };
+      testImg.onerror=()=>{
+        mini.className='skin-preview-mini';
+        st.className='field-hint red';
+        st.textContent='Bu kullanıcı adında skin bulunamadı.';
+      };
+      testImg.src=smallUrl;
+    }, 700);
+  };
 }
 
-async function handleGoogleAuth(){
-  const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/lobbyx.html'}});
-  if(error)showToast('Google hatası: '+error.message);
+/* ── AUTH ── */
+async function doLogin(){
+  const em=document.getElementById('l-email').value.trim();
+  const pw=document.getElementById('l-pw').value;
+  if(!em||!pw){toast('E-posta ve şifreyi gir.');return;}
+  const btn=document.querySelector('#b-login .btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Giriş...';
+  const{error}=await db.auth.signInWithPassword({email:em,password:pw});
+  if(error){toast('Hatalı bilgi.');btn.disabled=false;btn.textContent='Giriş Yap';}
+  else location.href='lobbyx.html';
 }
-
-async function finishRegister(){
-  const kategoriMap={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
-  const kategori=kategoriMap[state.mainTag]||'Diğer';
-  const altKategori=state.subTag||null;
-  const displayTag=state.displayTag||kategori;
-  const btn=document.getElementById('btn-s3-next');
+async function doReg(){
+  const em=document.getElementById('r-email').value.trim();
+  const pw=document.getElementById('r-pw').value;
+  if(!em||!pw){toast('E-posta ve şifreyi gir.');return;}
+  if(pw.length<6){toast('Şifre en az 6 karakter.');return;}
+  if(!S.nickOk){toast('Geçerli kullanıcı adı gir!');return;}
+  S.email=em;S.pw=pw;
+  document.getElementById('hint-email').classList.add('done');
+  goStep(2);
+}
+async function doGoogle(){
+  const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/lobbyx.html'}});
+  if(error)toast('Google hatası: '+error.message);
+}
+async function finishReg(){
+  const km={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
+  const kat=km[S.mainTag]||'Diğer';
+  const alt=S.subTag||null;
+  const dtag=S.displayTag||kat;
+  const btn=document.getElementById('b-s4-next');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';}
   try{
-    const{data:authData,error:authErr}=await db.auth.signUp({email:state.email,password:state.password});
-    if(authErr)throw authErr;
-    const userId=authData.user?.id;
-    if(!userId)throw new Error('Kullanıcı ID alınamadı.');
-    await db.from('kullanicilar').insert({id:userId,kullanici_adi:state.nick,email:state.email,kategori,alt_kategori:altKategori,display_tag:displayTag,desteklenen_sunucu:state.server||null,abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,hesap_olusturma:new Date().toISOString()});
-    document.getElementById('welcome-nick').textContent=state.nick;
-    goStep(4);document.getElementById('progress-bar').classList.add('hidden');
-  }catch(e){showToast('Kayıt hatası: '+(e.message||'Bilinmeyen hata'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol →';}}
+    const{data:ad,error:ae}=await db.auth.signUp({email:S.email,password:S.pw});
+    if(ae)throw ae;
+    const uid=ad.user?.id;if(!uid)throw new Error('ID yok');
+    await db.from('kullanicilar').insert({
+      id:uid,kullanici_adi:S.nick,email:S.email,
+      kategori:kat,alt_kategori:alt,display_tag:dtag,
+      banner_color:S.banner,bio:S.bio,
+      mc_ign:S.mcIgn||null,
+      desteklenen_sunucu:S.server||null,
+      abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,
+      hesap_olusturma:new Date().toISOString()
+    });
+    document.getElementById('welcome-nick').textContent=S.nick;
+    goStep(5);document.getElementById('prog-bar').classList.add('hidden');
+  }catch(e){
+    toast('Kayıt hatası: '+(e.message||'?'));
+    if(btn){btn.disabled=false;btn.textContent='Kayıt Ol 🚀';}
+  }
 }
 
+/* ── INIT ── */
 document.addEventListener('DOMContentLoaded',async()=>{
-  setTimeout(()=>document.getElementById('load-overlay').classList.add('hidden'),700);
+  setTimeout(()=>document.getElementById('load').classList.add('out'),800);
   const{data:{session}}=await db.auth.getSession();
-  if(session){window.location.href='lobbyx.html';return;}
-  buildButtons();initNickCheck();buildServerGrid();initTagSelection();
-  document.getElementById('login-pw-toggle').addEventListener('click',()=>{const i=document.getElementById('login-password');const b=document.getElementById('login-pw-toggle');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';});
-  document.getElementById('reg-pw-toggle').addEventListener('click',()=>{const i=document.getElementById('reg-password');const b=document.getElementById('reg-pw-toggle');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';});
-  document.getElementById('go-register').addEventListener('click',()=>switchMode('register'));
-  document.getElementById('go-login-from-reg').addEventListener('click',()=>switchMode('login'));
-  document.getElementById('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+  if(session){location.href='lobbyx.html';return;}
+
+  buildBtns();initNick();initBio();initMcIgn();buildSrvGrid();buildBanners();initTags();
+  prevUpdate('banner');
+
+  /* PW toggles */
+  const lpwt=document.getElementById('l-pw-t');
+  lpwt.onclick=()=>{const i=document.getElementById('l-pw');i.type=i.type==='password'?'text':'password';lpwt.textContent=i.type==='password'?'👁':'🙈';};
+  const rpwt=document.getElementById('r-pw-t');
+  rpwt.onclick=()=>{const i=document.getElementById('r-pw');i.type=i.type==='password'?'text':'password';rpwt.textContent=i.type==='password'?'👁':'🙈';};
+
+  document.getElementById('go-reg').onclick=()=>switchMode('reg');
+  document.getElementById('go-login').onclick=()=>switchMode('login');
+  document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
 });
 </script>
 </body>
