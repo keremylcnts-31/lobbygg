@@ -5,583 +5,452 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Giriş / Kayıt — LOBBY.GG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --gold:     #ffd13b;
-      --gold-dk:  #c9a000;
-      --bg:       #060810;
-      --card-bg:  rgba(8, 15, 35, 0.92);
-      --border:   #000;
-      --text-1:   #ffffff;
-      --text-2:   #b8c8e8;
-      --text-dim: #5a6a8a;
-      --red:      #ff3535;
-      --green:    #39ff14;
-      --blue:     #00aaff;
+      --gold:    #ffd13b;
+      --gold-dk: #b89000;
+      --bg-l:    #090c18;
+      --bg-r:    #0b0f1f;
+      --input-bg:#0e1428;
+      --border:  #000;
+      --text-1:  #ffffff;
+      --text-2:  #9aa8c8;
+      --text-dim:#4a5878;
+      --red:     #ff3535;
+      --green:   #3ddc84;
     }
 
     html, body {
-      width: 100%; min-height: 100%;
+      width: 100%; height: 100%;
       font-family: 'Montserrat', sans-serif;
-      background: var(--bg);
+      background: var(--bg-l);
       color: var(--text-1);
-      overflow-x: hidden;
-    }
-
-    /* ── BACKGROUND LAYERS ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0;
-      background: url('mc_bg.png') center/cover no-repeat;
-      filter: blur(22px) brightness(0.18) saturate(0.7);
-      transform: scale(1.12);
-      pointer-events: none;
-    }
-
-    body::after {
-      content: '';
-      position: fixed; inset: 0; z-index: 1;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255,209,59,0.07) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 40% at 20% 0%, rgba(0,140,255,0.06) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    canvas#particles {
-      position: fixed; inset: 0;
-      z-index: 2; pointer-events: none;
-    }
-
-    /* ── WRAPPER ── */
-    #wrapper {
-      position: relative; z-index: 10;
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 28px 16px;
-    }
-
-    /* ── CARD ── */
-    .auth-card {
-      width: 100%; max-width: 500px;
-      background: var(--card-bg);
-      border: 3px solid var(--border);
-      border-radius: 2px;
-      position: relative;
       overflow: hidden;
-      animation: cardIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
     }
 
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(24px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+    /* ══════════════════════════════
+       SPLIT LAYOUT
+    ══════════════════════════════ */
+    .split {
+      display: flex;
+      width: 100%; height: 100%;
     }
 
-    /* Animated glow border */
-    .auth-card::before {
+    /* ── LEFT PANEL (Form) ── */
+    .panel-left {
+      width: 480px;
+      flex-shrink: 0;
+      background: var(--bg-l);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 52px;
+      position: relative;
+      z-index: 10;
+      overflow-y: auto;
+      border-right: 3px solid #000;
+    }
+
+    /* ── RIGHT PANEL (Visual) ── */
+    .panel-right {
+      flex: 1;
+      background: var(--bg-r);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Right panel radial glow */
+    .panel-right::before {
       content: '';
-      position: absolute; inset: -3px;
-      background: linear-gradient(135deg,
-        transparent 0%, transparent 30%,
-        rgba(255,209,59,0.6) 50%,
-        transparent 70%, transparent 100%
-      );
-      border-radius: 2px;
-      z-index: -1;
-      animation: borderSweep 4s linear infinite;
-      background-size: 300% 300%;
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,209,59,0.12) 0%, rgba(255,209,59,0.04) 40%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: glowPulse 4s ease-in-out infinite;
     }
-    @keyframes borderSweep {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 300% 300%; }
+    @keyframes glowPulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+      50%      { transform: translate(-50%,-50%) scale(1.12); opacity: 1; }
     }
 
-    /* Scanline overlay */
-    .auth-card::after {
+    /* Grid dots on right panel */
+    .panel-right::after {
       content: '';
-      position: absolute; inset: 0; z-index: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.08) 3px,
-        rgba(0,0,0,0.08) 4px
-      );
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
       pointer-events: none;
     }
 
-    .card-inner {
-      position: relative; z-index: 1;
-      padding: 36px 32px 30px;
-    }
-
-    /* ── LOGO ── */
-    .logo-wrap {
-      text-align: center; margin-bottom: 8px;
-      position: relative;
-    }
-    .logo-wrap img {
-      height: 46px; object-fit: contain;
-      filter: drop-shadow(0 0 16px rgba(255,209,59,0.8))
-              drop-shadow(0 0 32px rgba(255,209,59,0.4));
-      animation: logoPulse 3s ease-in-out infinite;
-    }
-    @keyframes logoPulse {
-      0%,100% { filter: drop-shadow(0 0 12px rgba(255,209,59,0.6)) drop-shadow(0 0 24px rgba(255,209,59,0.3)); }
-      50%     { filter: drop-shadow(0 0 22px rgba(255,209,59,1))   drop-shadow(0 0 44px rgba(255,209,59,0.6)); }
-    }
-    .logo-tagline {
-      font-size: 10px; font-weight: 800;
-      color: var(--text-dim); text-transform: uppercase;
-      letter-spacing: 3px; margin-top: 6px; margin-bottom: 24px;
+    /* Right panel content */
+    .right-content {
+      position: relative; z-index: 2;
       text-align: center;
+      padding: 40px;
     }
-
-    /* ── PROGRESS BAR ── */
-    .progress-bar {
-      display: flex; align-items: flex-start; gap: 0;
+    .right-logo {
+      width: 120px; height: 120px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 32px rgba(255,209,59,0.7))
+              drop-shadow(0 0 64px rgba(255,209,59,0.3));
       margin-bottom: 28px;
+      animation: logoBob 3s ease-in-out infinite;
+    }
+    @keyframes logoBob {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .right-title {
+      font-size: 28px; font-weight: 900;
+      color: var(--text-1);
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .right-sub {
+      font-size: 14px; color: var(--text-2);
+      font-weight: 600; line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .right-features {
+      display: flex; flex-direction: column;
+      gap: 12px; text-align: left;
+    }
+    .right-feature {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 2px solid #111828;
+      border-radius: 2px;
+      box-shadow: 3px 3px 0 #000;
+      padding: 12px 16px;
+    }
+    .right-feature-icon {
+      font-size: 20px; flex-shrink: 0; width: 28px; text-align: center;
+    }
+    .right-feature-text { font-size: 12px; font-weight: 700; color: var(--text-2); }
+    .right-feature-text strong { color: var(--text-1); display: block; font-size: 13px; margin-bottom: 1px; }
+
+    /* ══════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════ */
+    .progress-bar {
+      display: flex; align-items: center;
+      margin-bottom: 30px; gap: 0;
     }
     .progress-bar.hidden { display: none; }
 
-    .prog-step {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 5px;
-      flex-shrink: 0; z-index: 1;
-    }
+    .prog-step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
     .prog-dot {
-      width: 32px; height: 32px;
-      border: 3px solid #1a2240;
-      background: #0a0f1e;
+      width: 30px; height: 30px;
+      border: 2px solid #1a2240;
+      background: #0a0f20;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900; color: #2a3a5a;
-      box-shadow: 3px 3px 0 #000;
-      transition: all 0.25s ease;
-      position: relative;
+      font-size: 11px; font-weight: 900; color: #2a3a60;
+      box-shadow: 2px 2px 0 #000;
+      transition: all 0.25s;
     }
     .prog-dot.active {
       border-color: var(--gold);
       color: var(--gold);
       background: rgba(255,209,59,0.08);
-      box-shadow: 3px 3px 0 var(--gold-dk), 0 0 16px rgba(255,209,59,0.3);
-    }
-    .prog-dot.active::after {
-      content: '';
-      position: absolute; inset: -6px;
-      border: 2px solid rgba(255,209,59,0.3);
-      animation: progPing 1.5s ease-in-out infinite;
-    }
-    @keyframes progPing {
-      0%,100% { opacity: 0.3; transform: scale(1); }
-      50%     { opacity: 0.8; transform: scale(1.08); }
+      box-shadow: 2px 2px 0 var(--gold-dk);
     }
     .prog-dot.done {
       border-color: var(--gold);
       background: var(--gold);
       color: #000;
-      box-shadow: 3px 3px 0 var(--gold-dk);
+      box-shadow: 2px 2px 0 var(--gold-dk);
     }
     .prog-label {
-      font-size: 8px; font-weight: 800;
-      color: #1a2a4a; text-transform: uppercase; letter-spacing: 0.5px;
-      transition: color 0.25s;
+      font-size: 8px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #2a3a60; transition: color 0.2s;
     }
     .prog-step.s-active .prog-label { color: var(--gold); }
-    .prog-step.s-done .prog-label   { color: rgba(255,209,59,0.7); }
+    .prog-step.s-done .prog-label   { color: rgba(255,209,59,0.6); }
 
     .prog-line {
-      flex: 1; height: 3px;
-      background: #0f1828;
-      margin: 14px 3px 0;
-      border: 1px solid #000;
-      transition: background 0.4s ease;
-      overflow: hidden;
-      position: relative;
+      flex: 1; height: 2px; background: #111828;
+      border: 1px solid #000; margin: 0 4px 14px;
+      transition: background 0.4s;
     }
-    .prog-line::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: var(--gold);
-      transform: scaleX(0); transform-origin: left;
-      transition: transform 0.4s ease;
-    }
-    .prog-line.done::after { transform: scaleX(1); }
+    .prog-line.done { background: var(--gold); }
 
-    /* ── STEP VIEWS ── */
+    /* ══════════════════════════════
+       STEP VIEWS
+    ══════════════════════════════ */
     .step-view { display: none; }
     .step-view.active {
       display: block;
-      animation: stepSlideIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+      animation: slideIn 0.3s ease both;
     }
-    .step-view.exit {
-      animation: stepSlideOut 0.25s ease-in both;
-    }
-    @keyframes stepSlideIn {
-      from { opacity: 0; transform: translateX(28px); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
       to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes stepSlideOut {
-      from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(-28px); }
     }
 
     /* ── HEADINGS ── */
     .step-title {
-      font-size: 22px; font-weight: 900;
-      color: var(--text-1); margin-bottom: 5px;
-      letter-spacing: -0.5px;
-      text-shadow: 0 0 30px rgba(255,255,255,0.1);
+      font-size: 32px; font-weight: 900;
+      color: var(--text-1); margin-bottom: 6px;
+      letter-spacing: -1px; text-transform: uppercase;
+      line-height: 1;
     }
     .step-sub {
-      font-size: 12px; color: var(--text-dim);
-      margin-bottom: 22px; line-height: 1.6;
-      font-weight: 600;
+      font-size: 13px; color: var(--text-2);
+      font-weight: 600; margin-bottom: 28px; line-height: 1.6;
     }
 
     /* ── INPUTS ── */
-    .field-group { margin-bottom: 15px; position: relative; }
+    .field-group { margin-bottom: 16px; }
     .field-label {
-      display: block; font-size: 10px; font-weight: 800;
-      color: var(--text-dim); margin-bottom: 7px;
-      text-transform: uppercase; letter-spacing: 1px;
+      display: block; font-size: 11px; font-weight: 800;
+      color: var(--text-2); margin-bottom: 7px;
+      letter-spacing: 0.5px;
     }
     .field-input {
       width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 2px solid #111a30;
-      border-radius: 2px;
-      padding: 12px 14px;
+      background: var(--input-bg);
+      border: 2px solid #151e38;
+      padding: 13px 15px;
       color: var(--text-1);
       font-family: 'Montserrat', sans-serif;
       font-size: 14px; font-weight: 600;
       outline: none;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 3px 3px 0 #000;
-      transition: all 0.15s ease;
+      box-shadow: 3px 3px 0 #000;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      border-radius: 0;
     }
+    .field-input::placeholder { color: var(--text-dim); }
     .field-input:focus {
       border-color: var(--gold);
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 3px 3px 0 var(--gold-dk),
-                  0 0 0 3px rgba(255,209,59,0.12);
-      background: rgba(255,209,59,0.04);
+      box-shadow: 3px 3px 0 var(--gold-dk);
     }
-    .field-input.error {
-      border-color: var(--red);
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 3px 3px 0 #800,
-                  0 0 0 3px rgba(255,53,53,0.1);
-    }
-    .field-input.ok {
-      border-color: var(--green);
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 3px 3px 0 #1a6600,
-                  0 0 0 3px rgba(57,255,20,0.1);
-    }
+    .field-input.error { border-color: var(--red); box-shadow: 3px 3px 0 #800; }
+    .field-input.ok    { border-color: var(--green); box-shadow: 3px 3px 0 #1a6000; }
+
     .field-hint { font-size: 11px; margin-top: 5px; font-weight: 700; }
     .field-hint.green { color: var(--green); }
     .field-hint.red   { color: var(--red); }
     .field-hint.muted { color: var(--text-dim); }
 
-    .nick-preview {
-      font-size: 11px; color: var(--text-dim); font-weight: 700; margin-top: 5px;
-    }
+    .nick-preview { font-size: 11px; color: var(--text-dim); font-weight: 700; margin-top: 5px; }
     .nick-preview span { color: var(--gold); }
 
     .pw-wrap { position: relative; }
     .pw-toggle {
-      position: absolute; right: 12px; top: 50%;
+      position: absolute; right: 13px; top: 50%;
       transform: translateY(-50%);
       background: none; border: none; cursor: pointer;
-      color: var(--text-dim); font-size: 15px;
-      transition: color 0.15s; padding: 0; line-height: 1;
+      color: var(--text-dim); font-size: 16px;
+      padding: 0; transition: color 0.15s;
     }
     .pw-toggle:hover { color: var(--gold); }
-    .pw-wrap .field-input { padding-right: 42px; }
+    .pw-wrap .field-input { padding-right: 44px; }
 
-    /* ── 3D BUTTONS ── */
+    /* ══════════════════════════════
+       3D BUTTONS
+    ══════════════════════════════ */
     .btn {
-      width: 100%; padding: 13px 20px;
-      border-radius: 2px;
+      width: 100%; padding: 14px 20px;
+      border-radius: 0;
       cursor: pointer;
       font-family: 'Montserrat', sans-serif;
       font-size: 14px; font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px; text-transform: uppercase;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      text-decoration: none;
-      user-select: none;
+      border: 3px solid var(--border);
+      user-select: none; text-decoration: none;
       transition: transform 0.08s ease, box-shadow 0.08s ease;
       position: relative; overflow: hidden;
     }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: translate(3px,3px) !important; box-shadow: 2px 2px 0 #000 !important; }
 
-    /* shimmer effect on btn */
-    .btn::after {
+    /* Shimmer */
+    .btn::before {
       content: '';
-      position: absolute;
-      top: -50%; left: -60%;
-      width: 40%; height: 200%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
       transform: skewX(-20deg);
       transition: left 0.5s ease;
-      pointer-events: none;
     }
-    .btn:hover::after { left: 120%; }
-
-    .btn:disabled {
-      opacity: 0.38; cursor: not-allowed;
-      transform: translate(3px, 3px) !important;
-      box-shadow: 2px 2px 0 #000 !important;
-    }
+    .btn:not(:disabled):hover::before { left: 160%; }
 
     .btn-gold {
-      background: linear-gradient(180deg, #ffe566 0%, #ffd13b 45%, #e8b800 100%);
+      background: var(--gold);
       color: #000;
-      border: 3px solid #000;
-      box-shadow: 5px 5px 0px #000;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+      box-shadow: 5px 5px 0 #000;
     }
-    .btn-gold:not(:disabled):hover {
-      transform: translate(-3px, -3px);
-      box-shadow: 8px 8px 0px #000;
-    }
-    .btn-gold:not(:disabled):active {
-      transform: translate(3px, 3px);
-      box-shadow: 2px 2px 0px #000;
-    }
+    .btn-gold:not(:disabled):hover  { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 #000; }
+    .btn-gold:not(:disabled):active { transform: translate(3px,3px);  box-shadow: 2px 2px 0 #000; }
 
     .btn-ghost {
-      background: rgba(255,255,255,0.04);
-      color: var(--text-dim);
-      border: 2px solid #1a2a40;
+      background: transparent;
+      color: var(--text-2);
+      border-color: #1a2240;
       box-shadow: 3px 3px 0 #000;
     }
-    .btn-ghost:not(:disabled):hover {
-      transform: translate(-2px,-2px);
-      box-shadow: 5px 5px 0 #000;
-      color: var(--text-2);
-      border-color: #2a3a55;
-    }
-    .btn-ghost:not(:disabled):active {
-      transform: translate(2px,2px);
-      box-shadow: 1px 1px 0 #000;
-    }
+    .btn-ghost:not(:disabled):hover  { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; color: var(--text-1); }
+    .btn-ghost:not(:disabled):active { transform: translate(2px,2px);  box-shadow: 1px 1px 0 #000; }
 
     .btn-discord {
-      background: linear-gradient(180deg, #7289da 0%, #5865F2 50%, #4753c5 100%);
+      background: #5865F2;
       color: #fff;
-      border: 3px solid #000;
       box-shadow: 5px 5px 0 #000;
     }
-    .btn-discord:not(:disabled):hover {
-      transform: translate(-3px,-3px);
-      box-shadow: 8px 8px 0 #000;
-    }
-    .btn-discord:not(:disabled):active {
-      transform: translate(3px,3px);
-      box-shadow: 2px 2px 0 #000;
-    }
+    .btn-discord:not(:disabled):hover  { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 #000; }
+    .btn-discord:not(:disabled):active { transform: translate(3px,3px);  box-shadow: 2px 2px 0 #000; }
 
-    .btn-sm {
-      width: auto; padding: 9px 16px; font-size: 12px;
-    }
+    .btn-sm { width: auto; padding: 10px 16px; font-size: 11px; }
     .btn-row { display: flex; gap: 10px; margin-top: 8px; }
     .btn-row .btn { flex: 1; }
 
     .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 16px 0; color: var(--text-dim);
-      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+      display: flex; align-items: center; gap: 14px;
+      margin: 18px 0; color: var(--text-dim);
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
     }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px; background: #111a30;
-    }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background:#111828; }
 
-    /* ── TAG CARDS ── */
-    .tag-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 10px; margin-bottom: 14px;
-    }
+    /* ══════════════════════════════
+       TAG SELECTION
+    ══════════════════════════════ */
+    .tag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .tag-card {
-      background: rgba(10, 20, 50, 0.8);
-      border: 2px solid #111a30;
-      border-radius: 2px;
+      background: var(--input-bg);
+      border: 2px solid #151e38;
       box-shadow: 4px 4px 0 #000;
-      padding: 20px 12px 16px;
+      padding: 18px 12px 14px;
       cursor: pointer; text-align: center;
-      transition: transform 0.1s, box-shadow 0.1s, border-color 0.15s, background 0.15s;
-      user-select: none; position: relative; overflow: hidden;
-    }
-    .tag-card::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at 50% 0%, rgba(255,209,59,0.08) 0%, transparent 70%);
-      opacity: 0; transition: opacity 0.2s;
+      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
+      user-select: none;
     }
     .tag-card:hover { transform: translate(-3px,-3px); box-shadow: 7px 7px 0 #000; border-color: #2a3a60; }
-    .tag-card:hover::before { opacity: 1; }
     .tag-card.selected {
       border-color: var(--gold);
-      background: rgba(255,209,59,0.07);
-      box-shadow: 4px 4px 0 var(--gold-dk), 0 0 20px rgba(255,209,59,0.15);
+      background: rgba(255,209,59,0.05);
+      box-shadow: 4px 4px 0 var(--gold-dk);
       transform: translate(-2px,-2px);
     }
-    .tag-card.selected::before { opacity: 1; }
-    .tc-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+    .tc-icon { font-size: 26px; margin-bottom: 8px; }
     .tc-name { font-size: 13px; font-weight: 900; color: var(--text-1); }
-    .tc-desc { font-size: 10px; color: var(--text-dim); margin-top: 3px; font-weight: 600; }
+    .tc-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; font-weight: 600; }
 
-    /* ── SUB SECTION ── */
-    .sub-section {
-      display: none;
-      animation: stepSlideIn 0.25s ease both;
-      margin-bottom: 12px;
-    }
+    .sub-section { display: none; margin-bottom: 12px; animation: slideIn 0.2s ease both; }
     .sub-section.visible { display: block; }
-    .sub-label {
-      font-size: 10px; font-weight: 800; color: var(--text-dim);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 9px;
-    }
+    .sub-label { font-size: 10px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
     .sub-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 
     .platform-card {
-      background: rgba(10,20,50,0.8);
-      border: 2px solid #111a30;
-      border-radius: 2px;
+      background: var(--input-bg);
+      border: 2px solid #151e38;
       box-shadow: 3px 3px 0 #000;
       padding: 9px 14px;
       cursor: pointer;
-      display: flex; align-items: center; gap: 9px;
-      transition: transform 0.1s, box-shadow 0.1s, border-color 0.15s;
+      display: flex; align-items: center; gap: 8px;
+      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
       user-select: none;
     }
-    .platform-card:hover {
-      transform: translate(-2px,-2px);
-      box-shadow: 5px 5px 0 #000; border-color: #2a3a60;
-    }
-    .platform-card.selected {
-      border-color: var(--gold);
-      background: rgba(255,209,59,0.07);
-      box-shadow: 3px 3px 0 var(--gold-dk);
-      transform: translate(-1px,-1px);
-    }
-    .platform-card img { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+    .platform-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; border-color: #2a3a60; }
+    .platform-card.selected { border-color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
+    .platform-card img { width: 18px; height: 18px; object-fit: contain; }
     .platform-card .pc-name { font-size: 12px; font-weight: 800; color: var(--text-1); }
 
     .dev-chip {
-      background: rgba(10,20,50,0.8);
-      border: 2px solid #111a30;
-      border-radius: 2px;
+      background: var(--input-bg);
+      border: 2px solid #151e38;
       box-shadow: 3px 3px 0 #000;
       padding: 9px 14px;
-      cursor: pointer;
-      font-size: 12px; font-weight: 800; color: var(--text-2);
-      transition: transform 0.1s, box-shadow 0.1s, border-color 0.15s;
+      cursor: pointer; font-size: 12px; font-weight: 800; color: var(--text-2);
+      transition: transform 0.08s, box-shadow 0.08s, border-color 0.15s;
       user-select: none;
     }
     .dev-chip:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; border-color: #2a3a60; }
-    .dev-chip.selected {
-      border-color: var(--gold); color: var(--gold);
-      background: rgba(255,209,59,0.07);
-      box-shadow: 3px 3px 0 var(--gold-dk);
-    }
+    .dev-chip.selected { border-color: var(--gold); color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
 
-    /* Tag preview */
-    #tag-preview { min-height: 34px; margin-top: 4px; }
+    #tag-preview { min-height: 32px; margin-top: 6px; }
     .tag-preview-badge {
       display: inline-flex; align-items: center; gap: 7px;
-      background: rgba(255,209,59,0.08);
+      background: rgba(255,209,59,0.07);
       border: 2px solid var(--gold);
-      border-radius: 2px;
       box-shadow: 3px 3px 0 var(--gold-dk);
       padding: 6px 14px;
       font-size: 11px; font-weight: 800;
       color: var(--gold);
       animation: badgePop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
     }
-    @keyframes badgePop {
-      from { opacity: 0; transform: scale(0.7); }
-      to   { opacity: 1; transform: scale(1); }
-    }
+    @keyframes badgePop { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
     .tag-preview-badge img { width: 14px; height: 14px; }
 
-    /* ── SERVER GRID ── */
+    /* ══════════════════════════════
+       SERVER GRID
+    ══════════════════════════════ */
     .server-grid {
       display: grid; grid-template-columns: repeat(3,1fr);
       gap: 8px; margin-bottom: 14px;
-      max-height: 240px; overflow-y: auto; padding-right: 4px;
+      max-height: 220px; overflow-y: auto; padding-right: 4px;
     }
     .server-grid::-webkit-scrollbar { width: 4px; }
-    .server-grid::-webkit-scrollbar-track { background: #080f20; }
-    .server-grid::-webkit-scrollbar-thumb { background: #1a2a40; border-radius: 2px; }
-
+    .server-grid::-webkit-scrollbar-track { background: #080d1a; }
+    .server-grid::-webkit-scrollbar-thumb { background: #1a2240; }
     .server-card {
-      background: rgba(10,20,50,0.8);
-      border: 2px solid #111a30;
-      border-radius: 2px;
+      background: var(--input-bg);
+      border: 2px solid #151e38;
       box-shadow: 3px 3px 0 #000;
       padding: 10px 6px;
       cursor: pointer; text-align: center;
-      transition: transform 0.1s, box-shadow 0.1s; user-select: none;
+      transition: transform 0.08s, box-shadow 0.08s;
     }
     .server-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 #000; }
-    .server-card.selected {
-      border-color: var(--gold);
-      background: rgba(255,209,59,0.07);
-      box-shadow: 3px 3px 0 var(--gold-dk);
-    }
+    .server-card.selected { border-color: var(--gold); background: rgba(255,209,59,0.05); box-shadow: 3px 3px 0 var(--gold-dk); }
     .server-card img {
       width: 36px; height: 36px;
-      border: 2px solid #000; border-radius: 2px;
-      object-fit: cover; margin-bottom: 5px; background: #090f1e;
+      border: 2px solid #000;
+      object-fit: cover; margin-bottom: 5px;
+      background: #090d1a;
       display: block; margin-left: auto; margin-right: auto;
     }
-    .server-card .srv-name {
-      font-size: 9px; font-weight: 800;
-      color: var(--text-2); line-height: 1.2; word-break: break-word;
-    }
+    .server-card .srv-name { font-size: 9px; font-weight: 800; color: var(--text-2); line-height: 1.2; word-break: break-word; }
 
-    /* ── SUCCESS ── */
-    .success-wrap { text-align: center; padding: 10px 0 6px; }
+    /* ══════════════════════════════
+       SUCCESS
+    ══════════════════════════════ */
+    .success-wrap { text-align: center; padding: 10px 0; }
     .check-circle {
-      width: 76px; height: 76px;
+      width: 80px; height: 80px;
       border: 4px solid var(--gold);
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 20px;
-      box-shadow: 5px 5px 0 var(--gold-dk), 0 0 30px rgba(255,209,59,0.3);
-      animation: successPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;
-      position: relative;
+      box-shadow: 5px 5px 0 var(--gold-dk);
+      animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
     }
-    .check-circle::before {
-      content: '';
-      position: absolute; inset: -10px;
-      border: 2px solid rgba(255,209,59,0.2);
-      animation: ringPulse 2s ease-in-out infinite;
-    }
-    @keyframes successPop {
-      0%  { transform: scale(0) rotate(-15deg); opacity: 0; }
-      70% { transform: scale(1.12) rotate(3deg); opacity: 1; }
-      100%{ transform: scale(1) rotate(0); opacity: 1; }
-    }
-    @keyframes ringPulse {
-      0%,100% { transform: scale(1); opacity: 0.4; }
-      50%     { transform: scale(1.15); opacity: 0.8; }
-    }
-    .check-mark { font-size: 34px; color: var(--gold); }
-    .success-title { font-size: 21px; font-weight: 900; color: var(--text-1); margin-bottom: 7px; }
+    @keyframes popIn { from{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.1) rotate(3deg)} to{transform:scale(1) rotate(0);opacity:1} }
+    .check-mark { font-size: 36px; color: var(--gold); }
+    .success-title { font-size: 24px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
     .success-title span { color: var(--gold); }
-    .success-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.6; }
+    .success-sub { font-size: 12px; color: var(--text-2); margin-bottom: 20px; line-height: 1.7; font-weight: 600; }
     .lcoin-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,209,59,0.08);
+      background: rgba(255,209,59,0.07);
       border: 3px solid var(--gold);
-      border-radius: 2px;
       box-shadow: 4px 4px 0 var(--gold-dk);
-      padding: 9px 22px;
+      padding: 10px 24px;
       font-size: 14px; font-weight: 900;
       color: var(--gold); margin-bottom: 24px;
-      animation: badgePop 0.5s 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
     }
 
-    /* ── TOGGLE LINK ── */
+    /* ══════════════════════════════
+       TOGGLE LINK
+    ══════════════════════════════ */
     .toggle-link {
       text-align: center; margin-top: 18px;
       font-size: 12px; color: var(--text-dim); font-weight: 600;
@@ -591,11 +460,12 @@
       font-weight: 800; font-size: 12px; cursor: pointer;
       font-family: 'Montserrat', sans-serif;
       text-decoration: underline; text-underline-offset: 3px;
-      transition: color 0.15s;
     }
     .toggle-link button:hover { color: #ffe566; }
 
-    /* ── TOAST ── */
+    /* ══════════════════════════════
+       TOAST & SPINNER
+    ══════════════════════════════ */
     #toast-container {
       position: fixed; top: 20px; right: 20px;
       z-index: 9999; display: flex; flex-direction: column; gap: 8px;
@@ -603,363 +473,287 @@
     .toast {
       padding: 12px 16px; font-size: 12px; font-weight: 800;
       color: #fff; background: #100010;
-      border: 2px solid var(--red);
-      border-left: 5px solid var(--red);
-      box-shadow: 4px 4px 0 #000;
-      max-width: 320px; font-family: 'Montserrat', sans-serif;
+      border: 2px solid var(--red); border-left: 5px solid var(--red);
+      box-shadow: 4px 4px 0 #000; max-width: 320px;
+      font-family: 'Montserrat', sans-serif;
       animation: toastIn 0.3s ease;
     }
-    .toast.success {
-      background: #001008; border-color: var(--green);
-      border-left-color: var(--green); color: var(--green);
-    }
-    @keyframes toastIn {
-      from { transform: translateX(120%); opacity: 0; }
-      to   { transform: translateX(0); opacity: 1; }
-    }
+    .toast.success { background: #001008; border-color: var(--green); border-left-color: var(--green); color: var(--green); }
+    @keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
 
-    /* ── SPINNER ── */
     .spinner {
       width: 14px; height: 14px;
-      border: 2px solid rgba(0,0,0,0.2);
+      border: 2px solid rgba(0,0,0,0.25);
       border-top-color: #000;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       display: inline-block;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
     /* Load overlay */
     #load-overlay {
-      position: fixed; inset: 0; background: var(--bg); z-index: 9999;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      position: fixed; inset: 0; background: #060810; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
       transition: opacity 0.5s ease;
     }
     #load-overlay.hidden { opacity: 0; pointer-events: none; }
     .load-logo {
-      height: 56px;
+      height: 60px;
       filter: drop-shadow(0 0 24px rgba(255,209,59,0.9));
-      animation: loadPulse 1.2s ease-in-out infinite;
+      animation: loadPulse 1s ease-in-out infinite;
     }
-    @keyframes loadPulse {
-      0%,100%{ opacity:0.6;transform:scale(1) }
-      50%    { opacity:1;transform:scale(1.07) }
+    @keyframes loadPulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
+    .load-text { font-size: 12px; font-weight: 800; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      body { overflow: auto; }
+      .split { flex-direction: column; height: auto; min-height: 100vh; }
+      .panel-left { width: 100%; padding: 36px 28px; border-right: none; border-bottom: 3px solid #000; }
+      .panel-right { min-height: 280px; }
+      .right-features { display: none; }
     }
-    .load-bar-wrap {
-      width: 160px; height: 4px; background: #0f1828;
-      border: 1px solid #000; border-radius: 0;
-      overflow: hidden;
-    }
-    .load-bar {
-      height: 100%; width: 0%;
-      background: var(--gold);
-      box-shadow: 0 0 8px rgba(255,209,59,0.6);
-      animation: loadBar 0.7s ease forwards;
-    }
-    @keyframes loadBar { to { width: 100%; } }
 
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #060810; }
-    ::-webkit-scrollbar-thumb { background: #1a2a40; border-radius: 1px; }
+    ::-webkit-scrollbar-track { background: #080d1a; }
+    ::-webkit-scrollbar-thumb { background: #1a2240; }
   </style>
 </head>
 <body>
 
-<!-- Load Overlay -->
 <div id="load-overlay">
   <img class="load-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
-  <div class="load-bar-wrap"><div class="load-bar"></div></div>
+  <div class="load-text">Yükleniyor...</div>
 </div>
 
-<!-- Particle Canvas -->
-<canvas id="particles"></canvas>
 <div id="toast-container"></div>
 
-<div id="wrapper">
-  <div class="auth-card" id="auth-card">
-    <div class="card-inner">
+<div class="split">
 
-      <!-- Logo -->
-      <div class="logo-wrap">
-        <img src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+  <!-- ═══ LEFT PANEL ═══ -->
+  <div class="panel-left" id="panel-left">
+
+    <div class="progress-bar hidden" id="progress-bar"></div>
+
+    <!-- GİRİŞ -->
+    <div class="step-view active" id="view-login">
+      <div class="step-title">Giriş Yap</div>
+      <div class="step-sub">Hesabına erişmek için giriş yap.</div>
+
+      <div class="field-group">
+        <label class="field-label">Kullanıcı Adı veya E-posta</label>
+        <input class="field-input" type="email" id="login-email" placeholder="ornek@mail.com" />
       </div>
-      <div class="logo-tagline">Türkiye'nin Minecraft Topluluğu</div>
-
-      <!-- Progress Bar -->
-      <div class="progress-bar hidden" id="progress-bar"></div>
-
-      <!-- ── GİRİŞ ── -->
-      <div class="step-view active" id="view-login">
-        <div class="step-title">Tekrar Hoş Geldin!</div>
-        <div class="step-sub">Hesabına giriş yap veya yeni bir hesap oluştur.</div>
-
-        <div class="field-group">
-          <label class="field-label">E-posta</label>
-          <input class="field-input" type="email" id="login-email" placeholder="ornek@mail.com" />
-        </div>
-        <div class="field-group">
-          <label class="field-label">Şifre</label>
-          <div class="pw-wrap">
-            <input class="field-input" type="password" id="login-password" placeholder="••••••••" />
-            <button class="pw-toggle" id="login-pw-toggle" type="button">👁</button>
-          </div>
-        </div>
-
-        <div id="btn-login-wrap" style="margin-bottom:12px;"></div>
-        <div class="divider">veya</div>
-        <div id="btn-google-login-wrap"></div>
-
-        <div class="toggle-link">
-          Hesabın yok mu? <button id="go-register">Kayıt ol</button>
+      <div class="field-group">
+        <label class="field-label">Şifre</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="login-password" placeholder="••••••••" />
+          <button class="pw-toggle" id="login-pw-toggle" type="button">👁</button>
         </div>
       </div>
 
-      <!-- ── STEP 0: Nick ── -->
-      <div class="step-view" id="view-step0">
-        <div class="step-title">Kullanıcı Adın</div>
-        <div class="step-sub">Profilinde görünecek. Sonradan değiştiremezsin — dikkatli seç!</div>
+      <div id="btn-login-wrap" style="margin-bottom:14px;"></div>
+      <div class="divider">veya</div>
+      <div id="btn-google-login-wrap"></div>
 
-        <div class="field-group">
-          <label class="field-label">Kullanıcı Adı</label>
-          <input class="field-input" type="text" id="nick-input"
-            placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
-          <div class="nick-preview" id="nick-preview">lobby.gg/<span>...</span></div>
-          <div class="field-hint muted" id="nick-status"></div>
+      <div class="toggle-link">
+        Hesabın yok mu? <button id="go-register">Kayıt Ol</button>
+      </div>
+    </div>
+
+    <!-- STEP 0: Nick -->
+    <div class="step-view" id="view-step0">
+      <div class="step-title">Kullanıcı Adı</div>
+      <div class="step-sub">Profilinde görünecek. Sonradan değiştiremezsin!</div>
+
+      <div class="field-group">
+        <label class="field-label">Kullanıcı Adı</label>
+        <input class="field-input" type="text" id="nick-input"
+          placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off" />
+        <div class="nick-preview" id="nick-preview">lobby.gg/<span>...</span></div>
+        <div class="field-hint muted" id="nick-status"></div>
+      </div>
+
+      <div id="btn-step0-next" style="margin-top:12px;"></div>
+      <div class="toggle-link">
+        Hesabın var mı? <button id="go-login-from-reg">Giriş Yap</button>
+      </div>
+    </div>
+
+    <!-- STEP 1: Hesap -->
+    <div class="step-view" id="view-step1">
+      <div class="step-title">Hesap Oluştur</div>
+      <div class="step-sub">E-posta ve şifreni gir.</div>
+
+      <div class="field-group">
+        <label class="field-label">E-posta</label>
+        <input class="field-input" type="email" id="reg-email" placeholder="ornek@mail.com" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Şifre</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reg-password" placeholder="En az 6 karakter" />
+          <button class="pw-toggle" id="reg-pw-toggle" type="button">👁</button>
         </div>
+        <div class="field-hint muted">En az 6 karakter kullan.</div>
+      </div>
 
-        <div id="btn-step0-next" style="margin-top:10px;"></div>
-        <div class="toggle-link">
-          Hesabın var mı? <button id="go-login-from-reg">Giriş yap</button>
+      <div id="btn-step1-next" style="margin-bottom:12px;"></div>
+      <div class="divider">veya</div>
+      <div id="btn-google-reg-wrap"></div>
+      <div class="btn-row" style="margin-top:14px;">
+        <div id="btn-step1-back"></div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Tag -->
+    <div class="step-view" id="view-step2">
+      <div class="step-title">Rolünü Seç</div>
+      <div class="step-sub">Profilinde tag olarak görünecek.</div>
+
+      <div class="tag-grid" id="main-tag-grid">
+        <div class="tag-card" data-main="Oyuncu">
+          <div class="tc-icon">⚔️</div>
+          <div class="tc-name">Oyuncu</div>
+          <div class="tc-desc">Minecraft oynuyorum</div>
+        </div>
+        <div class="tag-card" data-main="Developer">
+          <div class="tc-icon">💻</div>
+          <div class="tc-name">Developer</div>
+          <div class="tc-desc">Kod yazıyorum</div>
+        </div>
+        <div class="tag-card" data-main="Medya">
+          <div class="tc-icon">🎬</div>
+          <div class="tc-name">Medya</div>
+          <div class="tc-desc">İçerik üretiyorum</div>
+        </div>
+        <div class="tag-card" data-main="Diger">
+          <div class="tc-icon">🎮</div>
+          <div class="tc-name">Diğer</div>
+          <div class="tc-desc">Bunların hepsi değilim</div>
         </div>
       </div>
 
-      <!-- ── STEP 1: Hesap ── -->
-      <div class="step-view" id="view-step1">
-        <div class="step-title">Hesap Oluştur</div>
-        <div class="step-sub">E-posta ve şifrenle devam et ya da Google ile kayıt ol.</div>
-
-        <div class="field-group">
-          <label class="field-label">E-posta</label>
-          <input class="field-input" type="email" id="reg-email" placeholder="ornek@mail.com" />
-        </div>
-        <div class="field-group">
-          <label class="field-label">Şifre</label>
-          <div class="pw-wrap">
-            <input class="field-input" type="password" id="reg-password" placeholder="En az 6 karakter" />
-            <button class="pw-toggle" id="reg-pw-toggle" type="button">👁</button>
-          </div>
-          <div class="field-hint muted">En az 6 karakter kullan.</div>
-        </div>
-
-        <div id="btn-step1-next" style="margin-bottom:12px;"></div>
-        <div class="divider">veya</div>
-        <div id="btn-google-reg-wrap"></div>
-        <div class="btn-row" style="margin-top:14px;">
-          <div id="btn-step1-back"></div>
+      <div class="sub-section" id="sub-developer">
+        <div class="sub-label">Uzmanlık Alanın</div>
+        <div class="sub-grid">
+          <div class="dev-chip" data-sub="Plugin Dev">🔌 Plugin Dev</div>
+          <div class="dev-chip" data-sub="Web Dev">🌐 Web Dev</div>
+          <div class="dev-chip" data-sub="Skripter">📜 Skripter</div>
+          <div class="dev-chip" data-sub="Builder">🏗️ Builder</div>
         </div>
       </div>
 
-      <!-- ── STEP 2: TAG ── -->
-      <div class="step-view" id="view-step2">
-        <div class="step-title">Topluluktaki Rolün</div>
-        <div class="step-sub">Bir tag seç — profilinde görünecek. Dürüst ol 🙂</div>
-
-        <div class="tag-grid" id="main-tag-grid">
-          <div class="tag-card" data-main="Oyuncu">
-            <div class="tc-icon">⚔️</div>
-            <div class="tc-name">Oyuncu</div>
-            <div class="tc-desc">Minecraft oynuyorum</div>
+      <div class="sub-section" id="sub-medya">
+        <div class="sub-label">Platform</div>
+        <div class="sub-grid">
+          <div class="platform-card" data-sub="YouTube" data-tag="YouTuber">
+            <img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YouTube">
+            <span class="pc-name">YouTuber</span>
           </div>
-          <div class="tag-card" data-main="Developer">
-            <div class="tc-icon">💻</div>
-            <div class="tc-name">Developer</div>
-            <div class="tc-desc">Kod yazıyorum</div>
+          <div class="platform-card" data-sub="TikTok" data-tag="TikToker">
+            <img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TikTok">
+            <span class="pc-name">TikToker</span>
           </div>
-          <div class="tag-card" data-main="Medya">
-            <div class="tc-icon">🎬</div>
-            <div class="tc-name">Medya</div>
-            <div class="tc-desc">İçerik üretiyorum</div>
+          <div class="platform-card" data-sub="Kick" data-tag="Kick">
+            <img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick">
+            <span class="pc-name">Kick</span>
           </div>
-          <div class="tag-card" data-main="Diger">
-            <div class="tc-icon">🎮</div>
-            <div class="tc-name">Diğer</div>
-            <div class="tc-desc">Bunların hepsi değilim</div>
+          <div class="platform-card" data-sub="Twitch" data-tag="Twitch">
+            <img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch">
+            <span class="pc-name">Twitch</span>
           </div>
-        </div>
-
-        <!-- Developer alt -->
-        <div class="sub-section" id="sub-developer">
-          <div class="sub-label">✦ Uzmanlık Alanın</div>
-          <div class="sub-grid" id="dev-chips">
-            <div class="dev-chip" data-sub="Plugin Dev">🔌 Plugin Dev</div>
-            <div class="dev-chip" data-sub="Web Dev">🌐 Web Dev</div>
-            <div class="dev-chip" data-sub="Skripter">📜 Skripter</div>
-            <div class="dev-chip" data-sub="Builder">🏗️ Builder</div>
+          <div class="platform-card" data-sub="Instagram" data-tag="Instagram">
+            <img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="Instagram">
+            <span class="pc-name">Instagram</span>
           </div>
-        </div>
-
-        <!-- Medya platform -->
-        <div class="sub-section" id="sub-medya">
-          <div class="sub-label">✦ Platform Seç</div>
-          <div class="sub-grid" id="platform-chips">
-            <div class="platform-card" data-sub="YouTube" data-tag="YouTuber">
-              <img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YouTube" />
-              <span class="pc-name">YouTuber</span>
-            </div>
-            <div class="platform-card" data-sub="TikTok" data-tag="TikToker">
-              <img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TikTok" />
-              <span class="pc-name">TikToker</span>
-            </div>
-            <div class="platform-card" data-sub="Kick" data-tag="Kick">
-              <img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick" />
-              <span class="pc-name">Kick</span>
-            </div>
-            <div class="platform-card" data-sub="Twitch" data-tag="Twitch">
-              <img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch" />
-              <span class="pc-name">Twitch</span>
-            </div>
-            <div class="platform-card" data-sub="Instagram" data-tag="Instagram">
-              <img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="Instagram" />
-              <span class="pc-name">Instagram</span>
-            </div>
-          </div>
-        </div>
-
-        <div id="tag-preview"></div>
-
-        <div class="btn-row" style="margin-top:16px;">
-          <div id="btn-step2-back" style="flex:0 0 auto;"></div>
-          <div id="btn-step2-next" style="flex:1;"></div>
         </div>
       </div>
 
-      <!-- ── STEP 3: Sunucu ── -->
-      <div class="step-view" id="view-step3">
-        <div class="step-title">Aktif Sunucun</div>
-        <div class="step-sub">Hangi sunucuda oynuyorsun? İstersen geçebilirsin.</div>
+      <div id="tag-preview"></div>
 
-        <div class="server-grid" id="server-grid"></div>
+      <div class="btn-row" style="margin-top:16px;">
+        <div id="btn-step2-back" style="flex:0 0 auto;"></div>
+        <div id="btn-step2-next" style="flex:1;"></div>
+      </div>
+    </div>
 
-        <div class="btn-row">
-          <div id="btn-step3-back" style="flex:0 0 auto;"></div>
-          <div id="btn-step3-skip" style="flex:1;"></div>
-          <div id="btn-step3-next" style="flex:1;"></div>
+    <!-- STEP 3: Sunucu -->
+    <div class="step-view" id="view-step3">
+      <div class="step-title">Sunucun</div>
+      <div class="step-sub">Aktif oynadığın sunucuyu seç. İstersen geçebilirsin.</div>
+
+      <div class="server-grid" id="server-grid"></div>
+
+      <div class="btn-row">
+        <div id="btn-step3-back" style="flex:0 0 auto;"></div>
+        <div id="btn-step3-skip" style="flex:1;"></div>
+        <div id="btn-step3-next" style="flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Başarı -->
+    <div class="step-view" id="view-step4">
+      <div class="success-wrap">
+        <div class="check-circle"><span class="check-mark">✓</span></div>
+        <div class="success-title">Hoş Geldin, <span id="welcome-nick">—</span>!</div>
+        <div class="success-sub">Hesabın oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
+        <div class="lcoin-badge">🪙 +5 LC Giriş Bonusu!</div>
+        <div id="btn-goto-profile"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ RIGHT PANEL ═══ -->
+  <div class="panel-right">
+    <div class="right-content">
+      <img class="right-logo" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG" />
+      <div class="right-title">LOBBY.GG</div>
+      <div class="right-sub">Türkiye'nin en büyük<br>Minecraft topluluğu.</div>
+      <div class="right-features">
+        <div class="right-feature">
+          <div class="right-feature-icon">📋</div>
+          <div class="right-feature-text">
+            <strong>İlan Sistemi</strong>
+            Developer, builder, yayıncı ilanları aç.
+          </div>
+        </div>
+        <div class="right-feature">
+          <div class="right-feature-icon">💬</div>
+          <div class="right-feature-text">
+            <strong>Drop Paylaş</strong>
+            Toplulukla anlık paylaşımlar yap.
+          </div>
+        </div>
+        <div class="right-feature">
+          <div class="right-feature-icon">🛡️</div>
+          <div class="right-feature-text">
+            <strong>Klanlar</strong>
+            Klanını kur veya bir klana katıl.
+          </div>
+        </div>
+        <div class="right-feature">
+          <div class="right-feature-icon">🪙</div>
+          <div class="right-feature-text">
+            <strong>LCoin Ekonomisi</strong>
+            Çark çevir, ödül kazan, harca.
+          </div>
         </div>
       </div>
-
-      <!-- ── STEP 4: Hoş Geldin ── -->
-      <div class="step-view" id="view-step4">
-        <div class="success-wrap">
-          <div class="check-circle"><span class="check-mark">✓</span></div>
-          <div class="success-title">Hoş geldin, <span id="welcome-nick">—</span>!</div>
-          <div class="success-sub">Hesabın oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
-          <div class="lcoin-badge">🪙 +5 LC Giriş Bonusu!</div>
-          <div id="btn-goto-profile"></div>
-        </div>
-      </div>
-
     </div>
   </div>
+
 </div>
 
 <script>
-/* ================================================================
-   SUPABASE
-================================================================ */
 const SUPABASE_URL = 'https://hmkeedyqmzblnmkhdste.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ================================================================
-   PARTICLE SYSTEM — Rising Minecraft Pixel Cubes
-================================================================ */
-(function initParticles() {
-  const canvas = document.getElementById('particles');
-  const ctx = canvas.getContext('2d');
-  let W, H, particles = [];
+const state = { mode:'login', step:0, nick:'', nickValid:false, nickAvailable:false, email:'', password:'', mainTag:'', subTag:'', displayTag:'', server:'' };
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  function randomParticle() {
-    const types = ['gold', 'blue', 'white'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    const colors = {
-      gold:  `rgba(255,${180 + Math.random()*75},${20 + Math.random()*40},`,
-      blue:  `rgba(${20 + Math.random()*40},${100 + Math.random()*80},255,`,
-      white: `rgba(200,220,255,`
-    };
-    return {
-      x: Math.random() * W,
-      y: H + Math.random() * 200,
-      size: 2 + Math.random() * 6,
-      speed: 0.15 + Math.random() * 0.5,
-      opacity: 0.04 + Math.random() * 0.14,
-      drift: (Math.random() - 0.5) * 0.3,
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.015,
-      color: colors[type],
-      pulse: Math.random() * Math.PI * 2,
-      pulseSpeed: 0.01 + Math.random() * 0.02
-    };
-  }
-
-  // Init 60 particles
-  for (let i = 0; i < 60; i++) {
-    const p = randomParticle();
-    p.y = Math.random() * H; // distribute initially
-    particles.push(p);
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-
-    particles.forEach((p, i) => {
-      p.y -= p.speed;
-      p.x += p.drift;
-      p.rotation += p.rotSpeed;
-      p.pulse += p.pulseSpeed;
-
-      const pulseOpacity = p.opacity * (0.7 + 0.3 * Math.sin(p.pulse));
-
-      if (p.y < -20 || p.x < -30 || p.x > W + 30) {
-        particles[i] = randomParticle();
-        return;
-      }
-
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-      ctx.fillStyle = p.color + pulseOpacity + ')';
-      ctx.shadowColor = p.color + (pulseOpacity * 2) + ')';
-      ctx.shadowBlur = p.size * 3;
-      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-      ctx.restore();
-    });
-
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-/* ================================================================
-   STATE
-================================================================ */
-const state = {
-  mode: 'login', step: 0,
-  nick: '', nickValid: false, nickAvailable: false,
-  email: '', password: '',
-  mainTag: '', subTag: '', displayTag: '',
-  server: ''
-};
-
-/* ================================================================
-   DATA
-================================================================ */
 const SERVERS = [
   {name:'HanedanMC',ip:'play.hanedanmc.com'},{name:'ChickenNW',ip:'oyna.chickennw.com'},
   {name:'BLOKYA',ip:'oyna.blokya.com'},{name:'DugeCraft',ip:'play.dugecraft.com.tr'},
@@ -972,419 +766,157 @@ const SERVERS = [
   {name:'MC4FUN',ip:'play.mc4fun.net'},{name:'İmibiyum',ip:'play.imibiyum.com'}
 ];
 
-const PLATFORM_LOGOS = {
-  YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',
-  TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',
-  Kick:'https://cdn.simpleicons.org/kick/53FC18',
-  Twitch:'https://cdn.simpleicons.org/twitch/9146FF',
-  Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'
-};
+const PLATFORM_LOGOS = {YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
 
-/* ================================================================
-   TOAST
-================================================================ */
-function showToast(msg, type='error') {
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = 'toast' + (type==='success'?' success':'');
-  t.textContent = msg; c.appendChild(t);
-  setTimeout(() => t.remove(), 4000);
+function showToast(msg,type='error'){const c=document.getElementById('toast-container');const t=document.createElement('div');t.className='toast'+(type==='success'?' success':'');t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),4000);}
+function clearAppend(id,el){const c=document.getElementById(id);c.innerHTML='';c.appendChild(el);}
+function makeBtn(text,cls,disabled=false){const b=document.createElement('button');b.className='btn '+cls;b.textContent=text;b.disabled=disabled;return b;}
+
+const STEPS=['Nick','Hesap','Tag','Sunucu'];
+function buildProgressBar(){const bar=document.getElementById('progress-bar');bar.innerHTML='';STEPS.forEach((lbl,i)=>{const wrap=document.createElement('div');wrap.className='prog-step';wrap.dataset.idx=i;const dot=document.createElement('div');dot.className='prog-dot';dot.textContent=i+1;const label=document.createElement('div');label.className='prog-label';label.textContent=lbl;wrap.appendChild(dot);wrap.appendChild(label);bar.appendChild(wrap);if(i<STEPS.length-1){const line=document.createElement('div');line.className='prog-line';bar.appendChild(line);}});}
+function updateProgressBar(step){document.querySelectorAll('.prog-step').forEach((w,i)=>{const d=w.querySelector('.prog-dot');d.className='prog-dot';w.className='prog-step';if(i<step){d.classList.add('done');w.classList.add('s-done');}else if(i===step){d.classList.add('active');w.classList.add('s-active');}});document.querySelectorAll('.prog-line').forEach((l,i)=>{l.className='prog-line';if(i<step)l.classList.add('done');});}
+
+function buildButtons(){
+  const bl=makeBtn('Giriş Yap','btn-gold');bl.addEventListener('click',handleLogin);clearAppend('btn-login-wrap',bl);
+  const bg=makeBtn('G — Google ile Giriş Yap','btn-discord');bg.addEventListener('click',handleGoogleAuth);clearAppend('btn-google-login-wrap',bg);
+  const bs0=makeBtn('İleri →','btn-gold',true);bs0.id='btn-s0-next';bs0.addEventListener('click',()=>goStep(1));clearAppend('btn-step0-next',bs0);
+  const bs1=makeBtn('Devam Et','btn-gold');bs1.addEventListener('click',handleRegister);clearAppend('btn-step1-next',bs1);
+  const bs1b=makeBtn('← Geri','btn-ghost btn-sm');bs1b.addEventListener('click',()=>goStep(0));clearAppend('btn-step1-back',bs1b);
+  const bgr=makeBtn('G — Google ile Kayıt Ol','btn-discord');bgr.addEventListener('click',handleGoogleAuth);clearAppend('btn-google-reg-wrap',bgr);
+  const bs2b=makeBtn('←','btn-ghost btn-sm');bs2b.addEventListener('click',()=>goStep(1));clearAppend('btn-step2-back',bs2b);
+  const bs2n=makeBtn('İleri →','btn-gold');bs2n.addEventListener('click',()=>{if(!state.mainTag){showToast('Lütfen bir tag seç!');return;}if((state.mainTag==='Developer'||state.mainTag==='Medya')&&!state.subTag){showToast('Lütfen alt kategori seç!');return;}goStep(3);});clearAppend('btn-step2-next',bs2n);
+  const bs3b=makeBtn('←','btn-ghost btn-sm');bs3b.addEventListener('click',()=>goStep(2));clearAppend('btn-step3-back',bs3b);
+  const bs3sk=makeBtn('Geç →','btn-ghost');bs3sk.addEventListener('click',()=>{state.server='';finishRegister();});clearAppend('btn-step3-skip',bs3sk);
+  const bs3n=makeBtn('Kayıt Ol →','btn-gold',true);bs3n.id='btn-s3-next';bs3n.addEventListener('click',finishRegister);clearAppend('btn-step3-next',bs3n);
+  const bp=makeBtn('Topluluğa Katıl →','btn-gold');bp.addEventListener('click',()=>window.location.href='lobbyx.html');clearAppend('btn-goto-profile',bp);
 }
 
-/* ================================================================
-   DOM HELPERS
-================================================================ */
-function clearAppend(id, el) {
-  const c = document.getElementById(id);
-  c.innerHTML = ''; c.appendChild(el);
-}
-function makeBtn(text, cls, disabled=false) {
-  const b = document.createElement('button');
-  b.className = 'btn ' + cls;
-  b.textContent = text; b.disabled = disabled;
-  return b;
-}
-
-/* ================================================================
-   PROGRESS BAR
-================================================================ */
-const STEPS = ['Nick','Hesap','Tag','Sunucu'];
-function buildProgressBar() {
-  const bar = document.getElementById('progress-bar');
-  bar.innerHTML = '';
-  STEPS.forEach((lbl, i) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'prog-step'; wrap.dataset.idx = i;
-    const dot = document.createElement('div');
-    dot.className = 'prog-dot'; dot.textContent = i+1;
-    const label = document.createElement('div');
-    label.className = 'prog-label'; label.textContent = lbl;
-    wrap.appendChild(dot); wrap.appendChild(label);
-    bar.appendChild(wrap);
-    if (i < STEPS.length-1) {
-      const line = document.createElement('div');
-      line.className = 'prog-line'; bar.appendChild(line);
-    }
-  });
-}
-function updateProgressBar(step) {
-  document.querySelectorAll('.prog-step').forEach((wrap, i) => {
-    const dot = wrap.querySelector('.prog-dot');
-    dot.className = 'prog-dot';
-    wrap.className = 'prog-step';
-    if (i < step) { dot.classList.add('done'); wrap.classList.add('s-done'); }
-    else if (i === step) { dot.classList.add('active'); wrap.classList.add('s-active'); }
-  });
-  document.querySelectorAll('.prog-line').forEach((l,i) => {
-    l.className = 'prog-line';
-    if (i < step) l.classList.add('done');
-  });
-}
-
-/* ================================================================
-   BUILD BUTTONS
-================================================================ */
-function buildButtons() {
-  const btnLogin = makeBtn('Giriş Yap', 'btn-gold');
-  btnLogin.addEventListener('click', handleLogin);
-  clearAppend('btn-login-wrap', btnLogin);
-
-  const btnGLogin = makeBtn('G — Google ile Giriş Yap', 'btn-discord');
-  btnGLogin.addEventListener('click', handleGoogleAuth);
-  clearAppend('btn-google-login-wrap', btnGLogin);
-
-  const btnS0 = makeBtn('İleri →', 'btn-gold', true);
-  btnS0.id = 'btn-s0-next';
-  btnS0.addEventListener('click', () => goStep(1));
-  clearAppend('btn-step0-next', btnS0);
-
-  const btnS1 = makeBtn('Devam Et', 'btn-gold');
-  btnS1.addEventListener('click', handleRegister);
-  clearAppend('btn-step1-next', btnS1);
-
-  const btnS1b = makeBtn('← Geri', 'btn-ghost btn-sm');
-  btnS1b.addEventListener('click', () => goStep(0));
-  clearAppend('btn-step1-back', btnS1b);
-
-  const btnGR = makeBtn('G — Google ile Kayıt Ol', 'btn-discord');
-  btnGR.addEventListener('click', handleGoogleAuth);
-  clearAppend('btn-google-reg-wrap', btnGR);
-
-  const btnS2b = makeBtn('←', 'btn-ghost btn-sm');
-  btnS2b.addEventListener('click', () => goStep(1));
-  clearAppend('btn-step2-back', btnS2b);
-
-  const btnS2n = makeBtn('İleri →', 'btn-gold');
-  btnS2n.addEventListener('click', () => {
-    if (!state.mainTag) { showToast('Lütfen bir tag seç!'); return; }
-    if ((state.mainTag==='Developer'||state.mainTag==='Medya') && !state.subTag) {
-      showToast('Lütfen alt kategori seç!'); return;
-    }
-    goStep(3);
-  });
-  clearAppend('btn-step2-next', btnS2n);
-
-  const btnS3b = makeBtn('←', 'btn-ghost btn-sm');
-  btnS3b.addEventListener('click', () => goStep(2));
-  clearAppend('btn-step3-back', btnS3b);
-
-  const btnS3sk = makeBtn('Geç →', 'btn-ghost');
-  btnS3sk.addEventListener('click', () => { state.server=''; finishRegister(); });
-  clearAppend('btn-step3-skip', btnS3sk);
-
-  const btnS3n = makeBtn('Kayıt Ol 🚀', 'btn-gold', true);
-  btnS3n.id = 'btn-s3-next';
-  btnS3n.addEventListener('click', finishRegister);
-  clearAppend('btn-step3-next', btnS3n);
-
-  const btnProfile = makeBtn('Topluluğa Katıl →', 'btn-gold');
-  btnProfile.addEventListener('click', () => window.location.href='lobbyx.html');
-  clearAppend('btn-goto-profile', btnProfile);
-}
-
-/* ================================================================
-   TAG SELECTION
-================================================================ */
-function initTagSelection() {
-  document.querySelectorAll('.tag-card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.tag-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      state.mainTag = card.dataset.main;
-      state.subTag = ''; state.displayTag = '';
-
+function initTagSelection(){
+  document.querySelectorAll('.tag-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      document.querySelectorAll('.tag-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');state.mainTag=card.dataset.main;state.subTag='';state.displayTag='';
       document.getElementById('sub-developer').classList.remove('visible');
       document.getElementById('sub-medya').classList.remove('visible');
-      document.querySelectorAll('.dev-chip,.platform-card').forEach(c => c.classList.remove('selected'));
-
-      if (state.mainTag === 'Developer') {
-        document.getElementById('sub-developer').classList.add('visible');
-      } else if (state.mainTag === 'Medya') {
-        document.getElementById('sub-medya').classList.add('visible');
-      } else {
-        state.displayTag = state.mainTag === 'Diger' ? 'Diğer' : 'Oyuncu';
-        updateTagPreview();
-      }
+      document.querySelectorAll('.dev-chip,.platform-card').forEach(c=>c.classList.remove('selected'));
+      if(state.mainTag==='Developer'){document.getElementById('sub-developer').classList.add('visible');}
+      else if(state.mainTag==='Medya'){document.getElementById('sub-medya').classList.add('visible');}
+      else{state.displayTag=state.mainTag==='Diger'?'Diğer':'Oyuncu';updateTagPreview();}
     });
   });
-
-  document.querySelectorAll('.dev-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.dev-chip').forEach(c => c.classList.remove('selected'));
-      chip.classList.add('selected');
-      state.subTag = chip.dataset.sub;
-      state.displayTag = chip.dataset.sub;
-      updateTagPreview();
-    });
-  });
-
-  document.querySelectorAll('.platform-card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.platform-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      state.subTag = card.dataset.sub;
-      state.displayTag = card.dataset.tag;
-      updateTagPreview();
-    });
-  });
+  document.querySelectorAll('.dev-chip').forEach(chip=>{chip.addEventListener('click',()=>{document.querySelectorAll('.dev-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');state.subTag=chip.dataset.sub;state.displayTag=chip.dataset.sub;updateTagPreview();});});
+  document.querySelectorAll('.platform-card').forEach(card=>{card.addEventListener('click',()=>{document.querySelectorAll('.platform-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');state.subTag=card.dataset.sub;state.displayTag=card.dataset.tag;updateTagPreview();});});
 }
 
-function updateTagPreview() {
-  const preview = document.getElementById('tag-preview');
-  if (!state.displayTag) { preview.innerHTML = ''; return; }
-  const badge = document.createElement('div');
-  badge.className = 'tag-preview-badge';
-  if (state.mainTag === 'Medya' && PLATFORM_LOGOS[state.subTag]) {
-    const logo = document.createElement('img');
-    logo.src = PLATFORM_LOGOS[state.subTag]; logo.alt = state.subTag;
-    badge.appendChild(logo);
-  }
-  badge.appendChild(document.createTextNode('✓ ' + state.displayTag + ' tagı alacaksın'));
-  preview.innerHTML = ''; preview.appendChild(badge);
+function updateTagPreview(){
+  const p=document.getElementById('tag-preview');if(!state.displayTag){p.innerHTML='';return;}
+  const b=document.createElement('div');b.className='tag-preview-badge';
+  if(state.mainTag==='Medya'&&PLATFORM_LOGOS[state.subTag]){const img=document.createElement('img');img.src=PLATFORM_LOGOS[state.subTag];img.alt=state.subTag;b.appendChild(img);}
+  b.appendChild(document.createTextNode('✓ '+state.displayTag+' tagı alacaksın'));
+  p.innerHTML='';p.appendChild(b);
 }
 
-/* ================================================================
-   SERVER GRID
-================================================================ */
-function buildServerGrid() {
-  const grid = document.getElementById('server-grid');
-  grid.innerHTML = '';
-  SERVERS.forEach(srv => {
-    const card = document.createElement('div');
-    card.className = 'server-card';
-    const img = document.createElement('img');
-    img.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
-    img.alt = srv.name;
-    img.onerror = () => {
-      img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0a0f1e&color=ffd13b&size=64&bold=true`;
-    };
-    const name = document.createElement('div');
-    name.className = 'srv-name'; name.textContent = srv.name;
-    card.appendChild(img); card.appendChild(name);
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.server-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-      state.server = srv.ip;
-      const nb = document.getElementById('btn-s3-next');
-      if (nb) nb.disabled = false;
-    });
+function buildServerGrid(){
+  const grid=document.getElementById('server-grid');grid.innerHTML='';
+  SERVERS.forEach(srv=>{
+    const card=document.createElement('div');card.className='server-card';
+    const img=document.createElement('img');img.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;img.alt=srv.name;
+    img.onerror=()=>{img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0e1428&color=ffd13b&size=64&bold=true`;};
+    const name=document.createElement('div');name.className='srv-name';name.textContent=srv.name;
+    card.appendChild(img);card.appendChild(name);
+    card.addEventListener('click',()=>{document.querySelectorAll('.server-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');state.server=srv.ip;const nb=document.getElementById('btn-s3-next');if(nb)nb.disabled=false;});
     grid.appendChild(card);
   });
 }
 
-/* ================================================================
-   STEP NAVIGATION
-================================================================ */
-const STEP_VIEWS = ['view-step0','view-step1','view-step2','view-step3','view-step4'];
-function goStep(step) {
-  STEP_VIEWS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-  state.step = step;
-  const target = document.getElementById(STEP_VIEWS[step]);
-  if (target) target.classList.add('active');
-  updateProgressBar(step);
-}
+const STEP_VIEWS=['view-step0','view-step1','view-step2','view-step3','view-step4'];
+function goStep(step){STEP_VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});state.step=step;const t=document.getElementById(STEP_VIEWS[step]);if(t)t.classList.add('active');updateProgressBar(step);}
 
-function switchMode(mode) {
-  state.mode = mode;
+function switchMode(mode){
+  state.mode=mode;
   document.getElementById('view-login').classList.remove('active');
-  STEP_VIEWS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-  const bar = document.getElementById('progress-bar');
-  if (mode === 'register') {
-    bar.classList.remove('hidden');
-    buildProgressBar(); goStep(0);
-  } else {
-    bar.classList.add('hidden');
-    document.getElementById('view-login').classList.add('active');
-  }
+  STEP_VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  const bar=document.getElementById('progress-bar');
+  if(mode==='register'){bar.classList.remove('hidden');buildProgressBar();goStep(0);}
+  else{bar.classList.add('hidden');document.getElementById('view-login').classList.add('active');}
 }
 
-/* ================================================================
-   NICK CHECK
-================================================================ */
 let nickTimer;
-function initNickCheck() {
-  const input = document.getElementById('nick-input');
-  const status = document.getElementById('nick-status');
-  const preview = document.getElementById('nick-preview');
-  const nextBtn = () => document.getElementById('btn-s0-next');
-
-  input.addEventListener('input', () => {
-    const val = input.value.trim();
-    preview.innerHTML = `lobby.gg/<span>${val||'...'}</span>`;
-    state.nick = val; state.nickValid = false; state.nickAvailable = false;
-    if (nextBtn()) nextBtn().disabled = true;
-
-    if (!val) { input.className='field-input'; status.textContent=''; return; }
-
-    const valid = /^[a-zA-Z0-9_]{3,20}$/.test(val);
-    if (!valid) {
-      input.className='field-input error';
-      status.className='field-hint red';
-      status.textContent='3-20 karakter, harf/rakam/alt çizgi kullan.';
-      return;
-    }
-
-    input.className='field-input';
-    status.className='field-hint muted';
-    status.textContent='Kontrol ediliyor...';
+function initNickCheck(){
+  const input=document.getElementById('nick-input');
+  const status=document.getElementById('nick-status');
+  const preview=document.getElementById('nick-preview');
+  input.addEventListener('input',()=>{
+    const val=input.value.trim();
+    preview.innerHTML=`lobby.gg/<span>${val||'...'}</span>`;
+    state.nick=val;state.nickValid=false;state.nickAvailable=false;
+    const nb=document.getElementById('btn-s0-next');if(nb)nb.disabled=true;
+    if(!val){input.className='field-input';status.textContent='';return;}
+    const valid=/^[a-zA-Z0-9_]{3,20}$/.test(val);
+    if(!valid){input.className='field-input error';status.className='field-hint red';status.textContent='3-20 karakter, harf/rakam/alt çizgi.';return;}
+    input.className='field-input';status.className='field-hint muted';status.textContent='Kontrol ediliyor...';
     clearTimeout(nickTimer);
-    nickTimer = setTimeout(async () => {
-      const { data } = await db.from('kullanicilar')
-        .select('id').eq('kullanici_adi', val).maybeSingle();
-      if (data) {
-        input.className='field-input error';
-        status.className='field-hint red';
-        status.textContent='✗ Bu kullanıcı adı alınmış.';
-      } else {
-        input.className='field-input ok';
-        status.className='field-hint green';
-        status.textContent='✓ Kullanıcı adı uygun!';
-        state.nick = val; state.nickValid = true; state.nickAvailable = true;
-        if (nextBtn()) nextBtn().disabled = false;
-      }
-    }, 650);
+    nickTimer=setTimeout(async()=>{
+      const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',val).maybeSingle();
+      if(data){input.className='field-input error';status.className='field-hint red';status.textContent='✗ Bu kullanıcı adı alınmış.';}
+      else{input.className='field-input ok';status.className='field-hint green';status.textContent='✓ Kullanıcı adı uygun!';state.nick=val;state.nickValid=true;state.nickAvailable=true;const nb=document.getElementById('btn-s0-next');if(nb)nb.disabled=false;}
+    },650);
   });
 }
 
-/* ================================================================
-   AUTH
-================================================================ */
-async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-password').value;
-  if (!email||!pw) { showToast('E-posta ve şifreyi gir.'); return; }
-
-  const btn = document.querySelector('#btn-login-wrap .btn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Giriş yapılıyor...';
-
-  const { error } = await db.auth.signInWithPassword({ email, password: pw });
-  if (error) {
-    showToast('Hatalı e-posta veya şifre.');
-    btn.disabled=false; btn.textContent='Giriş Yap';
-  } else {
-    btn.textContent='✓ Yönlendiriliyor...';
-    setTimeout(() => window.location.href='lobbyx.html', 400);
-  }
+async function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-password').value;
+  if(!email||!pw){showToast('E-posta ve şifreyi gir.');return;}
+  const btn=document.querySelector('#btn-login-wrap .btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Giriş yapılıyor...';
+  const{error}=await db.auth.signInWithPassword({email,password:pw});
+  if(error){showToast('Hatalı e-posta veya şifre.');btn.disabled=false;btn.textContent='Giriş Yap';}
+  else{window.location.href='lobbyx.html';}
 }
 
-async function handleRegister() {
-  const email = document.getElementById('reg-email').value.trim();
-  const pw = document.getElementById('reg-password').value;
-  if (!email||!pw) { showToast('E-posta ve şifreyi gir.'); return; }
-  if (pw.length<6) { showToast('Şifre en az 6 karakter olmalı.'); return; }
-  if (!state.nickValid||!state.nickAvailable) { showToast('Geçerli bir kullanıcı adı gir!'); return; }
-  state.email=email; state.password=pw;
-  goStep(2);
+async function handleRegister(){
+  const email=document.getElementById('reg-email').value.trim();
+  const pw=document.getElementById('reg-password').value;
+  if(!email||!pw){showToast('E-posta ve şifreyi gir.');return;}
+  if(pw.length<6){showToast('Şifre en az 6 karakter olmalı.');return;}
+  if(!state.nickValid||!state.nickAvailable){showToast('Geçerli bir kullanıcı adı gir!');return;}
+  state.email=email;state.password=pw;goStep(2);
 }
 
-async function handleGoogleAuth() {
-  const { error } = await db.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.origin+'/lobbyx.html' }
-  });
-  if (error) showToast('Google hatası: '+error.message);
+async function handleGoogleAuth(){
+  const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin+'/lobbyx.html'}});
+  if(error)showToast('Google hatası: '+error.message);
 }
 
-async function finishRegister() {
-  const kategoriMap = { Oyuncu:'Oyuncu', Developer:'Developer', Medya:'Medya', Diger:'Diğer' };
-  const kategori = kategoriMap[state.mainTag] || 'Diğer';
-  const altKategori = state.subTag || null;
-  const displayTag = state.displayTag || kategori;
-
-  const btn = document.getElementById('btn-s3-next');
-  if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span>'; }
-
-  try {
-    const { data: authData, error: authErr } = await db.auth.signUp({
-      email: state.email, password: state.password
-    });
-    if (authErr) throw authErr;
-
-    const userId = authData.user?.id;
-    if (!userId) throw new Error('Kullanıcı ID alınamadı.');
-
-    await db.from('kullanicilar').insert({
-      id: userId,
-      kullanici_adi: state.nick,
-      email: state.email,
-      kategori,
-      alt_kategori: altKategori,
-      display_tag: displayTag,
-      desteklenen_sunucu: state.server || null,
-      abonelik: 'uye',
-      lcoin: 5,
-      kesfet_gorunurluk: false,
-      hesap_olusturma: new Date().toISOString()
-    });
-
-    document.getElementById('welcome-nick').textContent = state.nick;
-    goStep(4);
-    document.getElementById('progress-bar').classList.add('hidden');
-
-  } catch(e) {
-    showToast('Kayıt hatası: '+(e.message||'Bilinmeyen hata'));
-    if (btn) { btn.disabled=false; btn.textContent='Kayıt Ol 🚀'; }
-  }
+async function finishRegister(){
+  const kategoriMap={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
+  const kategori=kategoriMap[state.mainTag]||'Diğer';
+  const altKategori=state.subTag||null;
+  const displayTag=state.displayTag||kategori;
+  const btn=document.getElementById('btn-s3-next');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';}
+  try{
+    const{data:authData,error:authErr}=await db.auth.signUp({email:state.email,password:state.password});
+    if(authErr)throw authErr;
+    const userId=authData.user?.id;
+    if(!userId)throw new Error('Kullanıcı ID alınamadı.');
+    await db.from('kullanicilar').insert({id:userId,kullanici_adi:state.nick,email:state.email,kategori,alt_kategori:altKategori,display_tag:displayTag,desteklenen_sunucu:state.server||null,abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,hesap_olusturma:new Date().toISOString()});
+    document.getElementById('welcome-nick').textContent=state.nick;
+    goStep(4);document.getElementById('progress-bar').classList.add('hidden');
+  }catch(e){showToast('Kayıt hatası: '+(e.message||'Bilinmeyen hata'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol →';}}
 }
 
-/* ================================================================
-   INIT
-================================================================ */
-document.addEventListener('DOMContentLoaded', async () => {
-  setTimeout(() => document.getElementById('load-overlay').classList.add('hidden'), 900);
-
-  const { data: { session } } = await db.auth.getSession();
-  if (session) { window.location.href='lobbyx.html'; return; }
-
-  buildButtons();
-  initNickCheck();
-  buildServerGrid();
-  initTagSelection();
-
-  document.getElementById('login-pw-toggle').addEventListener('click', () => {
-    const i=document.getElementById('login-password');
-    const b=document.getElementById('login-pw-toggle');
-    i.type=i.type==='password'?'text':'password';
-    b.textContent=i.type==='password'?'👁':'🙈';
-  });
-  document.getElementById('reg-pw-toggle').addEventListener('click', () => {
-    const i=document.getElementById('reg-password');
-    const b=document.getElementById('reg-pw-toggle');
-    i.type=i.type==='password'?'text':'password';
-    b.textContent=i.type==='password'?'👁':'🙈';
-  });
-
-  document.getElementById('go-register').addEventListener('click', ()=>switchMode('register'));
-  document.getElementById('go-login-from-reg').addEventListener('click', ()=>switchMode('login'));
-  document.getElementById('login-password').addEventListener('keydown', e=>{
-    if(e.key==='Enter') handleLogin();
-  });
+document.addEventListener('DOMContentLoaded',async()=>{
+  setTimeout(()=>document.getElementById('load-overlay').classList.add('hidden'),700);
+  const{data:{session}}=await db.auth.getSession();
+  if(session){window.location.href='lobbyx.html';return;}
+  buildButtons();initNickCheck();buildServerGrid();initTagSelection();
+  document.getElementById('login-pw-toggle').addEventListener('click',()=>{const i=document.getElementById('login-password');const b=document.getElementById('login-pw-toggle');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';});
+  document.getElementById('reg-pw-toggle').addEventListener('click',()=>{const i=document.getElementById('reg-password');const b=document.getElementById('reg-pw-toggle');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';});
+  document.getElementById('go-register').addEventListener('click',()=>switchMode('register'));
+  document.getElementById('go-login-from-reg').addEventListener('click',()=>switchMode('login'));
+  document.getElementById('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
 });
 </script>
 </body>
