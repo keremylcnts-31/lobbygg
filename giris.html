@@ -1500,10 +1500,10 @@ function camLoop(){
     // Breathing torso bobbing
     const bt = time * 0.002;
     const offsetBob = Math.sin(bt) * 0.015;
-    torsoMesh.position.y = 0.6 + offsetBob;
-    headGroup.position.y = 1.2 + offsetBob;
-    rightArmGroup.position.y = 1.2 + offsetBob;
-    leftArmGroup.position.y = 1.2 + offsetBob;
+    torsoMesh.position.y = 1.8 + offsetBob;
+    headGroup.position.y = 2.4 + offsetBob;
+    rightArmGroup.position.y = 2.4 + offsetBob;
+    leftArmGroup.position.y = 2.4 + offsetBob;
   }
 
   // Smoothly track head to mouse/inputs
@@ -1543,14 +1543,14 @@ function buildPlayerMesh(img) {
   // 1. Torso
   const torsoGeo = new THREE.BoxGeometry(0.8, 1.2, 0.4);
   torsoMesh = new THREE.Mesh(torsoGeo, materials.torso);
-  torsoMesh.position.set(0, 0.6, 0);
+  torsoMesh.position.set(0, 1.8, 0);
   torsoMesh.castShadow = true;
   torsoMesh.receiveShadow = true;
   playerGroup.add(torsoMesh);
 
   // 2. Head Group
   headGroup = new THREE.Group();
-  headGroup.position.set(0, 1.2, 0);
+  headGroup.position.set(0, 2.4, 0);
   playerGroup.add(headGroup);
 
   const headGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
@@ -1561,7 +1561,7 @@ function buildPlayerMesh(img) {
 
   // 3. Right Arm Group
   rightArmGroup = new THREE.Group();
-  rightArmGroup.position.set(-0.6, 1.2, 0);
+  rightArmGroup.position.set(-0.6, 2.4, 0);
   playerGroup.add(rightArmGroup);
 
   const rArmGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
@@ -1572,7 +1572,7 @@ function buildPlayerMesh(img) {
 
   // 4. Left Arm Group
   leftArmGroup = new THREE.Group();
-  leftArmGroup.position.set(0.6, 1.2, 0);
+  leftArmGroup.position.set(0.6, 2.4, 0);
   playerGroup.add(leftArmGroup);
 
   const lArmGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
@@ -1583,7 +1583,7 @@ function buildPlayerMesh(img) {
 
   // 5. Right Leg Group
   rightLegGroup = new THREE.Group();
-  rightLegGroup.position.set(-0.2, 0, 0);
+  rightLegGroup.position.set(-0.2, 1.2, 0);
   playerGroup.add(rightLegGroup);
 
   const rLegGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
@@ -1594,7 +1594,7 @@ function buildPlayerMesh(img) {
 
   // 6. Left Leg Group
   leftLegGroup = new THREE.Group();
-  leftLegGroup.position.set(0.2, 0, 0);
+  leftLegGroup.position.set(0.2, 1.2, 0);
   playerGroup.add(leftLegGroup);
 
   const lLegGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
@@ -1673,12 +1673,12 @@ const STEP_COUNT=5;
 // Camera presets per step:
 //   [posY, posZ, lookY]
 const CAM={
-  landing:[1.6, 4.0, 1.5],
-  0:[2.8, 1.5, 2.8], // zoom head for nick
-  1:[1.6, 4.0, 1.5], // full body
-  2:[2.0, 2.5, 1.8], // mid body
-  3:[2.0, 2.5, 1.8], // mid body banner
-  4:[1.6, 4.0, 1.5], // full body server
+  landing:[1.8, 4.5, 1.6],
+  0:[2.8, 1.8, 2.8], // zoom head for nick
+  1:[1.8, 4.5, 1.6], // full body
+  2:[2.2, 3.0, 2.0], // mid body
+  3:[2.2, 3.0, 2.0], // mid body banner
+  4:[1.8, 4.5, 1.6], // full body server
 };
 const ANIMS=['idle','walk','walk','walk','run','fly'];
 
@@ -1761,8 +1761,8 @@ function showReg(){
   if (_rotAnim) {
     _rotAnim.speed = 0;
   }
-  if (viewer && viewer.playerObject) {
-    viewer.playerObject.rotation.y = 0; // face camera
+  if (playerGroup) {
+    playerGroup.rotation.y = 0; // face camera
   }
   
   goStep(0);
@@ -1904,7 +1904,7 @@ function initNick(){
     if(!v){
       inp.className='fi'; st.textContent=''; mini.className='nick-skin-mini';
       nameTag.classList.remove('show');
-      if(viewer) viewer.loadSkin('https://minotar.net/skin/MHF_Steve').catch(()=>{});
+      loadPlayerSkin('MHF_Steve');
       return;
     }
     if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
@@ -2062,8 +2062,8 @@ function initHeadTracking() {
     if (!isInputFocused) {
       const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
       const mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-      headTargetYaw = -mouseX * 0.7; // Left/Right look limit
-      headTargetPitch = mouseY * 0.4;  // Up/Down look limit
+      headTargetYaw = mouseX * 0.7; // Left/Right look limit (correct sign)
+      headTargetPitch = -mouseY * 0.4;  // Up/Down look limit (correct sign)
     }
   });
 
@@ -2071,9 +2071,9 @@ function initHeadTracking() {
   document.querySelectorAll('.fi').forEach(input => {
     input.addEventListener('focus', () => {
       isInputFocused = true;
-      // Form is on the left side of the screen, so make character look left and down
-      headTargetYaw = 0.55;
-      headTargetPitch = 0.15;
+      // Form is on the left side of the screen, so make character look left (-yaw) and down (-pitch)
+      headTargetYaw = -0.55;
+      headTargetPitch = -0.15;
     });
     input.addEventListener('blur', () => {
       isInputFocused = false;
