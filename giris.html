@@ -15,7 +15,7 @@
   --gold-glow: rgba(255, 209, 59, 0.25);
   --bg: #060810;
   --navy: #0c1020;
-  --card: rgba(8, 12, 28, 0.8);
+  --card: rgba(8, 12, 28, 0.85);
   --border: #000;
   --input-bg: #03050a;
   --input-border: #141b30;
@@ -52,9 +52,13 @@ html,body {
   justify-content: center;
   align-items: center;
   position: relative;
-  background: radial-gradient(circle at center, rgba(255, 209, 59, 0.08) 0%, rgba(6, 8, 16, 0) 70%), #060810;
+  background: 
+    radial-gradient(circle at 50% 80%, rgba(255, 209, 59, 0.12) 0%, rgba(6, 8, 16, 0) 60%),
+    radial-gradient(circle at 50% 40%, rgba(88, 101, 242, 0.08) 0%, rgba(6, 8, 16, 0) 70%),
+    #060810;
   border-right: 3px solid #000;
   padding: 20px;
+  transition: flex 0.8s cubic-bezier(0.77, 0, 0.175, 1), border-color 0.8s;
 }
 
 .pane-header {
@@ -88,7 +92,7 @@ html,body {
 }
 .viewer-wrap {
   position: relative;
-  filter: drop-shadow(0 0 30px rgba(255, 209, 59, 0.18));
+  filter: drop-shadow(0 0 35px rgba(255, 209, 59, 0.18));
 }
 #skin-canvas {
   display: block;
@@ -98,16 +102,42 @@ html,body {
   cursor: grabbing;
 }
 .pedestal {
-  width: 150px;
-  height: 14px;
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 12px;
   background: #11172a;
   border: 3px solid #000;
   border-radius: 50%;
-  margin: -14px auto 0;
-  position: relative;
   z-index: -1;
   box-shadow: 0 4px 0 #000, inset 0 2px 0 rgba(255,255,255,0.1);
   filter: drop-shadow(0 0 12px var(--gold-glow));
+}
+
+/* Floating Name Tag */
+.character-nametag {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #000;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 2px 2px 0px #3f3f3f;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 15;
+  white-space: nowrap;
+}
+.character-nametag.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
 }
 
 .srv-badge {
@@ -261,6 +291,7 @@ html,body {
   padding: 40px 30px;
   overflow-y: auto;
   z-index: 10;
+  transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s;
 }
 
 .hud-card {
@@ -854,6 +885,39 @@ textarea.fi {
   text-underline-offset: 3px;
 }
 
+/* Victory Screen Banner Overlay */
+.victory-banner {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translate(-50%, 25px);
+  text-align: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s 0.4s ease, transform 0.8s 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.page-container.victory-active .victory-banner {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+.vic-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 3px 3px 0 #000, 0 0 20px rgba(255, 209, 59, 0.5);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.vic-subtitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+
 /* Toast notifications */
 #tc {
   position: fixed;
@@ -1002,6 +1066,9 @@ textarea.fi {
   .srv-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+  .victory-banner {
+    bottom: 300px;
+  }
 }
 </style>
 </head>
@@ -1014,10 +1081,10 @@ textarea.fi {
 <div id="tc"></div>
 <canvas id="bg-canvas"></canvas>
 
-<div class="page-container">
+<div class="page-container" id="page-container">
 
   <!-- LEFT PANE: Character Arena -->
-  <div class="character-pane">
+  <div class="character-pane" id="character-pane">
     <div class="pane-header">
       <img class="logo-img" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
       <div class="logo-text">LOBBY<span style="color:#fff">.GG</span></div>
@@ -1025,6 +1092,9 @@ textarea.fi {
     
     <div class="arena-container">
       <div class="viewer-wrap" id="viewer-wrap">
+        <!-- Minecraft styled Name Tag floating right above character -->
+        <div class="character-nametag" id="char-nametag"> Notch </div>
+        
         <canvas id="skin-canvas" width="220" height="320"></canvas>
         <div class="pedestal"></div>
         <div class="srv-badge" id="srv-badge">
@@ -1048,10 +1118,17 @@ textarea.fi {
         <div class="prev-stats"><span>0 Takipçi</span><span>0 Drop</span></div>
       </div>
     </div>
+
+    <!-- Centered Victory Banner (Fades in when victory is active) -->
+    <div class="victory-banner" id="victory-banner">
+      <div class="vic-title">Karakter Oluşturuldu!</div>
+      <div class="vic-subtitle">Hoş geldin lobiye, <span id="vic-name">Alexa</span> ⚔️</div>
+      <button class="btn mc-gold" id="btn-victory-go" style="margin-top:20px; width: 220px;">LOBİYE KATIL →</button>
+    </div>
   </div>
 
   <!-- RIGHT PANE: HUD Customizer Panel -->
-  <div class="hud-pane">
+  <div class="hud-pane" id="hud-pane">
     <div class="hud-card">
       
       <!-- Quest progression details -->
@@ -1188,10 +1265,8 @@ textarea.fi {
       <div class="sv" id="vs5">
         <div class="suc">
           <div class="suc-ring"><span style="font-size:28px;color:var(--gold)">✓</span></div>
-          <div class="suc-t">Hoş geldin, <b id="wn">—</b>!</div>
-          <div class="suc-s">Karakterin oluşturuldu. Topluluğa katıldığın için teşekkürler! 🎉</div>
-          <div class="coin-badge">🪙 +5 LC Giriş Bonusu!</div>
-          <div id="b-go"></div>
+          <div class="suc-t">Hesap Hazırlanıyor...</div>
+          <div class="suc-s">Karakterin oluşturuluyor. Lütfen bekleyin... ⏳</div>
         </div>
       </div>
 
@@ -1228,7 +1303,7 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
       y:Math.random()*H,
       r:.6+Math.random()*1.3,
       vx:(Math.random()-.5)*.15,
-      vy:-0.1 - Math.random()*0.3, // slowly rise upwards
+      vy:-0.1 - Math.random()*0.3, 
       a:.1+Math.random()*.5
     }));
   }
@@ -1249,6 +1324,36 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
 
 /* ══ SKINVIEW3D ══ */
 let viewer=null;
+
+/* Camera Zoom Target Coordinates */
+let targetCamPos = { y: 10, z: 22 };
+let targetCamLook = { y: 8 };
+let camTransitionTime = 0;
+const camDuration = 60; // frames (~1 second)
+
+function startCamTransition(posY, posZ, lookY) {
+  targetCamPos.y = posY;
+  targetCamPos.z = posZ;
+  targetCamLook.y = lookY;
+  camTransitionTime = camDuration;
+}
+
+// Camera LERP update loop
+function updateCamera() {
+  if (viewer && camTransitionTime > 0) {
+    const k = 0.08; // smooth factor
+    viewer.camera.position.y += (targetCamPos.y - viewer.camera.position.y) * k;
+    viewer.camera.position.z += (targetCamPos.z - viewer.camera.position.z) * k;
+    
+    viewer.controls.target.x += (0 - viewer.controls.target.x) * k;
+    viewer.controls.target.y += (targetCamLook.y - viewer.controls.target.y) * k;
+    viewer.controls.target.z += (0 - viewer.controls.target.z) * k;
+    
+    viewer.controls.update();
+    camTransitionTime--;
+  }
+  requestAnimationFrame(updateCamera);
+}
 
 function initViewer(){
   if(typeof skinview3d==='undefined'){
@@ -1279,9 +1384,14 @@ function initViewer(){
     viewer.controls.enableZoom=false;
     viewer.fov=70;
     
-    // Slow auto-rotation
-    viewer.autoRotate = true;
-    viewer.autoRotateSpeed = 0.6;
+    // Slow auto-rotation of model (does not fight with camera LERP)
+    if (viewer.animations && typeof viewer.animations.add === 'function') {
+      const r = viewer.animations.add(skinview3d.RotatingAnimation);
+      r.speed = 0.5;
+    }
+    
+    // Start camera transition loop
+    updateCamera();
     
     setSkinAnim('idle');
     console.log('skinview3d OK ✓');
@@ -1294,12 +1404,9 @@ function initViewer(){
 function setSkinAnim(t){
   if(!viewer||!skinview3d)return;
   try {
-    // Clear animation manager if present
+    // Stop all active posture animations
     if (viewer.animations) {
       viewer.animations.paused = false;
-      if (typeof viewer.animations.clear === 'function') {
-        viewer.animations.clear();
-      }
       if (window._activeAnims) {
         window._activeAnims.forEach(a => {
           try { a.remove(); } catch(err) {}
@@ -1322,17 +1429,15 @@ function setSkinAnim(t){
       const speeds = { idle: 0.5, walk: 0.8, run: 1.5, fly: 1.0 };
       const speed = speeds[t] || 0.6;
       
-      try {
-        // Try new direct assignment API
+      // Try animations.add (standard working API for this version)
+      if (viewer.animations && typeof viewer.animations.add === 'function') {
+        const a = viewer.animations.add(Cls);
+        a.speed = speed;
+        window._activeAnims.push(a);
+      } else {
+        // Direct assignment fallback
         viewer.animation = new Cls();
         viewer.animation.speed = speed;
-      } catch(e) {
-        // Try old animations.add API
-        if (viewer.animations && typeof viewer.animations.add === 'function') {
-          const a = viewer.animations.add(Cls);
-          a.speed = speed;
-          window._activeAnims.push(a);
-        }
       }
     }
   } catch(e) {
@@ -1415,6 +1520,10 @@ function confetti(){
 function pvShow(){document.getElementById('prev-card').classList.add('show')}
 function pvName(v){const el=document.getElementById('pv-nick');el.classList.add('flash');el.textContent=v||'kullanici';setTimeout(()=>el.classList.remove('flash'),350);}
 function pvSkin(url){document.getElementById('pv-av').src=url}
+function pvSkinDirect(nick){
+  // Set avatar using mc-heads or crafatar
+  pvSkin(`https://mc-heads.net/avatar/${nick}/64`);
+}
 function pvBanner(){document.getElementById('pv-banner').style.background=S.banner}
 function pvBio(){const el=document.getElementById('pv-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic'}
 function pvTag(){
@@ -1465,7 +1574,7 @@ function updProg(s){
   });
 }
 
-/* ══ STEP NAVIGATION ══ */
+/* ══ STEP NAVIGATION (Includes cinematic zoom changes) ══ */
 const VIEWS=['vs0','vs1','vs2','vs3','vs4','vs5'];
 function goStep(s){
   VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
@@ -1481,14 +1590,26 @@ function goStep(s){
     "Topluluk Rolü",
     "Profilini Özelleştir",
     "Sunucunu Seç",
-    "Lobiye Hoş Geldin"
+    "Karakter Kaydediliyor"
   ];
   qLbl.textContent = s < 5 ? `GÖREV ${s+1} / 5` : `GÖREV TAMAMLANDI`;
   hT.textContent = stepTitles[s] || "Kayıt Ol";
 
+  // Camera Zoom transitions based on steps
+  if (s === 0) {
+    startCamTransition(16.5, 9, 16.5); // Zoom to Head
+  } else if (s === 1) {
+    startCamTransition(10, 22, 8);      // Zoom out to full body
+  } else if (s === 2) {
+    startCamTransition(12.5, 12, 12.5); // Zoom to body/chest
+  } else if (s === 3) {
+    startCamTransition(12.5, 12, 12.5); // Zoom to body/chest banner
+  } else if (s === 4) {
+    startCamTransition(10, 22, 8);      // Zoom out to full body (running)
+  }
+
   const anims=['idle','walk','walk','walk','walk','fly'];
   if(viewer)setSkinAnim(anims[s]||'idle');
-  if(s===5){setTimeout(()=>{confetti();setSkinAnim('fly');},300);}
   if(s!==4){hideSrvBadge();}
 }
 
@@ -1512,6 +1633,7 @@ function switchMode(m){
     if(card)card.classList.remove('show');
     qLbl.textContent = "LOBBY.GG LOBİSİ";
     hT.textContent = "Giriş Yap";
+    startCamTransition(10, 22, 8); // Zoom full body
   }
 }
 
@@ -1534,7 +1656,6 @@ function buildBtns(){
   const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>{hideSrvBadge();goStep(3);};ca('b-s4bk',bs4b);
   const bs4sk=mkBtn('Geç','btn-ghost');bs4sk.onclick=()=>{S.server='';finishReg();};ca('b-s4sk',bs4sk);
   const bs4n=mkBtn('Kayıt Ol 🚀','btn-gold',true);bs4n.id='b-s4-next';bs4n.onclick=finishReg;ca('b-s4n',bs4n);
-  const bg=mkBtn('Topluluğa Katıl →','btn-gold');bg.onclick=()=>location.href='lobbyx.html';ca('b-go',bg);
 }
 
 /* ══ TAG INIT ══ */
@@ -1605,11 +1726,13 @@ function initNick(){
     const st=document.getElementById('ns');
     const mini=document.getElementById('nsk-mini');
     const miniImg=document.getElementById('nsk-img');
+    const nameTag = document.getElementById('char-nametag');
 
     clearTimeout(nickT);clearTimeout(skinT2);
 
     if(!v){
       inp.className='fi';st.textContent='';pvName('');mini.className='nick-skin-mini';
+      nameTag.classList.remove('show');
       if(viewer)viewer.loadSkin('https://minotar.net/skin/MHF_Steve').catch(()=>{});
       return;
     }
@@ -1621,14 +1744,17 @@ function initNick(){
     inp.className='fi';st.className='fh m';st.textContent='Kontrol ediliyor...';
     mini.className='nick-skin-mini loading';
 
+    // 3D Name tag updates dynamically
+    nameTag.textContent = v;
+    nameTag.classList.add('show');
+
     // Skin fetch immediately
     skinT2=setTimeout(()=>{
       const sUrl=`https://mc-heads.net/avatar/${v}/32`;
-      const bUrl=`https://mc-heads.net/avatar/${v}/64`;
       const tmp=new Image();
       tmp.onload=()=>{
         miniImg.src=sUrl;mini.className='nick-skin-mini ok';
-        pvSkin(bUrl);pvName(v);
+        pvSkinDirect(v);pvName(v);
         loadPlayerSkin(v); // 3D viewer!
       };
       tmp.onerror=()=>{mini.className='nick-skin-mini';};
@@ -1663,7 +1789,11 @@ async function doLogin(){
   const btn=document.querySelector('#b-login .btn');btn.disabled=true;btn.innerHTML='<span class="sp"></span> Giriş...';
   const{error}=await db.auth.signInWithPassword({email:em,password:pw});
   if(error){toast('Hatalı bilgi.');btn.disabled=false;btn.textContent='Giriş Yap';wrapShake();}
-  else{setSkinAnim&&setSkinAnim('fly');setTimeout(()=>location.href='lobbyx.html',800);}
+  else{
+    setSkinAnim&&setSkinAnim('fly');
+    startCamTransition(11, 15, 9); // zoom on success
+    setTimeout(()=>location.href='lobbyx.html',1200);
+  }
 }
 
 async function doReg(){
@@ -1677,6 +1807,21 @@ async function doReg(){
 async function doGoogle(){
   const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/lobbyx.html'}});
   if(error)toast('Google hatası: '+error.message);
+}
+
+/* MMORPG Final Victory sequence */
+function triggerVictorySequence() {
+  document.getElementById('vic-name').textContent = S.nick;
+  
+  // Slide out right panel and make character arena take full screen width
+  document.getElementById('page-container').classList.add('victory-active');
+  
+  // Confetti and flying pose
+  confetti();
+  setSkinAnim('fly');
+  
+  // Cinematic camera victory zoom
+  startCamTransition(11, 15, 9);
 }
 
 async function finishReg(){
@@ -1696,9 +1841,15 @@ async function finishReg(){
       abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,
       hesap_olusturma:new Date().toISOString()
     });
-    document.getElementById('wn').textContent=S.nick;
+    
+    // Hide progress bar and trigger cinematic sequence
     document.getElementById('prog').classList.remove('show');
     goStep(5);
+    
+    setTimeout(() => {
+      triggerVictorySequence();
+    }, 1000);
+    
   }catch(e){toast('Hata: '+(e.message||'?'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol 🚀';}}
 }
 
@@ -1731,6 +1882,10 @@ document.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
   document.getElementById('go-reg').onclick=()=>switchMode('reg');
   document.getElementById('go-login').onclick=()=>switchMode('login');
+  
+  document.getElementById('btn-victory-go').onclick = () => {
+    location.href = 'lobbyx.html';
+  };
 });
 </script>
 </body>
