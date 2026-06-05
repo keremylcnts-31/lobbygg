@@ -314,33 +314,69 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
 
 /* ── Buttons ─────────────────────────── */
 .btn {
-  padding:12px 26px; cursor:pointer;
-  border-radius:30px;
+  padding:0 26px; height:44px; cursor:pointer;
+  border-radius:6px;
   font-family:'Montserrat',sans-serif;
-  font-size:11px; font-weight:900; font-style:italic;
-  letter-spacing:.6px; text-transform:uppercase;
+  font-size:12px; font-weight:900; font-style:italic;
+  letter-spacing:.8px; text-transform:uppercase;
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
-  border:none; user-select:none;
-  box-shadow:0 4px 20px rgba(0,0,0,0.4);
-  transition:transform .15s, filter .15s;
+  user-select:none;
+  transition:transform .12s, filter .12s, box-shadow .12s;
   position:relative; overflow:hidden;
 }
 .btn:disabled { opacity:.3; pointer-events:none; }
 .btn::after {
   content:''; position:absolute;
   top:0; left:-150%; width:70%; height:100%;
-  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.22) 50%,rgba(255,255,255,0) 100%);
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.28) 50%,rgba(255,255,255,0) 100%);
   transform:skewX(-20deg); pointer-events:none;
 }
-.btn:hover::after { left:150%; transition:left 0.6s cubic-bezier(0.4,0,0.2,1); }
-.btn:hover { transform:scale(1.04); filter:brightness(1.1); }
-.btn:active { transform:scale(0.97); }
+.btn:hover::after { left:150%; transition:left 0.55s cubic-bezier(0.4,0,0.2,1); }
+.btn:hover { transform:translateY(-2px) scale(1.03); }
+.btn:active { transform:translateY(2px) scale(0.98); }
 .btn-full { width:100%; }
-.btn-gold { background:#fff; color:#000; }
-.btn-ghost { background:rgba(255,255,255,0.1); color:#fff; }
-.btn-ghost:hover { background:rgba(255,255,255,0.18); }
-.btn-cyan { background:var(--cyan); color:#fff; }
-.btn-sm { padding:8px 18px; font-size:10px; }
+
+/* 3D Gold button — main CTA */
+.btn-gold {
+  background:linear-gradient(180deg,#ffe566 0%,#ffd13b 45%,#e6a800 100%);
+  color:#1a0e00;
+  border:none;
+  border-bottom:4px solid #8a5e00;
+  box-shadow:0 6px 24px rgba(255,209,59,0.45), inset 0 1px 0 rgba(255,255,255,0.4);
+  text-shadow:0 1px 0 rgba(255,255,255,0.3);
+}
+.btn-gold:hover {
+  background:linear-gradient(180deg,#fff07a 0%,#ffe04a 45%,#f0b800 100%);
+  box-shadow:0 8px 32px rgba(255,209,59,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+  border-bottom-color:#6a4600;
+}
+.btn-gold:active {
+  border-bottom-width:2px;
+  box-shadow:0 2px 10px rgba(255,209,59,0.3);
+}
+
+/* Ghost button */
+.btn-ghost {
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  border:1.5px solid rgba(255,255,255,0.18);
+  border-bottom:3px solid rgba(255,255,255,0.08);
+  box-shadow:0 4px 14px rgba(0,0,0,0.3);
+}
+.btn-ghost:hover { background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); }
+
+/* Cyan / Discord */
+.btn-cyan {
+  background:linear-gradient(180deg,#1ae8ff 0%,#00c4f0 50%,#0094c0 100%);
+  color:#fff;
+  border:none;
+  border-bottom:4px solid #006080;
+  box-shadow:0 6px 22px rgba(0,212,255,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.btn-cyan:hover { filter:brightness(1.08); box-shadow:0 8px 28px rgba(0,212,255,0.5); }
+.btn-cyan:active { border-bottom-width:2px; }
+
+.btn-sm { padding:0 18px; height:36px; font-size:10px; }
 .btn-row { display:flex; gap:8px; margin-top:10px; }
 .btn-row .btn { flex:1; }
 .sep {
@@ -542,48 +578,7 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
 
-/* ── Preview Card (floating bottom-left) */
-.prev-card {
-  position:fixed; bottom:24px; left:24px;
-  width:220px;
-  background:rgba(6,10,22,0.88);
-  border:1.5px solid rgba(255,255,255,0.09);
-  border-radius:12px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);
-  overflow:visible;
-  opacity:0; transform:translateY(10px) scale(.96);
-  transition:opacity 0.4s ease, transform 0.4s ease;
-  z-index:30;
-  backdrop-filter:blur(12px);
-}
-.prev-card.show { opacity:1; transform:translateY(0) scale(1); }
-.prev-banner {
-  height:58px; position:relative;
-  border-top-left-radius:12px; border-top-right-radius:12px;
-  transition:background .5s ease;
-}
-.prev-av-wrap {
-  position:absolute; bottom:-14px; left:10px;
-  width:36px; height:36px; border:2px solid #000;
-  border-radius:6px; background:#0a0f1e; overflow:hidden; z-index:5;
-}
-.prev-av-wrap img { width:100%; height:100%; object-fit:cover; image-rendering:pixelated; }
-.prev-body { padding:20px 10px 10px; display:flex; flex-direction:column; gap:4px; }
-.prev-nick { font-size:12px; font-weight:900; }
-.prev-nick.flash { animation:flash .3s ease; }
-@keyframes flash { 0%,100%{opacity:1} 45%{opacity:.15} }
-.prev-tag-wrap { display:flex; flex-wrap:wrap; gap:4px; }
-.prev-tag {
-  display:inline-flex; align-items:center; gap:3px;
-  padding:2px 7px; font-size:7px; font-weight:900;
-  border-radius:4px; text-transform:uppercase; letter-spacing:.3px;
-}
-.prev-tag img { width:8px; height:8px; }
-.prev-bio { font-size:8px; color:var(--t2); line-height:1.5; font-weight:600; font-style:italic; }
-.prev-stats {
-  display:flex; gap:12px; font-size:8px; color:var(--tdim); font-weight:700;
-  padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);
-}
+/* Preview card removed */
 </style>
 </head>
 <body>
@@ -636,20 +631,7 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
   </div>
 </div>
 
-<!-- Preview Card -->
-<div class="prev-card" id="prev-card">
-  <div class="prev-banner" id="pv-banner" style="background:#1a2a4a">
-    <div class="prev-av-wrap">
-      <img id="pv-av" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="av">
-    </div>
-  </div>
-  <div class="prev-body">
-    <div class="prev-nick" id="pv-nick">kullanici</div>
-    <div class="prev-tag-wrap" id="pv-tags"></div>
-    <div class="prev-bio" id="pv-bio" style="font-style:italic">bio yazılmadı...</div>
-    <div class="prev-stats"><span>0 Takipçi</span><span>0 Drop</span></div>
-  </div>
-</div>
+<!-- Preview card removed -->
 
 <!-- MAIN STAGE -->
 <div class="stage" id="stage">
@@ -862,10 +844,11 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
 let viewer=null;
 let camTarget={posY:10, posZ:26, lookY:8};
 let camCurrent={posY:10, posZ:26, lookY:8};
+let _rotAnim=null;  // Always-on rotation
+let _moveAnim=null; // Swappable movement (idle/walk/run/fly)
 
 function initViewer(){
   if(typeof skinview3d==='undefined'){
-    // Fallback: static image
     document.getElementById('skin-canvas').style.display='none';
     const fb=document.createElement('img');
     fb.id='skin-fallback';
@@ -885,36 +868,41 @@ function initViewer(){
       skin:'https://minotar.net/skin/MHF_Steve'
     });
     viewer.renderer.setClearColor(0x000000,0);
-    viewer.controls.enabled=true;
+    // Lock controls so our camera lerp isn't overridden
+    viewer.controls.enabled=false;
     viewer.controls.enableZoom=false;
+    viewer.controls.enableRotate=false;
+    viewer.controls.enablePan=false;
     viewer.fov=70;
     viewer.camera.position.set(0,10,26);
     viewer.controls.target.set(0,8,0);
     viewer.controls.update();
 
-    // Auto rotate
+    // Persistent slow rotation — kept separate so it never gets removed
     if(viewer.animations && typeof viewer.animations.add==='function'){
-      const rot=viewer.animations.add(skinview3d.RotatingAnimation);
-      rot.speed=0.4;
+      _rotAnim=viewer.animations.add(skinview3d.RotatingAnimation);
+      _rotAnim.speed=0.5;
     }
-    setSkinAnim('idle');
+    setSkinAnim('walk'); // Walk by default on landing
     camLoop();
     console.log('skinview3d OK ✓');
-  } catch(e) {
+  } catch(e){
     console.error('skinview3d init error:',e);
   }
 }
 
-/* Camera smooth lerp */
+/* Camera smooth lerp — runs every RAF tick */
 function camLoop(){
   if(!viewer){requestAnimationFrame(camLoop);return;}
-  const k=0.07;
+  const k=0.08;
   camCurrent.posY += (camTarget.posY - camCurrent.posY)*k;
   camCurrent.posZ += (camTarget.posZ - camCurrent.posZ)*k;
   camCurrent.lookY += (camTarget.lookY - camCurrent.lookY)*k;
+  // Always keep X centered
+  viewer.camera.position.x = 0;
   viewer.camera.position.y = camCurrent.posY;
   viewer.camera.position.z = camCurrent.posZ;
-  viewer.controls.target.y = camCurrent.lookY;
+  viewer.controls.target.set(0, camCurrent.lookY, 0);
   viewer.controls.update();
   requestAnimationFrame(camLoop);
 }
@@ -923,21 +911,25 @@ function setCamTarget(posY,posZ,lookY){
   camTarget.posY=posY; camTarget.posZ=posZ; camTarget.lookY=lookY;
 }
 
-/* Animation switcher */
-let _activeAnims=[];
+/* Animation switcher — only swaps the MOVEMENT layer, rotation stays */
 function setSkinAnim(t){
   if(!viewer||typeof skinview3d==='undefined')return;
   try {
-    _activeAnims.forEach(a=>{try{a.remove&&a.remove();}catch(e){}});
-    _activeAnims=[];
-    viewer.animation=null;
+    // Remove only the previous movement animation, NOT the rotation
+    if(_moveAnim){
+      try{ _moveAnim.remove&&_moveAnim.remove(); }catch(e){}
+      _moveAnim=null;
+    }
     const M={idle:skinview3d.IdleAnimation,walk:skinview3d.WalkingAnimation,run:skinview3d.RunningAnimation,fly:skinview3d.FlyingAnimation};
     const Cls=M[t]||skinview3d.IdleAnimation;
-    const spd={idle:0.5,walk:0.8,run:1.4,fly:1.0};
+    const spd={idle:0.6,walk:0.9,run:1.6,fly:1.1};
     if(viewer.animations && typeof viewer.animations.add==='function'){
-      const a=viewer.animations.add(Cls); a.speed=spd[t]||0.6; _activeAnims.push(a);
+      _moveAnim=viewer.animations.add(Cls);
+      _moveAnim.speed=spd[t]||0.7;
     } else {
-      viewer.animation=new Cls(); viewer.animation.speed=spd[t]||0.6;
+      // Fallback: direct assignment (only works if no .animations API)
+      viewer.animation=new Cls();
+      viewer.animation.speed=spd[t]||0.7;
     }
   } catch(e){console.error('setSkinAnim:',e);}
 }
@@ -976,21 +968,13 @@ function confetti(){
   }
 }
 
-/* ══ PREVIEW ══ */
-function pvShow(){document.getElementById('prev-card').classList.add('show');}
-function pvName(v){const el=document.getElementById('pv-nick');el.classList.add('flash');el.textContent=v||'kullanici';setTimeout(()=>el.classList.remove('flash'),350);}
-function pvSkinDirect(nick){document.getElementById('pv-av').src=`https://mc-heads.net/avatar/${nick}/64`;}
-function pvBanner(){document.getElementById('pv-banner').style.background=S.banner;}
-function pvBio(){const el=document.getElementById('pv-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic';}
-function pvTag(){
-  const wrap=document.getElementById('pv-tags'); wrap.innerHTML='';
-  if(!S.displayTag)return;
-  const c=TCOLORS[S.displayTag]||'#444';
-  const tag=document.createElement('div'); tag.className='prev-tag';
-  tag.style.cssText=`background:${c};color:#fff`;
-  if(S.mainTag==='Medya'&&PLAT[S.subTag]){const im=document.createElement('img');im.src=PLAT[S.subTag];tag.appendChild(im);}
-  tag.appendChild(document.createTextNode(S.displayTag)); wrap.appendChild(tag);
-}
+/* ══ PREVIEW (no card — functions kept as no-ops for safety) ══ */
+function pvShow(){}
+function pvName(v){}
+function pvSkinDirect(nick){}
+function pvBanner(){}
+function pvBio(){}
+function pvTag(){}
 
 /* ══ HELPERS ══ */
 function toast(m,t='err'){const c=document.getElementById('tc');const el=document.createElement('div');el.className='toast'+(t==='ok'?' ok':'');el.textContent=m;c.appendChild(el);setTimeout(()=>el.remove(),4000);}
