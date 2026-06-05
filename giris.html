@@ -12,1142 +12,577 @@
 :root {
   --gold: #ffd13b;
   --gold-dk: #b89000;
-  --gold-glow: rgba(255, 209, 59, 0.25);
-  --bg: #060810;
-  --navy: #0c1020;
-  --card: rgba(10, 15, 30, 0.85);
-  --border: rgba(255, 255, 255, 0.1);
-  --input-bg: rgba(0, 0, 0, 0.4);
-  --input-border: rgba(255, 255, 255, 0.15);
+  --gold-glow: rgba(255,209,59,0.3);
+  --card: rgba(6,10,22,0.82);
+  --card-border: rgba(255,255,255,0.09);
+  --input-bg: rgba(0,0,0,0.5);
+  --input-border: rgba(255,255,255,0.12);
   --t1: #fff;
-  --t2: #a0aec0;
-  --tdim: #4a5568;
+  --t2: #94a3b8;
+  --tdim: #3d4a60;
   --red: #ff3535;
   --green: #3ddc84;
   --blue: #5865F2;
+  --cyan: #00d4ff;
 }
 html,body {
-  width: 100%;
-  height: 100%;
-  font-family: 'Montserrat', sans-serif;
-  overflow: hidden;
-  color: var(--t1);
+  width:100%; height:100%;
+  font-family:'Montserrat',sans-serif;
+  overflow:hidden;
+  color:var(--t1);
+  background: radial-gradient(ellipse at 50% 110%, #0a2a6e 0%, #060a18 60%);
 }
 
-/* Dynamic Fortnite Gradient Backgrounds */
-body {
-  background: radial-gradient(circle, #1c6adb 0%, #071f47 100%);
-  transition: background 0.8s ease-in-out;
-}
-body.bg-blue { background: radial-gradient(circle, #1c6adb 0%, #071f47 100%); }
-body.bg-red { background: radial-gradient(circle, #e83838 0%, #4a0d0d 100%); }
-body.bg-gray { background: radial-gradient(circle, #556075 0%, #1c222e 100%); }
-body.bg-black { background: radial-gradient(circle, #2d3440 0%, #0d0f14 100%); }
-body.bg-orange { background: radial-gradient(circle, #ed8936 0%, #552800 100%); }
-body.bg-purple { background: radial-gradient(circle, #9f7aea 0%, #321e59 100%); }
-body.bg-green { background: radial-gradient(circle, #48bb78 0%, #143e21 100%); }
+/* ── Dynamic BG ─────────────────────── */
+body.bg-blue  { background: radial-gradient(ellipse at 50% 110%, #0a2a6e 0%, #060a18 60%); }
+body.bg-red   { background: radial-gradient(ellipse at 50% 110%, #5a0a0a 0%, #120306 60%); }
+body.bg-gray  { background: radial-gradient(ellipse at 50% 110%, #2a3040 0%, #080b12 60%); }
+body.bg-black { background: radial-gradient(ellipse at 50% 110%, #1a1e28 0%, #050607 60%); }
+body.bg-orange{ background: radial-gradient(ellipse at 50% 110%, #5a2500 0%, #110800 60%); }
+body.bg-purple{ background: radial-gradient(ellipse at 50% 110%, #2d1060 0%, #0a0416 60%); }
+body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #030a06 60%); }
 
-/* Page Container (Split Screen layout) */
-.page-container {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  position: relative;
-  z-index: 1;
+/* ── Background Canvas ─────────────── */
+#bg-canvas {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
 }
 
-/* Left pane: Character Arena */
-.character-pane {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  padding: 20px;
-  transition: flex 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+/* ── Loading ───────────────────────── */
+#load {
+  position:fixed; inset:0;
+  background:#030508;
+  z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  transition:opacity .5s;
 }
+#load.out { opacity:0; pointer-events:none; }
+.ll { height:52px; filter:drop-shadow(0 0 22px rgba(255,209,59,.9)); animation:pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.07)} }
+.lb { width:140px; height:3px; background:#0f1828; overflow:hidden; }
+.lbi { height:100%; width:0; background:var(--gold); animation:lba .9s ease forwards; }
+@keyframes lba { to { width:100%; } }
 
-.pane-header {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-.logo-img {
-  height: 32px;
-  filter: drop-shadow(0 0 10px rgba(255,209,59,0.8));
-}
-.logo-text {
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  color: var(--gold);
-}
-
-/* Arena & Pedestal */
-.arena-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.viewer-wrap {
-  position: relative;
-}
-#skin-canvas {
-  display: block;
-  cursor: grab;
-}
-#skin-canvas:active {
-  cursor: grabbing;
-}
-.pedestal {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 150px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 50%;
-  z-index: -1;
-  box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
-  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3));
-}
-
-/* Floating Name Tag */
-.character-nametag {
-  position: absolute;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  background: rgba(0, 0, 0, 0.7);
-  border: 1.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 1px 1px 0px #000;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 15;
-  white-space: nowrap;
-}
-.character-nametag.show {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
-.srv-badge {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.85);
-  border: 1.5px solid var(--gold);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  opacity: 0;
-  transition: opacity .3s;
-  white-space: nowrap;
-  z-index: 10;
-}
-.srv-badge.show {
-  opacity: 1;
-  animation: badgePop .35s cubic-bezier(.175,.885,.32,1.275);
-}
-@keyframes badgePop {
-  0% { transform: translateX(-50%) scale(0); }
-  70% { transform: translateX(-50%) scale(1.08); }
-  100% { transform: translateX(-50%) scale(1); }
-}
-.srv-badge img {
-  width: 20px;
-  height: 20px;
-  image-rendering: pixelated;
-  border-radius: 4px;
-}
-.srv-badge span {
-  font-size: 9px;
-  font-weight: 900;
-  color: var(--gold);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-
-/* Landing Actions (Centred under character) */
-.landing-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 30px;
-  z-index: 10;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-.page-container.register-active .landing-actions,
-.page-container.victory-active .landing-actions {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(20px);
-}
-
-/* Profile Card Widget Overlay */
-.prev-card {
-  position: absolute;
-  bottom: 30px;
-  left: 30px;
-  width: 230px;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  overflow: visible;
-  opacity: 0;
-  transform: translateY(12px) scale(.96);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 20;
-}
-.prev-card.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-.prev-banner {
-  height: 64px;
-  position: relative;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  transition: background .5s ease;
-}
-.prev-av-wrap {
-  position: absolute;
-  bottom: -16px;
-  left: 12px;
-  width: 40px;
-  height: 40px;
-  border: 2px solid #000;
-  border-radius: 6px;
-  background: #0a0f1e;
-  overflow: hidden;
-  z-index: 5;
-}
-.prev-av-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  image-rendering: pixelated;
-}
-.prev-body {
-  padding: 22px 12px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.prev-nick {
-  font-size: 13px;
-  font-weight: 900;
-}
-.prev-nick.flash {
-  animation: flash .3s ease;
-}
-@keyframes flash {
-  0%,100% { opacity: 1; }
-  45% { opacity: .15; }
-}
-.prev-tag-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.prev-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  font-size: 8px;
-  font-weight: 900;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: .3px;
-}
-.prev-tag img {
-  width: 9px;
-  height: 9px;
-}
-.prev-bio {
-  font-size: 9px;
-  color: var(--t2);
-  line-height: 1.5;
-  font-weight: 600;
-  font-style: italic;
-}
-.prev-stats {
-  display: flex;
-  gap: 12px;
-  font-size: 9px;
-  color: var(--tdim);
-  font-weight: 700;
-  padding-top: 4px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-
-/* Right pane: HUD panel */
-.hud-pane {
-  width: 0px;
-  height: 100%;
-  background: rgba(8, 12, 28, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-left: 1.5px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0;
-  opacity: 0;
-  pointer-events: none;
-  overflow-y: auto;
-  z-index: 10;
-  transition: width 0.8s cubic-bezier(0.77, 0, 0.175, 1), padding 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.6s;
-}
-
-.page-container.register-active .hud-pane {
-  width: 480px;
-  padding: 40px 30px;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.page-container.register-active .character-pane {
-  flex: 1.2;
-}
-
-.hud-card {
-  width: 100%;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  padding: 26px;
-  position: relative;
-}
-
-.hud-card-header {
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-}
-.hud-quest-label {
-  font-size: 9px;
-  font-weight: 900;
-  color: var(--gold);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-.hud-title {
-  font-size: 20px;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #fff;
-  letter-spacing: -0.5px;
-}
-
-/* Progress HUD bar */
-.prog {
-  display: none;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  margin-bottom: 20px;
-}
-.prog.show {
-  display: grid;
-}
-.p-step {
-  height: 4px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-.p-step.act {
-  background: var(--gold);
-  box-shadow: 0 0 8px var(--gold);
-}
-.p-step.dn {
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-}
-
-/* Step Views */
-.sv {
-  display: none;
-}
-.sv.act {
-  display: block;
-  animation: slideIn .28s cubic-bezier(.25,.46,.45,.94) both;
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(18px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* Form Elements */
-.fg {
-  margin-bottom: 15px;
-  position: relative;
-}
-.flbl {
-  display: block;
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--t2);
-  letter-spacing: .7px;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-  transition: color .15s;
-}
-.fg:focus-within .flbl {
-  color: var(--gold);
-}
-
-.fi {
-  width: 100%;
-  background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  padding: 12px 14px;
-  color: var(--t1);
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  outline: none;
-  border-radius: 8px !important;
-  transition: border-color .15s, background .15s, transform .1s;
-}
-.fi::placeholder {
-  color: var(--tdim);
-}
-.fi:focus {
-  border-color: var(--gold);
-  background: rgba(0,0,0,0.6);
-  transform: translate(-1px,-1px);
-}
-.fi.err {
-  border-color: var(--red);
-  animation: inputShake .3s ease;
-}
-.fi.ok {
-  border-color: var(--green);
-}
-@keyframes inputShake {
-  0%,100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-textarea.fi {
-  resize: none;
-  height: 70px;
-  line-height: 1.5;
-}
-.fh {
-  font-size: 10px;
-  margin-top: 5px;
-  font-weight: 700;
-}
-.fh.g { color: var(--green); }
-.fh.r { color: var(--red); }
-.fh.m { color: var(--tdim); }
-.cc {
-  text-align: right;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--tdim);
-  margin-top: 3px;
-}
-.cc.warn {
-  color: var(--red);
-}
-.nick-url {
-  font-size: 10px;
-  color: var(--tdim);
-  font-weight: 700;
-  margin-top: 5px;
-}
-.nick-url b {
-  color: var(--gold);
-}
-.pw-wrap {
-  position: relative;
-}
-.pw-wrap .fi {
-  padding-right: 40px;
-}
-.pw-eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--tdim);
-  font-size: 14px;
-  padding: 2px;
-  transition: color .15s;
-}
-.pw-eye:hover {
-  color: var(--gold);
-}
-
-/* Nick mini skin */
-.nick-wrap {
-  position: relative;
-}
-.nick-skin-mini {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 44px;
-  background: rgba(0,0,0,.4);
-  border-left: 1.5px solid var(--input-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-  transition: all .3s;
-}
-.nick-skin-mini img {
-  width: 24px;
-  height: 24px;
-  image-rendering: pixelated;
-  transition: opacity .25s;
-}
-.nick-skin-mini.loading img {
-  opacity: .3;
-  animation: spin .8s linear infinite;
-}
-.nick-skin-mini.ok img {
-  opacity: 1;
-  animation: skinPop .3s ease;
-}
-@keyframes skinPop {
-  0% { transform: scale(.4); }
-  70% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.nick-wrap .fi {
-  padding-right: 52px;
-}
-
-/* Fortnite styled pill buttons */
-.btn {
-  width: 100%;
-  padding: 12px 24px;
-  cursor: pointer;
-  border-radius: 30px !important;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: .6px;
-  text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: none !important;
-  user-select: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  transition: transform .15s ease, background-color .15s ease, filter .15s ease;
-  position: relative;
-  overflow: hidden;
-}
-.btn:disabled {
-  opacity: .3;
-  pointer-events: none;
-}
-.btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -150%;
-  width: 70%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.25) 50%,
-    rgba(255,255,255,0) 100%
-  );
-  transform: skewX(-20deg);
-  pointer-events: none;
-  transition: none;
-}
-.btn:hover::after {
-  left: 150%;
-  transition: left 0.65s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.btn:hover {
-  transform: scale(1.03);
-  filter: brightness(1.08);
-}
-.btn:active {
-  transform: scale(0.97);
-}
-
-/* Colors */
-.mc-gold {
-  background: #fff !important;
-  color: #000 !important;
-}
-.mc-gold:hover {
-  background: #f0f0f0 !important;
-}
-.mc-discord {
-  background: #00d4ff !important;
-  color: #fff !important;
-}
-.mc-discord:hover {
-  background: #00bada !important;
-}
-.btn-ghost {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #fff !important;
-}
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-.btn-sm {
-  width: auto;
-  padding: 8px 20px;
-  font-size: 10px;
-}
-.btn-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-.btn-row .btn {
-  flex: 1;
-}
-.sep {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 0;
-  color: var(--t2);
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.sep::before, .sep::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255,255,255,0.08);
-}
-
-/* Tag Selection Grid */
-.tag-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-bottom: 10px;
-}
-.tcard {
-  background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  border-radius: 10px;
-  padding: 14px 10px 10px;
-  cursor: pointer;
-  text-align: center;
-  transition: transform .15s, border-color .15s, background-color .15s;
-  user-select: none;
-}
-.tcard:hover {
-  transform: scale(1.03);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-.tcard.sel {
-  border-color: var(--gold);
-  background: rgba(255,209,59,.06);
-  transform: scale(1.03);
-}
-.tc-ico {
-  font-size: 20px;
-  margin-bottom: 5px;
-}
-.tc-n {
-  font-size: 11px;
-  font-weight: 900;
-}
-.tc-d {
-  font-size: 8px;
-  color: var(--t2);
-  margin-top: 2px;
-  font-weight: 600;
-}
-.sub-sec {
-  display: none;
-  animation: slideIn .2s ease both;
-  margin-bottom: 8px;
-}
-.sub-sec.show {
-  display: block;
-}
-.sub-lbl {
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--t2);
-  text-transform: uppercase;
-  letter-spacing: .7px;
-  margin-bottom: 6px;
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.chip {
-  background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  border-radius: 8px !important;
-  padding: 6px 11px;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--t1);
-  transition: all .15s;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.chip:hover {
-  transform: scale(1.03);
-  border-color: rgba(255,255,255,0.3);
-}
-.chip.sel {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(255,209,59,.06);
-}
-.chip img {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-}
-
-/* Swatches */
-.swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 10px;
-}
-.sw {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid rgba(255,255,255,0.2);
-  border-radius: 50%;
-  cursor: pointer;
-  position: relative;
-  transition: transform .15s, border-color .15s;
-}
-.sw:hover {
-  transform: scale(1.1);
-  border-color: #fff;
-}
-.sw.sel {
-  border-color: var(--gold);
-  box-shadow: 0 0 10px var(--gold-glow);
-  transform: scale(1.1);
-}
-.sw.sel::after {
-  content: '✓';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 1px 1px 0 #000;
-}
-
-/* Server select */
-.srv-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-bottom: 10px;
-  max-height: 180px;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-.srv-grid::-webkit-scrollbar {
-  width: 3px;
-}
-.srv-grid::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-}
-.srv-c {
-  background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  border-radius: 8px;
-  padding: 8px 4px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s;
-  user-select: none;
-}
-.srv-c:hover {
-  transform: scale(1.03);
-  border-color: rgba(255,255,255,0.3);
-}
-.srv-c.sel {
-  border-color: var(--gold);
-  background: rgba(255,209,59,.06);
-}
-.srv-c img {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  object-fit: cover;
-  background: #090d1a;
-  display: block;
-  margin: 0 auto 3px;
-  image-rendering: pixelated;
-}
-.srv-c .sn {
-  font-size: 8px;
-  font-weight: 800;
-  color: var(--t1);
-  line-height: 1.2;
-  word-break: break-word;
-}
-
-/* Success step */
-.suc {
-  text-align: center;
-  padding: 8px 0;
-}
-.suc-ring {
-  width: 72px;
-  height: 72px;
-  border: 4px solid var(--gold);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px;
-  box-shadow: 0 0 20px var(--gold-glow);
-  animation: popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
-}
-@keyframes popIn {
-  from { transform: scale(0) rotate(-15deg); opacity: 0; }
-  70% { transform: scale(1.1) rotate(3deg); }
-  to { transform: scale(1) rotate(0); opacity: 1; }
-}
-.suc-t {
-  font-size: 22px;
-  font-weight: 900;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.suc-t b {
-  color: var(--gold);
-}
-.suc-s {
-  font-size: 11px;
-  color: var(--t2);
-  margin-bottom: 16px;
-  line-height: 1.7;
-  font-weight: 600;
-}
-
-.tlink {
-  text-align: center;
-  margin-top: 12px;
-  font-size: 11px;
-  color: var(--t2);
-  font-weight: 600;
-}
-.tlink button {
-  background: none;
-  border: none;
-  color: var(--gold);
-  font-weight: 800;
-  font-size: 11px;
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* Centered Login Overlay (orta alanda sorsun) */
-.login-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(3, 5, 10, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 100;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-.page-container.login-active .login-overlay {
-  display: flex;
-  opacity: 1;
-  pointer-events: auto;
-}
-.login-card {
-  width: 100%;
-  max-width: 440px;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.6);
-  padding: 30px;
-  position: relative;
-  animation: modalPop .4s cubic-bezier(.175,.885,.32,1.275) both;
-}
-@keyframes modalPop {
-  from { transform: scale(0.9) translateY(20px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
-}
-.modal-close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: rgba(255,255,255,0.08);
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color .15s;
-}
-.modal-close-btn:hover {
-  background: rgba(255,255,255,0.18);
-}
-
-/* Centered Victory Banner (Fades in when victory is active) */
-.victory-banner {
-  position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translate(-50%, 25px);
-  text-align: center;
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.8s 0.4s ease, transform 0.8s 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.page-container.victory-active .victory-banner {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translate(-50%, 0);
-}
-.vic-title {
-  font-size: 32px;
-  font-weight: 900;
-  font-style: italic;
-  color: var(--gold);
-  text-shadow: 2px 2px 0 #000, 0 0 20px rgba(255, 209, 59, 0.4);
-  letter-spacing: 2px;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-.vic-subtitle {
-  font-size: 18px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 1px 1px 0 #000;
-}
-
-/* Victory overlay state */
-.page-container.victory-active .hud-pane {
-  width: 0px !important;
-  padding: 0 !important;
-  opacity: 0;
-  border-left: none;
-}
-.page-container.victory-active .character-pane {
-  flex: 1 !important;
-}
-
-/* Toast notifications */
+/* ── Toasts ────────────────────────── */
 #tc {
-  position: fixed;
-  top: 14px;
-  right: 14px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  position:fixed; top:14px; right:14px; z-index:9999;
+  display:flex; flex-direction:column; gap:6px;
 }
 .toast {
-  padding: 10px 14px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
-  background: #100010;
-  border: 1.5px solid var(--red);
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  max-width: 280px;
-  font-family: 'Montserrat', sans-serif;
-  animation: toastIn .3s ease;
+  padding:10px 14px; font-size:11px; font-weight:800; color:#fff;
+  background:#100010; border:1.5px solid var(--red); border-radius:8px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.3); max-width:280px;
+  font-family:'Montserrat',sans-serif; animation:toastIn .3s ease;
 }
-.toast.ok {
-  background: #001008;
-  border-color: var(--green);
-  color: var(--green);
-}
-@keyframes toastIn {
-  from { transform: translateX(110%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-.sp {
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255,255,255,0.2);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .6s linear infinite;
-  display: inline-block;
-}
+.toast.ok { background:#001008; border-color:var(--green); color:var(--green); }
+@keyframes toastIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
 
-/* Loading display */
-#load {
-  position: fixed;
-  inset: 0;
-  background: #030508;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  transition: opacity .5s;
-}
-#load.out {
-  opacity: 0;
-  pointer-events: none;
-}
-.ll {
-  height: 52px;
-  filter: drop-shadow(0 0 22px rgba(255,209,59,.9));
-  animation: pulse 1s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity: .6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.07); }
-}
-.lb {
-  width: 140px;
-  height: 3px;
-  background: #0f1828;
-  border: 1px solid #000;
-  overflow: hidden;
-}
-.lbi {
-  height: 100%;
-  width: 0;
-  background: var(--gold);
-  animation: lba .9s ease forwards;
-}
-@keyframes lba { to { width: 100%; } }
-
-/* Confetti particles */
+/* ── Confetti ──────────────────────── */
 .conf {
-  position: fixed;
-  top: -10px;
-  pointer-events: none;
-  z-index: 50;
-  animation: confFall ease-in forwards;
+  position:fixed; top:-10px; pointer-events:none; z-index:50;
+  animation:confFall ease-in forwards;
 }
-@keyframes confFall { to { transform: translateY(110vh) rotate(900deg); opacity: 0; } }
+@keyframes confFall { to{transform:translateY(110vh) rotate(900deg);opacity:0} }
 
-/* Background canvas */
-#bg-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+/* ── Main Stage ────────────────────── */
+.stage {
+  position:fixed; inset:0; z-index:1;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  overflow-y:auto;
+  padding:20px 16px;
 }
 
-/* Scrollbar override */
-::-webkit-scrollbar {
-  width: 4px;
+/* ── Logo top-left ─────────────────── */
+.logo-corner {
+  position:fixed; top:22px; left:28px; z-index:50;
+  display:flex; align-items:center; gap:10px;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
+.logo-img { height:30px; filter:drop-shadow(0 0 10px rgba(255,209,59,0.8)); }
+.logo-text { font-size:17px; font-weight:900; letter-spacing:-1px; color:var(--gold); }
+
+/* ── Character Arena ───────────────── */
+.char-arena {
+  position:relative;
+  display:flex; flex-direction:column; align-items:center;
+  flex-shrink:0;
 }
 
-/* Mobile responsive overlay */
-@media (max-width: 900px) {
-  .page-container {
-    flex-direction: column;
-    overflow-y: auto;
-    height: auto;
-    min-height: 100vh;
-  }
-  .character-pane {
-    height: 350px;
-    flex: none;
-    border-right: none;
-    border-bottom: 3px solid #000;
-    padding-top: 50px;
-  }
-  .hud-pane {
-    width: 100% !important;
-    height: auto;
-    padding: 24px 16px;
-    border-left: none;
-    backdrop-filter: none;
-  }
-  .hud-card {
-    padding: 20px 16px;
-  }
-  .prev-card {
-    position: static;
-    margin: 15px auto 0;
-    width: 240px;
-    transform: none !important;
-    display: none;
-  }
-  .prev-card.show {
-    display: block;
-  }
-  .srv-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .victory-banner {
-    bottom: 300px;
-  }
+/* Glow beneath character */
+.char-glow {
+  position:absolute;
+  bottom:0; left:50%;
+  transform:translateX(-50%);
+  width:220px; height:60px;
+  background:radial-gradient(ellipse, rgba(0,180,255,0.18) 0%, transparent 70%);
+  pointer-events:none;
+  transition:background 0.8s ease;
+}
+
+/* Minecraft floating nametag */
+.char-nametag {
+  position:absolute;
+  top:-38px; left:50%;
+  transform:translateX(-50%) scale(0.8);
+  background:rgba(0,0,0,0.78);
+  border:1.5px solid rgba(255,255,255,0.18);
+  border-radius:4px;
+  padding:3px 14px 4px;
+  font-size:13px; font-weight:800;
+  color:#fff;
+  text-shadow:1px 1px 0 #000;
+  letter-spacing:0.3px;
+  pointer-events:none;
+  opacity:0;
+  white-space:nowrap;
+  transition:opacity 0.3s ease, transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  z-index:20;
+}
+.char-nametag::after {
+  content:'';
+  position:absolute;
+  top:100%; left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:rgba(0,0,0,0.78);
+}
+.char-nametag.show {
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+}
+
+/* Skin Canvas */
+#skin-canvas {
+  display:block;
+  cursor:grab;
+  filter:drop-shadow(0 20px 50px rgba(0,100,255,0.18));
+  transition:filter 0.5s ease;
+}
+#skin-canvas:active { cursor:grabbing; }
+
+/* Pedestal */
+.pedestal {
+  width:160px; height:10px;
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.14);
+  border-radius:50%;
+  box-shadow:0 0 30px rgba(0,180,255,0.25);
+  margin-top:-4px;
+  transition:box-shadow 0.6s ease;
+}
+
+/* ── Landing UI ─────────────────────── */
+.landing-ui {
+  margin-top:20px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  transition:opacity 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.landing-ui.hidden {
+  opacity:0; pointer-events:none; transform:translateY(30px); height:0; overflow:hidden; margin:0;
+}
+.landing-title {
+  font-size:11px; font-weight:800; color:var(--t2);
+  letter-spacing:2px; text-transform:uppercase;
+  text-align:center;
+}
+.landing-btns {
+  display:flex; gap:12px;
+}
+
+/* ── Registration UI ────────────────── */
+.reg-ui {
+  width:440px;
+  max-width:96vw;
+  opacity:0; pointer-events:none;
+  transform:translateY(20px);
+  transition:opacity 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  margin-top:16px;
+}
+.reg-ui.show {
+  opacity:1; pointer-events:auto; transform:translateY(0);
+}
+
+/* Progress dots */
+.prog-dots {
+  display:flex; gap:8px; justify-content:center; margin-bottom:14px;
+}
+.pd {
+  width:28px; height:3px;
+  background:rgba(255,255,255,0.1);
+  border-radius:2px;
+  transition:all 0.3s ease;
+}
+.pd.act { background:var(--gold); box-shadow:0 0 8px var(--gold); }
+.pd.dn  { background:var(--green); }
+
+/* Step card */
+.step-card {
+  background:rgba(6,10,22,0.88);
+  border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:22px 24px 18px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  position:relative;
+}
+
+.step-label {
+  font-size:8px; font-weight:900; color:var(--gold);
+  letter-spacing:2px; text-transform:uppercase; margin-bottom:3px;
+}
+.step-title {
+  font-size:18px; font-weight:900; text-transform:uppercase;
+  color:#fff; letter-spacing:-0.3px; margin-bottom:14px;
+}
+
+/* Step views */
+.sv { display:none; }
+.sv.act {
+  display:block;
+  animation:svIn .25s cubic-bezier(.25,.46,.45,.94) both;
+}
+@keyframes svIn { from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)} }
+
+/* ── Form Elements ──────────────────── */
+.fg { margin-bottom:13px; position:relative; }
+.flbl {
+  display:block; font-size:9px; font-weight:800;
+  color:var(--t2); letter-spacing:.7px; text-transform:uppercase;
+  margin-bottom:5px; transition:color .15s;
+}
+.fg:focus-within .flbl { color:var(--gold); }
+.fi {
+  width:100%;
+  background:var(--input-bg);
+  border:1.5px solid var(--input-border);
+  padding:11px 14px;
+  color:var(--t1);
+  font-family:'Montserrat',sans-serif;
+  font-size:13px; font-weight:600;
+  outline:none; border-radius:8px;
+  transition:border-color .15s, background .15s, box-shadow .15s;
+}
+.fi::placeholder { color:var(--tdim); }
+.fi:focus {
+  border-color:var(--gold);
+  background:rgba(0,0,0,0.65);
+  box-shadow:0 0 0 3px rgba(255,209,59,0.08);
+}
+.fi.err { border-color:var(--red); animation:shake .3s ease; }
+.fi.ok  { border-color:var(--green); }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+}
+textarea.fi { resize:none; height:68px; line-height:1.5; }
+.fh { font-size:10px; margin-top:4px; font-weight:700; }
+.fh.g { color:var(--green); }
+.fh.r { color:var(--red); }
+.fh.m { color:var(--tdim); }
+.cc { text-align:right; font-size:9px; font-weight:700; color:var(--tdim); margin-top:3px; }
+.cc.warn { color:var(--red); }
+.nick-url { font-size:10px; color:var(--tdim); font-weight:700; margin-top:4px; }
+.nick-url b { color:var(--gold); }
+
+/* Nick mini skin inside input */
+.nick-wrap { position:relative; }
+.nick-skin-mini {
+  position:absolute; right:0; top:0; bottom:0; width:42px;
+  background:rgba(0,0,0,0.4);
+  border-left:1.5px solid var(--input-border);
+  display:flex; align-items:center; justify-content:center;
+  border-top-right-radius:8px; border-bottom-right-radius:8px;
+  transition:all .3s;
+}
+.nick-skin-mini img { width:22px; height:22px; image-rendering:pixelated; transition:opacity .25s; }
+.nick-skin-mini.loading img { opacity:.3; animation:spin .8s linear infinite; }
+.nick-skin-mini.ok img { opacity:1; animation:skinPop .3s ease; }
+@keyframes skinPop { 0%{transform:scale(.4)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+@keyframes spin { to { transform:rotate(360deg); } }
+.nick-wrap .fi { padding-right:50px; }
+
+/* Password */
+.pw-wrap { position:relative; }
+.pw-wrap .fi { padding-right:40px; }
+.pw-eye {
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:var(--tdim);
+  font-size:14px; padding:2px; transition:color .15s;
+}
+.pw-eye:hover { color:var(--gold); }
+
+/* ── Buttons ─────────────────────────── */
+.btn {
+  padding:12px 26px; cursor:pointer;
+  border-radius:30px;
+  font-family:'Montserrat',sans-serif;
+  font-size:11px; font-weight:900; font-style:italic;
+  letter-spacing:.6px; text-transform:uppercase;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  border:none; user-select:none;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  transition:transform .15s, filter .15s;
+  position:relative; overflow:hidden;
+}
+.btn:disabled { opacity:.3; pointer-events:none; }
+.btn::after {
+  content:''; position:absolute;
+  top:0; left:-150%; width:70%; height:100%;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.22) 50%,rgba(255,255,255,0) 100%);
+  transform:skewX(-20deg); pointer-events:none;
+}
+.btn:hover::after { left:150%; transition:left 0.6s cubic-bezier(0.4,0,0.2,1); }
+.btn:hover { transform:scale(1.04); filter:brightness(1.1); }
+.btn:active { transform:scale(0.97); }
+.btn-full { width:100%; }
+.btn-gold { background:#fff; color:#000; }
+.btn-ghost { background:rgba(255,255,255,0.1); color:#fff; }
+.btn-ghost:hover { background:rgba(255,255,255,0.18); }
+.btn-cyan { background:var(--cyan); color:#fff; }
+.btn-sm { padding:8px 18px; font-size:10px; }
+.btn-row { display:flex; gap:8px; margin-top:10px; }
+.btn-row .btn { flex:1; }
+.sep {
+  display:flex; align-items:center; gap:10px;
+  margin:10px 0; color:var(--t2); font-size:9px;
+  font-weight:800; text-transform:uppercase; letter-spacing:1px;
+}
+.sep::before,.sep::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.07); }
+
+/* ── Tag grid ───────────────────────── */
+.tag-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px;
+}
+.tcard {
+  background:var(--input-bg);
+  border:1.5px solid var(--input-border);
+  border-radius:10px; padding:12px 8px 10px;
+  cursor:pointer; text-align:center;
+  transition:transform .15s, border-color .15s;
+  user-select:none;
+}
+.tcard:hover { transform:scale(1.03); border-color:rgba(255,255,255,0.25); }
+.tcard.sel { border-color:var(--gold); background:rgba(255,209,59,0.06); transform:scale(1.03); }
+.tc-ico { font-size:18px; margin-bottom:4px; }
+.tc-n { font-size:11px; font-weight:900; }
+.tc-d { font-size:8px; color:var(--t2); margin-top:2px; font-weight:600; }
+.sub-sec { display:none; animation:svIn .2s ease both; margin-bottom:8px; }
+.sub-sec.show { display:block; }
+.sub-lbl { font-size:9px; font-weight:800; color:var(--t2); text-transform:uppercase; letter-spacing:.7px; margin-bottom:6px; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip {
+  background:var(--input-bg); border:1.5px solid var(--input-border);
+  border-radius:8px; padding:6px 10px;
+  cursor:pointer; font-size:10px; font-weight:800; color:var(--t1);
+  transition:all .15s; user-select:none;
+  display:flex; align-items:center; gap:5px;
+}
+.chip:hover { transform:scale(1.03); border-color:rgba(255,255,255,0.3); }
+.chip.sel { border-color:var(--gold); color:var(--gold); background:rgba(255,209,59,.06); }
+.chip img { width:13px; height:13px; object-fit:contain; }
+
+/* ── Swatches ───────────────────────── */
+.swatches { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+.sw {
+  width:30px; height:30px;
+  border:2px solid rgba(255,255,255,0.15);
+  border-radius:50%; cursor:pointer; position:relative;
+  transition:transform .15s, border-color .15s;
+}
+.sw:hover { transform:scale(1.12); border-color:#fff; }
+.sw.sel { border-color:var(--gold); box-shadow:0 0 10px var(--gold-glow); transform:scale(1.12); }
+.sw.sel::after {
+  content:'✓'; position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:900; color:#fff; text-shadow:1px 1px 0 #000;
+}
+
+/* ── Server Grid ────────────────────── */
+.srv-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:5px;
+  margin-bottom:10px; max-height:140px; overflow-y:auto; padding-right:2px;
+}
+.srv-grid::-webkit-scrollbar { width:3px; }
+.srv-grid::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+.srv-c {
+  background:var(--input-bg); border:1.5px solid var(--input-border);
+  border-radius:8px; padding:7px 4px;
+  cursor:pointer; text-align:center; transition:all .15s; user-select:none;
+}
+.srv-c:hover { transform:scale(1.04); border-color:rgba(255,255,255,0.3); }
+.srv-c.sel { border-color:var(--gold); background:rgba(255,209,59,.06); }
+.srv-c img {
+  width:26px; height:26px; border-radius:4px; object-fit:cover;
+  background:#090d1a; display:block; margin:0 auto 3px;
+  image-rendering:pixelated;
+}
+.srv-c .sn { font-size:7px; font-weight:800; color:var(--t1); line-height:1.2; word-break:break-word; }
+
+/* ── Server badge floating ──────────── */
+.srv-badge {
+  position:absolute;
+  bottom:-50px; left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.88); border:1.5px solid var(--gold);
+  border-radius:20px; display:flex; align-items:center; gap:6px;
+  padding:5px 12px; opacity:0; transition:opacity .3s; white-space:nowrap; z-index:10;
+}
+.srv-badge.show { opacity:1; animation:badgePop .35s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes badgePop {
+  0%{transform:translateX(-50%) scale(0)}
+  70%{transform:translateX(-50%) scale(1.08)}
+  100%{transform:translateX(-50%) scale(1)}
+}
+.srv-badge img { width:18px; height:18px; image-rendering:pixelated; border-radius:3px; }
+.srv-badge span { font-size:9px; font-weight:900; color:var(--gold); text-transform:uppercase; letter-spacing:.5px; }
+
+/* ── Success step ───────────────────── */
+.suc { text-align:center; padding:8px 0; }
+.suc-ring {
+  width:64px; height:64px; border:4px solid var(--gold); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 14px; box-shadow:0 0 20px var(--gold-glow);
+  animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes popIn { from{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.1) rotate(3deg)} to{transform:scale(1) rotate(0);opacity:1} }
+.suc-t { font-size:18px; font-weight:900; text-transform:uppercase; margin-bottom:6px; }
+.suc-t b { color:var(--gold); }
+.suc-s { font-size:10px; color:var(--t2); margin-bottom:14px; line-height:1.7; font-weight:600; }
+
+/* ── tlink ──────────────────────────── */
+.tlink { text-align:center; margin-top:10px; font-size:11px; color:var(--t2); font-weight:600; }
+.tlink button {
+  background:none; border:none; color:var(--gold);
+  font-weight:800; font-size:11px; cursor:pointer;
+  font-family:'Montserrat',sans-serif;
+  text-decoration:underline; text-underline-offset:3px;
+}
+
+/* ── Victory Screen ─────────────────── */
+.victory-screen {
+  position:fixed; inset:0; z-index:200;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.8s ease;
+  background:radial-gradient(ellipse at 50% 50%, rgba(255,209,59,0.06) 0%, transparent 70%);
+}
+.victory-screen.show { opacity:1; pointer-events:auto; }
+.vic-title {
+  font-size:36px; font-weight:900; font-style:italic;
+  color:var(--gold);
+  text-shadow:2px 2px 0 #000, 0 0 30px rgba(255,209,59,0.5);
+  letter-spacing:3px; margin-bottom:8px; text-transform:uppercase;
+  animation:victoryDrop 0.8s 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+.vic-sub {
+  font-size:20px; font-weight:800; color:#fff;
+  text-shadow:1px 1px 0 #000;
+  animation:victoryDrop 0.8s 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+@keyframes victoryDrop { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
+.vic-btn { animation:victoryDrop 0.8s 0.7s both; margin-top:24px; }
+
+/* ── Login Overlay ──────────────────── */
+.login-overlay {
+  position:fixed; inset:0;
+  background:rgba(3,5,10,0.75);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.35s ease;
+}
+.login-overlay.show { opacity:1; pointer-events:auto; }
+.login-card {
+  width:100%; max-width:420px;
+  background:rgba(6,10,22,0.92);
+  border:1.5px solid rgba(255,255,255,0.09);
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);
+  padding:30px;
+  position:relative;
+  animation:modalPop .4s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes modalPop { from{transform:scale(0.88) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.modal-close {
+  position:absolute; top:14px; right:14px;
+  background:rgba(255,255,255,0.07); border:none;
+  border-radius:50%; width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:12px; cursor:pointer;
+  transition:background .15s;
+}
+.modal-close:hover { background:rgba(255,255,255,0.15); }
+
+/* ── Spinner ────────────────────────── */
+.sp {
+  width:12px; height:12px;
+  border:2px solid rgba(255,255,255,0.2);
+  border-top-color:#fff; border-radius:50%;
+  animation:spin .6s linear infinite; display:inline-block;
+}
+
+/* ── Viewer wrap jump/shake ─────────── */
+@keyframes jump {
+  0%,100%{transform:translateY(0)}
+  30%{transform:translateY(-14px)}
+  60%{transform:translateY(-6px)}
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-6px)}
+  40%,80%{transform:translateX(6px)}
+}
+.viewer-wrap.jump { animation:jump 0.5s ease; }
+.viewer-wrap.shake { animation:shake 0.4s ease; }
+
+/* ── Scrollbar ──────────────────────── */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+
+/* ── Preview Card (floating bottom-left) */
+.prev-card {
+  position:fixed; bottom:24px; left:24px;
+  width:220px;
+  background:rgba(6,10,22,0.88);
+  border:1.5px solid rgba(255,255,255,0.09);
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  overflow:visible;
+  opacity:0; transform:translateY(10px) scale(.96);
+  transition:opacity 0.4s ease, transform 0.4s ease;
+  z-index:30;
+  backdrop-filter:blur(12px);
+}
+.prev-card.show { opacity:1; transform:translateY(0) scale(1); }
+.prev-banner {
+  height:58px; position:relative;
+  border-top-left-radius:12px; border-top-right-radius:12px;
+  transition:background .5s ease;
+}
+.prev-av-wrap {
+  position:absolute; bottom:-14px; left:10px;
+  width:36px; height:36px; border:2px solid #000;
+  border-radius:6px; background:#0a0f1e; overflow:hidden; z-index:5;
+}
+.prev-av-wrap img { width:100%; height:100%; object-fit:cover; image-rendering:pixelated; }
+.prev-body { padding:20px 10px 10px; display:flex; flex-direction:column; gap:4px; }
+.prev-nick { font-size:12px; font-weight:900; }
+.prev-nick.flash { animation:flash .3s ease; }
+@keyframes flash { 0%,100%{opacity:1} 45%{opacity:.15} }
+.prev-tag-wrap { display:flex; flex-wrap:wrap; gap:4px; }
+.prev-tag {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:2px 7px; font-size:7px; font-weight:900;
+  border-radius:4px; text-transform:uppercase; letter-spacing:.3px;
+}
+.prev-tag img { width:8px; height:8px; }
+.prev-bio { font-size:8px; color:var(--t2); line-height:1.5; font-weight:600; font-style:italic; }
+.prev-stats {
+  display:flex; gap:12px; font-size:8px; color:var(--tdim); font-weight:700;
+  padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);
 }
 </style>
 </head>
@@ -1157,215 +592,222 @@ textarea.fi {
   <img class="ll" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
   <div class="lb"><div class="lbi"></div></div>
 </div>
+
 <div id="tc"></div>
 <canvas id="bg-canvas"></canvas>
 
-<div class="page-container" id="page-container">
+<!-- Logo -->
+<div class="logo-corner">
+  <img class="logo-img" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
+  <div class="logo-text">LOBBY<span style="color:#fff">.GG</span></div>
+</div>
 
-  <!-- LEFT PANE: Character Arena -->
-  <div class="character-pane" id="character-pane">
-    <div class="pane-header">
-      <img class="logo-img" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
-      <div class="logo-text">LOBBY<span style="color:#fff">.GG</span></div>
+<!-- Victory Screen (full screen) -->
+<div class="victory-screen" id="victory-screen">
+  <div class="vic-title">Karakter Oluşturuldu!</div>
+  <div class="vic-sub">Hoş geldin lobiye, <span id="vic-name"></span> ⚔️</div>
+  <button class="btn btn-gold vic-btn" id="btn-victory-go" style="width:220px">LOBİYE KATIL →</button>
+</div>
+
+<!-- Login Overlay (center modal) -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <button class="modal-close" id="btn-close-login">✕</button>
+    <div style="margin-bottom:18px">
+      <div style="font-size:8px;font-weight:900;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px">LOBBY.GG GİRİŞ</div>
+      <div style="font-size:20px;font-weight:900;text-transform:uppercase">Giriş Yap</div>
     </div>
-    
-    <div class="arena-container">
-      <div class="viewer-wrap" id="viewer-wrap">
-        <!-- Minecraft styled Name Tag floating right above character -->
-        <div class="character-nametag" id="char-nametag"> Notch </div>
-        
-        <canvas id="skin-canvas" width="220" height="320"></canvas>
-        <div class="pedestal"></div>
-        <div class="srv-badge" id="srv-badge">
-          <img id="srv-badge-img" src="" alt="">
-          <span id="srv-badge-name"></span>
-        </div>
+    <div style="font-size:11px;color:var(--t2);margin-bottom:14px;font-weight:600">Hesabına erişmek için bilgilerini gir.</div>
+    <div class="fg">
+      <label class="flbl">E-posta</label>
+      <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
+    </div>
+    <div class="fg">
+      <label class="flbl">Şifre</label>
+      <div class="pw-wrap">
+        <input class="fi" type="password" id="l-pw" placeholder="••••••••">
+        <button class="pw-eye" id="l-pwt">👁</button>
       </div>
     </div>
+    <div id="b-login" style="margin-bottom:10px"></div>
+    <div class="sep">veya</div>
+    <div id="b-gl"></div>
+    <div class="tlink">Hesabın yok mu? <button id="go-reg-from-login">Kayıt Ol</button></div>
+  </div>
+</div>
 
-    <!-- Floating profile card overlay -->
-    <div class="prev-card" id="prev-card">
-      <div class="prev-banner" id="pv-banner" style="background:#1a2a4a">
-        <div class="prev-av-wrap">
-          <img id="pv-av" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="av">
-        </div>
-      </div>
-      <div class="prev-body">
-        <div class="prev-nick" id="pv-nick">kullanici</div>
-        <div class="prev-tag-wrap" id="pv-tags"></div>
-        <div class="prev-bio" id="pv-bio" style="font-style:italic">bio yazılmadı...</div>
-        <div class="prev-stats"><span>0 Takipçi</span><span>0 Drop</span></div>
-      </div>
-    </div>
-
-    <!-- Landing Options (Kayıt Ol / Giriş Yap) -->
-    <div class="landing-actions" id="landing-actions">
-      <button class="btn mc-gold" id="btn-start-reg" style="width: 180px;">KAYIT OL</button>
-      <button class="btn btn-ghost" id="btn-start-login" style="width: 180px;">GİRİŞ YAP</button>
-    </div>
-
-    <!-- Centered Victory Banner (Fades in when victory is active) -->
-    <div class="victory-banner" id="victory-banner">
-      <div class="vic-title">Karakter Oluşturuldu!</div>
-      <div class="vic-subtitle">Hoş geldin lobiye, <span id="vic-name">Alexa</span> ⚔️</div>
-      <button class="btn mc-gold" id="btn-victory-go" style="margin-top:20px; width: 220px;">LOBİYE KATIL →</button>
+<!-- Preview Card -->
+<div class="prev-card" id="prev-card">
+  <div class="prev-banner" id="pv-banner" style="background:#1a2a4a">
+    <div class="prev-av-wrap">
+      <img id="pv-av" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="av">
     </div>
   </div>
+  <div class="prev-body">
+    <div class="prev-nick" id="pv-nick">kullanici</div>
+    <div class="prev-tag-wrap" id="pv-tags"></div>
+    <div class="prev-bio" id="pv-bio" style="font-style:italic">bio yazılmadı...</div>
+    <div class="prev-stats"><span>0 Takipçi</span><span>0 Drop</span></div>
+  </div>
+</div>
 
-  <!-- RIGHT PANE: HUD Customizer Panel -->
-  <div class="hud-pane" id="hud-pane">
-    <div class="hud-card">
-      
-      <!-- Quest progression details -->
-      <div class="hud-card-header">
-        <div class="hud-quest-label" id="quest-label">LOBBY.GG LOBİSİ</div>
-        <div class="hud-title" id="hud-title-text">Kayıt Ol</div>
+<!-- MAIN STAGE -->
+<div class="stage" id="stage">
+
+  <!-- Character Arena -->
+  <div class="char-arena" id="char-arena">
+
+    <div class="viewer-wrap" id="viewer-wrap" style="position:relative">
+      <!-- Minecraft nametag floating above character -->
+      <div class="char-nametag" id="char-nametag">Notch</div>
+
+      <canvas id="skin-canvas" width="240" height="360"></canvas>
+
+      <!-- Server badge below pedestal -->
+      <div class="srv-badge" id="srv-badge">
+        <img id="srv-badge-img" src="" alt="">
+        <span id="srv-badge-name"></span>
       </div>
+    </div>
 
-      <!-- Segment Progress Bar -->
-      <div class="prog" id="prog"></div>
+    <div class="pedestal" id="pedestal"></div>
+    <div class="char-glow" id="char-glow"></div>
 
-      <!-- S0: MC IGN -->
-      <div class="sv" id="vs0">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Bu senin Minecraft oyuncu adın olacak. Skinin anında sol tarafta belirecek!</div>
-        <div class="fg">
-          <label class="flbl">⛏ Minecraft Nick</label>
-          <div class="nick-wrap">
-            <input class="fi" type="text" id="nick" placeholder="örn. Notch" maxlength="16" autocomplete="off">
-            <div class="nick-skin-mini" id="nsk-mini">
-              <img id="nsk-img" src="https://mc-heads.net/avatar/MHF_Steve/32" alt="">
+    <!-- Landing buttons (below character) -->
+    <div class="landing-ui" id="landing-ui">
+      <div class="landing-title">⚔️ &nbsp;Lobiye Katılmak için Seç&nbsp; ⚔️</div>
+      <div class="landing-btns">
+        <button class="btn btn-gold" id="btn-start-reg" style="width:180px">KAYIT OL</button>
+        <button class="btn btn-ghost" id="btn-start-login" style="width:180px">GİRİŞ YAP</button>
+      </div>
+    </div>
+
+    <!-- Registration UI (below character, cinematic steps) -->
+    <div class="reg-ui" id="reg-ui">
+
+      <!-- Progress dots -->
+      <div class="prog-dots" id="prog-dots"></div>
+
+      <!-- Step card -->
+      <div class="step-card">
+        <div class="step-label" id="step-label">LOBBY.GG LOBİSİ</div>
+        <div class="step-title" id="step-title">Karakterini Tanımla</div>
+
+        <!-- S0: Minecraft Nick -->
+        <div class="sv" id="vs0">
+          <div style="font-size:11px;color:var(--t2);margin-bottom:13px;font-weight:600">Minecraft kullanıcı adını gir. Skinin anında belirecek! ✨</div>
+          <div class="fg">
+            <label class="flbl">⛏ Minecraft Nick</label>
+            <div class="nick-wrap">
+              <input class="fi" type="text" id="nick" placeholder="örn. Notch" maxlength="16" autocomplete="off">
+              <div class="nick-skin-mini" id="nsk-mini">
+                <img id="nsk-img" src="https://mc-heads.net/avatar/MHF_Steve/32" alt="">
+              </div>
+            </div>
+            <div class="nick-url" id="np">lobby.gg/<b>...</b></div>
+            <div class="fh m" id="ns"></div>
+          </div>
+          <div id="b-s0n"></div>
+          <div class="tlink"><button id="go-back-landing">← İptal</button></div>
+        </div>
+
+        <!-- S1: Email + Password -->
+        <div class="sv" id="vs1">
+          <div style="font-size:11px;color:var(--t2);margin-bottom:13px;font-weight:600">LOBBY.GG hesabın için e-posta ve şifreni gir.</div>
+          <div class="fg">
+            <label class="flbl">E-posta</label>
+            <input class="fi" type="email" id="r-em" placeholder="ornek@mail.com">
+          </div>
+          <div class="fg">
+            <label class="flbl">Şifre</label>
+            <div class="pw-wrap">
+              <input class="fi" type="password" id="r-pw" placeholder="En az 6 karakter">
+              <button class="pw-eye" id="r-pwt">👁</button>
             </div>
           </div>
-          <div class="nick-url" id="np">lobby.gg/<b>...</b></div>
-          <div class="fh m" id="ns"></div>
+          <div id="b-s1n" style="margin-bottom:10px"></div>
+          <div class="sep">veya</div>
+          <div id="b-gr"></div>
+          <div class="btn-row"><div id="b-s1bk"></div></div>
         </div>
-        <div id="b-s0n" style="margin-top:8px"></div>
-        <div class="tlink"><button id="go-back-landing-reg">← İptal Et</button></div>
-      </div>
 
-      <!-- S1: Email + Password -->
-      <div class="sv" id="vs1">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">LOBBY.GG hesabın için e-posta adresini ve şifreni gir.</div>
-        <div class="fg">
-          <label class="flbl">E-posta</label>
-          <input class="fi" type="email" id="r-em" placeholder="ornek@mail.com">
-        </div>
-        <div class="fg">
-          <label class="flbl">Şifre</label>
-          <div class="pw-wrap">
-            <input class="fi" type="password" id="r-pw" placeholder="En az 6 karakter">
-            <button class="pw-eye" id="r-pwt">👁</button>
+        <!-- S2: Role select -->
+        <div class="sv" id="vs2">
+          <div style="font-size:11px;color:var(--t2);margin-bottom:13px;font-weight:600">Topluluktaki rolünü seç.</div>
+          <div class="tag-grid">
+            <div class="tcard" data-m="Oyuncu"><div class="tc-ico">⚔️</div><div class="tc-n">Oyuncu</div><div class="tc-d">MC oynuyorum</div></div>
+            <div class="tcard" data-m="Developer"><div class="tc-ico">💻</div><div class="tc-n">Developer</div><div class="tc-d">Kod yazıyorum</div></div>
+            <div class="tcard" data-m="Medya"><div class="tc-ico">🎬</div><div class="tc-n">Medya</div><div class="tc-d">İçerik üretiyorum</div></div>
+            <div class="tcard" data-m="Diger"><div class="tc-ico">🎮</div><div class="tc-n">Diğer</div><div class="tc-d">Bunlardan değilim</div></div>
+          </div>
+          <div class="sub-sec" id="sub-dev">
+            <div class="sub-lbl">Uzmanlık</div>
+            <div class="chips">
+              <div class="chip" data-s="Plugin Dev">🔌 Plugin Dev</div>
+              <div class="chip" data-s="Web Dev">🌐 Web Dev</div>
+              <div class="chip" data-s="Skripter">📜 Skripter</div>
+              <div class="chip" data-s="Builder">🏗️ Builder</div>
+            </div>
+          </div>
+          <div class="sub-sec" id="sub-med">
+            <div class="sub-lbl">Platform</div>
+            <div class="chips">
+              <div class="chip" data-s="YouTube" data-t="YouTuber"><img src="https://cdn.simpleicons.org/youtube/FFFFFF">YouTuber</div>
+              <div class="chip" data-s="TikTok" data-t="TikToker"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF">TikToker</div>
+              <div class="chip" data-s="Kick" data-t="Kick"><img src="https://cdn.simpleicons.org/kick/53FC18">Kick</div>
+              <div class="chip" data-s="Twitch" data-t="Twitch"><img src="https://cdn.simpleicons.org/twitch/9146FF">Twitch</div>
+              <div class="chip" data-s="Instagram" data-t="Instagram"><img src="https://cdn.simpleicons.org/instagram/FFFFFF">Instagram</div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <div id="b-s2bk" style="flex:0 0 auto"></div>
+            <div id="b-s2n" style="flex:1"></div>
           </div>
         </div>
-        <div id="b-s1n" style="margin-bottom:10px"></div>
-        <div class="sep">veya</div>
-        <div id="b-gr"></div>
-        <div class="btn-row" style="margin-top:10px"><div id="b-s1bk"></div></div>
-      </div>
 
-      <!-- S2: Tag select -->
-      <div class="sv" id="vs2">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Profilinde yer alacak rol grubunu ve uzmanlığını seç.</div>
-        <div class="tag-grid">
-          <div class="tcard" data-m="Oyuncu"><div class="tc-ico">⚔️</div><div class="tc-n">Oyuncu</div><div class="tc-d">MC oynuyorum</div></div>
-          <div class="tcard" data-m="Developer"><div class="tc-ico">💻</div><div class="tc-n">Developer</div><div class="tc-d">Kod yazıyorum</div></div>
-          <div class="tcard" data-m="Medya"><div class="tc-ico">🎬</div><div class="tc-n">Medya</div><div class="tc-d">İçerik üretiyorum</div></div>
-          <div class="tcard" data-m="Diger"><div class="tc-ico">🎮</div><div class="tc-n">Diğer</div><div class="tc-d">Bunlardan değilim</div></div>
-        </div>
-        <div class="sub-sec" id="sub-dev">
-          <div class="sub-lbl">Uzmanlık</div>
-          <div class="chips">
-            <div class="chip" data-s="Plugin Dev">🔌 Plugin Dev</div>
-            <div class="chip" data-s="Web Dev">🌐 Web Dev</div>
-            <div class="chip" data-s="Skripter">📜 Skripter</div>
-            <div class="chip" data-s="Builder">🏗️ Builder</div>
+        <!-- S3: Profile customise -->
+        <div class="sv" id="vs3">
+          <div style="font-size:11px;color:var(--t2);margin-bottom:13px;font-weight:600">Banner rengini seç — arka plan dinamik değişir! 🎨</div>
+          <div class="fg">
+            <label class="flbl">Banner Rengi</label>
+            <div class="swatches" id="swatches"></div>
+          </div>
+          <div class="fg">
+            <label class="flbl">Hakkımda</label>
+            <textarea class="fi" id="bio" placeholder="Kendinden kısaca bahset..." maxlength="160"></textarea>
+            <div class="cc" id="bio-c">0 / 160</div>
+          </div>
+          <div class="btn-row">
+            <div id="b-s3bk" style="flex:0 0 auto"></div>
+            <div id="b-s3n" style="flex:1"></div>
           </div>
         </div>
-        <div class="sub-sec" id="sub-med">
-          <div class="sub-lbl">Platform</div>
-          <div class="chips">
-            <div class="chip" data-s="YouTube" data-t="YouTuber"><img src="https://cdn.simpleicons.org/youtube/FFFFFF">YouTuber</div>
-            <div class="chip" data-s="TikTok" data-t="TikToker"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF">TikToker</div>
-            <div class="chip" data-s="Kick" data-t="Kick"><img src="https://cdn.simpleicons.org/kick/53FC18">Kick</div>
-            <div class="chip" data-s="Twitch" data-t="Twitch"><img src="https://cdn.simpleicons.org/twitch/9146FF">Twitch</div>
-            <div class="chip" data-s="Instagram" data-t="Instagram"><img src="https://cdn.simpleicons.org/instagram/FFFFFF">Instagram</div>
+
+        <!-- S4: Server select -->
+        <div class="sv" id="vs4">
+          <div style="font-size:11px;color:var(--t2);margin-bottom:13px;font-weight:600">Desteklediğin Minecraft sunucusunu seç.</div>
+          <div class="srv-grid" id="srv-g"></div>
+          <div class="btn-row">
+            <div id="b-s4bk" style="flex:0 0 auto"></div>
+            <div id="b-s4sk" style="flex:1"></div>
+            <div id="b-s4n" style="flex:1"></div>
           </div>
         </div>
-        <div class="btn-row" style="margin-top:12px">
-          <div id="b-s2bk" style="flex:0 0 auto"></div>
-          <div id="b-s2n" style="flex:1"></div>
-        </div>
-      </div>
 
-      <!-- S3: Profile Customize -->
-      <div class="sv" id="vs3">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Banner rengini belirle ve kendini kısaca tanıt! Arka plan dinamik değişir.</div>
-        <div class="fg">
-          <label class="flbl">Banner Rengi</label>
-          <div class="swatches" id="swatches"></div>
+        <!-- S5: Saving -->
+        <div class="sv" id="vs5">
+          <div class="suc">
+            <div class="suc-ring"><span style="font-size:26px;color:var(--gold)">✓</span></div>
+            <div class="suc-t">Hesap <b>Hazırlanıyor...</b></div>
+            <div class="suc-s">Karakterin oluşturuluyor.<br>Lütfen bekle... ⏳</div>
+          </div>
         </div>
-        <div class="fg">
-          <label class="flbl">Hakkımda</label>
-          <textarea class="fi" id="bio" placeholder="Kendinden kısaca bahset..." maxlength="160"></textarea>
-          <div class="cc" id="bio-c">0 / 160</div>
-        </div>
-        <div class="btn-row">
-          <div id="b-s3bk" style="flex:0 0 auto"></div>
-          <div id="b-s3n" style="flex:1"></div>
-        </div>
-      </div>
 
-      <!-- S4: Server select -->
-      <div class="sv" id="vs4">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Desteklediğin veya en çok oynadığın Minecraft sunucusunu seç.</div>
-        <div class="srv-grid" id="srv-g"></div>
-        <div class="btn-row">
-          <div id="b-s4bk" style="flex:0 0 auto"></div>
-          <div id="b-s4sk" style="flex:1"></div>
-          <div id="b-s4n" style="flex:1"></div>
-        </div>
-      </div>
+      </div><!-- /step-card -->
+    </div><!-- /reg-ui -->
 
-      <!-- S5: Welcome step -->
-      <div class="sv" id="vs5">
-        <div class="suc">
-          <div class="suc-ring"><span style="font-size:28px;color:var(--gold)">✓</span></div>
-          <div class="suc-t">Hesap Hazırlanıyor...</div>
-          <div class="suc-s">Karakterin oluşturuluyor. Lütfen bekleyin... ⏳</div>
-        </div>
-      </div>
-
-    </div><!-- /hud-card -->
-  </div><!-- /hud-pane -->
-
-  <!-- CENTERED LOGIN OVERLAY (Orta alanda sorsun) -->
-  <div class="login-overlay" id="login-overlay">
-    <div class="login-card">
-      <button class="modal-close-btn" id="btn-close-login">✕</button>
-      <div class="hud-card-header">
-        <div class="hud-quest-label">LOBBY.GG GİRİŞ</div>
-        <div class="hud-title">Giriş Yap</div>
-      </div>
-      <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Hesabına erişmek için bilgilerini gir.</div>
-      <div class="fg">
-        <label class="flbl">E-posta</label>
-        <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
-      </div>
-      <div class="fg">
-        <label class="flbl">Şifre</label>
-        <div class="pw-wrap">
-          <input class="fi" type="password" id="l-pw" placeholder="••••••••">
-          <button class="pw-eye" id="l-pwt">👁</button>
-        </div>
-      </div>
-      <div id="b-login" style="margin-bottom:10px"></div>
-      <div class="sep">veya</div>
-      <div id="b-gl"></div>
-      <div class="tlink">Hesabın yok mu? <button id="go-reg-from-login">Kayıt Ol</button></div>
-    </div>
-  </div>
-
-</div><!-- /page-container -->
+  </div><!-- /char-arena -->
+</div><!-- /stage -->
 
 <script>
 /* ══ SUPABASE ══ */
@@ -1375,48 +817,41 @@ const db=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 /* ══ STATE ══ */
 const S={nick:'',nickOk:false,email:'',pw:'',mainTag:'',subTag:'',displayTag:'',banner:'#1a2a4a',bio:'',server:'',serverName:''};
+let currentStep = -1; // -1 = landing
 
 /* ══ DATA ══ */
 const BANNERS=['#1a2a4a','#e83838','#556075','#2d3440','#ed8936','#9f7aea','#48bb78'];
 const BG_CLASSES={
-  '#1a2a4a':'bg-blue',
-  '#e83838':'bg-red',
-  '#556075':'bg-gray',
-  '#2d3440':'bg-black',
-  '#ed8936':'bg-orange',
-  '#9f7aea':'bg-purple',
-  '#48bb78':'bg-green'
+  '#1a2a4a':'bg-blue','#e83838':'bg-red','#556075':'bg-gray',
+  '#2d3440':'bg-black','#ed8936':'bg-orange','#9f7aea':'bg-purple','#48bb78':'bg-green'
 };
 const TCOLORS={Oyuncu:'#2e6e1a',Developer:'#1a4ea0','Plugin Dev':'#1a4ea0','Web Dev':'#0a6060',Skripter:'#4a1aa0',Builder:'#904a10',YouTuber:'#aa0000',TikToker:'#111',Kick:'#0a4a0a',Twitch:'#4a1a90',Instagram:'#90108a','Diğer':'#444'};
 const PLAT={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
 const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.chickennw.com'},{n:'BLOKYA',ip:'oyna.blokya.com'},{n:'DugeCraft',ip:'play.dugecraft.com.tr'},{n:'ZENITMC',ip:'play.zenitmc.com'},{n:'SENTORCRAFT',ip:'sentorcraft.com'},{n:'SOULCRAFT',ip:'soulcraft.tc'},{n:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{n:'AtlantikMC',ip:'atlantikmc.com'},{n:'NAVELYA',ip:'navelya.net'},{n:'CRAFTLUNA',ip:'play.craftluna.net'},{n:'Melonya',ip:'melonya.net'},{n:'Rush Craft',ip:'play.rushcraft.com.tr'},{n:'RebornCraft',ip:'play.reborncraft.pw'},{n:'LuneCraft',ip:'mc.lunecraft.net'},{n:'SimitSMP',ip:'simitsmp.net'},{n:'MC4FUN',ip:'play.mc4fun.net'},{n:'İmibiyum',ip:'play.imibiyum.com'}];
 
-/* ══ BG PARTICLES (Golden Sparkles Rising) ══ */
+/* ══ BG PARTICLES ══ */
 (function(){
   const c=document.getElementById('bg-canvas');
   const ctx=c.getContext('2d');
   let W,H,pts=[];
   function resize(){
-    W=c.width=innerWidth;
-    H=c.height=innerHeight;
-    pts=Array.from({length:55},()=>({
-      x:Math.random()*W,
-      y:Math.random()*H,
-      r:.6+Math.random()*1.3,
-      vx:(Math.random()-.5)*.15,
-      vy:-0.1 - Math.random()*0.3, 
-      a:.1+Math.random()*.5
+    W=c.width=innerWidth; H=c.height=innerHeight;
+    pts=Array.from({length:50},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      r:.5+Math.random()*1.2,
+      vx:(Math.random()-.5)*.12, vy:-0.08-Math.random()*.25,
+      a:.08+Math.random()*.4
     }));
   }
-  window.addEventListener('resize',resize);resize();
+  window.addEventListener('resize',resize); resize();
   function draw(){
     ctx.clearRect(0,0,W,H);
     pts.forEach(p=>{
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,209,59,${p.a})`;ctx.fill();
-      p.x+=p.vx;p.y+=p.vy;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,209,59,${p.a})`; ctx.fill();
+      p.x+=p.vx; p.y+=p.vy;
       if(p.x<0||p.x>W)p.vx*=-1;
-      if(p.y<0) { p.y=H; p.x=Math.random()*W; }
+      if(p.y<0){p.y=H; p.x=Math.random()*W;}
     });
     requestAnimationFrame(draw);
   }
@@ -1425,217 +860,136 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
 
 /* ══ SKINVIEW3D ══ */
 let viewer=null;
-
-/* Camera Zoom Target Coordinates */
-let targetCamPos = { y: 10, z: 22 };
-let targetCamLook = { y: 8 };
-let camTransitionTime = 0;
-const camDuration = 60; // frames (~1 second)
-
-function startCamTransition(posY, posZ, lookY) {
-  targetCamPos.y = posY;
-  targetCamPos.z = posZ;
-  targetCamLook.y = lookY;
-  camTransitionTime = camDuration;
-}
-
-// Camera LERP update loop
-function updateCamera() {
-  if (viewer && camTransitionTime > 0) {
-    const k = 0.08; 
-    viewer.camera.position.y += (targetCamPos.y - viewer.camera.position.y) * k;
-    viewer.camera.position.z += (targetCamPos.z - viewer.camera.position.z) * k;
-    
-    viewer.controls.target.x += (0 - viewer.controls.target.x) * k;
-    viewer.controls.target.y += (targetCamLook.y - viewer.controls.target.y) * k;
-    viewer.controls.target.z += (0 - viewer.controls.target.z) * k;
-    
-    viewer.controls.update();
-    camTransitionTime--;
-  }
-  requestAnimationFrame(updateCamera);
-}
+let camTarget={posY:10, posZ:26, lookY:8};
+let camCurrent={posY:10, posZ:26, lookY:8};
 
 function initViewer(){
   if(typeof skinview3d==='undefined'){
-    console.error('skinview3d CDN yüklenemedi!');
-    // fallback mode: static image
-    const canvas = document.getElementById('skin-canvas');
-    if (canvas) canvas.style.display='none';
+    // Fallback: static image
+    document.getElementById('skin-canvas').style.display='none';
     const fb=document.createElement('img');
     fb.id='skin-fallback';
-    fb.style.cssText='width:180px;height:280px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 16px 40px rgba(255,209,59,.3));animation:svFbIdle 2.5s ease-in-out infinite';
-    const style=document.createElement('style');
-    style.textContent='@keyframes svFbIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}';
-    document.head.appendChild(style);
+    fb.style.cssText='width:200px;height:310px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 20px 50px rgba(0,100,255,0.2));animation:idle3d 2.5s ease-in-out infinite';
+    const st=document.createElement('style');
+    st.textContent='@keyframes idle3d{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}';
+    document.head.appendChild(st);
     fb.src='https://mc-heads.net/body/MHF_Steve/100';
-    document.getElementById('viewer-wrap').appendChild(fb);
-    window._fallbackMode=true;
+    document.getElementById('viewer-wrap').insertBefore(fb, document.getElementById('skin-canvas'));
+    window._fallback=true;
     return;
   }
-  try{
+  try {
     viewer=new skinview3d.SkinViewer({
       canvas:document.getElementById('skin-canvas'),
-      width:220,height:320,
+      width:240, height:360,
       skin:'https://minotar.net/skin/MHF_Steve'
     });
-    // Transparent rendering so character stands on CSS pedestal
     viewer.renderer.setClearColor(0x000000,0);
     viewer.controls.enabled=true;
     viewer.controls.enableZoom=false;
     viewer.fov=70;
-    
-    // Slow auto-rotation of model (does not fight with camera LERP)
-    if (viewer.animations && typeof viewer.animations.add === 'function') {
-      const r = viewer.animations.add(skinview3d.RotatingAnimation);
-      r.speed = 0.5;
+    viewer.camera.position.set(0,10,26);
+    viewer.controls.target.set(0,8,0);
+    viewer.controls.update();
+
+    // Auto rotate
+    if(viewer.animations && typeof viewer.animations.add==='function'){
+      const rot=viewer.animations.add(skinview3d.RotatingAnimation);
+      rot.speed=0.4;
     }
-    
-    // Start camera transition loop
-    updateCamera();
-    
     setSkinAnim('idle');
+    camLoop();
     console.log('skinview3d OK ✓');
-  }catch(e){
-    console.error('skinview3d init hatası:',e);
+  } catch(e) {
+    console.error('skinview3d init error:',e);
   }
 }
 
-// Robust animation switcher covering different versions of skinview3d
-function setSkinAnim(t){
-  if(!viewer||!skinview3d)return;
-  try {
-    // Stop all active posture animations
-    if (viewer.animations) {
-      viewer.animations.paused = false;
-      if (window._activeAnims) {
-        window._activeAnims.forEach(a => {
-          try { a.remove(); } catch(err) {}
-        });
-      }
-      window._activeAnims = [];
-    }
-    
-    viewer.animation = null;
+/* Camera smooth lerp */
+function camLoop(){
+  if(!viewer){requestAnimationFrame(camLoop);return;}
+  const k=0.07;
+  camCurrent.posY += (camTarget.posY - camCurrent.posY)*k;
+  camCurrent.posZ += (camTarget.posZ - camCurrent.posZ)*k;
+  camCurrent.lookY += (camTarget.lookY - camCurrent.lookY)*k;
+  viewer.camera.position.y = camCurrent.posY;
+  viewer.camera.position.z = camCurrent.posZ;
+  viewer.controls.target.y = camCurrent.lookY;
+  viewer.controls.update();
+  requestAnimationFrame(camLoop);
+}
 
-    const M = {
-      idle: skinview3d.IdleAnimation,
-      walk: skinview3d.WalkingAnimation,
-      run: skinview3d.RunningAnimation,
-      fly: skinview3d.FlyingAnimation
-    };
-    const Cls = M[t] || skinview3d.IdleAnimation;
-    
-    if (Cls) {
-      const speeds = { idle: 0.5, walk: 0.8, run: 1.5, fly: 1.0 };
-      const speed = speeds[t] || 0.6;
-      
-      // Try animations.add (standard working API for this version)
-      if (viewer.animations && typeof viewer.animations.add === 'function') {
-        const a = viewer.animations.add(Cls);
-        a.speed = speed;
-        window._activeAnims.push(a);
-      } else {
-        // Direct assignment fallback
-        viewer.animation = new Cls();
-        viewer.animation.speed = speed;
-      }
+function setCamTarget(posY,posZ,lookY){
+  camTarget.posY=posY; camTarget.posZ=posZ; camTarget.lookY=lookY;
+}
+
+/* Animation switcher */
+let _activeAnims=[];
+function setSkinAnim(t){
+  if(!viewer||typeof skinview3d==='undefined')return;
+  try {
+    _activeAnims.forEach(a=>{try{a.remove&&a.remove();}catch(e){}});
+    _activeAnims=[];
+    viewer.animation=null;
+    const M={idle:skinview3d.IdleAnimation,walk:skinview3d.WalkingAnimation,run:skinview3d.RunningAnimation,fly:skinview3d.FlyingAnimation};
+    const Cls=M[t]||skinview3d.IdleAnimation;
+    const spd={idle:0.5,walk:0.8,run:1.4,fly:1.0};
+    if(viewer.animations && typeof viewer.animations.add==='function'){
+      const a=viewer.animations.add(Cls); a.speed=spd[t]||0.6; _activeAnims.push(a);
+    } else {
+      viewer.animation=new Cls(); viewer.animation.speed=spd[t]||0.6;
     }
-  } catch(e) {
-    console.error('setSkinAnim hatası:', e);
-  }
+  } catch(e){console.error('setSkinAnim:',e);}
 }
 
 function loadPlayerSkin(nick){
-  if(window._fallbackMode){
+  if(window._fallback){
     const fb=document.getElementById('skin-fallback');
-    if(fb){
-      fb.style.opacity='.4';
-      const tmp=new Image();
-      tmp.onload=()=>{fb.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;fb.style.opacity='1';};
-      tmp.onerror=()=>{fb.style.opacity='1';};
-      tmp.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;
-    }
+    if(fb){fb.style.opacity='.4';const t=new Image();t.onload=()=>{fb.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;fb.style.opacity='1';};t.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;}
     return;
   }
   if(!viewer)return;
-  const skinUrl=`https://minotar.net/skin/${encodeURIComponent(nick)}`;
-  viewer.loadSkin(skinUrl)
+  viewer.loadSkin(`https://minotar.net/skin/${encodeURIComponent(nick)}`)
     .then(()=>{setSkinAnim('walk');wrapJump();})
-    .catch(err=>{
-      console.warn('minotar skin loading failed, trying crafatar...',err);
-      viewer.loadSkin(`https://crafatar.com/skins/${nick}`)
-        .then(()=>{setSkinAnim('walk');wrapJump();})
-        .catch(()=>{
-          console.warn('crafatar skin loading failed, trying mc-heads...');
-          viewer.loadSkin(`https://mc-heads.net/skin/${nick}`)
-            .then(()=>{setSkinAnim('walk');wrapJump();})
-            .catch(()=>console.warn('Could not load skin'));
-        });
-    });
+    .catch(()=>viewer.loadSkin(`https://mc-heads.net/skin/${nick}`).then(()=>{setSkinAnim('walk');wrapJump();}).catch(()=>{}));
 }
 
 function wrapJump(){
   const w=document.getElementById('viewer-wrap');
-  w.classList.remove('jump','shake');void w.offsetWidth;
-  w.classList.add('jump');setTimeout(()=>w.classList.remove('jump'),500);
+  w.classList.remove('jump','shake'); void w.offsetWidth;
+  w.classList.add('jump'); setTimeout(()=>w.classList.remove('jump'),500);
 }
 function wrapShake(){
   const w=document.getElementById('viewer-wrap');
-  w.classList.remove('jump','shake');void w.offsetWidth;
-  w.classList.add('shake');setTimeout(()=>w.classList.remove('shake'),400);
-}
-
-function showSrvBadge(ip,name){
-  setSkinAnim('run');
-  const badge=document.getElementById('srv-badge');
-  const img=document.getElementById('srv-badge-img');
-  const nm=document.getElementById('srv-badge-name');
-  badge.classList.remove('show');
-  setTimeout(()=>{
-    img.src=`https://api.mcsrvstat.us/icon/${ip}`;
-    img.onerror=()=>img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
-    nm.textContent=name;
-    badge.classList.add('show');
-  },200);
-}
-function hideSrvBadge(){
-  document.getElementById('srv-badge').classList.remove('show');
-  setSkinAnim('walk');
+  w.classList.remove('jump','shake'); void w.offsetWidth;
+  w.classList.add('shake'); setTimeout(()=>w.classList.remove('shake'),400);
 }
 
 /* ══ CONFETTI ══ */
 function confetti(){
   const colors=['#ffd13b','#fff','#5865F2','#3ddc84','#ff6b6b','#ff9f43'];
-  for(let i=0;i<65;i++){
-    const el=document.createElement('div');
-    el.className='conf';
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div'); el.className='conf';
     const s=4+Math.random()*8;
     el.style.cssText=`left:${Math.random()*100}vw;width:${s}px;height:${s}px;background:${colors[i%colors.length]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()*.7}s;border-radius:${Math.random()>.5?'50%':'0'}`;
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(),2500);
+    document.body.appendChild(el); setTimeout(()=>el.remove(),2800);
   }
 }
 
 /* ══ PREVIEW ══ */
-function pvShow(){document.getElementById('prev-card').classList.add('show')}
+function pvShow(){document.getElementById('prev-card').classList.add('show');}
 function pvName(v){const el=document.getElementById('pv-nick');el.classList.add('flash');el.textContent=v||'kullanici';setTimeout(()=>el.classList.remove('flash'),350);}
-function pvSkin(url){document.getElementById('pv-av').src=url}
-function pvSkinDirect(nick){
-  pvSkin(`https://mc-heads.net/avatar/${nick}/64`);
-}
-function pvBanner(){document.getElementById('pv-banner').style.background=S.banner}
-function pvBio(){const el=document.getElementById('pv-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic'}
+function pvSkinDirect(nick){document.getElementById('pv-av').src=`https://mc-heads.net/avatar/${nick}/64`;}
+function pvBanner(){document.getElementById('pv-banner').style.background=S.banner;}
+function pvBio(){const el=document.getElementById('pv-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic';}
 function pvTag(){
-  const wrap=document.getElementById('pv-tags');wrap.innerHTML='';
+  const wrap=document.getElementById('pv-tags'); wrap.innerHTML='';
   if(!S.displayTag)return;
   const c=TCOLORS[S.displayTag]||'#444';
-  const tag=document.createElement('div');
-  tag.className='prev-tag';
+  const tag=document.createElement('div'); tag.className='prev-tag';
   tag.style.cssText=`background:${c};color:#fff`;
   if(S.mainTag==='Medya'&&PLAT[S.subTag]){const im=document.createElement('img');im.src=PLAT[S.subTag];tag.appendChild(im);}
-  tag.appendChild(document.createTextNode(S.displayTag));
-  wrap.appendChild(tag);
+  tag.appendChild(document.createTextNode(S.displayTag)); wrap.appendChild(tag);
 }
 
 /* ══ HELPERS ══ */
@@ -1643,143 +997,147 @@ function toast(m,t='err'){const c=document.getElementById('tc');const el=documen
 
 function mkBtn(txt,cls,dis=false){
   const b=document.createElement('button');
-  let mappedCls = cls;
-  if(cls.includes('btn-gold')) mappedCls = cls.replace('btn-gold', 'mc-gold');
-  if(cls.includes('btn-discord')) mappedCls = cls.replace('btn-discord', 'mc-discord');
-  if(cls.includes('btn-ghost')) mappedCls = cls.replace('btn-ghost', 'btn-ghost');
-  
-  b.className='btn '+mappedCls;
-  b.innerHTML=txt;
-  b.disabled=dis;
+  const map={'btn-gold':'btn-gold','btn-discord':'btn-cyan','btn-ghost':'btn-ghost'};
+  let resolved=cls;
+  Object.entries(map).forEach(([k,v])=>{resolved=resolved.replace(k,v);});
+  b.className='btn '+resolved;
+  b.innerHTML=txt; b.disabled=dis;
   return b;
 }
 function ca(id,el){const c=document.getElementById(id);if(!c)return;c.innerHTML='';c.appendChild(el);}
 
-/* ══ PROGRESS BAR (Quest segment tabs) ══ */
-const STEPS=['Nick','Hesap','Rol','Profil','Sunucu'];
-function buildProg(){
-  const bar=document.getElementById('prog');bar.innerHTML='';bar.classList.add('show');
-  STEPS.forEach((l,i)=>{
-    const w=document.createElement('div');
-    w.className='p-step';
-    w.title=l;
-    bar.appendChild(w);
-  });
-}
-function updProg(s){
-  document.querySelectorAll('.p-step').forEach((w,i)=>{
-    w.className='p-step';
-    if(i<s){w.classList.add('dn');}
-    else if(i===s){w.classList.add('act');}
-  });
-}
-
-/* ══ STEP NAVIGATION (Includes cinematic zoom changes) ══ */
+/* ══ STEP SYSTEM ══ */
+const STEP_LABELS=['Karakterini Tanımla','Hesap Bilgileri','Topluluk Rolü','Profilini Özelleştir','Sunucunu Seç','Karakter Kaydediliyor'];
 const VIEWS=['vs0','vs1','vs2','vs3','vs4','vs5'];
+const STEP_COUNT=5;
+
+// Camera presets per step:
+//   [posY, posZ, lookY]
+const CAM={
+  landing:[10, 26, 8],
+  0:[17, 10, 16.5], // zoom head for nick
+  1:[10, 26,  8  ], // full body
+  2:[13, 14, 12  ], // mid body
+  3:[13, 14, 12  ], // mid body banner
+  4:[10, 26,  8  ], // full body server
+};
+const ANIMS=['idle','walk','walk','walk','run','fly'];
+
+function buildProgDots(){
+  const bar=document.getElementById('prog-dots'); bar.innerHTML='';
+  for(let i=0;i<STEP_COUNT;i++){
+    const d=document.createElement('div'); d.className='pd'; bar.appendChild(d);
+  }
+}
+function updDots(s){
+  document.querySelectorAll('.pd').forEach((d,i)=>{
+    d.className='pd';
+    if(i<s) d.classList.add('dn');
+    else if(i===s) d.classList.add('act');
+  });
+}
+
 function goStep(s){
+  currentStep=s;
   VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
-  const t=document.getElementById(VIEWS[s]);if(t)t.classList.add('act');
-  updProg(s);
+  const t=document.getElementById(VIEWS[s]); if(t) t.classList.add('act');
+  if(s<STEP_COUNT) updDots(s);
 
-  // Update HUD titles
-  const qLbl = document.getElementById('quest-label');
-  const hT = document.getElementById('hud-title-text');
-  const stepTitles = [
-    "Karakterini Tanımla",
-    "Hesap Bilgileri",
-    "Topluluk Rolü",
-    "Profilini Özelleştir",
-    "Sunucunu Seç",
-    "Karakter Kaydediliyor"
-  ];
-  qLbl.textContent = s < 5 ? `GÖREV ${s+1} / 5` : `GÖREV TAMAMLANDI`;
-  hT.textContent = stepTitles[s] || "Kayıt Ol";
+  document.getElementById('step-label').textContent=s<STEP_COUNT?`ADIM ${s+1} / ${STEP_COUNT}`:'TAMAMLANDI';
+  document.getElementById('step-title').textContent=STEP_LABELS[s]||'';
 
-  // Camera Zoom transitions based on steps
-  if (s === 0) {
-    startCamTransition(16.5, 9, 16.5); // Zoom to Head
-  } else if (s === 1) {
-    startCamTransition(10, 22, 8);      // Zoom out to full body
-  } else if (s === 2) {
-    startCamTransition(12.5, 12, 12.5); // Zoom to body/chest
-  } else if (s === 3) {
-    startCamTransition(12.5, 12, 12.5); // Zoom to body/chest banner
-  } else if (s === 4) {
-    startCamTransition(10, 22, 8);      // Zoom out to full body (running)
-  }
-
-  const anims=['idle','walk','walk','walk','walk','fly'];
-  if(viewer)setSkinAnim(anims[s]||'idle');
-  if(s!==4){hideSrvBadge();}
+  const cam=CAM[s]||CAM.landing;
+  setCamTarget(cam[0],cam[1],cam[2]);
+  setSkinAnim(ANIMS[s]||'idle');
+  if(s!==4) hideSrvBadge();
 }
 
-function changeBgColor(hexColor) {
-  const body = document.body;
-  // Clear other bg color classes
-  Object.values(BG_CLASSES).forEach(cls => body.classList.remove(cls));
-  const newClass = BG_CLASSES[hexColor] || 'bg-blue';
-  body.classList.add(newClass);
+/* ══ SHOW/HIDE LANDING vs REG ══ */
+function showLanding(){
+  document.getElementById('landing-ui').classList.remove('hidden');
+  const reg=document.getElementById('reg-ui');
+  reg.classList.remove('show');
+  document.getElementById('char-nametag').classList.remove('show');
+  document.getElementById('prev-card').classList.remove('show');
+  const cam=CAM.landing;
+  setCamTarget(cam[0],cam[1],cam[2]);
+  setSkinAnim('idle');
+  currentStep=-1;
 }
 
-function switchMode(m){
-  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
-  document.getElementById('prog').classList.remove('show');
-  
-  const qLbl = document.getElementById('quest-label');
-  const hT = document.getElementById('hud-title-text');
-  const card = document.getElementById('prev-card');
-
-  if(m==='reg'){
-    document.getElementById('page-container').classList.add('register-active');
-    buildProg();
-    pvShow();
-    goStep(0);
-  }
-  else if (m==='login') {
-    document.getElementById('page-container').classList.add('login-active');
-  }
+function showReg(){
+  document.getElementById('landing-ui').classList.add('hidden');
+  const reg=document.getElementById('reg-ui');
+  reg.classList.add('show');
+  pvShow();
+  buildProgDots();
+  goStep(0);
 }
 
-/* ══ BUILD HUD BUTTONS ══ */
+/* ══ BACKGROUND COLOR ══ */
+function changeBg(hex){
+  const body=document.body;
+  Object.values(BG_CLASSES).forEach(c=>body.classList.remove(c));
+  body.classList.add(BG_CLASSES[hex]||'bg-blue');
+  // glow tint
+  const glow=document.getElementById('char-glow');
+  if(glow){const tint=hex||'#1a2a4a';glow.style.background=`radial-gradient(ellipse, ${tint}44 0%, transparent 70%)`;}
+}
+
+/* ══ SERVER BADGE ══ */
+function showSrvBadge(ip,name){
+  const badge=document.getElementById('srv-badge');
+  const img=document.getElementById('srv-badge-img');
+  const nm=document.getElementById('srv-badge-name');
+  badge.classList.remove('show');
+  setTimeout(()=>{
+    img.src=`https://api.mcsrvstat.us/icon/${ip}`;
+    img.onerror=()=>img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+    nm.textContent=name; badge.classList.add('show');
+  },200);
+}
+function hideSrvBadge(){document.getElementById('srv-badge').classList.remove('show');}
+
+/* ══ BUILD BUTTONS ══ */
 function buildBtns(){
-  const bl=mkBtn('Giriş Yap','btn-gold');bl.onclick=doLogin;ca('b-login',bl);
-  const bgl=mkBtn('G — Google ile Giriş','btn-discord');bgl.onclick=doGoogle;ca('b-gl',bgl);
-  const bs0=mkBtn('İleri →','btn-gold',true);bs0.id='b-s0-next';bs0.onclick=()=>goStep(1);ca('b-s0n',bs0);
-  const bs1=mkBtn('Devam Et','btn-gold');bs1.onclick=doReg;ca('b-s1n',bs1);
-  const bs1b=mkBtn('← Geri','btn-ghost btn-sm');bs1b.onclick=()=>goStep(0);ca('b-s1bk',bs1b);
-  const bgr=mkBtn('G — Google ile Kayıt','btn-discord');bgr.onclick=doGoogle;ca('b-gr',bgr);
-  const bs2b=mkBtn('←','btn-ghost btn-sm');bs2b.onclick=()=>goStep(1);ca('b-s2bk',bs2b);
-  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{
-    if(!S.mainTag){toast('Rol seç!');wrapShake();return;}
-    if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}
-    wrapJump();setTimeout(()=>goStep(3),200);
-  };ca('b-s2n',bs2n);
-  const bs3b=mkBtn('←','btn-ghost btn-sm');bs3b.onclick=()=>goStep(2);ca('b-s3bk',bs3b);
-  const bs3n=mkBtn('İleri →','btn-gold');bs3n.onclick=()=>goStep(4);ca('b-s3n',bs3n);
-  const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>{hideSrvBadge();goStep(3);};ca('b-s4bk',bs4b);
-  const bs4sk=mkBtn('Geç','btn-ghost');bs4sk.onclick=()=>{S.server='';finishReg();};ca('b-s4sk',bs4sk);
-  const bs4n=mkBtn('Kayıt Ol 🚀','btn-gold',true);bs4n.id='b-s4-next';bs4n.onclick=finishReg;ca('b-s4n',bs4n);
+  const bl=mkBtn('Giriş Yap','btn-gold'); bl.onclick=doLogin; ca('b-login',bl);
+  const bgl=mkBtn('G &mdash; Google ile Giriş','btn-discord'); bgl.onclick=doGoogle; ca('b-gl',bgl);
+  const bs0=mkBtn('İleri →','btn-gold',true); bs0.id='b-s0-next'; bs0.onclick=()=>goStep(1); ca('b-s0n',bs0);
+  const bs1=mkBtn('Devam Et','btn-gold'); bs1.onclick=doReg; ca('b-s1n',bs1);
+  const bs1b=mkBtn('← Geri','btn-ghost btn-sm'); bs1b.onclick=()=>goStep(0); ca('b-s1bk',bs1b);
+  const bgr=mkBtn('G &mdash; Google ile Kayıt','btn-discord'); bgr.onclick=doGoogle; ca('b-gr',bgr);
+  const bs2b=mkBtn('←','btn-ghost btn-sm'); bs2b.onclick=()=>goStep(1); ca('b-s2bk',bs2b);
+  const bs2n=mkBtn('İleri →','btn-gold'); bs2n.onclick=()=>{
+    if(!S.mainTag){toast('Bir rol seç!'); wrapShake(); return;}
+    if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!'); return;}
+    wrapJump(); setTimeout(()=>goStep(3),200);
+  }; ca('b-s2n',bs2n);
+  const bs3b=mkBtn('←','btn-ghost btn-sm'); bs3b.onclick=()=>goStep(2); ca('b-s3bk',bs3b);
+  const bs3n=mkBtn('İleri →','btn-gold'); bs3n.onclick=()=>goStep(4); ca('b-s3n',bs3n);
+  const bs4b=mkBtn('←','btn-ghost btn-sm'); bs4b.onclick=()=>{hideSrvBadge();goStep(3);}; ca('b-s4bk',bs4b);
+  const bs4sk=mkBtn('Geç','btn-ghost'); bs4sk.onclick=()=>{S.server='';finishReg();}; ca('b-s4sk',bs4sk);
+  const bs4n=mkBtn('Kayıt Ol 🚀','btn-gold',true); bs4n.id='b-s4-next'; bs4n.onclick=finishReg; ca('b-s4n',bs4n);
 }
 
-/* ══ TAG INIT ══ */
+/* ══ TAGS ══ */
 function initTags(){
   document.querySelectorAll('.tcard').forEach(c=>{
     c.onclick=()=>{
       document.querySelectorAll('.tcard').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel');S.mainTag=c.dataset.m;S.subTag='';S.displayTag='';
+      c.classList.add('sel'); S.mainTag=c.dataset.m; S.subTag=''; S.displayTag='';
       document.getElementById('sub-dev').classList.remove('show');
       document.getElementById('sub-med').classList.remove('show');
       document.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
-      if(S.mainTag==='Developer')document.getElementById('sub-dev').classList.add('show');
-      else if(S.mainTag==='Medya')document.getElementById('sub-med').classList.add('show');
-      else{S.displayTag=S.mainTag==='Diger'?'Diğer':'Oyuncu';pvTag();wrapJump();}
+      if(S.mainTag==='Developer') document.getElementById('sub-dev').classList.add('show');
+      else if(S.mainTag==='Medya') document.getElementById('sub-med').classList.add('show');
+      else{S.displayTag=S.mainTag==='Diger'?'Diğer':'Oyuncu'; pvTag(); wrapJump();}
     };
   });
   document.querySelectorAll('.chip').forEach(c=>{
     c.onclick=()=>{
       const sec=c.closest('.sub-sec');
       sec.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel');S.subTag=c.dataset.s;S.displayTag=c.dataset.t||c.dataset.s;pvTag();wrapJump();
+      c.classList.add('sel'); S.subTag=c.dataset.s; S.displayTag=c.dataset.t||c.dataset.s; pvTag(); wrapJump();
     };
   });
 }
@@ -1788,12 +1146,11 @@ function initTags(){
 function buildSwatches(){
   const wrap=document.getElementById('swatches');
   BANNERS.forEach(col=>{
-    const sw=document.createElement('div');sw.className='sw';sw.style.background=col;
-    if(col===S.banner)sw.classList.add('sel');
+    const sw=document.createElement('div'); sw.className='sw'; sw.style.background=col;
+    if(col===S.banner) sw.classList.add('sel');
     sw.onclick=()=>{
       document.querySelectorAll('.sw').forEach(x=>x.classList.remove('sel'));
-      sw.classList.add('sel');S.banner=col;pvBanner();
-      changeBgColor(col); // Dynamically change background color
+      sw.classList.add('sel'); S.banner=col; pvBanner(); changeBg(col);
     };
     wrap.appendChild(sw);
   });
@@ -1801,80 +1158,71 @@ function buildSwatches(){
 
 /* ══ SERVER GRID ══ */
 function buildSrvGrid(){
-  const g=document.getElementById('srv-g');g.innerHTML='';
+  const g=document.getElementById('srv-g'); g.innerHTML='';
   SERVERS.forEach(srv=>{
-    const c=document.createElement('div');c.className='srv-c';
-    const im=document.createElement('img');im.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;im.alt=srv.n;
+    const c=document.createElement('div'); c.className='srv-c';
+    const im=document.createElement('img'); im.src=`https://api.mcsrvstat.us/icon/${srv.ip}`; im.alt=srv.n;
     im.onerror=()=>im.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.n)}&background=0e1428&color=ffd13b&size=32&bold=true`;
-    const nm=document.createElement('div');nm.className='sn';nm.textContent=srv.n;
-    c.appendChild(im);c.appendChild(nm);
+    const nm=document.createElement('div'); nm.className='sn'; nm.textContent=srv.n;
+    c.appendChild(im); c.appendChild(nm);
     c.onclick=()=>{
       document.querySelectorAll('.srv-c').forEach(x=>x.classList.remove('sel'));
-      c.classList.add('sel');S.server=srv.ip;S.serverName=srv.n;
+      c.classList.add('sel'); S.server=srv.ip; S.serverName=srv.n;
       showSrvBadge(srv.ip,srv.n);
-      const nb=document.getElementById('b-s4-next');if(nb)nb.disabled=false;
+      const nb=document.getElementById('b-s4-next'); if(nb) nb.disabled=false;
     };
     g.appendChild(c);
   });
 }
 
-/* ══ NICK CHECK (= MC nick + skin) ══ */
+/* ══ NICK ══ */
 let nickT,skinT2;
 function initNick(){
   const inp=document.getElementById('nick');
   inp.oninput=()=>{
     const v=inp.value.trim();
     document.getElementById('np').innerHTML=`lobby.gg/<b>${v||'...'}</b>`;
-    S.nick=v;S.nickOk=false;
-    const nb=document.getElementById('b-s0-next');if(nb)nb.disabled=true;
+    S.nick=v; S.nickOk=false;
+    const nb=document.getElementById('b-s0-next'); if(nb) nb.disabled=true;
     const st=document.getElementById('ns');
     const mini=document.getElementById('nsk-mini');
     const miniImg=document.getElementById('nsk-img');
-    const nameTag = document.getElementById('char-nametag');
-
-    clearTimeout(nickT);clearTimeout(skinT2);
-
+    const nameTag=document.getElementById('char-nametag');
+    clearTimeout(nickT); clearTimeout(skinT2);
     if(!v){
-      inp.className='fi';st.textContent='';pvName('');mini.className='nick-skin-mini';
+      inp.className='fi'; st.textContent=''; mini.className='nick-skin-mini';
       nameTag.classList.remove('show');
-      if(viewer)viewer.loadSkin('https://minotar.net/skin/MHF_Steve').catch(()=>{});
+      if(viewer) viewer.loadSkin('https://minotar.net/skin/MHF_Steve').catch(()=>{});
       return;
     }
     if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
-      inp.className='fi err';st.className='fh r';st.textContent='2-16 karakter, harf/rakam/alt çizgi.';
-      wrapShake();return;
+      inp.className='fi err'; st.className='fh r'; st.textContent='2-16 karakter, harf/rakam/alt çizgi.';
+      wrapShake(); return;
     }
-
-    inp.className='fi';st.className='fh m';st.textContent='Kontrol ediliyor...';
+    inp.className='fi'; st.className='fh m'; st.textContent='Kontrol ediliyor...';
     mini.className='nick-skin-mini loading';
 
-    // 3D Name tag updates dynamically
-    nameTag.textContent = v;
+    // Update nametag live
+    nameTag.textContent=v;
     nameTag.classList.add('show');
 
-    // Skin fetch immediately
+    // Load skin thumbnail
     skinT2=setTimeout(()=>{
       const sUrl=`https://mc-heads.net/avatar/${v}/32`;
       const tmp=new Image();
-      tmp.onload=()=>{
-        miniImg.src=sUrl;mini.className='nick-skin-mini ok';
-        pvSkinDirect(v);pvName(v);
-        loadPlayerSkin(v); // 3D viewer!
-      };
+      tmp.onload=()=>{miniImg.src=sUrl; mini.className='nick-skin-mini ok'; pvSkinDirect(v); pvName(v); loadPlayerSkin(v);};
       tmp.onerror=()=>{mini.className='nick-skin-mini';};
       tmp.src=sUrl;
     },500);
 
-    // Nick availability check (Supabase)
+    // Check nick availability
     nickT=setTimeout(async()=>{
       const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',v).maybeSingle();
       if(data){
-        inp.className='fi err';st.className='fh r';st.textContent='✗ Bu kullanıcı adı alınmış.';
-        wrapShake();
+        inp.className='fi err'; st.className='fh r'; st.textContent='✗ Bu kullanıcı adı alınmış.'; wrapShake();
       } else {
-        inp.className='fi ok';st.className='fh g';st.textContent='✓ Kullanıcı adı uygun!';
-        S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;
-        wrapJump();
+        inp.className='fi ok'; st.className='fh g'; st.textContent='✓ Kullanıcı adı uygun!';
+        S.nick=v; S.nickOk=true; if(nb) nb.disabled=false; wrapJump();
       }
     },700);
   };
@@ -1882,85 +1230,69 @@ function initNick(){
 
 /* ══ BIO ══ */
 function initBio(){
-  const inp=document.getElementById('bio');const cc=document.getElementById('bio-c');
-  inp.oninput=()=>{S.bio=inp.value;cc.textContent=`${S.bio.length} / 160`;cc.className='cc'+(S.bio.length>140?' warn':'');pvBio();};
+  const inp=document.getElementById('bio'); const cc=document.getElementById('bio-c');
+  inp.oninput=()=>{S.bio=inp.value; cc.textContent=`${S.bio.length} / 160`; cc.className='cc'+(S.bio.length>140?' warn':''); pvBio();};
 }
 
 /* ══ AUTH ══ */
 async function doLogin(){
-  const em=document.getElementById('l-em').value.trim();const pw=document.getElementById('l-pw').value;
-  if(!em||!pw){toast('E-posta ve şifreyi gir.');wrapShake();return;}
-  const btn=document.querySelector('#b-login .btn');btn.disabled=true;btn.innerHTML='<span class="sp"></span> Giriş...';
+  const em=document.getElementById('l-em').value.trim(); const pw=document.getElementById('l-pw').value;
+  if(!em||!pw){toast('E-posta ve şifreyi gir.'); wrapShake(); return;}
+  const btn=document.querySelector('#b-login .btn'); btn.disabled=true; btn.innerHTML='<span class="sp"></span> Giriş...';
   const{error}=await db.auth.signInWithPassword({email:em,password:pw});
-  if(error){toast('Hatalı bilgi.');btn.disabled=false;btn.textContent='Giriş Yap';wrapShake();}
-  else{
-    setSkinAnim&&setSkinAnim('fly');
-    startCamTransition(11, 15, 9); // zoom on success
-    setTimeout(()=>location.href='lobbyx.html',1200);
-  }
+  if(error){toast('Hatalı bilgi.'); btn.disabled=false; btn.textContent='Giriş Yap'; wrapShake();}
+  else{setSkinAnim('fly'); setCamTarget(11,16,9); setTimeout(()=>location.href='lobbyx.html',1200);}
 }
 
 async function doReg(){
-  const em=document.getElementById('r-em').value.trim();const pw=document.getElementById('r-pw').value;
-  if(!em||!pw){toast('E-posta ve şifreyi gir.');return;}
-  if(pw.length<6){toast('Şifre en az 6 karakter.');return;}
-  if(!S.nickOk){toast('Geçerli MC nick gir!');goStep(0);return;}
-  S.email=em;S.pw=pw;wrapJump();setTimeout(()=>goStep(2),400);
+  const em=document.getElementById('r-em').value.trim(); const pw=document.getElementById('r-pw').value;
+  if(!em||!pw){toast('E-posta ve şifreyi gir.'); return;}
+  if(pw.length<6){toast('Şifre en az 6 karakter.'); return;}
+  if(!S.nickOk){toast('Geçerli MC nick gir!'); goStep(0); return;}
+  S.email=em; S.pw=pw; wrapJump(); setTimeout(()=>goStep(2),400);
 }
 
 async function doGoogle(){
   const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/lobbyx.html'}});
-  if(error)toast('Google hatası: '+error.message);
+  if(error) toast('Google hatası: '+error.message);
 }
 
-/* MMORPG Final Victory sequence */
-function triggerVictorySequence() {
-  document.getElementById('vic-name').textContent = S.nick;
-  
-  // Slide out right panel and make character arena take full screen width
-  document.getElementById('page-container').className = 'page-container victory-active';
-  
-  // Confetti and flying pose
-  confetti();
-  setSkinAnim('fly');
-  
-  // Cinematic camera victory zoom
-  startCamTransition(11, 15, 9);
+/* ══ FINISH ══ */
+function triggerVictory(){
+  document.getElementById('vic-name').textContent=S.nick;
+  confetti(); setSkinAnim('fly'); setCamTarget(11,16,9);
+  document.getElementById('reg-ui').classList.remove('show');
+  document.getElementById('prev-card').classList.remove('show');
+  setTimeout(()=>{document.getElementById('victory-screen').classList.add('show');},400);
 }
 
 async function finishReg(){
-  const btn=document.getElementById('b-s4-next');if(btn){btn.disabled=true;btn.innerHTML='<span class="sp"></span>';}
+  const btn=document.getElementById('b-s4-next'); if(btn){btn.disabled=true; btn.innerHTML='<span class="sp"></span>';}
   try{
     const{data:ad,error:ae}=await db.auth.signUp({email:S.email,password:S.pw});
-    if(ae)throw ae;
-    const uid=ad.user?.id;if(!uid)throw new Error('ID alınamadı');
+    if(ae) throw ae;
+    const uid=ad.user?.id; if(!uid) throw new Error('ID alınamadı');
     const katMap={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
     await db.from('kullanicilar').insert({
-      id:uid,kullanici_adi:S.nick,email:S.email,
-      kategori:katMap[S.mainTag]||'Diğer',alt_kategori:S.subTag||null,
-      display_tag:S.displayTag||'Oyuncu',
-      banner_color:S.banner,bio:S.bio,
-      mc_ign:S.nick, 
-      desteklenen_sunucu:S.server||null,
-      abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,
+      id:uid, kullanici_adi:S.nick, email:S.email,
+      kategori:katMap[S.mainTag]||'Diğer', alt_kategori:S.subTag||null,
+      display_tag:S.displayTag||'Oyuncu', banner_color:S.banner, bio:S.bio,
+      mc_ign:S.nick, desteklenen_sunucu:S.server||null,
+      abonelik:'uye', lcoin:5, kesfet_gorunurluk:false,
       hesap_olusturma:new Date().toISOString()
     });
-    
-    // Hide progress bar and trigger cinematic sequence
-    document.getElementById('prog').classList.remove('show');
     goStep(5);
-    
-    setTimeout(() => {
-      triggerVictorySequence();
-    }, 1000);
-    
-  }catch(e){toast('Hata: '+(e.message||'?'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol 🚀';}}
+    setTimeout(triggerVictory,1000);
+  } catch(e){
+    toast('Hata: '+(e.message||'?'));
+    if(btn){btn.disabled=false; btn.textContent='Kayıt Ol 🚀';}
+  }
 }
 
-/* ══ PW TOGGLES ══ */
+/* ══ PW TOGGLE ══ */
 function pwToggle(inpId,btnId){
   document.getElementById(btnId).onclick=()=>{
-    const i=document.getElementById(inpId);const b=document.getElementById(btnId);
+    const i=document.getElementById(inpId); const b=document.getElementById(btnId);
     i.type=i.type==='password'?'text':'password';
     b.textContent=i.type==='password'?'👁':'👁‍🗨';
   };
@@ -1970,7 +1302,7 @@ function pwToggle(inpId,btnId){
 document.addEventListener('DOMContentLoaded',async()=>{
   setTimeout(()=>document.getElementById('load').classList.add('out'),900);
   const{data:{session}}=await db.auth.getSession();
-  if(session){location.href='lobbyx.html';return;}
+  if(session){location.href='lobbyx.html'; return;}
 
   initViewer();
   buildBtns();
@@ -1980,36 +1312,26 @@ document.addEventListener('DOMContentLoaded',async()=>{
   buildSrvGrid();
   initTags();
   pvBanner();
-
   pwToggle('l-pw','l-pwt');
   pwToggle('r-pw','r-pwt');
   document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
-  
-  // Landing Actions
-  document.getElementById('btn-start-reg').onclick=()=>switchMode('reg');
-  document.getElementById('btn-start-login').onclick=()=>switchMode('login');
-  
-  // Back from nick registration step to landing
-  document.getElementById('go-back-landing-reg').onclick=()=>{
-    document.getElementById('page-container').classList.remove('register-active');
-    document.getElementById('char-nametag').classList.remove('show');
-    startCamTransition(10, 22, 8); // zoom out full body
-  };
-  
-  // Close Login overlay
-  document.getElementById('btn-close-login').onclick=()=>{
-    document.getElementById('page-container').classList.remove('login-active');
-  };
-  
-  // Shift from Login modal to Register steps
+
+  // Landing
+  document.getElementById('btn-start-reg').onclick=showReg;
+  document.getElementById('btn-start-login').onclick=()=>document.getElementById('login-overlay').classList.add('show');
+
+  // Back from nick to landing
+  document.getElementById('go-back-landing').onclick=showLanding;
+
+  // Login overlay
+  document.getElementById('btn-close-login').onclick=()=>document.getElementById('login-overlay').classList.remove('show');
   document.getElementById('go-reg-from-login').onclick=()=>{
-    document.getElementById('page-container').classList.remove('login-active');
-    switchMode('reg');
+    document.getElementById('login-overlay').classList.remove('show');
+    showReg();
   };
-  
-  document.getElementById('btn-victory-go').onclick = () => {
-    location.href = 'lobbyx.html';
-  };
+
+  // Victory → lobby
+  document.getElementById('btn-victory-go').onclick=()=>location.href='lobbyx.html';
 });
 </script>
 </body>
