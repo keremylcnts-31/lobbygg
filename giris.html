@@ -1170,37 +1170,6 @@ body.in-reg .character-preview-section {
       <div class="char-arena" id="char-arena">
         
         <div class="char-preview-container">
-          <!-- Digital Card -->
-          <div class="digital-card" id="digital-card">
-            <div class="dc-banner" id="dc-banner"></div>
-            <div class="dc-profile">
-              <div class="dc-avatar-wrap">
-                <img id="dc-avatar" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="Avatar">
-              </div>
-              <div class="dc-info">
-                <div class="dc-name" id="dc-name">Steve</div>
-                <div class="dc-tag" id="dc-tag">OYUNCU</div>
-              </div>
-            </div>
-            <div class="dc-body">
-              <div class="dc-row" id="dc-row-email">
-                <span class="dc-lbl">E-POSTA</span>
-                <span class="dc-val" id="dc-val-email">-</span>
-              </div>
-              <div class="dc-row" id="dc-row-bio">
-                <span class="dc-lbl">HAKKIMDA</span>
-                <div class="dc-val-bio" id="dc-val-bio">Henüz bir şey yazılmadı...</div>
-              </div>
-              <div class="dc-row" id="dc-row-server">
-                <span class="dc-lbl">SUNUCU</span>
-                <div class="dc-val-server" id="dc-val-server">
-                  <img id="dc-server-img" src="" style="display:none;">
-                  <span id="dc-server-name">Seçilmedi</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div class="viewer-wrap" id="viewer-wrap" style="position:relative">
             <!-- Minecraft nametag floating above character -->
             <div class="char-nametag" id="char-nametag">Notch</div>
@@ -1243,6 +1212,11 @@ const db=supabase.createClient(SUPA_URL,SUPA_KEY);
 /* ══ STATE ══ */
 const S={nick:'',nickOk:false,email:'',pw:'',mainTag:'',subTag:'',displayTag:'',banner:'#1a2a4a',bio:'',server:'',serverName:''};
 let currentStep = -1; // -1 = landing
+
+/* ══ HEAD TRACKING STATE ══ */
+let headTargetYaw = 0;
+let headTargetPitch = 0;
+let isInputFocused = false;
 
 /* ══ DATA ══ */
 const BANNERS=['#1a2a4a','#e83838','#556075','#2d3440','#ed8936','#9f7aea','#48bb78'];
@@ -1339,6 +1313,13 @@ function camLoop(){
   // Set camera and target positions directly
   viewer.camera.position.set(0, camCurrent.posY, camCurrent.posZ);
   viewer.camera.lookAt(0, camCurrent.lookY, 0);
+
+  // Smoothly track head to mouse/inputs
+  if (viewer.playerObject && viewer.playerObject.skin && viewer.playerObject.skin.head) {
+    const lerpK = 0.1;
+    viewer.playerObject.skin.head.rotation.y += (headTargetYaw - viewer.playerObject.skin.head.rotation.y) * lerpK;
+    viewer.playerObject.skin.head.rotation.x += (headTargetPitch - viewer.playerObject.skin.head.rotation.x) * lerpK;
+  }
   
   requestAnimationFrame(camLoop);
 }
@@ -1400,36 +1381,13 @@ function confetti(){
   }
 }
 
-/* ══ PREVIEW ══ */
-function pvShow(){
-  const dc = document.getElementById('digital-card');
-  if(dc) dc.classList.add('show');
-}
-function pvName(v){
-  const nameEl = document.getElementById('dc-name');
-  if(nameEl) nameEl.textContent = v || 'Steve';
-}
-function pvSkinDirect(nick){
-  const imgEl = document.getElementById('dc-avatar');
-  if(imgEl) imgEl.src = `https://mc-heads.net/avatar/${nick}/64`;
-}
-function pvBanner(){
-  const bannerEl = document.getElementById('dc-banner');
-  if(bannerEl) bannerEl.style.background = S.banner;
-}
-function pvBio(){
-  const bioEl = document.getElementById('dc-val-bio');
-  if(bioEl) bioEl.textContent = S.bio || 'Henüz bir şey yazılmadı...';
-}
-function pvTag(){
-  const tagEl = document.getElementById('dc-tag');
-  if(tagEl) {
-    tagEl.textContent = S.displayTag || S.mainTag || 'OYUNCU';
-    const color = TCOLORS[S.displayTag] || TCOLORS[S.mainTag] || '#ffd13b';
-    tagEl.style.background = color;
-    tagEl.style.color = '#fff';
-  }
-}
+/* ══ PREVIEW (no card — functions kept as no-ops for safety) ══ */
+function pvShow(){}
+function pvName(v){}
+function pvSkinDirect(nick){}
+function pvBanner(){}
+function pvBio(){}
+function pvTag(){}
 
 /* ══ HELPERS ══ */
 function toast(m,t='err'){const c=document.getElementById('tc');const el=document.createElement('div');el.className='toast'+(t==='ok'?' ok':'');el.textContent=m;c.appendChild(el);setTimeout(()=>el.remove(),4000);}
@@ -1506,6 +1464,12 @@ function showLanding(){
   document.getElementById('char-nametag').classList.remove('show');
   const dc = document.getElementById('digital-card');
   if(dc) dc.classList.remove('show');
+  
+  // Resume body rotation
+  if (_rotAnim) {
+    _rotAnim.speed = 0.35;
+  }
+  
   const cam=CAM.landing;
   setCamTarget(cam[0],cam[1],cam[2]);
   setSkinAnim('idle');
@@ -1517,6 +1481,15 @@ function showReg(){
   document.getElementById('landing-ui').classList.add('hidden');
   pvShow();
   buildProgDots();
+  
+  // Pause body rotation, reset body to face forward
+  if (_rotAnim) {
+    _rotAnim.speed = 0;
+  }
+  if (viewer && viewer.playerObject) {
+    viewer.playerObject.rotation.y = 0; // face camera
+  }
+  
   goStep(0);
 }
 
@@ -1803,7 +1776,35 @@ document.addEventListener('DOMContentLoaded',async()=>{
 
   // Victory → lobby
   document.getElementById('btn-victory-go').onclick=()=>location.href='lobbyx.html';
+  
+  // Initialize Head Tracking (follows mouse & focuses on active inputs)
+  initHeadTracking();
 });
+
+function initHeadTracking() {
+  // Mouse movement listener
+  window.addEventListener('mousemove', (e) => {
+    if (!isInputFocused) {
+      const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      const mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+      headTargetYaw = -mouseX * 0.7; // Left/Right look limit
+      headTargetPitch = mouseY * 0.4;  // Up/Down look limit
+    }
+  });
+
+  // Form input focus listeners
+  document.querySelectorAll('.fi').forEach(input => {
+    input.addEventListener('focus', () => {
+      isInputFocused = true;
+      // Form is on the left side of the screen, so make character look left and down
+      headTargetYaw = 0.55;
+      headTargetPitch = 0.15;
+    });
+    input.addEventListener('blur', () => {
+      isInputFocused = false;
+    });
+  });
+}
 </script>
 </body>
 </html>
