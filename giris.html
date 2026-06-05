@@ -1,311 +1,351 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Giriş / Kayıt — LOBBY.GG</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --gold:#ffd13b;--gold-dk:#b89000;
-      --bg:#090c18;--card:rgba(18,62,103,.75);--card2:rgba(12,42,70,.85);
-      --input:#0e1428;--border:#000;
-      --t1:#fff;--t2:#9aa8c8;--tdim:#4a5878;
-      --red:#ff3535;--green:#3ddc84;
-    }
-    html,body{width:100%;height:100%;font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--t1);overflow:hidden}
-    body::before{content:'';position:fixed;inset:0;z-index:0;background:url('mc_bg.png') center/cover no-repeat;filter:blur(20px) brightness(.18);transform:scale(1.1);pointer-events:none}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Giriş / Kayıt — LOBBY.GG</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#ffd13b;--gold-dk:#b89000;--gold-glow:rgba(255,209,59,.35);
+  --bg:#060810;--navy:#0c1020;--card:rgba(14,22,50,.88);
+  --border:#000;--input-bg:#080e1e;--input-border:#1a2444;
+  --t1:#fff;--t2:#8a9ab8;--tdim:#3a4a68;
+  --red:#ff3535;--green:#3ddc84;--blue:#5865F2;
+}
+html,body{width:100%;min-height:100%;font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--t1);overflow-x:hidden}
 
-    /* ══ SPLIT ══ */
-    .split{display:flex;width:100%;height:100%;position:relative;z-index:1}
+/* ── BG PARTICLES ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-    /* ══ LEFT PANEL ══ */
-    .panel-left{
-      width:460px;flex-shrink:0;
-      background:rgba(9,12,24,.97);
-      border-right:3px solid #000;
-      display:flex;flex-direction:column;justify-content:center;
-      padding:40px 48px;
-      overflow-y:auto;overflow-x:hidden;
-      position:relative;z-index:10;
-    }
+/* ── LAYOUT ── */
+.page{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:24px 16px 40px;
+}
 
-    /* ══ RIGHT PANEL ══ */
-    .panel-right{
-      flex:1;position:relative;overflow:hidden;
-      display:flex;flex-direction:column;
-      align-items:center;justify-content:center;
-      gap:0;
-    }
-    .panel-right::before{
-      content:'';position:absolute;
-      width:600px;height:600px;border-radius:50%;
-      background:radial-gradient(circle,rgba(255,209,59,.12) 0%,rgba(255,209,59,.03) 45%,transparent 70%);
-      top:50%;left:50%;transform:translate(-50%,-50%);
-      animation:gp 5s ease-in-out infinite;pointer-events:none;
-    }
-    @keyframes gp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8}50%{transform:translate(-50%,-50%) scale(1.1);opacity:1}}
-    .panel-right::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:30px 30px;pointer-events:none}
+/* ── LOGO ── */
+.logo-bar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:22px;
+}
+.logo-img{height:34px;filter:drop-shadow(0 0 12px rgba(255,209,59,.8))}
+.logo-text{font-size:20px;font-weight:900;letter-spacing:-1px;color:var(--gold)}
 
-    /* ══ SKIN VIEWER AREA ══ */
-    .skin-area{
-      position:relative;z-index:2;
-      display:flex;flex-direction:column;
-      align-items:center;
-      gap:10px;
-    }
+/* ── TOP AREA (character + profile preview) ── */
+.top-area{
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:20px;margin-bottom:20px;
+  min-height:300px;
+}
 
-    /* message bubble */
-    .mascot-bubble{
-      background:rgba(255,255,255,.07);
-      border:2px solid #1a2a40;
-      box-shadow:3px 3px 0 #000;
-      padding:10px 18px;
-      font-size:12px;font-weight:700;color:var(--t2);
-      text-align:center;max-width:280px;line-height:1.5;
-      position:relative;
-      transition:opacity .3s,transform .3s;
-    }
-    .mascot-bubble::after{
-      content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
-      width:0;height:0;
-      border-left:8px solid transparent;border-right:8px solid transparent;
-      border-top:10px solid #1a2a40;
-    }
+/* ── SKIN VIEWER ── */
+.viewer-wrap{
+  position:relative;
+  filter:drop-shadow(0 16px 40px rgba(255,209,59,.3));
+  flex-shrink:0;
+}
+#skin-canvas{display:block}
+.viewer-wrap.shake{animation:svShake .35s ease}
+.viewer-wrap.jump{animation:svJump .45s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes svShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+@keyframes svJump{0%{transform:translateY(0)}40%{transform:translateY(-28px)}70%{transform:translateY(-8px)}100%{transform:translateY(0)}}
 
-    /* skin canvas wrapper */
-    .skin-viewer-wrap{
-      position:relative;
-      filter:drop-shadow(0 20px 50px rgba(255,209,59,.25));
-    }
-    #skin-canvas{
-      display:block;
-      /* skinview3d renders here */
-    }
+/* server logo above viewer */
+.srv-badge{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.8);border:2px solid var(--gold);box-shadow:3px 3px 0 var(--gold-dk);
+  display:flex;align-items:center;gap:6px;padding:5px 10px;
+  opacity:0;transition:opacity .3s;white-space:nowrap;
+}
+.srv-badge.show{opacity:1;animation:badgePop .35s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes badgePop{0%{transform:translateX(-50%) scale(0)}70%{transform:translateX(-50%) scale(1.08)}100%{transform:translateX(-50%) scale(1)}}
+.srv-badge img{width:22px;height:22px;image-rendering:pixelated;border:1px solid #000}
+.srv-badge span{font-size:10px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px}
 
-    /* shake animation for canvas wrapper */
-    .skin-viewer-wrap.shake{animation:svShake .4s ease}
-    @keyframes svShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-    .skin-viewer-wrap.jump{animation:svJump .5s cubic-bezier(.175,.885,.32,1.275)}
-    @keyframes svJump{0%{transform:translateY(0)}40%{transform:translateY(-22px)}70%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+/* ── PROFILE PREVIEW CARD ── */
+.prev-card{
+  width:220px;flex-shrink:0;
+  background:var(--card);
+  border:2px solid var(--border);
+  box-shadow:5px 5px 0 #000;
+  overflow:visible;
+  opacity:0;transform:translateY(12px) scale(.96);
+  transition:opacity .4s ease,transform .4s ease;
+  align-self:flex-end;
+}
+.prev-card.show{opacity:1;transform:translateY(0) scale(1)}
+.prev-banner{height:72px;position:relative;transition:background .5s ease}
+.prev-av-wrap{
+  position:absolute;bottom:-20px;left:12px;
+  width:44px;height:44px;
+  border:2px solid #000;box-shadow:3px 3px 0 #000;
+  background:#0a0f1e;overflow:hidden;
+  z-index:5;
+}
+.prev-av-wrap img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.prev-body{padding:26px 12px 14px;display:flex;flex-direction:column;gap:5px}
+.prev-nick{font-size:13px;font-weight:900;transition:all .25s}
+.prev-nick.flash{animation:flash .3s ease}
+@keyframes flash{0%,100%{opacity:1}45%{opacity:.15}}
+.prev-tag-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.prev-tag{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 7px;font-size:8px;font-weight:900;
+  border:2px solid #000;box-shadow:2px 2px 0 #000;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.prev-tag img{width:9px;height:9px}
+.prev-bio{font-size:9px;color:var(--t2);line-height:1.5;font-weight:600;font-style:italic}
+.prev-stats{display:flex;gap:12px;font-size:9px;color:var(--tdim);font-weight:700;padding-top:4px;border-top:1px solid #0e1a30}
 
-    /* server logo overlay on skin viewer */
-    .held-overlay{
-      position:absolute;
-      bottom:30px;left:50%;
-      transform:translateX(-50%);
-      display:flex;flex-direction:column;align-items:center;gap:5px;
-      opacity:0;pointer-events:none;
-      z-index:5;
-    }
-    .held-overlay.visible{opacity:1;animation:heldIn .4s cubic-bezier(.175,.885,.32,1.275)}
-    @keyframes heldIn{
-      0%  {transform:translateX(-50%) scale(0) rotate(-20deg)}
-      70% {transform:translateX(-50%) scale(1.15) rotate(3deg)}
-      100%{transform:translateX(-50%) scale(1) rotate(0)}
-    }
-    .held-logo-img{width:52px;height:52px;border:3px solid #000;box-shadow:3px 3px 0 #000;background:#090d1a;image-rendering:pixelated;}
-    .held-server-name{font-size:9px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;text-shadow:1px 1px 0 #000;background:rgba(0,0,0,.7);padding:2px 10px;}
+/* ── BUBBLE ── */
+.bubble{
+  background:rgba(14,22,50,.95);
+  border:2px solid #1a2a50;
+  box-shadow:3px 3px 0 #000;
+  padding:9px 16px;font-size:11px;font-weight:700;
+  color:var(--t2);line-height:1.5;text-align:center;
+  max-width:260px;align-self:flex-end;margin-bottom:8px;
+  position:relative;transition:opacity .25s,transform .25s;
+}
+.bubble::after{
+  content:'';position:absolute;
+  bottom:-9px;left:20px;
+  border:8px solid transparent;
+  border-top-color:#1a2a50;border-bottom:0;
+}
 
-    /* confetti */
-    .confetti-piece{
-      position:absolute;top:-10px;
-      animation:confFall 1.8s ease-in forwards;
-      z-index:20;pointer-events:none;
-    }
-    @keyframes confFall{
-      0%  {transform:translateY(0) rotate(0deg);opacity:1}
-      100%{transform:translateY(110vh) rotate(720deg);opacity:0}
-    }
+/* ── FORM CARD ── */
+.form-card{
+  width:100%;max-width:500px;
+  background:var(--card);
+  border:2px solid #000;
+  box-shadow:6px 6px 0 #000;
+  padding:28px 32px;
+  position:relative;
+  overflow:hidden;
+}
+.form-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  animation:topGlow 3s ease-in-out infinite;
+}
+@keyframes topGlow{0%,100%{opacity:.4}50%{opacity:1}}
 
-    /* mini profile preview */
-    .mini-preview{
-      background:var(--card);border:2px solid #000;
-      box-shadow:4px 4px 0 #000;
-      width:260px;overflow:hidden;
-      opacity:0;transform:translateY(10px);
-      transition:opacity .4s ease,transform .4s ease;
-    }
-    .mini-preview.visible{opacity:1;transform:translateY(0)}
-    .mini-banner{height:52px;background:#1a2a4a;position:relative;transition:background .5s}
-    .mini-avatar-wrap{
-      position:absolute;bottom:-16px;left:12px;
-      width:38px;height:38px;border:2px solid #000;
-      background:#0a0f1e;overflow:hidden;box-shadow:2px 2px 0 #000;
-    }
-    .mini-avatar-wrap img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
-    .mini-body{padding:22px 12px 12px;display:flex;flex-direction:column;gap:4px}
-    .mini-name{font-size:13px;font-weight:900;color:var(--t1);transition:all .3s}
-    .mini-name.flash{animation:nameFlash .35s ease}
-    @keyframes nameFlash{0%,100%{opacity:1}40%{opacity:.2}}
-    .mini-tag{
-      display:inline-flex;align-items:center;gap:4px;
-      padding:2px 8px;font-size:9px;font-weight:800;
-      border:2px solid #000;box-shadow:2px 2px 0 #000;
-      transition:all .3s;
-    }
-    .mini-tag img{width:11px;height:11px}
-    .mini-bio{font-size:10px;color:var(--t2);font-weight:600;line-height:1.5;font-style:italic;transition:all .3s}
+/* ── PROGRESS ── */
+.prog{display:none;align-items:center;margin-bottom:20px;gap:0}
+.prog.show{display:flex}
+.p-step{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.p-dot{
+  width:26px;height:26px;
+  border:2px solid #1a2240;background:#080e1e;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:900;color:#2a3a60;
+  box-shadow:2px 2px 0 #000;
+  transition:all .2s;
+}
+.p-dot.act{border-color:var(--gold);color:var(--gold);background:rgba(255,209,59,.06);box-shadow:2px 2px 0 var(--gold-dk)}
+.p-dot.dn{border-color:var(--gold);background:var(--gold);color:#000;box-shadow:2px 2px 0 var(--gold-dk);animation:dotPop .2s ease}
+@keyframes dotPop{0%{transform:scale(.7)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.p-lbl{font-size:7px;font-weight:800;color:#2a3a60;text-transform:uppercase;letter-spacing:.4px;transition:color .2s}
+.p-step.act .p-lbl{color:var(--gold)}
+.p-step.dn .p-lbl{color:rgba(255,209,59,.5)}
+.p-line{flex:1;height:2px;background:#0e1828;border:1px solid #000;margin-bottom:10px;transition:background .4s}
+.p-line.dn{background:var(--gold)}
 
-    /* ══ PROGRESS ══ */
-    .prog-bar{display:flex;align-items:center;margin-bottom:24px}
-    .prog-bar.hidden{display:none}
-    .prog-step{display:flex;flex-direction:column;align-items:center;gap:4px}
-    .prog-dot{width:28px;height:28px;border:2px solid #1a2240;background:#0a0f20;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#2a3a60;box-shadow:2px 2px 0 #000;transition:all .25s}
-    .prog-dot.active{border-color:var(--gold);color:var(--gold);background:rgba(255,209,59,.08);box-shadow:2px 2px 0 var(--gold-dk)}
-    .prog-dot.done{border-color:var(--gold);background:var(--gold);color:#000;box-shadow:2px 2px 0 var(--gold-dk)}
-    .prog-label{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2a3a60;transition:color .2s}
-    .prog-step.sa .prog-label{color:var(--gold)}
-    .prog-step.sd .prog-label{color:rgba(255,209,59,.6)}
-    .prog-line{flex:1;height:2px;background:#111828;border:1px solid #000;margin:0 3px 12px;transition:background .4s}
-    .prog-line.done{background:var(--gold)}
+/* ── STEP VIEWS ── */
+.sv{display:none}
+.sv.act{display:block;animation:slideIn .28s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes slideIn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
+.sv.act .fg:nth-child(1){animation:slideIn .28s .04s ease both}
+.sv.act .fg:nth-child(2){animation:slideIn .28s .1s ease both}
+.sv.act .fg:nth-child(3){animation:slideIn .28s .16s ease both}
+.sv.act .fg:nth-child(4){animation:slideIn .28s .22s ease both}
 
-    /* ══ STEPS ══ */
-    .sv{display:none}
-    .sv.active{display:block;animation:sIn .32s ease both}
-    @keyframes sIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+/* ── FORM ELEMENTS ── */
+.step-t{font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:-1px;margin-bottom:4px;line-height:1}
+.step-t span{color:var(--gold)}
+.step-s{font-size:11px;color:var(--t2);font-weight:600;margin-bottom:18px;line-height:1.6}
+.fg{margin-bottom:12px;position:relative}
+.flbl{display:block;font-size:9px;font-weight:800;color:var(--tdim);letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px;transition:color .15s}
+.fg:focus-within .flbl{color:var(--gold)}
+.fi{
+  width:100%;background:var(--input-bg);border:2px solid var(--input-border);
+  padding:11px 13px;color:var(--t1);
+  font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;
+  outline:none;border-radius:0;
+  box-shadow:3px 3px 0 #000;
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+}
+.fi::placeholder{color:var(--tdim)}
+.fi:focus{border-color:var(--gold);box-shadow:3px 3px 0 var(--gold-dk);transform:translate(-1px,-1px)}
+.fi.err{border-color:var(--red);box-shadow:3px 3px 0 #600;animation:inputShake .3s ease}
+.fi.ok{border-color:var(--green);box-shadow:3px 3px 0 #163}
+@keyframes inputShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+textarea.fi{resize:none;height:70px;line-height:1.5}
+.fh{font-size:10px;margin-top:4px;font-weight:700}
+.fh.g{color:var(--green)}.fh.r{color:var(--red)}.fh.m{color:var(--tdim)}
+.cc{text-align:right;font-size:9px;font-weight:700;color:var(--tdim);margin-top:3px}
+.cc.warn{color:var(--red)}
+.nick-url{font-size:10px;color:var(--tdim);font-weight:700;margin-top:4px}
+.nick-url b{color:var(--gold)}
+.pw-wrap{position:relative}
+.pw-wrap .fi{padding-right:40px}
+.pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tdim);font-size:14px;padding:2px;transition:color .15s}
+.pw-eye:hover{color:var(--gold)}
 
-    /* staggered fields */
-    .sv.active .field-group:nth-child(1){animation:sIn .3s .05s ease both}
-    .sv.active .field-group:nth-child(2){animation:sIn .3s .12s ease both}
-    .sv.active .field-group:nth-child(3){animation:sIn .3s .19s ease both}
+/* skin mini in nick field */
+.nick-wrap{position:relative}
+.nick-skin-mini{
+  position:absolute;right:0;top:0;bottom:0;width:44px;
+  background:rgba(0,0,0,.4);border-left:2px solid var(--input-border);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+}
+.nick-skin-mini img{width:26px;height:26px;image-rendering:pixelated;transition:opacity .25s}
+.nick-skin-mini.loading img{opacity:.3;animation:spin .8s linear infinite}
+.nick-skin-mini.ok img{opacity:1;animation:skinPop .3s ease}
+@keyframes skinPop{0%{transform:scale(.4)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nick-wrap .fi{padding-right:52px}
 
-    /* ══ FORM ══ */
-    .step-title{font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:-1px;margin-bottom:6px;line-height:1}
-    .step-sub{font-size:12px;color:var(--t2);font-weight:600;margin-bottom:22px;line-height:1.6}
-    .field-group{margin-bottom:14px}
-    .field-label{display:block;font-size:10px;font-weight:800;color:var(--t2);margin-bottom:6px;letter-spacing:.5px}
-    .fi{
-      width:100%;background:var(--input);border:2px solid #151e38;
-      padding:12px 14px;color:var(--t1);
-      font-family:'Montserrat',sans-serif;font-size:14px;font-weight:600;
-      outline:none;box-shadow:3px 3px 0 #000;border-radius:0;
-      transition:border-color .15s,box-shadow .15s;
-    }
-    .fi::placeholder{color:var(--tdim)}
-    .fi:focus{border-color:var(--gold);box-shadow:3px 3px 0 var(--gold-dk)}
-    .fi.err{border-color:var(--red);box-shadow:3px 3px 0 #800}
-    .fi.ok{border-color:var(--green);box-shadow:3px 3px 0 #1a6000}
-    textarea.fi{resize:none;height:76px;line-height:1.5}
-    .fhint{font-size:11px;margin-top:4px;font-weight:700}
-    .fhint.g{color:var(--green)}.fhint.r{color:var(--red)}.fhint.m{color:var(--tdim)}
-    .nick-prev{font-size:11px;color:var(--tdim);font-weight:700;margin-top:4px}
-    .nick-prev span{color:var(--gold)}
-    .pw-wrap{position:relative}
-    .pw-t{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tdim);font-size:15px;padding:0;transition:color .15s}
-    .pw-t:hover{color:var(--gold)}
-    .pw-wrap .fi{padding-right:42px}
-    .cc{text-align:right;font-size:10px;font-weight:700;color:var(--tdim);margin-top:3px}
-    .cc.warn{color:var(--red)}
-    .skin-wrap{position:relative;display:flex;align-items:center}
-    .skin-mini{position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;border-right:2px solid #151e38;z-index:2;background:rgba(0,0,0,.3);transition:all .3s}
-    .skin-mini img{width:28px;height:28px;image-rendering:pixelated;transition:opacity .3s}
-    .skin-mini.loading img{opacity:.4;animation:spin 1s linear infinite}
-    .skin-mini.loaded img{opacity:1;animation:skinPop .3s ease}
-    @keyframes skinPop{0%{transform:scale(.5)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+/* ── 3D BUTTONS ── */
+.btn{
+  width:100%;padding:12px 18px;cursor:pointer;border-radius:0;
+  font-family:'Montserrat',sans-serif;font-size:11px;font-weight:900;
+  letter-spacing:.6px;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border:2px solid #000;user-select:none;
+  transition:transform .08s ease,box-shadow .08s ease;
+  position:relative;overflow:hidden;
+}
+.btn:disabled{opacity:.3;pointer-events:none}
+/* RIPPLE */
+.btn::after{
+  content:'';position:absolute;
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(255,255,255,.15);
+  transform:scale(0);opacity:1;
+  pointer-events:none;
+}
+.btn.ripple::after{animation:ripple .5s ease-out}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+/* GOLD */
+.btn-gold{background:var(--gold);color:#000;box-shadow:inset 0 2px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.3),4px 4px 0 #000}
+.btn-gold:not(:disabled):hover{transform:translate(-3px,-3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.6),inset 0 -3px 0 rgba(0,0,0,.35),7px 7px 0 #000}
+.btn-gold:not(:disabled):active{transform:translate(3px,3px);box-shadow:inset 0 3px 0 rgba(0,0,0,.2),0 0 0 #000}
+/* GHOST */
+.btn-ghost{background:rgba(14,22,50,.7);color:var(--t2);box-shadow:inset 0 2px 0 rgba(255,255,255,.05),inset 0 -3px 0 rgba(0,0,0,.4),3px 3px 0 #000}
+.btn-ghost:not(:disabled):hover{transform:translate(-2px,-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -3px 0 rgba(0,0,0,.2),5px 5px 0 #000;color:var(--t1)}
+.btn-ghost:not(:disabled):active{transform:translate(2px,2px);box-shadow:inset 0 2px 0 rgba(0,0,0,.2),0 0 0 #000}
+/* DISCORD */
+.btn-discord{background:#5865F2;color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.3),4px 4px 0 #000}
+.btn-discord:not(:disabled):hover{transform:translate(-3px,-3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.35),7px 7px 0 #000}
+.btn-discord:not(:disabled):active{transform:translate(3px,3px);box-shadow:inset 0 3px 0 rgba(0,0,0,.2),0 0 0 #000}
+.btn-sm{width:auto;padding:8px 14px;font-size:10px}
+.btn-row{display:flex;gap:8px;margin-top:6px}
+.btn-row .btn{flex:1}
+.sep{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--tdim);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:#0e1828}
 
-    /* ══ 3D BUTTONS ══ */
-    .btn{
-      width:100%;padding:13px 18px;border-radius:0;cursor:pointer;
-      font-family:'Montserrat',sans-serif;font-size:12px;font-weight:900;
-      letter-spacing:.5px;text-transform:uppercase;
-      display:flex;align-items:center;justify-content:center;gap:7px;
-      border:2px solid #000;user-select:none;text-decoration:none;
-      transition:transform .1s ease,box-shadow .1s ease;
-      position:relative;overflow:hidden;
-    }
-    .btn:disabled{opacity:.35;cursor:not-allowed;transform:translate(0,0)!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -2px 0 rgba(0,0,0,.3)!important}
-    .btn-gold{background:var(--gold);color:#000;box-shadow:inset 0 2px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(0,0,0,.35),4px 4px 0 #000}
-    .btn-gold:not(:disabled):hover{transform:translate(-3px,-3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.4),7px 7px 0 #000}
-    .btn-gold:not(:disabled):active{transform:translate(2px,2px);box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000}
-    .btn-ghost{background:rgba(18,62,103,.65);color:var(--t2);border-color:#000;box-shadow:inset 0 2px 0 rgba(255,255,255,.06),inset 0 -3px 0 rgba(0,0,0,.4),3px 3px 0 #000}
-    .btn-ghost:not(:disabled):hover{transform:translate(-2px,-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.15),inset 0 -3px 0 rgba(0,0,0,.2),5px 5px 0 #000;color:var(--t1)}
-    .btn-ghost:not(:disabled):active{transform:translate(1px,1px);box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000}
-    .btn-discord{background:#5865F2;color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.35),4px 4px 0 #000}
-    .btn-discord:not(:disabled):hover{transform:translate(-3px,-3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),inset 0 -3px 0 rgba(0,0,0,.4),7px 7px 0 #000}
-    .btn-discord:not(:disabled):active{transform:translate(2px,2px);box-shadow:inset 0 3px 0 rgba(0,0,0,.2),inset 0 -1px 0 rgba(0,0,0,.1),1px 1px 0 #000}
-    .btn-sm{width:auto;padding:9px 14px;font-size:10px}
-    .btn-row{display:flex;gap:10px;margin-top:8px}
-    .btn-row .btn{flex:1}
-    .divider{display:flex;align-items:center;gap:12px;margin:13px 0;color:var(--tdim);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
-    .divider::before,.divider::after{content:'';flex:1;height:1px;background:#111828}
+/* ── TAG GRID ── */
+.tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+.tcard{
+  background:var(--input-bg);border:2px solid var(--input-border);
+  box-shadow:4px 4px 0 #000;padding:14px 10px 10px;
+  cursor:pointer;text-align:center;
+  transition:transform .1s,box-shadow .1s,border-color .12s;user-select:none;
+}
+.tcard:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 #000;border-color:#2a3a60}
+.tcard.sel{border-color:var(--gold);background:rgba(255,209,59,.04);box-shadow:4px 4px 0 var(--gold-dk);transform:translate(-2px,-2px);animation:cardPop .25s ease}
+@keyframes cardPop{0%{transform:translate(0,0) scale(.95)}70%{transform:translate(-3px,-3px) scale(1.03)}100%{transform:translate(-2px,-2px) scale(1)}}
+.tc-ico{font-size:20px;margin-bottom:5px}
+.tc-n{font-size:11px;font-weight:900}
+.tc-d{font-size:8px;color:var(--tdim);margin-top:2px;font-weight:600}
+.sub-sec{display:none;animation:slideIn .2s ease both;margin-bottom:8px}
+.sub-sec.show{display:block}
+.sub-lbl{font-size:9px;font-weight:800;color:var(--tdim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  background:var(--input-bg);border:2px solid var(--input-border);
+  box-shadow:2px 2px 0 #000;padding:6px 11px;
+  cursor:pointer;font-size:10px;font-weight:800;color:var(--t2);
+  transition:transform .1s,box-shadow .1s,border-color .12s;user-select:none;
+  display:flex;align-items:center;gap:6px;
+}
+.chip:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000;border-color:#2a3a60}
+.chip.sel{border-color:var(--gold);color:var(--gold);background:rgba(255,209,59,.04);box-shadow:2px 2px 0 var(--gold-dk);animation:cardPop .2s ease}
+.chip img{width:14px;height:14px;object-fit:contain}
 
-    /* ══ TAG CARDS ══ */
-    .tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-    .tag-card{background:var(--input);border:2px solid #151e38;box-shadow:4px 4px 0 #000;padding:16px 10px 12px;cursor:pointer;text-align:center;transition:transform .1s,box-shadow .1s,border-color .15s;user-select:none}
-    .tag-card:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 #000;border-color:#2a3a60}
-    .tag-card.selected{border-color:var(--gold);background:rgba(255,209,59,.05);box-shadow:4px 4px 0 var(--gold-dk);transform:translate(-2px,-2px)}
-    .tc-icon{font-size:22px;margin-bottom:6px}.tc-name{font-size:12px;font-weight:900}.tc-desc{font-size:9px;color:var(--tdim);margin-top:2px;font-weight:600}
-    .sub-section{display:none;margin-bottom:10px;animation:sIn .2s ease both}
-    .sub-section.visible{display:block}
-    .sub-label{font-size:10px;font-weight:800;color:var(--tdim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
-    .sub-grid{display:flex;flex-wrap:wrap;gap:7px}
-    .pcard{background:var(--input);border:2px solid #151e38;box-shadow:3px 3px 0 #000;padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:transform .1s,box-shadow .1s,border-color .15s;user-select:none}
-    .pcard:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #000;border-color:#2a3a60}
-    .pcard.selected{border-color:var(--gold);background:rgba(255,209,59,.05);box-shadow:3px 3px 0 var(--gold-dk)}
-    .pcard img{width:16px;height:16px;object-fit:contain}
-    .pcard .pn{font-size:11px;font-weight:800}
-    .dchip{background:var(--input);border:2px solid #151e38;box-shadow:3px 3px 0 #000;padding:8px 12px;cursor:pointer;font-size:11px;font-weight:800;color:var(--t2);transition:transform .1s,box-shadow .1s,border-color .15s;user-select:none}
-    .dchip:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #000;border-color:#2a3a60}
-    .dchip.selected{border-color:var(--gold);color:var(--gold);background:rgba(255,209,59,.05);box-shadow:3px 3px 0 var(--gold-dk)}
+/* ── BANNER SWATCHES ── */
+.swatches{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.sw{width:32px;height:32px;border:2px solid #000;box-shadow:2px 2px 0 #000;cursor:pointer;position:relative;transition:transform .1s,box-shadow .1s}
+.sw:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000}
+.sw.sel{box-shadow:0 0 0 3px var(--gold),2px 2px 0 #000;transform:translate(-1px,-1px)}
+.sw.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(255,255,255,.9)}
 
-    /* ══ BANNER COLORS ══ */
-    .banner-colors{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-    .bswatch{width:34px;height:34px;border:2px solid #000;box-shadow:2px 2px 0 #000;cursor:pointer;transition:transform .1s,box-shadow .1s;position:relative}
-    .bswatch:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000}
-    .bswatch.selected{box-shadow:0 0 0 3px var(--gold),3px 3px 0 #000;transform:translate(-1px,-1px)}
-    .bswatch.selected::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:rgba(255,255,255,.9)}
+/* ── SERVER GRID ── */
+.srv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;max-height:180px;overflow-y:auto;padding-right:2px}
+.srv-grid::-webkit-scrollbar{width:3px}
+.srv-grid::-webkit-scrollbar-thumb{background:#1a2240}
+.srv-c{
+  background:var(--input-bg);border:2px solid var(--input-border);
+  box-shadow:2px 2px 0 #000;padding:8px 4px;cursor:pointer;
+  text-align:center;transition:transform .1s,box-shadow .1s,border-color .12s;user-select:none;
+}
+.srv-c:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 #000}
+.srv-c.sel{border-color:var(--gold);background:rgba(255,209,59,.04);box-shadow:2px 2px 0 var(--gold-dk);animation:cardPop .2s ease}
+.srv-c img{width:28px;height:28px;border:1px solid #000;object-fit:cover;background:#090d1a;display:block;margin:0 auto 3px;image-rendering:pixelated}
+.srv-c .sn{font-size:7px;font-weight:800;color:var(--t2);line-height:1.2;word-break:break-word}
 
-    /* ══ SERVER GRID ══ */
-    .srv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;max-height:195px;overflow-y:auto;padding-right:3px}
-    .srv-grid::-webkit-scrollbar{width:3px}
-    .srv-grid::-webkit-scrollbar-thumb{background:#1a2240}
-    .srv-card{background:var(--input);border:2px solid #151e38;box-shadow:3px 3px 0 #000;padding:9px 6px;cursor:pointer;text-align:center;transition:transform .1s,box-shadow .1s;user-select:none}
-    .srv-card:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #000}
-    .srv-card.selected{border-color:var(--gold);background:rgba(255,209,59,.05);box-shadow:3px 3px 0 var(--gold-dk)}
-    .srv-card img{width:32px;height:32px;border:2px solid #000;object-fit:cover;margin-bottom:4px;background:#090d1a;display:block;margin-left:auto;margin-right:auto}
-    .srv-card .sn{font-size:8px;font-weight:800;color:var(--t2);line-height:1.2;word-break:break-word}
+/* ── SUCCESS ── */
+.suc{text-align:center;padding:8px 0}
+.suc-ring{
+  width:72px;height:72px;border:4px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;box-shadow:4px 4px 0 var(--gold-dk);
+  animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes popIn{from{transform:scale(0) rotate(-15deg);opacity:0}70%{transform:scale(1.1) rotate(3deg)}to{transform:scale(1) rotate(0);opacity:1}}
+.suc-t{font-size:22px;font-weight:900;text-transform:uppercase;margin-bottom:6px}
+.suc-t b{color:var(--gold)}
+.suc-s{font-size:11px;color:var(--t2);margin-bottom:16px;line-height:1.7;font-weight:600}
+.coin-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,209,59,.06);border:2px solid var(--gold);box-shadow:4px 4px 0 var(--gold-dk);padding:9px 22px;font-size:14px;font-weight:900;color:var(--gold);margin-bottom:20px;animation:popIn .5s .3s both}
 
-    /* ══ SUCCESS ══ */
-    .suc-wrap{text-align:center;padding:8px 0}
-    .check-circle{width:70px;height:70px;border:4px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:4px 4px 0 var(--gold-dk);animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both}
-    @keyframes popIn{from{transform:scale(0) rotate(-15deg);opacity:0}70%{transform:scale(1.1) rotate(3deg)}to{transform:scale(1) rotate(0);opacity:1}}
-    .ck{font-size:30px;color:var(--gold)}
-    .suc-t{font-size:22px;font-weight:900;text-transform:uppercase;margin-bottom:7px}
-    .suc-t span{color:var(--gold)}
-    .suc-s{font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.7;font-weight:600}
-    .lcoin-b{display:inline-flex;align-items:center;gap:8px;background:rgba(255,209,59,.07);border:2px solid var(--gold);box-shadow:4px 4px 0 var(--gold-dk);padding:10px 22px;font-size:14px;font-weight:900;color:var(--gold);margin-bottom:22px;animation:badgePop .5s .3s both}
-    @keyframes badgePop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+/* ── TLINK ── */
+.tlink{text-align:center;margin-top:12px;font-size:11px;color:var(--tdim);font-weight:600}
+.tlink button{background:none;border:none;color:var(--gold);font-weight:800;font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif;text-decoration:underline;text-underline-offset:3px}
 
-    /* ══ TOGGLE ══ */
-    .tlink{text-align:center;margin-top:14px;font-size:12px;color:var(--tdim);font-weight:600}
-    .tlink button{background:none;border:none;color:var(--gold);font-weight:800;font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif;text-decoration:underline;text-underline-offset:3px}
-    .tlink button:hover{color:#ffe566}
+/* ── TOAST ── */
+#tc{position:fixed;top:14px;right:14px;z-index:9999;display:flex;flex-direction:column;gap:6px}
+.toast{padding:10px 14px;font-size:11px;font-weight:800;color:#fff;background:#100010;border:2px solid var(--red);border-left:5px solid var(--red);box-shadow:4px 4px 0 #000;max-width:280px;font-family:'Montserrat',sans-serif;animation:toastIn .3s ease}
+.toast.ok{background:#001008;border-color:var(--green);border-left-color:var(--green);color:var(--green)}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.sp{width:12px;height:12px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 
-    /* ══ TOAST & SPINNER ══ */
-    #tc{position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:7px}
-    .toast{padding:11px 15px;font-size:12px;font-weight:800;color:#fff;background:#100010;border:2px solid var(--red);border-left:5px solid var(--red);box-shadow:4px 4px 0 #000;max-width:300px;font-family:'Montserrat',sans-serif;animation:toastIn .3s ease}
-    .toast.ok{background:#001008;border-color:var(--green);border-left-color:var(--green);color:var(--green)}
-    @keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-    .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-    @keyframes spin{to{transform:rotate(360deg)}}
+/* ── LOAD ── */
+#load{position:fixed;inset:0;background:#030508;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s}
+#load.out{opacity:0;pointer-events:none}
+.ll{height:52px;filter:drop-shadow(0 0 22px rgba(255,209,59,.9));animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+.lb{width:140px;height:3px;background:#0f1828;border:1px solid #000;overflow:hidden}
+.lbi{height:100%;width:0;background:var(--gold);animation:lba .9s ease forwards}
+@keyframes lba{to{width:100%}}
 
-    /* ══ LOAD ══ */
-    #load{position:fixed;inset:0;background:#060810;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s}
-    #load.out{opacity:0;pointer-events:none}
-    .ll{height:56px;filter:drop-shadow(0 0 24px rgba(255,209,59,.9));animation:lp 1s ease-in-out infinite}
-    @keyframes lp{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
-    .lb{width:150px;height:3px;background:#0f1828;border:1px solid #000;overflow:hidden}
-    .lbi{height:100%;width:0;background:var(--gold);animation:lba .8s ease forwards}
-    @keyframes lba{to{width:100%}}
+/* ── CONFETTI ── */
+.conf{position:fixed;top:-10px;pointer-events:none;z-index:50;animation:confFall ease-in forwards}
+@keyframes confFall{to{transform:translateY(110vh) rotate(900deg);opacity:0}}
 
-    @media(max-width:768px){body{overflow:auto}.split{flex-direction:column;height:auto;min-height:100vh}.panel-left{width:100%;padding:28px 20px;border-right:none;border-bottom:3px solid #000}.panel-right{min-height:340px}}
-    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1a2240}
-  </style>
+@media(max-width:600px){.top-area{gap:10px}.form-card{padding:20px 16px}.prev-card{display:none}.tag-grid{grid-template-columns:1fr 1fr}.srv-grid{grid-template-columns:repeat(3,1fr)}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#1a2240}
+</style>
 </head>
 <body>
 
@@ -314,122 +354,159 @@
   <div class="lb"><div class="lbi"></div></div>
 </div>
 <div id="tc"></div>
+<canvas id="bg-canvas"></canvas>
 
-<div class="split">
+<div class="page">
 
-  <!-- ═══ LEFT ═══ -->
-  <div class="panel-left">
-    <div class="prog-bar hidden" id="prog-bar"></div>
+  <!-- LOGO -->
+  <div class="logo-bar">
+    <img class="logo-img" src="https://i.imgur.com/6l08Y4k.png" alt="LOBBY.GG">
+    <div class="logo-text">LOBBY<span style="color:#fff">.GG</span></div>
+  </div>
 
-    <!-- LOGIN -->
-    <div class="sv active" id="vl">
-      <div class="step-title">Giriş Yap</div>
-      <div class="step-sub">Hesabına erişmek için giriş yap.</div>
-      <div class="field-group">
-        <label class="field-label">E-posta</label>
-        <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
+  <!-- TOP: Character + Profile Preview -->
+  <div class="top-area" id="top-area">
+
+    <!-- Bubble -->
+    <div class="bubble" id="bubble">Merhaba! Giriş yap veya yeni hesap oluştur 👋</div>
+
+    <!-- skinview3d -->
+    <div class="viewer-wrap" id="viewer-wrap">
+      <canvas id="skin-canvas" width="180" height="280"></canvas>
+      <div class="srv-badge" id="srv-badge">
+        <img id="srv-badge-img" src="" alt="">
+        <span id="srv-badge-name"></span>
       </div>
-      <div class="field-group">
-        <label class="field-label">Şifre</label>
-        <div class="pw-wrap">
-          <input class="fi" type="password" id="l-pw" placeholder="••••••••">
-          <button class="pw-t" id="l-pwt">👁</button>
+    </div>
+
+    <!-- Profile preview -->
+    <div class="prev-card" id="prev-card">
+      <div class="prev-banner" id="pv-banner" style="background:#1a2a4a">
+        <div class="prev-av-wrap">
+          <img id="pv-av" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="av">
         </div>
       </div>
-      <div id="b-login" style="margin-bottom:12px"></div>
-      <div class="divider">veya</div>
+      <div class="prev-body">
+        <div class="prev-nick" id="pv-nick">kullanici</div>
+        <div class="prev-tag-wrap" id="pv-tags"></div>
+        <div class="prev-bio" id="pv-bio" style="font-style:italic">bio yazılmadı...</div>
+        <div class="prev-stats"><span>0 Takipçi</span><span>0 Drop</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <!-- Progress -->
+    <div class="prog" id="prog"></div>
+
+    <!-- LOGIN -->
+    <div class="sv act" id="vl">
+      <div class="step-t"><span>Giriş</span> Yap</div>
+      <div class="step-s">Hesabına erişmek için bilgilerini gir.</div>
+      <div class="fg">
+        <label class="flbl">E-posta</label>
+        <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
+      </div>
+      <div class="fg">
+        <label class="flbl">Şifre</label>
+        <div class="pw-wrap">
+          <input class="fi" type="password" id="l-pw" placeholder="••••••••">
+          <button class="pw-eye" id="l-pwt">👁</button>
+        </div>
+      </div>
+      <div id="b-login" style="margin-bottom:10px"></div>
+      <div class="sep">veya</div>
       <div id="b-gl"></div>
       <div class="tlink">Hesabın yok mu? <button id="go-reg">Kayıt Ol</button></div>
     </div>
 
-    <!-- S0: Nick -->
+    <!-- S0: Nick (= MC nick) -->
     <div class="sv" id="vs0">
-      <div class="step-title">Kullanıcı Adı</div>
-      <div class="step-sub">Toplulukta bu isimle anılacaksın. Değiştiremezsin!</div>
-      <div class="field-group">
-        <label class="field-label">Kullanıcı Adı</label>
-        <input class="fi" type="text" id="nick" placeholder="örn. CraftMaster99" maxlength="20" autocomplete="off">
-        <div class="nick-prev" id="np">lobby.gg/<span>...</span></div>
-        <div class="fhint m" id="ns"></div>
+      <div class="step-t"><span>Kullanıcı</span> Adı</div>
+      <div class="step-s">Bu senin Minecraft nickin. Yaz, skinin hemen çıksın!</div>
+      <div class="fg">
+        <label class="flbl">⛏ Minecraft Nick</label>
+        <div class="nick-wrap">
+          <input class="fi" type="text" id="nick" placeholder="örn. Notch" maxlength="16" autocomplete="off">
+          <div class="nick-skin-mini" id="nsk-mini">
+            <img id="nsk-img" src="https://mc-heads.net/avatar/MHF_Steve/32" alt="">
+          </div>
+        </div>
+        <div class="nick-url" id="np">lobby.gg/<b>...</b></div>
+        <div class="fh m" id="ns"></div>
       </div>
-      <div id="b-s0n" style="margin-top:10px"></div>
+      <div id="b-s0n" style="margin-top:8px"></div>
       <div class="tlink">Hesabın var mı? <button id="go-login">Giriş Yap</button></div>
     </div>
 
-    <!-- S1: Hesap -->
+    <!-- S1: Email + PW -->
     <div class="sv" id="vs1">
-      <div class="step-title">E-posta & Şifre</div>
-      <div class="step-sub">Hesabını oluşturmak için bilgilerini gir.</div>
-      <div class="field-group">
-        <label class="field-label">E-posta</label>
+      <div class="step-t"><span>Hesap</span> Bilgileri</div>
+      <div class="step-s">E-posta ve şifreni belirle.</div>
+      <div class="fg">
+        <label class="flbl">E-posta</label>
         <input class="fi" type="email" id="r-em" placeholder="ornek@mail.com">
       </div>
-      <div class="field-group">
-        <label class="field-label">Şifre</label>
+      <div class="fg">
+        <label class="flbl">Şifre</label>
         <div class="pw-wrap">
           <input class="fi" type="password" id="r-pw" placeholder="En az 6 karakter">
-          <button class="pw-t" id="r-pwt">👁</button>
+          <button class="pw-eye" id="r-pwt">👁</button>
         </div>
       </div>
-      <div id="b-s1n" style="margin-bottom:12px"></div>
-      <div class="divider">veya</div>
+      <div id="b-s1n" style="margin-bottom:10px"></div>
+      <div class="sep">veya</div>
       <div id="b-gr"></div>
-      <div class="btn-row" style="margin-top:12px"><div id="b-s1bk"></div></div>
+      <div class="btn-row" style="margin-top:10px"><div id="b-s1bk"></div></div>
     </div>
 
     <!-- S2: Tag -->
     <div class="sv" id="vs2">
-      <div class="step-title">Rolünü Seç</div>
-      <div class="step-sub">Profilinde görünecek. Doğru seç!</div>
+      <div class="step-t">Rolünü <span>Seç</span></div>
+      <div class="step-s">Profilinde görünecek. Kimi temsil ediyorsun?</div>
       <div class="tag-grid">
-        <div class="tag-card" data-main="Oyuncu"><div class="tc-icon">⚔️</div><div class="tc-name">Oyuncu</div><div class="tc-desc">Minecraft oynuyorum</div></div>
-        <div class="tag-card" data-main="Developer"><div class="tc-icon">💻</div><div class="tc-name">Developer</div><div class="tc-desc">Kod yazıyorum</div></div>
-        <div class="tag-card" data-main="Medya"><div class="tc-icon">🎬</div><div class="tc-name">Medya</div><div class="tc-desc">İçerik üretiyorum</div></div>
-        <div class="tag-card" data-main="Diger"><div class="tc-icon">🎮</div><div class="tc-name">Diğer</div><div class="tc-desc">Bunların değilim</div></div>
+        <div class="tcard" data-m="Oyuncu"><div class="tc-ico">⚔️</div><div class="tc-n">Oyuncu</div><div class="tc-d">MC oynuyorum</div></div>
+        <div class="tcard" data-m="Developer"><div class="tc-ico">💻</div><div class="tc-n">Developer</div><div class="tc-d">Kod yazıyorum</div></div>
+        <div class="tcard" data-m="Medya"><div class="tc-ico">🎬</div><div class="tc-n">Medya</div><div class="tc-d">İçerik üretiyorum</div></div>
+        <div class="tcard" data-m="Diger"><div class="tc-ico">🎮</div><div class="tc-n">Diğer</div><div class="tc-d">Bunlardan değilim</div></div>
       </div>
-      <div class="sub-section" id="sub-dev">
-        <div class="sub-label">Uzmanlık</div>
-        <div class="sub-grid">
-          <div class="dchip" data-sub="Plugin Dev">🔌 Plugin Dev</div>
-          <div class="dchip" data-sub="Web Dev">🌐 Web Dev</div>
-          <div class="dchip" data-sub="Skripter">📜 Skripter</div>
-          <div class="dchip" data-sub="Builder">🏗️ Builder</div>
+      <div class="sub-sec" id="sub-dev">
+        <div class="sub-lbl">Uzmanlık</div>
+        <div class="chips">
+          <div class="chip" data-s="Plugin Dev">🔌 Plugin Dev</div>
+          <div class="chip" data-s="Web Dev">🌐 Web Dev</div>
+          <div class="chip" data-s="Skripter">📜 Skripter</div>
+          <div class="chip" data-s="Builder">🏗️ Builder</div>
         </div>
       </div>
-      <div class="sub-section" id="sub-medya">
-        <div class="sub-label">Platform</div>
-        <div class="sub-grid">
-          <div class="pcard" data-sub="YouTube" data-tag="YouTuber"><img src="https://cdn.simpleicons.org/youtube/FFFFFF" alt="YT"><span class="pn">YouTuber</span></div>
-          <div class="pcard" data-sub="TikTok" data-tag="TikToker"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF" alt="TT"><span class="pn">TikToker</span></div>
-          <div class="pcard" data-sub="Kick" data-tag="Kick"><img src="https://cdn.simpleicons.org/kick/53FC18" alt="Kick"><span class="pn">Kick</span></div>
-          <div class="pcard" data-sub="Twitch" data-tag="Twitch"><img src="https://cdn.simpleicons.org/twitch/9146FF" alt="Twitch"><span class="pn">Twitch</span></div>
-          <div class="pcard" data-sub="Instagram" data-tag="Instagram"><img src="https://cdn.simpleicons.org/instagram/FFFFFF" alt="IG"><span class="pn">Instagram</span></div>
+      <div class="sub-sec" id="sub-med">
+        <div class="sub-lbl">Platform</div>
+        <div class="chips">
+          <div class="chip" data-s="YouTube" data-t="YouTuber"><img src="https://cdn.simpleicons.org/youtube/FFFFFF">YouTuber</div>
+          <div class="chip" data-s="TikTok" data-t="TikToker"><img src="https://cdn.simpleicons.org/tiktok/FFFFFF">TikToker</div>
+          <div class="chip" data-s="Kick" data-t="Kick"><img src="https://cdn.simpleicons.org/kick/53FC18">Kick</div>
+          <div class="chip" data-s="Twitch" data-t="Twitch"><img src="https://cdn.simpleicons.org/twitch/9146FF">Twitch</div>
+          <div class="chip" data-s="Instagram" data-t="Instagram"><img src="https://cdn.simpleicons.org/instagram/FFFFFF">Instagram</div>
         </div>
       </div>
-      <div class="btn-row" style="margin-top:14px">
+      <div class="btn-row" style="margin-top:12px">
         <div id="b-s2bk" style="flex:0 0 auto"></div>
         <div id="b-s2n" style="flex:1"></div>
       </div>
     </div>
 
-    <!-- S3: Profil -->
+    <!-- S3: Bio + Banner -->
     <div class="sv" id="vs3">
-      <div class="step-title">Profilini Kur</div>
-      <div class="step-sub">Skin'ini gir, banner rengini seç, bio yaz!</div>
-      <div class="field-group">
-        <label class="field-label">⛏ Minecraft IGN (Skin için)</label>
-        <div class="skin-wrap">
-          <div class="skin-mini" id="sk-mini"><img id="sk-img" src="https://mc-heads.net/avatar/MHF_Steve/32" alt="skin"></div>
-          <input class="fi" type="text" id="mc-ign" placeholder="örn. Notch" maxlength="16" autocomplete="off" style="padding-left:52px">
-        </div>
-        <div class="fhint m" id="sk-st">IGN'ini gir, skinin profil fotoğrafın olacak.</div>
+      <div class="step-t">Profilini <span>Kur</span></div>
+      <div class="step-s">Banner rengi ve bio — önizlemeyi yukarıda görüyorsun!</div>
+      <div class="fg">
+        <label class="flbl">Banner Rengi</label>
+        <div class="swatches" id="swatches"></div>
       </div>
-      <div class="field-group">
-        <label class="field-label">Banner Rengi</label>
-        <div class="banner-colors" id="bc"></div>
-      </div>
-      <div class="field-group">
-        <label class="field-label">Hakkımda</label>
+      <div class="fg">
+        <label class="flbl">Hakkımda</label>
         <textarea class="fi" id="bio" placeholder="Kendinden kısaca bahset..." maxlength="160"></textarea>
         <div class="cc" id="bio-c">0 / 160</div>
       </div>
@@ -439,11 +516,11 @@
       </div>
     </div>
 
-    <!-- S4: Sunucu -->
+    <!-- S4: Server -->
     <div class="sv" id="vs4">
-      <div class="step-title">Sunucun</div>
-      <div class="step-sub">Aktif oynadığın sunucuyu seç — karakter tutacak! 🧙</div>
-      <div class="srv-grid" id="sg"></div>
+      <div class="step-t">Sunucunu <span>Seç</span></div>
+      <div class="step-s">Hangi sunucudasın? Seçince karakterin koşmaya başlar! 🏃</div>
+      <div class="srv-grid" id="srv-g"></div>
       <div class="btn-row">
         <div id="b-s4bk" style="flex:0 0 auto"></div>
         <div id="b-s4sk" style="flex:1"></div>
@@ -451,462 +528,433 @@
       </div>
     </div>
 
-    <!-- S5: Başarı -->
+    <!-- S5: Success -->
     <div class="sv" id="vs5">
-      <div class="suc-wrap">
-        <div class="check-circle"><span class="ck">✓</span></div>
-        <div class="suc-t">Hoş geldin, <span id="wn">—</span>!</div>
-        <div class="suc-s">Hesabın oluşturuldu. Topluluğa katıldığın için teşekkürler!</div>
-        <div class="lcoin-b">🪙 +5 LC Giriş Bonusu!</div>
+      <div class="suc">
+        <div class="suc-ring"><span style="font-size:28px;color:var(--gold)">✓</span></div>
+        <div class="suc-t">Hoş geldin, <b id="wn">—</b>!</div>
+        <div class="suc-s">Hesabın oluşturuldu. Topluluğa katıldığın için teşekkürler! 🎉</div>
+        <div class="coin-badge">🪙 +5 LC Giriş Bonusu!</div>
         <div id="b-go"></div>
       </div>
     </div>
-  </div>
 
-  <!-- ═══ RIGHT ═══ -->
-  <div class="panel-right" id="panel-right">
-
-    <!-- Skin viewer area -->
-    <div class="skin-area">
-
-      <!-- Message bubble -->
-      <div class="mascot-bubble" id="mascot-bubble">
-        Merhaba! Giriş yap veya yeni hesap oluştur. 👋
-      </div>
-
-      <!-- skinview3d canvas + server logo overlay -->
-      <div class="skin-viewer-wrap" id="skin-viewer-wrap">
-        <canvas id="skin-canvas" width="220" height="340"></canvas>
-        <div class="held-overlay" id="mascot-held">
-          <img class="held-logo-img" id="held-logo" src="" alt="">
-          <div class="held-server-name" id="held-name"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mini profile preview -->
-    <div class="mini-preview" id="mini-prev">
-      <div class="mini-banner" id="mp-banner">
-        <div class="mini-avatar-wrap">
-          <img src="https://mc-heads.net/avatar/MHF_Steve/64" id="mp-av" alt="avatar">
-        </div>
-      </div>
-      <div class="mini-body">
-        <div class="mini-name" id="mp-name">kullanici_adi</div>
-        <div class="mini-tag" id="mp-tag" style="display:none"></div>
-        <div class="mini-bio" id="mp-bio">bio yazılmadı...</div>
-      </div>
-    </div>
-
-  </div>
-</div>
+  </div><!-- /form-card -->
+</div><!-- /page -->
 
 <script>
+/* ══ SUPABASE ══ */
 const SUPA_URL='https://hmkeedyqmzblnmkhdste.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhta2VlZHlxbXpibG5ta2hkc3RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3MzYsImV4cCI6MjA5NDM1NzczNn0.5HUInmQs_LsXYovJgI7Ir9q8M9aPlQW6jM5C43aYmqA';
 const db=supabase.createClient(SUPA_URL,SUPA_KEY);
 
-/* ── STATE ── */
-const S={nick:'',nickOk:false,email:'',pw:'',mainTag:'',subTag:'',displayTag:'',banner:'#1a2a4a',bio:'',mcIgn:'',server:'',serverName:''};
+/* ══ STATE ══ */
+const S={nick:'',nickOk:false,email:'',pw:'',mainTag:'',subTag:'',displayTag:'',banner:'#1a2a4a',bio:'',server:'',serverName:''};
 
-/* ── DATA ── */
-const BANNER_COLORS=[{c:'#1a2a4a'},{c:'#1a1a4a'},{c:'#4a1a1a'},{c:'#1a4a1a'},{c:'#4a3a1a'},{c:'#1a3a4a'},{c:'#3a1a4a'},{c:'#2a2a2a'}];
-const TAG_COLORS={Oyuncu:'#3a8527',Developer:'#2a5eb8','Plugin Dev':'#2a5eb8','Web Dev':'#1a7a7a',Skripter:'#5e2ab8',Builder:'#b87a2a',YouTuber:'#cc0000',TikToker:'#111111',Kick:'#1a5a1a',Twitch:'#5a2ab8',Instagram:'#b82a8a','Diğer':'#555'};
-const PLATFORM_LOGOS={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
-const SERVERS=[{name:'HanedanMC',ip:'play.hanedanmc.com'},{name:'ChickenNW',ip:'oyna.chickennw.com'},{name:'BLOKYA',ip:'oyna.blokya.com'},{name:'DugeCraft',ip:'play.dugecraft.com.tr'},{name:'ZENITMC',ip:'play.zenitmc.com'},{name:'SENTORCRAFT',ip:'sentorcraft.com'},{name:'SOULCRAFT',ip:'soulcraft.tc'},{name:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{name:'AtlantikMC',ip:'atlantikmc.com'},{name:'NAVELYA',ip:'navelya.net'},{name:'CRAFTLUNA',ip:'play.craftluna.net'},{name:'Melonya',ip:'melonya.net'},{name:'Rush Craft',ip:'play.rushcraft.com.tr'},{name:'RebornCraft',ip:'play.reborncraft.pw'},{name:'LuneCraft',ip:'mc.lunecraft.net'},{name:'SimitSMP',ip:'simitsmp.net'},{name:'MC4FUN',ip:'play.mc4fun.net'},{name:'İmibiyum',ip:'play.imibiyum.com'}];
+/* ══ DATA ══ */
+const BANNERS=['#1a2a4a','#1a1a4a','#4a1a1a','#1a4a2a','#4a3a1a','#1a3a4a','#3a1a4a','#2a2a2a','#0a2a1a','#2a1a0a'];
+const TCOLORS={Oyuncu:'#2e6e1a',Developer:'#1a4ea0','Plugin Dev':'#1a4ea0','Web Dev':'#0a6060',Skripter:'#4a1aa0',Builder:'#904a10',YouTuber:'#aa0000',TikToker:'#111',Kick:'#0a4a0a',Twitch:'#4a1a90',Instagram:'#90108a','Diğer':'#444'};
+const PLAT={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
+const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.chickennw.com'},{n:'BLOKYA',ip:'oyna.blokya.com'},{n:'DugeCraft',ip:'play.dugecraft.com.tr'},{n:'ZENITMC',ip:'play.zenitmc.com'},{n:'SENTORCRAFT',ip:'sentorcraft.com'},{n:'SOULCRAFT',ip:'soulcraft.tc'},{n:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{n:'AtlantikMC',ip:'atlantikmc.com'},{n:'NAVELYA',ip:'navelya.net'},{n:'CRAFTLUNA',ip:'play.craftluna.net'},{n:'Melonya',ip:'melonya.net'},{n:'Rush Craft',ip:'play.rushcraft.com.tr'},{n:'RebornCraft',ip:'play.reborncraft.pw'},{n:'LuneCraft',ip:'mc.lunecraft.net'},{n:'SimitSMP',ip:'simitsmp.net'},{n:'MC4FUN',ip:'play.mc4fun.net'},{n:'İmibiyum',ip:'play.imibiyum.com'}];
+const MSGS={login:'Merhaba! Giriş yap veya yeni hesap oluştur 👋',s0:'Minecraft nickin ne? Yaz, skinin anında çıkacak! ⛏',s0_check:'Kontrol ediliyor... ⏳',s0_ok:'Süper nick! Seni tanıyoruz 🎉',s0_err:'Bu nick alınmış, başka bir şey dene 😅',s1:'E-posta ve şifreni belirle 🔐',s2:'Topluluktaki rolün ne? ⚔️',s2_ok:'İyi seçim! Bu tag sana çok yakışacak 😎',s3:'Profilini güzelleştir 🎨',s4:'Son adım! Hangi sunucudasın? 🏰',s4_run:'Koşuyorum! İyi seçim! 🏃',s5:'Hoş geldin topluluğa! İyi eğlenceler! 🎊'};
 
-/* ══ SKINVIEW3D SYSTEM ══ */
-const MSGS={
-  login:'Merhaba! Giriş yap veya yeni hesap oluştur. 👋',
-  s0:'Önce bir kullanıcı adı seç. Dikkatli seç, değiştiremezsin! 😤',
-  s0_thinking:'Uygunluk kontrol ediliyor... ⏳',
-  s0_ok:'Harika isim! Devam edelim 🎉',
-  s0_err:'Bu isim alınmış, başka bir şey dene 😅',
-  s1:'E-posta ve şifreni gir. Güvenli bir şifre seç! 🔐',
-  s2:'Kim olduğunu söyle! Hangi roldesin? ⚔️',
-  s2_done:'Süper! Bu tag sana çok yakışacak 😎',
-  s3:'Minecraft IGN\'ini gir — kendi karakterin çıksın! 🎨',
-  s3_skin:'İşte bu senin karakterin! Çok şık görünüyorsun 🧙',
-  s4:'Son adım! Hangi sunucudasın? 🏰',
-  s4_held:'Bu sunucuyu tutuyorum senin için! 💪',
-  s5:'Hoş geldin topluluğa! İyi eğlenceler! 🎊'
-};
+/* ══ BG PARTICLES ══ */
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;pts=Array.from({length:55},()=>({x:Math.random()*W,y:Math.random()*H,r:.5+Math.random()*1.2,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,a:.1+Math.random()*.35}))}
+  window.addEventListener('resize',resize);resize();
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,209,59,${p.a})`;ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 
+/* ══ SKINVIEW3D ══ */
 let viewer=null;
-let bubbleTimer=null;
+let bubT=null;
 
-function initSkinViewer(){
+function initViewer(){
   if(typeof skinview3d==='undefined'){console.warn('skinview3d yüklenemedi');return;}
-  viewer=new skinview3d.SkinViewer({
-    canvas:document.getElementById('skin-canvas'),
-    width:220,height:340,
-    skin:'https://mc-heads.net/skin/MHF_Steve'
-  });
-  viewer.renderer.setClearColor(0x000000,0); // transparent bg
-  viewer.controls.enabled=true;   // mouse rotate
-  viewer.controls.enableZoom=false;
-  viewer.fov=70;
-  setSkinAnim('idle');
+  try{
+    viewer=new skinview3d.SkinViewer({
+      canvas:document.getElementById('skin-canvas'),
+      width:180,height:280
+    });
+    viewer.renderer.setClearColor(0x000000,0);
+    viewer.controls.enabled=true;
+    viewer.controls.enableZoom=false;
+    viewer.fov=75;
+    setSkinAnim('idle');
+    viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve').catch(()=>{});
+  }catch(e){console.warn('viewer err',e);}
 }
 
-function setSkinAnim(type){
-  if(!viewer)return;
-  const A=skinview3d;
-  const map={
-    idle:A.IdleAnimation,
-    walk:A.WalkingAnimation,
-    run:A.RunningAnimation,
-    fly:A.FlyingAnimation
-  };
-  const Cls=map[type]||A.IdleAnimation;
+function setSkinAnim(t){
+  if(!viewer||!skinview3d)return;
+  const M={idle:skinview3d.IdleAnimation,walk:skinview3d.WalkingAnimation,run:skinview3d.RunningAnimation,fly:skinview3d.FlyingAnimation};
+  const Cls=M[t]||skinview3d.IdleAnimation;
   viewer.animation=new Cls();
-  viewer.animation.speed=type==='run'?2.5:type==='walk'?0.8:type==='fly'?1.2:0.5;
+  const speeds={idle:.5,walk:.8,run:2.2,fly:1};
+  viewer.animation.speed=speeds[t]||.6;
 }
 
-function loadSkin(ign){
+function loadPlayerSkin(nick){
   if(!viewer)return;
-  const url=`https://mc-heads.net/skin/${encodeURIComponent(ign)}`;
-  viewer.loadSkin(url).then(()=>{
-    setSkinAnim('walk');
-    triggerWrap('jump');
-  }).catch(()=>{
-    viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve');
-  });
+  viewer.loadSkin(`https://mc-heads.net/skin/${encodeURIComponent(nick)}`)
+    .then(()=>{setSkinAnim('walk');wrapJump();})
+    .catch(()=>viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve').catch(()=>{}));
 }
 
-function triggerWrap(cls){
-  const w=document.getElementById('skin-viewer-wrap');
-  w.classList.remove(cls);
-  void w.offsetWidth;
-  w.classList.add(cls);
-  setTimeout(()=>w.classList.remove(cls),600);
+function wrapJump(){
+  const w=document.getElementById('viewer-wrap');
+  w.classList.remove('jump','shake');void w.offsetWidth;
+  w.classList.add('jump');setTimeout(()=>w.classList.remove('jump'),500);
+}
+function wrapShake(){
+  const w=document.getElementById('viewer-wrap');
+  w.classList.remove('jump','shake');void w.offsetWidth;
+  w.classList.add('shake');setTimeout(()=>w.classList.remove('shake'),400);
 }
 
-function setBubble(msg){
+function bubble(msg,delay=0){
   if(!msg)return;
-  const b=document.getElementById('mascot-bubble');
-  b.style.opacity='0';
-  b.style.transform='scale(.92) translateY(-5px)';
-  clearTimeout(bubbleTimer);
-  bubbleTimer=setTimeout(()=>{
-    b.textContent=msg;
-    b.style.transition='all .3s cubic-bezier(.175,.885,.32,1.275)';
-    b.style.opacity='1';
-    b.style.transform='scale(1) translateY(0)';
-  },150);
+  clearTimeout(bubT);
+  bubT=setTimeout(()=>{
+    const b=document.getElementById('bubble');
+    b.style.opacity='0';b.style.transform='scale(.92) translateY(-6px)';
+    setTimeout(()=>{
+      b.textContent=msg;
+      b.style.transition='all .3s cubic-bezier(.175,.885,.32,1.275)';
+      b.style.opacity='1';b.style.transform='scale(1) translateY(0)';
+    },160);
+  },delay);
 }
 
-function setMascot(emotion,msg){
-  if(msg)setBubble(msg);
-  if(!viewer)return;
-  if(emotion==='shake')  {triggerWrap('shake');return;}
-  if(emotion==='happy')  {triggerWrap('jump');setSkinAnim('walk');return;}
-  if(emotion==='thinking'){setSkinAnim('idle');return;}
-  if(emotion==='holding') {setSkinAnim('walk');return;}
-  if(emotion==='celebrate'){setSkinAnim('fly');return;}
-  if(emotion==='run')    {setSkinAnim('run');return;}
-  setSkinAnim('idle');
-}
-
-function holdServer(ip,name){
-  setBubble(MSGS.s4_held);
+function showSrvBadge(ip,name){
   setSkinAnim('run');
-  const held=document.getElementById('mascot-held');
-  const logo=document.getElementById('held-logo');
-  const hName=document.getElementById('held-name');
-  held.classList.remove('visible');
+  const badge=document.getElementById('srv-badge');
+  const img=document.getElementById('srv-badge-img');
+  const nm=document.getElementById('srv-badge-name');
+  badge.classList.remove('show');
   setTimeout(()=>{
-    logo.src=`https://api.mcsrvstat.us/icon/${ip}`;
-    logo.onerror=()=>logo.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
-    hName.textContent=name;
-    held.classList.add('visible');
+    img.src=`https://api.mcsrvstat.us/icon/${ip}`;
+    img.onerror=()=>img.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+    nm.textContent=name;
+    badge.classList.add('show');
   },200);
 }
-
-function releaseServer(){
-  document.getElementById('mascot-held').classList.remove('visible');
+function hideSrvBadge(){
+  document.getElementById('srv-badge').classList.remove('show');
   setSkinAnim('walk');
-  setBubble(MSGS.s4);
 }
 
 /* ══ CONFETTI ══ */
-function spawnConfetti(){
-  const panel=document.getElementById('panel-right');
-  const colors=['#ffd13b','#ffffff','#5865F2','#3ddc84','#ff6b6b','#ff9f43'];
-  for(let i=0;i<70;i++){
+function confetti(){
+  const colors=['#ffd13b','#fff','#5865F2','#3ddc84','#ff6b6b','#ff9f43'];
+  for(let i=0;i<65;i++){
     const el=document.createElement('div');
-    el.className='confetti-piece';
-    const size=4+Math.random()*7;
-    el.style.cssText=`left:${Math.random()*100}%;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*.6}s;animation-duration:${1.4+Math.random()*.8}s`;
-    panel.appendChild(el);
+    el.className='conf';
+    const s=4+Math.random()*8;
+    el.style.cssText=`left:${Math.random()*100}vw;width:${s}px;height:${s}px;background:${colors[i%colors.length]};animation-duration:${1.5+Math.random()}s;animation-delay:${Math.random()*.7}s;border-radius:${Math.random()>.5?'50%':'0'}`;
+    document.body.appendChild(el);
     setTimeout(()=>el.remove(),2500);
   }
 }
 
-/* ══ MINI PREVIEW ══ */
-function showPreview(){document.getElementById('mini-prev').classList.add('visible')}
-function hidePreview(){document.getElementById('mini-prev').classList.remove('visible')}
-
-function prevName(v){
-  const el=document.getElementById('mp-name');
-  el.classList.add('flash');
-  el.textContent=v||'kullanici_adi';
-  setTimeout(()=>el.classList.remove('flash'),400);
+/* ══ PREVIEW ══ */
+function pvShow(){document.getElementById('prev-card').classList.add('show')}
+function pvName(v){const el=document.getElementById('pv-nick');el.classList.add('flash');el.textContent=v||'kullanici';setTimeout(()=>el.classList.remove('flash'),350);}
+function pvSkin(url){document.getElementById('pv-av').src=url}
+function pvBanner(){document.getElementById('pv-banner').style.background=S.banner}
+function pvBio(){const el=document.getElementById('pv-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic'}
+function pvTag(){
+  const wrap=document.getElementById('pv-tags');wrap.innerHTML='';
+  if(!S.displayTag)return;
+  const c=TCOLORS[S.displayTag]||'#444';
+  const tag=document.createElement('div');
+  tag.className='prev-tag';
+  tag.style.cssText=`background:${c};color:#fff`;
+  if(S.mainTag==='Medya'&&PLAT[S.subTag]){const im=document.createElement('img');im.src=PLAT[S.subTag];tag.appendChild(im);}
+  tag.appendChild(document.createTextNode(S.displayTag));
+  wrap.appendChild(tag);
 }
-function prevTag(){
-  const el=document.getElementById('mp-tag');
-  if(!S.displayTag){el.style.display='none';return;}
-  const c=TAG_COLORS[S.displayTag]||'#555';
-  el.style.cssText=`display:inline-flex;background:${c};color:#fff;border-color:#000;align-items:center;gap:4px;padding:2px 8px;font-size:9px;font-weight:800;border:2px solid #000;box-shadow:2px 2px 0 #000`;
-  el.innerHTML='';
-  if(S.mainTag==='Medya'&&PLATFORM_LOGOS[S.subTag]){const im=document.createElement('img');im.src=PLATFORM_LOGOS[S.subTag];im.style.cssText='width:11px;height:11px';el.appendChild(im);}
-  el.appendChild(document.createTextNode(S.displayTag));
-}
-function prevBanner(){document.getElementById('mp-banner').style.background=S.banner;}
-function prevBio(){const el=document.getElementById('mp-bio');el.textContent=S.bio||'bio yazılmadı...';el.style.fontStyle=S.bio?'normal':'italic';}
-function prevSkin(url){document.getElementById('mp-av').src=url;}
 
 /* ══ HELPERS ══ */
 function toast(m,t='err'){const c=document.getElementById('tc');const el=document.createElement('div');el.className='toast'+(t==='ok'?' ok':'');el.textContent=m;c.appendChild(el);setTimeout(()=>el.remove(),4000);}
-function mkBtn(t,c,d=false){const b=document.createElement('button');b.className='btn '+c;b.textContent=t;b.disabled=d;return b;}
-function ca(id,el){const c=document.getElementById(id);c.innerHTML='';c.appendChild(el);}
+function mkBtn(txt,cls,dis=false){const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.disabled=dis;b.addEventListener('click',function(){this.classList.remove('ripple');void this.offsetWidth;this.classList.add('ripple');});return b;}
+function ca(id,el){const c=document.getElementById(id);if(!c)return;c.innerHTML='';c.appendChild(el);}
 
 /* ══ PROGRESS BAR ══ */
-const STEPS=['Nick','Hesap','Tag','Profil','Sunucu'];
+const STEPS=['Nick','Hesap','Rol','Profil','Sunucu'];
 function buildProg(){
-  const bar=document.getElementById('prog-bar');bar.innerHTML='';
-  STEPS.forEach((lbl,i)=>{
-    const w=document.createElement('div');w.className='prog-step';
-    const d=document.createElement('div');d.className='prog-dot';d.textContent=i+1;
-    const l=document.createElement('div');l.className='prog-label';l.textContent=lbl;
-    w.appendChild(d);w.appendChild(l);bar.appendChild(w);
-    if(i<STEPS.length-1){const ln=document.createElement('div');ln.className='prog-line';bar.appendChild(ln);}
+  const bar=document.getElementById('prog');bar.innerHTML='';bar.classList.add('show');
+  STEPS.forEach((l,i)=>{
+    const w=document.createElement('div');w.className='p-step';
+    const d=document.createElement('div');d.className='p-dot';d.textContent=i+1;
+    const lbl=document.createElement('div');lbl.className='p-lbl';lbl.textContent=l;
+    w.appendChild(d);w.appendChild(lbl);bar.appendChild(w);
+    if(i<STEPS.length-1){const ln=document.createElement('div');ln.className='p-line';bar.appendChild(ln);}
   });
 }
-function updProg(step){
-  document.querySelectorAll('.prog-step').forEach((w,i)=>{
-    const d=w.querySelector('.prog-dot');d.className='prog-dot';w.className='prog-step';
-    if(i<step){d.classList.add('done');w.classList.add('sd');}
-    else if(i===step){d.classList.add('active');w.classList.add('sa');}
+function updProg(s){
+  document.querySelectorAll('.p-step').forEach((w,i)=>{
+    const d=w.querySelector('.p-dot');d.className='p-dot';w.className='p-step';
+    if(i<s){d.classList.add('dn');w.classList.add('dn');}
+    else if(i===s){d.classList.add('act');w.classList.add('act');}
   });
-  document.querySelectorAll('.prog-line').forEach((l,i)=>{l.className='prog-line';if(i<step)l.classList.add('done');});
+  document.querySelectorAll('.p-line').forEach((l,i)=>{l.className='p-line';if(i<s)l.classList.add('dn');});
 }
 
 /* ══ STEP NAV ══ */
 const VIEWS=['vs0','vs1','vs2','vs3','vs4','vs5'];
-function goStep(step){
-  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  const t=document.getElementById(VIEWS[step]);if(t)t.classList.add('active');
-  updProg(step);
-
-  // Mascot reactions per step
-  const msgs=[MSGS.s0,MSGS.s1,MSGS.s2,MSGS.s3,MSGS.s4,MSGS.s5];
+function goStep(s){
+  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
+  const t=document.getElementById(VIEWS[s]);if(t)t.classList.add('act');
+  updProg(s);
+  const ms=[MSGS.s0,MSGS.s1,MSGS.s2,MSGS.s3,MSGS.s4,MSGS.s5];
+  bubble(ms[s]);
   const anims=['idle','walk','walk','walk','walk','fly'];
-  setBubble(msgs[step]);
-  if(viewer)setSkinAnim(anims[step]||'idle');
-
-  if(step===5){setTimeout(()=>{spawnConfetti();setSkinAnim('fly');setBubble(MSGS.s5);},300);}
-  if(step===4){document.getElementById('mascot-held').classList.remove('visible');}
-  if(step===0){if(viewer)setSkinAnim('idle');}
+  if(viewer)setSkinAnim(anims[s]||'idle');
+  if(s===5){setTimeout(()=>{confetti();setSkinAnim('fly');},300);}
+  if(s!==4){hideSrvBadge();}
 }
-function switchMode(mode){
-  document.getElementById('vl').classList.remove('active');
-  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  const bar=document.getElementById('prog-bar');
-  if(mode==='reg'){bar.classList.remove('hidden');buildProg();showPreview();goStep(0);}
-  else{bar.classList.add('hidden');hidePreview();document.getElementById('vl').classList.add('active');setBubble(MSGS.login);if(viewer)setSkinAnim('idle');}
+function switchMode(m){
+  document.getElementById('vl').classList.remove('act');
+  VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
+  document.getElementById('prog').classList.remove('show');
+  if(m==='reg'){buildProg();pvShow();goStep(0);}
+  else{document.getElementById('vl').classList.add('act');bubble(MSGS.login);if(viewer)setSkinAnim('idle');}
 }
 
 /* ══ BUILD BUTTONS ══ */
 function buildBtns(){
   const bl=mkBtn('Giriş Yap','btn-gold');bl.onclick=doLogin;ca('b-login',bl);
-  const bgl=mkBtn('G — Google ile Giriş Yap','btn-discord');bgl.onclick=doGoogle;ca('b-gl',bgl);
+  const bgl=mkBtn('G — Google ile Giriş','btn-discord');bgl.onclick=doGoogle;ca('b-gl',bgl);
   const bs0=mkBtn('İleri →','btn-gold',true);bs0.id='b-s0-next';bs0.onclick=()=>goStep(1);ca('b-s0n',bs0);
   const bs1=mkBtn('Devam Et','btn-gold');bs1.onclick=doReg;ca('b-s1n',bs1);
   const bs1b=mkBtn('← Geri','btn-ghost btn-sm');bs1b.onclick=()=>goStep(0);ca('b-s1bk',bs1b);
-  const bgr=mkBtn('G — Google ile Kayıt Ol','btn-discord');bgr.onclick=doGoogle;ca('b-gr',bgr);
+  const bgr=mkBtn('G — Google ile Kayıt','btn-discord');bgr.onclick=doGoogle;ca('b-gr',bgr);
   const bs2b=mkBtn('←','btn-ghost btn-sm');bs2b.onclick=()=>goStep(1);ca('b-s2bk',bs2b);
-  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{if(!S.mainTag){toast('Tag seç!');setMascot('shake',null);return;}if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}setMascot('happy',MSGS.s2_done);setTimeout(()=>goStep(3),600);};ca('b-s2n',bs2n);
+  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{
+    if(!S.mainTag){toast('Rol seç!');wrapShake();return;}
+    if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}
+    bubble(MSGS.s2_ok);wrapJump();setTimeout(()=>goStep(3),500);
+  };ca('b-s2n',bs2n);
   const bs3b=mkBtn('←','btn-ghost btn-sm');bs3b.onclick=()=>goStep(2);ca('b-s3bk',bs3b);
   const bs3n=mkBtn('İleri →','btn-gold');bs3n.onclick=()=>goStep(4);ca('b-s3n',bs3n);
-  const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>{releaseServer();goStep(3);};ca('b-s4bk',bs4b);
-  const bs4sk=mkBtn('Geç →','btn-ghost');bs4sk.onclick=()=>{S.server='';finishReg();};ca('b-s4sk',bs4sk);
+  const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>{hideSrvBadge();goStep(3);};ca('b-s4bk',bs4b);
+  const bs4sk=mkBtn('Geç','btn-ghost');bs4sk.onclick=()=>{S.server='';finishReg();};ca('b-s4sk',bs4sk);
   const bs4n=mkBtn('Kayıt Ol 🚀','btn-gold',true);bs4n.id='b-s4-next';bs4n.onclick=finishReg;ca('b-s4n',bs4n);
   const bg=mkBtn('Topluluğa Katıl →','btn-gold');bg.onclick=()=>location.href='lobbyx.html';ca('b-go',bg);
 }
 
-/* ══ TAG SELECTION ══ */
+/* ══ TAG INIT ══ */
 function initTags(){
-  document.querySelectorAll('.tag-card').forEach(c=>{
+  document.querySelectorAll('.tcard').forEach(c=>{
     c.onclick=()=>{
-      document.querySelectorAll('.tag-card').forEach(x=>x.classList.remove('selected'));
-      c.classList.add('selected');S.mainTag=c.dataset.main;S.subTag='';S.displayTag='';
-      document.getElementById('sub-dev').classList.remove('visible');
-      document.getElementById('sub-medya').classList.remove('visible');
-      document.querySelectorAll('.dchip,.pcard').forEach(x=>x.classList.remove('selected'));
-      if(S.mainTag==='Developer')document.getElementById('sub-dev').classList.add('visible');
-      else if(S.mainTag==='Medya')document.getElementById('sub-medya').classList.add('visible');
-      else{S.displayTag=S.mainTag==='Diger'?'Diğer':'Oyuncu';prevTag();setMascot('happy',null);}
+      document.querySelectorAll('.tcard').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');S.mainTag=c.dataset.m;S.subTag='';S.displayTag='';
+      document.getElementById('sub-dev').classList.remove('show');
+      document.getElementById('sub-med').classList.remove('show');
+      document.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+      if(S.mainTag==='Developer')document.getElementById('sub-dev').classList.add('show');
+      else if(S.mainTag==='Medya')document.getElementById('sub-med').classList.add('show');
+      else{S.displayTag=S.mainTag==='Diger'?'Diğer':'Oyuncu';pvTag();wrapJump();}
     };
   });
-  document.querySelectorAll('.dchip').forEach(c=>{c.onclick=()=>{document.querySelectorAll('.dchip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');S.subTag=c.dataset.sub;S.displayTag=c.dataset.sub;prevTag();setMascot('happy',null);};});
-  document.querySelectorAll('.pcard').forEach(c=>{c.onclick=()=>{document.querySelectorAll('.pcard').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');S.subTag=c.dataset.sub;S.displayTag=c.dataset.tag;prevTag();setMascot('happy',null);};});
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.onclick=()=>{
+      // only chips in active section
+      const sec=c.closest('.sub-sec');
+      sec.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');S.subTag=c.dataset.s;S.displayTag=c.dataset.t||c.dataset.s;pvTag();wrapJump();
+    };
+  });
 }
 
-/* ══ BANNER COLORS ══ */
-function buildBanners(){
-  const wrap=document.getElementById('bc');
-  BANNER_COLORS.forEach(b=>{
-    const sw=document.createElement('div');sw.className='bswatch';sw.style.background=b.c;
-    if(b.c===S.banner)sw.classList.add('selected');
-    sw.onclick=()=>{document.querySelectorAll('.bswatch').forEach(x=>x.classList.remove('selected'));sw.classList.add('selected');S.banner=b.c;prevBanner();};
+/* ══ SWATCHES ══ */
+function buildSwatches(){
+  const wrap=document.getElementById('swatches');
+  BANNERS.forEach(col=>{
+    const sw=document.createElement('div');sw.className='sw';sw.style.background=col;
+    if(col===S.banner)sw.classList.add('sel');
+    sw.onclick=()=>{
+      document.querySelectorAll('.sw').forEach(x=>x.classList.remove('sel'));
+      sw.classList.add('sel');S.banner=col;pvBanner();
+    };
     wrap.appendChild(sw);
   });
 }
 
 /* ══ SERVER GRID ══ */
 function buildSrvGrid(){
-  const grid=document.getElementById('sg');grid.innerHTML='';
+  const g=document.getElementById('srv-g');g.innerHTML='';
   SERVERS.forEach(srv=>{
-    const c=document.createElement('div');c.className='srv-card';
-    const im=document.createElement('img');im.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;im.alt=srv.name;
-    im.onerror=()=>im.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.name)}&background=0e1428&color=ffd13b&size=32&bold=true`;
-    const nm=document.createElement('div');nm.className='sn';nm.textContent=srv.name;
+    const c=document.createElement('div');c.className='srv-c';
+    const im=document.createElement('img');im.src=`https://api.mcsrvstat.us/icon/${srv.ip}`;im.alt=srv.n;
+    im.onerror=()=>im.src=`https://ui-avatars.com/api/?name=${encodeURIComponent(srv.n)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+    const nm=document.createElement('div');nm.className='sn';nm.textContent=srv.n;
     c.appendChild(im);c.appendChild(nm);
     c.onclick=()=>{
-      document.querySelectorAll('.srv-card').forEach(x=>x.classList.remove('selected'));
-      c.classList.add('selected');
-      S.server=srv.ip;S.serverName=srv.name;
-      holdServer(srv.ip,srv.name);  // ← maskot logoyu tutuyor!
+      document.querySelectorAll('.srv-c').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');S.server=srv.ip;S.serverName=srv.n;
+      showSrvBadge(srv.ip,srv.n);bubble(MSGS.s4_run);
       const nb=document.getElementById('b-s4-next');if(nb)nb.disabled=false;
     };
-    grid.appendChild(c);
+    g.appendChild(c);
   });
 }
 
-/* ══ NICK CHECK ══ */
-let nickT;
+/* ══ NICK CHECK (= MC nick + skin) ══ */
+let nickT,skinT2;
 function initNick(){
   const inp=document.getElementById('nick');
   inp.oninput=()=>{
     const v=inp.value.trim();
-    document.getElementById('np').innerHTML=`lobby.gg/<span>${v||'...'}</span>`;
+    document.getElementById('np').innerHTML=`lobby.gg/<b>${v||'...'}</b>`;
     S.nick=v;S.nickOk=false;
     const nb=document.getElementById('b-s0-next');if(nb)nb.disabled=true;
     const st=document.getElementById('ns');
-    if(!v){inp.className='fi';st.textContent='';prevName('');return;}
-    if(!/^[a-zA-Z0-9_]{3,20}$/.test(v)){inp.className='fi err';st.className='fhint r';st.textContent='3-20 karakter, harf/rakam/alt çizgi.';setMascot('shake',null);return;}
-    inp.className='fi';st.className='fhint m';st.textContent='Kontrol ediliyor...';
-    setMascot('thinking',MSGS.s0_thinking);
-    clearTimeout(nickT);
-    nickT=setTimeout(async()=>{
-      const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',v).maybeSingle();
-      if(data){inp.className='fi err';st.className='fhint r';st.textContent='✗ Bu kullanıcı adı alınmış.';setMascot('shake',MSGS.s0_err);}
-      else{inp.className='fi ok';st.className='fhint g';st.textContent='✓ Kullanıcı adı uygun!';S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;prevName(v);setMascot('happy',MSGS.s0_ok);}
-    },650);
-  };
-}
+    const mini=document.getElementById('nsk-mini');
+    const miniImg=document.getElementById('nsk-img');
 
-/* ══ SKIN ══ */
-let skinT;
-function initSkin(){
-  const inp=document.getElementById('mc-ign');
-  inp.oninput=()=>{
-    const v=inp.value.trim();S.mcIgn=v;
-    clearTimeout(skinT);
+    clearTimeout(nickT);clearTimeout(skinT2);
+
     if(!v){
-      document.getElementById('sk-img').src='https://mc-heads.net/avatar/MHF_Steve/32';
-      document.getElementById('sk-mini').className='skin-mini';
-      document.getElementById('sk-st').textContent='IGN\'ini gir, skinin profil fotoğrafın olacak.';
-      if(viewer)viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve');
+      inp.className='fi';st.textContent='';pvName('');mini.className='nick-skin-mini';
+      if(viewer)viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve').catch(()=>{});
       return;
     }
     if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
-      document.getElementById('sk-st').className='fhint r';
-      document.getElementById('sk-st').textContent='Geçersiz MC kullanıcı adı.';
-      return;
+      inp.className='fi err';st.className='fh r';st.textContent='2-16 karakter, harf/rakam/alt çizgi.';
+      wrapShake();return;
     }
-    document.getElementById('sk-mini').className='skin-mini loading';
-    document.getElementById('sk-st').className='fhint m';
-    document.getElementById('sk-st').textContent='Skin yükleniyor...';
-    skinT=setTimeout(()=>{
-      const small=`https://mc-heads.net/avatar/${v}/32`;
-      const big=`https://mc-heads.net/avatar/${v}/64`;
-      const t=new Image();
-      t.onload=()=>{
-        document.getElementById('sk-img').src=small;
-        document.getElementById('sk-mini').className='skin-mini loaded';
-        document.getElementById('sk-st').className='fhint g';
-        document.getElementById('sk-st').textContent=`✓ ${v} skinini bulduk!`;
-        prevSkin(big);
-        loadSkin(v);
-        setBubble(MSGS.s3_skin);
+
+    inp.className='fi';st.className='fh m';st.textContent='Kontrol ediliyor...';
+    mini.className='nick-skin-mini loading';
+    bubble(MSGS.s0_check);
+
+    // Skin fetch (no debounce wait)
+    skinT2=setTimeout(()=>{
+      const sUrl=`https://mc-heads.net/avatar/${v}/32`;
+      const bUrl=`https://mc-heads.net/avatar/${v}/64`;
+      const tmp=new Image();
+      tmp.onload=()=>{
+        miniImg.src=sUrl;mini.className='nick-skin-mini ok';
+        pvSkin(bUrl);pvName(v);
+        loadPlayerSkin(v); // 3D viewer!
       };
-      t.onerror=()=>{
-        document.getElementById('sk-mini').className='skin-mini';
-        document.getElementById('sk-st').className='fhint r';
-        document.getElementById('sk-st').textContent='Bu IGN\'de skin bulunamadı.';
-      };
-      t.src=small;
+      tmp.onerror=()=>{mini.className='nick-skin-mini';};
+      tmp.src=sUrl;
+    },500);
+
+    // Nick availability check
+    nickT=setTimeout(async()=>{
+      const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',v).maybeSingle();
+      if(data){
+        inp.className='fi err';st.className='fh r';st.textContent='✗ Bu kullanıcı adı alınmış.';
+        bubble(MSGS.s0_err);wrapShake();
+      } else {
+        inp.className='fi ok';st.className='fh g';st.textContent='✓ Kullanıcı adı uygun!';
+        S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;
+        bubble(MSGS.s0_ok);wrapJump();
+      }
     },700);
   };
 }
 
 /* ══ BIO ══ */
 function initBio(){
-  const inp=document.getElementById('bio');const cnt=document.getElementById('bio-c');
-  inp.oninput=()=>{S.bio=inp.value;cnt.textContent=`${S.bio.length} / 160`;cnt.className='cc'+(S.bio.length>140?' warn':'');prevBio();};
+  const inp=document.getElementById('bio');const cc=document.getElementById('bio-c');
+  inp.oninput=()=>{S.bio=inp.value;cc.textContent=`${S.bio.length} / 160`;cc.className='cc'+(S.bio.length>140?' warn':'');pvBio();};
 }
 
 /* ══ AUTH ══ */
 async function doLogin(){
   const em=document.getElementById('l-em').value.trim();const pw=document.getElementById('l-pw').value;
-  if(!em||!pw){toast('E-posta ve şifreyi gir.');setMascot('shake',null);return;}
-  const btn=document.querySelector('#b-login .btn');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Giriş...';
+  if(!em||!pw){toast('E-posta ve şifreyi gir.');wrapShake();return;}
+  const btn=document.querySelector('#b-login .btn');btn.disabled=true;btn.innerHTML='<span class="sp"></span> Giriş...';
   const{error}=await db.auth.signInWithPassword({email:em,password:pw});
-  if(error){toast('Hatalı bilgi.');btn.disabled=false;btn.textContent='Giriş Yap';setMascot('shake',null);}
-  else{setMascot('celebrate','Tekrar hoş geldin! 🎉');setTimeout(()=>location.href='lobbyx.html',800);}
+  if(error){toast('Hatalı bilgi.');btn.disabled=false;btn.textContent='Giriş Yap';wrapShake();}
+  else{bubble('Tekrar hoş geldin! 🎉');setSkinAnim&&setSkinAnim('fly');setTimeout(()=>location.href='lobbyx.html',800);}
 }
+
 async function doReg(){
   const em=document.getElementById('r-em').value.trim();const pw=document.getElementById('r-pw').value;
   if(!em||!pw){toast('E-posta ve şifreyi gir.');return;}
   if(pw.length<6){toast('Şifre en az 6 karakter.');return;}
-  if(!S.nickOk){toast('Geçerli kullanıcı adı gir!');setMascot('shake',null);return;}
-  S.email=em;S.pw=pw;setMascot('happy',null);setTimeout(()=>goStep(2),400);
+  if(!S.nickOk){toast('Geçerli MC nick gir!');goStep(0);return;}
+  S.email=em;S.pw=pw;wrapJump();setTimeout(()=>goStep(2),400);
 }
+
 async function doGoogle(){
   const{error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/lobbyx.html'}});
   if(error)toast('Google hatası: '+error.message);
 }
+
 async function finishReg(){
-  const km={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
-  const kat=km[S.mainTag]||'Diğer';
-  const btn=document.getElementById('b-s4-next');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';}
+  const btn=document.getElementById('b-s4-next');if(btn){btn.disabled=true;btn.innerHTML='<span class="sp"></span>';}
   try{
     const{data:ad,error:ae}=await db.auth.signUp({email:S.email,password:S.pw});
     if(ae)throw ae;
-    const uid=ad.user?.id;if(!uid)throw new Error('ID yok');
-    await db.from('kullanicilar').insert({id:uid,kullanici_adi:S.nick,email:S.email,kategori:kat,alt_kategori:S.subTag||null,display_tag:S.displayTag||kat,banner_color:S.banner,bio:S.bio,mc_ign:S.mcIgn||null,desteklenen_sunucu:S.server||null,abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,hesap_olusturma:new Date().toISOString()});
+    const uid=ad.user?.id;if(!uid)throw new Error('ID alınamadı');
+    const katMap={Oyuncu:'Oyuncu',Developer:'Developer',Medya:'Medya',Diger:'Diğer'};
+    await db.from('kullanicilar').insert({
+      id:uid,kullanici_adi:S.nick,email:S.email,
+      kategori:katMap[S.mainTag]||'Diğer',alt_kategori:S.subTag||null,
+      display_tag:S.displayTag||'Oyuncu',
+      banner_color:S.banner,bio:S.bio,
+      mc_ign:S.nick, // nick = MC nick
+      desteklenen_sunucu:S.server||null,
+      abonelik:'uye',lcoin:5,kesfet_gorunurluk:false,
+      hesap_olusturma:new Date().toISOString()
+    });
     document.getElementById('wn').textContent=S.nick;
-    goStep(5);document.getElementById('prog-bar').classList.add('hidden');
-  }catch(e){toast('Kayıt hatası: '+(e.message||'?'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol 🚀';}}
+    document.getElementById('prog').classList.remove('show');
+    goStep(5);
+  }catch(e){toast('Hata: '+(e.message||'?'));if(btn){btn.disabled=false;btn.textContent='Kayıt Ol 🚀';}}
+}
+
+/* ══ PW TOGGLES ══ */
+function pwToggle(inpId,btnId){
+  document.getElementById(btnId).onclick=()=>{
+    const i=document.getElementById(inpId);const b=document.getElementById(btnId);
+    i.type=i.type==='password'?'text':'password';
+    b.textContent=i.type==='password'?'👁':'🙈';
+  };
 }
 
 /* ══ INIT ══ */
 document.addEventListener('DOMContentLoaded',async()=>{
-  setTimeout(()=>document.getElementById('load').classList.add('out'),800);
+  setTimeout(()=>document.getElementById('load').classList.add('out'),900);
   const{data:{session}}=await db.auth.getSession();
   if(session){location.href='lobbyx.html';return;}
-  initSkinViewer();
-  buildBtns();initNick();initSkin();initBio();buildSrvGrid();buildBanners();initTags();
-  prevBanner();
-  setBubble(MSGS.login);
 
-  document.getElementById('l-pwt').onclick=()=>{const i=document.getElementById('l-pw');const b=document.getElementById('l-pwt');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';};
-  document.getElementById('r-pwt').onclick=()=>{const i=document.getElementById('r-pw');const b=document.getElementById('r-pwt');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';};
+  initViewer();
+  buildBtns();
+  initNick();
+  initBio();
+  buildSwatches();
+  buildSrvGrid();
+  initTags();
+  pvBanner();
+  bubble(MSGS.login);
+
+  pwToggle('l-pw','l-pwt');
+  pwToggle('r-pw','r-pwt');
+  document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
   document.getElementById('go-reg').onclick=()=>switchMode('reg');
   document.getElementById('go-login').onclick=()=>switchMode('login');
-  document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
 });
 </script>
 </body>
