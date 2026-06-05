@@ -6,7 +6,8 @@
 <title>Giriş / Kayıt — LOBBY.GG</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@500;700;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root {
@@ -963,6 +964,17 @@ body.in-reg .character-preview-section {
   opacity: 1;
   transform: scale(1);
 }
+@keyframes glitchFlash {
+  0% { filter: hue-rotate(0deg) saturate(1) brightness(1) contrast(1); }
+  15% { filter: hue-rotate(45deg) saturate(2) brightness(1.3) contrast(1.2); }
+  45% { filter: hue-rotate(-30deg) saturate(0.5) brightness(0.8) contrast(0.9); }
+  75% { filter: hue-rotate(90deg) saturate(3) brightness(1.6) contrast(1.4); }
+  90% { filter: hue-rotate(-60deg) saturate(1.5) brightness(1.1) contrast(1.1); }
+  100% { filter: hue-rotate(0deg) saturate(1) brightness(1) contrast(1); }
+}
+.glitch-flash {
+  animation: glitchFlash 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
 </style>
 </head>
 <body>
@@ -1257,106 +1269,355 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
   draw();
 })();
 
-/* ══ SKINVIEW3D ══ */
-let viewer=null;
-let camTarget={posY:10, posZ:26, lookY:8};
-let camCurrent={posY:10, posZ:26, lookY:8};
-let _rotAnim=null;  // Always-on rotation
-let _moveAnim=null; // Swappable movement (idle/walk/run/fly)
+/* ══ THREE.JS & GSAP 3D ENGINE ══ */
+let scene, camera, renderer;
+let playerGroup, headGroup, torsoMesh, leftArmGroup, rightArmGroup, leftLegGroup, rightLegGroup;
+let currentAnim = 'walk';
+let _rotAnim = { speed: 0.35 };
 
-function initViewer(){
-  if(typeof skinview3d==='undefined'){
-    document.getElementById('skin-canvas').style.display='none';
-    const fb=document.createElement('img');
-    fb.id='skin-fallback';
-    fb.style.cssText='width:200px;height:310px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 20px 50px rgba(0,100,255,0.2));animation:idle3d 2.5s ease-in-out infinite';
-    const st=document.createElement('style');
-    st.textContent='@keyframes idle3d{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}';
-    document.head.appendChild(st);
-    fb.src='https://mc-heads.net/body/MHF_Steve/100';
-    document.getElementById('viewer-wrap').insertBefore(fb, document.getElementById('skin-canvas'));
-    window._fallback=true;
-    return;
-  }
-  try {
-    viewer=new skinview3d.SkinViewer({
-      canvas:document.getElementById('skin-canvas'),
-      width:240, height:360,
-      skin:'https://minotar.net/skin/MHF_Steve'
-    });
-    viewer.renderer.setClearColor(0x000000,0);
-    // Lock controls and override update to allow custom camera lerping
-    viewer.controls.enabled=false;
-    viewer.controls.enableZoom=false;
-    viewer.controls.enableRotate=false;
-    viewer.controls.enablePan=false;
-    viewer.controls.update = () => {};
-    viewer.fov=70;
-    viewer.camera.position.set(0,10,26);
+let camTarget = { posY: 1.6, posZ: 4.0, lookY: 1.5 };
+let camCurrent = { posY: 1.6, posZ: 4.0, lookY: 1.5 };
 
-    setSkinAnim('walk'); // Walk by default on landing
-    camLoop();
-    console.log('skinview3d OK ✓');
-  } catch(e){
-    console.error('skinview3d init error:',e);
-  }
+// Helper to slice texture from skin sheet
+function createTileTexture(img, x, y, w, h) {
+  const canvas = document.createElement('canvas');
+  canvas.width = w * 8;
+  canvas.height = h * 8;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, x, y, w, h, 0, 0, canvas.width, canvas.height);
+  
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = THREE.NearestFilter;
+  return texture;
 }
 
-/* Camera smooth lerp — runs every RAF tick */
-function camLoop(){
-  if(!viewer){requestAnimationFrame(camLoop);return;}
-  const k=0.08;
-  camCurrent.posY += (camTarget.posY - camCurrent.posY)*k;
-  camCurrent.posZ += (camTarget.posZ - camCurrent.posZ)*k;
-  camCurrent.lookY += (camTarget.lookY - camCurrent.lookY)*k;
-  
-  // Set camera and target positions directly
-  viewer.camera.position.set(0, camCurrent.posY, camCurrent.posZ);
-  viewer.camera.lookAt(0, camCurrent.lookY, 0);
+function sliceBoxMaterials(img, rects) {
+  return rects.map(r => {
+    return new THREE.MeshStandardMaterial({
+      map: createTileTexture(img, r.x, r.y, r.w, r.h),
+      transparent: true,
+      alphaTest: 0.5,
+      roughness: 0.9,
+      metalness: 0.1
+    });
+  });
+}
 
-  // Smoothly track head to mouse/inputs
-  if (viewer.playerObject && viewer.playerObject.skin && viewer.playerObject.skin.head) {
-    const lerpK = 0.1;
-    viewer.playerObject.skin.head.rotation.y += (headTargetYaw - viewer.playerObject.skin.head.rotation.y) * lerpK;
-    viewer.playerObject.skin.head.rotation.x += (headTargetPitch - viewer.playerObject.skin.head.rotation.x) * lerpK;
+function getMinecraftMaterials(img) {
+  const is64x64 = img.height === 64;
+  
+  // Head
+  const headRects = [
+    {x: 16, y: 8, w: 8, h: 8}, // Right (X+)
+    {x: 0, y: 8, w: 8, h: 8},  // Left (X-)
+    {x: 8, y: 0, w: 8, h: 8},  // Top (Y+)
+    {x: 16, y: 0, w: 8, h: 8}, // Bottom (Y-)
+    {x: 8, y: 8, w: 8, h: 8},  // Front (Z+)
+    {x: 24, y: 8, w: 8, h: 8}  // Back (Z-)
+  ];
+  
+  // Torso
+  const torsoRects = [
+    {x: 24, y: 20, w: 4, h: 12}, // Right
+    {x: 16, y: 20, w: 4, h: 12}, // Left
+    {x: 20, y: 16, w: 8, h: 4},  // Top
+    {x: 28, y: 16, w: 8, h: 4},  // Bottom
+    {x: 20, y: 20, w: 8, h: 12}, // Front
+    {x: 32, y: 20, w: 8, h: 12}  // Back
+  ];
+
+  // Right Arm
+  const rArmRects = [
+    {x: 44, y: 20, w: 4, h: 12}, // Right
+    {x: 44, y: 20, w: 4, h: 12}, // Left
+    {x: 44, y: 16, w: 4, h: 4},  // Top
+    {x: 48, y: 16, w: 4, h: 4},  // Bottom
+    {x: 44, y: 20, w: 4, h: 12}, // Front
+    {x: 52, y: 20, w: 4, h: 12}  // Back
+  ];
+
+  // Right Leg
+  const rLegRects = [
+    {x: 8, y: 20, w: 4, h: 12},  // Right
+    {x: 0, y: 20, w: 4, h: 12},  // Left
+    {x: 4, y: 16, w: 4, h: 4},   // Top
+    {x: 8, y: 16, w: 4, h: 4},   // Bottom
+    {x: 4, y: 20, w: 4, h: 12},  // Front
+    {x: 12, y: 20, w: 4, h: 12}  // Back
+  ];
+
+  // Left Arm
+  const lArmRects = is64x64 ? [
+    {x: 40, y: 52, w: 4, h: 12},
+    {x: 32, y: 52, w: 4, h: 12},
+    {x: 36, y: 48, w: 4, h: 4},
+    {x: 40, y: 48, w: 4, h: 4},
+    {x: 36, y: 52, w: 4, h: 12},
+    {x: 44, y: 52, w: 4, h: 12}
+  ] : rArmRects;
+
+  // Left Leg
+  const lLegRects = is64x64 ? [
+    {x: 24, y: 52, w: 4, h: 12},
+    {x: 16, y: 52, w: 4, h: 12},
+    {x: 20, y: 48, w: 4, h: 4},
+    {x: 24, y: 48, w: 4, h: 4},
+    {x: 20, y: 52, w: 4, h: 12},
+    {x: 28, y: 52, w: 4, h: 12}
+  ] : rLegRects;
+
+  return {
+    head: sliceBoxMaterials(img, headRects),
+    torso: sliceBoxMaterials(img, torsoRects),
+    rightArm: sliceBoxMaterials(img, rArmRects),
+    leftArm: sliceBoxMaterials(img, lArmRects),
+    rightLeg: sliceBoxMaterials(img, rLegRects),
+    leftLeg: sliceBoxMaterials(img, lLegRects)
+  };
+}
+
+function initViewer(){
+  const canvas = document.getElementById('skin-canvas');
+  const width = 240;
+  const height = 360;
+  
+  scene = new THREE.Scene();
+  
+  camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+  camera.position.set(0, camCurrent.posY, camCurrent.posZ);
+  camera.lookAt(0, camCurrent.lookY, 0);
+  
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  dirLight.position.set(2, 6, 4);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+
+  // Pedestal (Fortnite Neon Stand)
+  const pedestalGeo = new THREE.CylinderGeometry(0.8, 0.9, 0.12, 32);
+  const pedestalMat = new THREE.MeshStandardMaterial({ 
+    color: 0x070b19, 
+    roughness: 0.2, 
+    metalness: 0.8 
+  });
+  const pedestalMesh = new THREE.Mesh(pedestalGeo, pedestalMat);
+  pedestalMesh.position.y = 0.06;
+  pedestalMesh.receiveShadow = true;
+  scene.add(pedestalMesh);
+
+  // Neon ring outline
+  const ringGeo = new THREE.RingGeometry(0.8, 0.83, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd13b, side: THREE.DoubleSide });
+  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+  ringMesh.rotation.x = Math.PI / 2;
+  ringMesh.position.y = 0.122;
+  scene.add(ringMesh);
+
+  // Create empty player group
+  playerGroup = new THREE.Group();
+  playerGroup.position.y = 0.12; // Stand on pedestal
+  scene.add(playerGroup);
+
+  // Load default skin
+  loadPlayerSkin('MHF_Steve');
+
+  // Start loop
+  camLoop();
+  console.log('Three.js OK ✓');
+}
+
+/* Camera and Anim Loop — runs every RAF tick */
+function camLoop(){
+  if(!renderer || !scene || !camera) {
+    requestAnimationFrame(camLoop);
+    return;
   }
   
+  // Set camera and target positions directly based on current tweened values (updated via GSAP)
+  camera.position.set(0, camCurrent.posY, camCurrent.posZ);
+  camera.lookAt(0, camCurrent.lookY, 0);
+
+  // Character slow rotation or face forward
+  if (playerGroup) {
+    if (!document.body.classList.contains('in-reg')) {
+      playerGroup.rotation.y += _rotAnim.speed * 0.04;
+    } else {
+      // Smoothly rotate back to face forward
+      playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.1;
+    }
+  }
+
+  // Skeletal animations
+  if (torsoMesh) {
+    const time = Date.now();
+    
+    if (currentAnim === 'walk') {
+      const t = time * 0.007;
+      rightArmGroup.rotation.x = Math.sin(t) * 0.45;
+      leftArmGroup.rotation.x = -Math.sin(t) * 0.45;
+      rightLegGroup.rotation.x = -Math.sin(t) * 0.45;
+      leftLegGroup.rotation.x = Math.sin(t) * 0.45;
+
+      rightArmGroup.rotation.z = 0.05 + (Math.sin(t) + 1) * 0.02;
+      leftArmGroup.rotation.z = -0.05 - (Math.sin(t) + 1) * 0.02;
+    } 
+    else if (currentAnim === 'run') {
+      const t = time * 0.012;
+      rightArmGroup.rotation.x = Math.sin(t) * 0.75;
+      leftArmGroup.rotation.x = -Math.sin(t) * 0.75;
+      rightLegGroup.rotation.x = -Math.sin(t) * 0.75;
+      leftLegGroup.rotation.x = Math.sin(t) * 0.75;
+    } 
+    else if (currentAnim === 'fly') {
+      const t = time * 0.004;
+      rightLegGroup.rotation.x = 0.25 + Math.sin(t) * 0.08;
+      leftLegGroup.rotation.x = -0.15 + Math.cos(t) * 0.08;
+      rightArmGroup.rotation.x = -0.6 + Math.sin(t) * 0.1;
+      leftArmGroup.rotation.x = -0.6 + Math.cos(t) * 0.1;
+    }
+    else { // idle / breathing
+      const t = time * 0.002;
+      rightArmGroup.rotation.z = 0.05 + Math.sin(t) * 0.02;
+      leftArmGroup.rotation.z = -0.05 - Math.sin(t) * 0.02;
+      
+      rightArmGroup.rotation.x = Math.sin(t) * 0.04;
+      leftArmGroup.rotation.x = -Math.sin(t) * 0.04;
+      
+      rightLegGroup.rotation.x = 0;
+      leftLegGroup.rotation.x = 0;
+    }
+
+    // Breathing torso bobbing
+    const bt = time * 0.002;
+    const offsetBob = Math.sin(bt) * 0.015;
+    torsoMesh.position.y = 0.6 + offsetBob;
+    headGroup.position.y = 1.2 + offsetBob;
+    rightArmGroup.position.y = 1.2 + offsetBob;
+    leftArmGroup.position.y = 1.2 + offsetBob;
+  }
+
+  // Smoothly track head to mouse/inputs
+  if (headGroup) {
+    const lerpK = 0.12;
+    headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
+    headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
+  }
+
+  renderer.render(scene, camera);
   requestAnimationFrame(camLoop);
 }
 
 function setCamTarget(posY,posZ,lookY){
-  camTarget.posY=posY; camTarget.posZ=posZ; camTarget.lookY=lookY;
+  gsap.killTweensOf(camCurrent);
+  gsap.to(camCurrent, {
+    posY: posY,
+    posZ: posZ,
+    lookY: lookY,
+    duration: 1.2,
+    ease: "power2.out"
+  });
 }
 
-/* Animation switcher — fully clears anims and re-adds rotation + chosen anim */
 function setSkinAnim(t){
-  if(!viewer||typeof skinview3d==='undefined')return;
-  try {
-    viewer.animations.clear();
-    
-    // Add back slow rotation
-    _rotAnim = viewer.animations.add(skinview3d.RotatingAnimation);
-    _rotAnim.speed = 0.35;
-    
-    const M={idle:skinview3d.IdleAnimation,walk:skinview3d.WalkingAnimation,run:skinview3d.RunningAnimation,fly:skinview3d.FlyingAnimation};
-    const Cls=M[t]||skinview3d.IdleAnimation;
-    const spd={idle:0.6,walk:1.0,run:1.6,fly:1.1};
-    
-    _moveAnim=viewer.animations.add(Cls);
-    _moveAnim.speed=spd[t]||0.7;
-  } catch(e){console.error('setSkinAnim:',e);}
+  currentAnim = t || 'idle';
+}
+
+function buildPlayerMesh(img) {
+  // Clear previous mesh inside playerGroup
+  while(playerGroup.children.length > 0){ 
+    playerGroup.remove(playerGroup.children[0]); 
+  }
+
+  const materials = getMinecraftMaterials(img);
+
+  // 1. Torso
+  const torsoGeo = new THREE.BoxGeometry(0.8, 1.2, 0.4);
+  torsoMesh = new THREE.Mesh(torsoGeo, materials.torso);
+  torsoMesh.position.set(0, 0.6, 0);
+  torsoMesh.castShadow = true;
+  torsoMesh.receiveShadow = true;
+  playerGroup.add(torsoMesh);
+
+  // 2. Head Group
+  headGroup = new THREE.Group();
+  headGroup.position.set(0, 1.2, 0);
+  playerGroup.add(headGroup);
+
+  const headGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+  const headMesh = new THREE.Mesh(headGeo, materials.head);
+  headMesh.position.set(0, 0.4, 0);
+  headMesh.castShadow = true;
+  headGroup.add(headMesh);
+
+  // 3. Right Arm Group
+  rightArmGroup = new THREE.Group();
+  rightArmGroup.position.set(-0.6, 1.2, 0);
+  playerGroup.add(rightArmGroup);
+
+  const rArmGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
+  const rArmMesh = new THREE.Mesh(rArmGeo, materials.rightArm);
+  rArmMesh.position.set(0, -0.6, 0);
+  rArmMesh.castShadow = true;
+  rightArmGroup.add(rArmMesh);
+
+  // 4. Left Arm Group
+  leftArmGroup = new THREE.Group();
+  leftArmGroup.position.set(0.6, 1.2, 0);
+  playerGroup.add(leftArmGroup);
+
+  const lArmGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
+  const lArmMesh = new THREE.Mesh(lArmGeo, materials.leftArm);
+  lArmMesh.position.set(0, -0.6, 0);
+  lArmMesh.castShadow = true;
+  leftArmGroup.add(lArmMesh);
+
+  // 5. Right Leg Group
+  rightLegGroup = new THREE.Group();
+  rightLegGroup.position.set(-0.2, 0, 0);
+  playerGroup.add(rightLegGroup);
+
+  const rLegGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
+  const rLegMesh = new THREE.Mesh(rLegGeo, materials.rightLeg);
+  rLegMesh.position.set(0, -0.6, 0);
+  rLegMesh.castShadow = true;
+  rightLegGroup.add(rLegMesh);
+
+  // 6. Left Leg Group
+  leftLegGroup = new THREE.Group();
+  leftLegGroup.position.set(0.2, 0, 0);
+  playerGroup.add(leftLegGroup);
+
+  const lLegGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
+  const lLegMesh = new THREE.Mesh(lLegGeo, materials.leftLeg);
+  lLegMesh.position.set(0, -0.6, 0);
+  lLegMesh.castShadow = true;
+  leftLegGroup.add(lLegMesh);
 }
 
 function loadPlayerSkin(nick){
-  if(window._fallback){
-    const fb=document.getElementById('skin-fallback');
-    if(fb){fb.style.opacity='.4';const t=new Image();t.onload=()=>{fb.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;fb.style.opacity='1';};t.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;}
-    return;
-  }
-  if(!viewer)return;
-  viewer.loadSkin(`https://minotar.net/skin/${encodeURIComponent(nick)}`)
-    .then(()=>{setSkinAnim('walk');wrapJump();})
-    .catch(()=>viewer.loadSkin(`https://mc-heads.net/skin/${nick}`).then(()=>{setSkinAnim('walk');wrapJump();}).catch(()=>{}));
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    buildPlayerMesh(img);
+    wrapJump();
+  };
+  img.onerror = () => {
+    const fb = new Image();
+    fb.crossOrigin = "anonymous";
+    fb.onload = () => buildPlayerMesh(fb);
+    fb.src = "https://mc-heads.net/skin/MHF_Steve";
+  };
+  img.src = `https://mc-heads.net/skin/${nick}`;
 }
 
 function wrapJump(){
@@ -1409,14 +1670,15 @@ const VIEWS=['vs0','vs1','vs2','vs3','vs4','vs5'];
 const STEP_COUNT=5;
 
 // Camera presets per step:
+// Camera presets per step:
 //   [posY, posZ, lookY]
 const CAM={
-  landing:[10, 26, 8],
-  0:[17, 10, 16.5], // zoom head for nick
-  1:[10, 26,  8  ], // full body
-  2:[13, 14, 12  ], // mid body
-  3:[13, 14, 12  ], // mid body banner
-  4:[10, 26,  8  ], // full body server
+  landing:[1.6, 4.0, 1.5],
+  0:[2.8, 1.5, 2.8], // zoom head for nick
+  1:[1.6, 4.0, 1.5], // full body
+  2:[2.0, 2.5, 1.8], // mid body
+  3:[2.0, 2.5, 1.8], // mid body banner
+  4:[1.6, 4.0, 1.5], // full body server
 };
 const ANIMS=['idle','walk','walk','walk','run','fly'];
 
@@ -1436,6 +1698,12 @@ function updDots(s){
   });
 }
 
+function triggerGlitch() {
+  const el = document.body;
+  el.classList.add('glitch-flash');
+  setTimeout(() => el.classList.remove('glitch-flash'), 250);
+}
+
 function goStep(s){
   currentStep=s;
   VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
@@ -1450,6 +1718,13 @@ function goStep(s){
 
   document.getElementById('step-label').textContent=s<STEP_COUNT?`ADIM ${s+1} / ${STEP_COUNT}`:'TAMAMLANDI';
   document.getElementById('step-title').textContent=STEP_LABELS[s]||'';
+
+  // Trigger glitch flash and GSAP panel transitions
+  triggerGlitch();
+  gsap.fromTo("#locker-panel", 
+    { x: -30, opacity: 0.8 }, 
+    { x: 0, opacity: 1, duration: 0.5, ease: "power2.out" }
+  );
 
   const cam=CAM[s]||CAM.landing;
   setCamTarget(cam[0],cam[1],cam[2]);
