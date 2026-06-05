@@ -15,13 +15,13 @@
   --gold-glow: rgba(255, 209, 59, 0.25);
   --bg: #060810;
   --navy: #0c1020;
-  --card: rgba(8, 12, 28, 0.85);
-  --border: #000;
-  --input-bg: #03050a;
-  --input-border: #141b30;
+  --card: rgba(10, 15, 30, 0.85);
+  --border: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(0, 0, 0, 0.4);
+  --input-border: rgba(255, 255, 255, 0.15);
   --t1: #fff;
-  --t2: #8a9ab8;
-  --tdim: #3a4a68;
+  --t2: #a0aec0;
+  --tdim: #4a5568;
   --red: #ff3535;
   --green: #3ddc84;
   --blue: #5865F2;
@@ -30,12 +30,24 @@ html,body {
   width: 100%;
   height: 100%;
   font-family: 'Montserrat', sans-serif;
-  background: var(--bg);
-  color: var(--t1);
   overflow: hidden;
+  color: var(--t1);
 }
 
-/* Page Container (Split Screen) */
+/* Dynamic Fortnite Gradient Backgrounds */
+body {
+  background: radial-gradient(circle, #1c6adb 0%, #071f47 100%);
+  transition: background 0.8s ease-in-out;
+}
+body.bg-blue { background: radial-gradient(circle, #1c6adb 0%, #071f47 100%); }
+body.bg-red { background: radial-gradient(circle, #e83838 0%, #4a0d0d 100%); }
+body.bg-gray { background: radial-gradient(circle, #556075 0%, #1c222e 100%); }
+body.bg-black { background: radial-gradient(circle, #2d3440 0%, #0d0f14 100%); }
+body.bg-orange { background: radial-gradient(circle, #ed8936 0%, #552800 100%); }
+body.bg-purple { background: radial-gradient(circle, #9f7aea 0%, #321e59 100%); }
+body.bg-green { background: radial-gradient(circle, #48bb78 0%, #143e21 100%); }
+
+/* Page Container (Split Screen layout) */
 .page-container {
   display: flex;
   width: 100vw;
@@ -46,19 +58,14 @@ html,body {
 
 /* Left pane: Character Arena */
 .character-pane {
-  flex: 1.2;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
-  background: 
-    radial-gradient(circle at 50% 80%, rgba(255, 209, 59, 0.12) 0%, rgba(6, 8, 16, 0) 60%),
-    radial-gradient(circle at 50% 40%, rgba(88, 101, 242, 0.08) 0%, rgba(6, 8, 16, 0) 70%),
-    #060810;
-  border-right: 3px solid #000;
   padding: 20px;
-  transition: flex 0.8s cubic-bezier(0.77, 0, 0.175, 1), border-color 0.8s;
+  transition: flex 0.8s cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 .pane-header {
@@ -88,11 +95,9 @@ html,body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-top: -30px;
 }
 .viewer-wrap {
   position: relative;
-  filter: drop-shadow(0 0 35px rgba(255, 209, 59, 0.18));
 }
 #skin-canvas {
   display: block;
@@ -106,14 +111,14 @@ html,body {
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 140px;
+  width: 150px;
   height: 12px;
-  background: #11172a;
-  border: 3px solid #000;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
   z-index: -1;
-  box-shadow: 0 4px 0 #000, inset 0 2px 0 rgba(255,255,255,0.1);
-  filter: drop-shadow(0 0 12px var(--gold-glow));
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3));
 }
 
 /* Floating Name Tag */
@@ -123,12 +128,13 @@ html,body {
   left: 50%;
   transform: translateX(-50%) scale(0.9);
   background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #000;
-  padding: 4px 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   color: #fff;
-  text-shadow: 2px 2px 0px #3f3f3f;
+  text-shadow: 1px 1px 0px #000;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -146,8 +152,8 @@ html,body {
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,.85);
-  border: 2px solid var(--gold);
-  box-shadow: 3px 3px 0 var(--gold-dk);
+  border: 1.5px solid var(--gold);
+  border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -170,7 +176,7 @@ html,body {
   width: 20px;
   height: 20px;
   image-rendering: pixelated;
-  border: 1px solid #000;
+  border-radius: 4px;
 }
 .srv-badge span {
   font-size: 9px;
@@ -180,6 +186,21 @@ html,body {
   letter-spacing: .5px;
 }
 
+/* Landing Actions (Centred under character) */
+.landing-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 30px;
+  z-index: 10;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.page-container.register-active .landing-actions,
+.page-container.victory-active .landing-actions {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
 /* Profile Card Widget Overlay */
 .prev-card {
   position: absolute;
@@ -187,8 +208,9 @@ html,body {
   left: 30px;
   width: 230px;
   background: var(--card);
-  border: 3px solid #000;
-  box-shadow: 5px 5px 0 #000;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   overflow: visible;
   opacity: 0;
   transform: translateY(12px) scale(.96);
@@ -202,6 +224,8 @@ html,body {
 .prev-banner {
   height: 64px;
   position: relative;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
   transition: background .5s ease;
 }
 .prev-av-wrap {
@@ -211,7 +235,7 @@ html,body {
   width: 40px;
   height: 40px;
   border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
+  border-radius: 6px;
   background: #0a0f1e;
   overflow: hidden;
   z-index: 5;
@@ -251,8 +275,7 @@ html,body {
   padding: 2px 7px;
   font-size: 8px;
   font-weight: 900;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: .3px;
 }
@@ -274,37 +297,51 @@ html,body {
   color: var(--tdim);
   font-weight: 700;
   padding-top: 4px;
-  border-top: 1px solid #0e1a30;
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 
 /* Right pane: HUD panel */
 .hud-pane {
-  width: 480px;
+  width: 0px;
   height: 100%;
-  background: rgba(8, 12, 28, 0.65);
+  background: rgba(8, 12, 28, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-left: 3px solid #000;
+  border-left: 1.5px solid var(--border);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 40px 30px;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
   overflow-y: auto;
   z-index: 10;
-  transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s;
+  transition: width 0.8s cubic-bezier(0.77, 0, 0.175, 1), padding 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.6s;
+}
+
+.page-container.register-active .hud-pane {
+  width: 480px;
+  padding: 40px 30px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.page-container.register-active .character-pane {
+  flex: 1.2;
 }
 
 .hud-card {
   width: 100%;
-  background: rgba(12, 18, 38, 0.85);
-  border: 3px solid #000;
-  box-shadow: 6px 6px 0 #000, 0 0 25px rgba(255, 209, 59, 0.12);
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   padding: 26px;
   position: relative;
 }
 
 .hud-card-header {
-  border-bottom: 2px solid #142044;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   padding-bottom: 12px;
   margin-bottom: 20px;
 }
@@ -336,8 +373,8 @@ html,body {
 }
 .p-step {
   height: 4px;
-  background: #0d1224;
-  border: 1px solid #000;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
   transition: all 0.3s ease;
 }
 .p-step.act {
@@ -384,33 +421,30 @@ html,body {
 .fi {
   width: 100%;
   background: var(--input-bg);
-  border: 2px solid var(--input-border);
+  border: 1.5px solid var(--input-border);
   padding: 12px 14px;
   color: var(--t1);
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   font-weight: 600;
   outline: none;
-  border-radius: 0 !important;
-  box-shadow: 3px 3px 0 #000;
-  transition: border-color .15s, box-shadow .15s, transform .1s;
+  border-radius: 8px !important;
+  transition: border-color .15s, background .15s, transform .1s;
 }
 .fi::placeholder {
   color: var(--tdim);
 }
 .fi:focus {
   border-color: var(--gold);
-  box-shadow: 3px 3px 0 var(--gold-dk);
+  background: rgba(0,0,0,0.6);
   transform: translate(-1px,-1px);
 }
 .fi.err {
   border-color: var(--red);
-  box-shadow: 3px 3px 0 #600;
   animation: inputShake .3s ease;
 }
 .fi.ok {
   border-color: var(--green);
-  box-shadow: 3px 3px 0 #163;
 }
 @keyframes inputShake {
   0%,100% { transform: translateX(0); }
@@ -483,10 +517,12 @@ textarea.fi {
   bottom: 0;
   width: 44px;
   background: rgba(0,0,0,.4);
-  border-left: 2px solid var(--input-border);
+  border-left: 1.5px solid var(--input-border);
   display: flex;
   align-items: center;
   justify-content: center;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
   transition: all .3s;
 }
 .nick-skin-mini img {
@@ -513,30 +549,28 @@ textarea.fi {
   padding-right: 52px;
 }
 
-/* 3D Neobrutalist HUD Buttons */
+/* Fortnite styled pill buttons */
 .btn {
   width: 100%;
-  padding: 12px 18px;
+  padding: 12px 24px;
   cursor: pointer;
-  border-radius: 0 !important;
+  border-radius: 30px !important;
   font-family: 'Montserrat', sans-serif;
   font-size: 11px;
   font-weight: 900;
+  font-style: italic;
   letter-spacing: .6px;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 2px solid #000 !important;
+  border: none !important;
   user-select: none;
-  transition: transform .08s ease, box-shadow .08s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: transform .15s ease, background-color .15s ease, filter .15s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    inset -3px -3px 0px 0px rgba(0,0,0,0.35),
-    inset 2px 2px 0px 0px rgba(255,255,255,0.2),
-    3px 3px 0px 0px #000 !important;
 }
 .btn:disabled {
   opacity: .3;
@@ -564,35 +598,38 @@ textarea.fi {
   transition: left 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 
-    inset -3px -3px 0px 0px rgba(0,0,0,0.35),
-    inset 2px 2px 0px 0px rgba(255,255,255,0.3),
-    5px 5px 0px 0px #000 !important;
+  transform: scale(1.03);
+  filter: brightness(1.08);
 }
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 
-    inset -1px -1px 0px 0px rgba(0,0,0,0.2),
-    1px 1px 0px 0px #000 !important;
+  transform: scale(0.97);
 }
 
 /* Colors */
 .mc-gold {
-  background: var(--gold) !important;
+  background: #fff !important;
   color: #000 !important;
 }
+.mc-gold:hover {
+  background: #f0f0f0 !important;
+}
 .mc-discord {
-  background: #5865F2 !important;
+  background: #00d4ff !important;
   color: #fff !important;
 }
+.mc-discord:hover {
+  background: #00bada !important;
+}
 .btn-ghost {
-  background: rgba(14, 22, 50, 0.7) !important;
-  color: var(--t2) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
 }
 .btn-sm {
   width: auto;
-  padding: 8px 14px;
+  padding: 8px 20px;
   font-size: 10px;
 }
 .btn-row {
@@ -608,7 +645,7 @@ textarea.fi {
   align-items: center;
   gap: 10px;
   margin: 10px 0;
-  color: var(--tdim);
+  color: var(--t2);
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
@@ -618,7 +655,7 @@ textarea.fi {
   content: '';
   flex: 1;
   height: 1px;
-  background: #141b30;
+  background: rgba(255,255,255,0.08);
 }
 
 /* Tag Selection Grid */
@@ -630,30 +667,22 @@ textarea.fi {
 }
 .tcard {
   background: var(--input-bg);
-  border: 2px solid var(--input-border);
-  box-shadow: 3px 3px 0 #000;
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
   padding: 14px 10px 10px;
   cursor: pointer;
   text-align: center;
-  transition: transform .1s, box-shadow .1s, border-color .12s;
+  transition: transform .15s, border-color .15s, background-color .15s;
   user-select: none;
 }
 .tcard:hover {
-  transform: translate(-3px,-3px);
-  box-shadow: 6px 6px 0 #000;
-  border-color: #2a3a60;
+  transform: scale(1.03);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 .tcard.sel {
   border-color: var(--gold);
-  background: rgba(255,209,59,.04);
-  box-shadow: 3px 3px 0 var(--gold-dk);
-  transform: translate(-2px,-2px);
-  animation: cardPop .25s ease;
-}
-@keyframes cardPop {
-  0% { transform: translate(0,0) scale(.95); }
-  70% { transform: translate(-3px,-3px) scale(1.03); }
-  100% { transform: translate(-2px,-2px) scale(1); }
+  background: rgba(255,209,59,.06);
+  transform: scale(1.03);
 }
 .tc-ico {
   font-size: 20px;
@@ -665,7 +694,7 @@ textarea.fi {
 }
 .tc-d {
   font-size: 8px;
-  color: var(--tdim);
+  color: var(--t2);
   margin-top: 2px;
   font-weight: 600;
 }
@@ -680,7 +709,7 @@ textarea.fi {
 .sub-lbl {
   font-size: 9px;
   font-weight: 800;
-  color: var(--tdim);
+  color: var(--t2);
   text-transform: uppercase;
   letter-spacing: .7px;
   margin-bottom: 6px;
@@ -692,31 +721,27 @@ textarea.fi {
 }
 .chip {
   background: var(--input-bg);
-  border: 2px solid var(--input-border);
-  box-shadow: 2px 2px 0 #000;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px !important;
   padding: 6px 11px;
   cursor: pointer;
   font-size: 10px;
   font-weight: 800;
-  color: var(--t2);
-  transition: transform .1s, box-shadow .1s, border-color .12s;
+  color: var(--t1);
+  transition: all .15s;
   user-select: none;
   display: flex;
   align-items: center;
   gap: 6px;
-  border-radius: 0 !important;
 }
 .chip:hover {
-  transform: translate(-2px,-2px);
-  box-shadow: 4px 4px 0 #000;
-  border-color: #2a3a60;
+  transform: scale(1.03);
+  border-color: rgba(255,255,255,0.3);
 }
 .chip.sel {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(255,209,59,.04);
-  box-shadow: 2px 2px 0 var(--gold-dk);
-  animation: cardPop .2s ease;
+  background: rgba(255,209,59,.06);
 }
 .chip img {
   width: 14px;
@@ -734,19 +759,20 @@ textarea.fi {
 .sw {
   width: 32px;
   height: 32px;
-  border: 2px solid #000;
-  box-shadow: 2px 2px 0 #000;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
   cursor: pointer;
   position: relative;
-  transition: transform .1s, box-shadow .1s;
+  transition: transform .15s, border-color .15s;
 }
 .sw:hover {
-  transform: translate(-2px,-2px);
-  box-shadow: 4px 4px 0 #000;
+  transform: scale(1.1);
+  border-color: #fff;
 }
 .sw.sel {
-  box-shadow: 0 0 0 3px var(--gold), 2px 2px 0 #000;
-  transform: translate(-1px,-1px);
+  border-color: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow);
+  transform: scale(1.1);
 }
 .sw.sel::after {
   content: '✓';
@@ -755,9 +781,10 @@ textarea.fi {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
-  color: rgba(255,255,255,.9);
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
 }
 
 /* Server select */
@@ -774,32 +801,30 @@ textarea.fi {
   width: 3px;
 }
 .srv-grid::-webkit-scrollbar-thumb {
-  background: #1a2240;
+  background: rgba(255,255,255,0.1);
 }
 .srv-c {
   background: var(--input-bg);
-  border: 2px solid var(--input-border);
-  box-shadow: 2px 2px 0 #000;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
   padding: 8px 4px;
   cursor: pointer;
   text-align: center;
-  transition: transform .1s, box-shadow .1s, border-color .12s;
+  transition: all 0.15s;
   user-select: none;
 }
 .srv-c:hover {
-  transform: translate(-2px,-2px);
-  box-shadow: 4px 4px 0 #000;
+  transform: scale(1.03);
+  border-color: rgba(255,255,255,0.3);
 }
 .srv-c.sel {
   border-color: var(--gold);
-  background: rgba(255,209,59,.04);
-  box-shadow: 2px 2px 0 var(--gold-dk);
-  animation: cardPop .2s ease;
+  background: rgba(255,209,59,.06);
 }
 .srv-c img {
   width: 28px;
   height: 28px;
-  border: 1px solid #000;
+  border-radius: 4px;
   object-fit: cover;
   background: #090d1a;
   display: block;
@@ -809,7 +834,7 @@ textarea.fi {
 .srv-c .sn {
   font-size: 8px;
   font-weight: 800;
-  color: var(--t2);
+  color: var(--t1);
   line-height: 1.2;
   word-break: break-word;
 }
@@ -823,11 +848,12 @@ textarea.fi {
   width: 72px;
   height: 72px;
   border: 4px solid var(--gold);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  box-shadow: 4px 4px 0 var(--gold-dk);
+  box-shadow: 0 0 20px var(--gold-glow);
   animation: popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
 }
 @keyframes popIn {
@@ -851,26 +877,12 @@ textarea.fi {
   line-height: 1.7;
   font-weight: 600;
 }
-.coin-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,209,59,.06);
-  border: 2px solid var(--gold);
-  box-shadow: 4px 4px 0 var(--gold-dk);
-  padding: 9px 22px;
-  font-size: 14px;
-  font-weight: 900;
-  color: var(--gold);
-  margin-bottom: 20px;
-  animation: popIn .5s .3s both;
-}
 
 .tlink {
   text-align: center;
   margin-top: 12px;
   font-size: 11px;
-  color: var(--tdim);
+  color: var(--t2);
   font-weight: 600;
 }
 .tlink button {
@@ -885,7 +897,63 @@ textarea.fi {
   text-underline-offset: 3px;
 }
 
-/* Victory Screen Banner Overlay */
+/* Centered Login Overlay (orta alanda sorsun) */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 10, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.page-container.login-active .login-overlay {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+  padding: 30px;
+  position: relative;
+  animation: modalPop .4s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes modalPop {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+.modal-close-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* Centered Victory Banner (Fades in when victory is active) */
 .victory-banner {
   position: absolute;
   bottom: 80px;
@@ -905,8 +973,9 @@ textarea.fi {
 .vic-title {
   font-size: 32px;
   font-weight: 900;
+  font-style: italic;
   color: var(--gold);
-  text-shadow: 3px 3px 0 #000, 0 0 20px rgba(255, 209, 59, 0.5);
+  text-shadow: 2px 2px 0 #000, 0 0 20px rgba(255, 209, 59, 0.4);
   letter-spacing: 2px;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -915,7 +984,18 @@ textarea.fi {
   font-size: 18px;
   font-weight: 800;
   color: #fff;
-  text-shadow: 2px 2px 0 #000;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* Victory overlay state */
+.page-container.victory-active .hud-pane {
+  width: 0px !important;
+  padding: 0 !important;
+  opacity: 0;
+  border-left: none;
+}
+.page-container.victory-active .character-pane {
+  flex: 1 !important;
 }
 
 /* Toast notifications */
@@ -934,9 +1014,9 @@ textarea.fi {
   font-weight: 800;
   color: #fff;
   background: #100010;
-  border: 2px solid var(--red);
-  border-left: 5px solid var(--red);
-  box-shadow: 4px 4px 0 #000;
+  border: 1.5px solid var(--red);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   max-width: 280px;
   font-family: 'Montserrat', sans-serif;
   animation: toastIn .3s ease;
@@ -944,7 +1024,6 @@ textarea.fi {
 .toast.ok {
   background: #001008;
   border-color: var(--green);
-  border-left-color: var(--green);
   color: var(--green);
 }
 @keyframes toastIn {
@@ -954,8 +1033,8 @@ textarea.fi {
 .sp {
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(0,0,0,.2);
-  border-top-color: #000;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin .6s linear infinite;
   display: inline-block;
@@ -1025,7 +1104,7 @@ textarea.fi {
   width: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1a2240;
+  background: rgba(255,255,255,0.1);
 }
 
 /* Mobile responsive overlay */
@@ -1044,7 +1123,7 @@ textarea.fi {
     padding-top: 50px;
   }
   .hud-pane {
-    width: 100%;
+    width: 100% !important;
     height: auto;
     padding: 24px 16px;
     border-left: none;
@@ -1119,6 +1198,12 @@ textarea.fi {
       </div>
     </div>
 
+    <!-- Landing Options (Kayıt Ol / Giriş Yap) -->
+    <div class="landing-actions" id="landing-actions">
+      <button class="btn mc-gold" id="btn-start-reg" style="width: 180px;">KAYIT OL</button>
+      <button class="btn btn-ghost" id="btn-start-login" style="width: 180px;">GİRİŞ YAP</button>
+    </div>
+
     <!-- Centered Victory Banner (Fades in when victory is active) -->
     <div class="victory-banner" id="victory-banner">
       <div class="vic-title">Karakter Oluşturuldu!</div>
@@ -1134,31 +1219,11 @@ textarea.fi {
       <!-- Quest progression details -->
       <div class="hud-card-header">
         <div class="hud-quest-label" id="quest-label">LOBBY.GG LOBİSİ</div>
-        <div class="hud-title" id="hud-title-text">Giriş Yap</div>
+        <div class="hud-title" id="hud-title-text">Kayıt Ol</div>
       </div>
 
       <!-- Segment Progress Bar -->
       <div class="prog" id="prog"></div>
-
-      <!-- LOGIN STEP -->
-      <div class="sv act" id="vl">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Hesabına erişmek için bilgilerini gir veya yeni karakter oluştur.</div>
-        <div class="fg">
-          <label class="flbl">E-posta</label>
-          <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
-        </div>
-        <div class="fg">
-          <label class="flbl">Şifre</label>
-          <div class="pw-wrap">
-            <input class="fi" type="password" id="l-pw" placeholder="••••••••">
-            <button class="pw-eye" id="l-pwt">👁</button>
-          </div>
-        </div>
-        <div id="b-login" style="margin-bottom:10px"></div>
-        <div class="sep">veya</div>
-        <div id="b-gl"></div>
-        <div class="tlink">Hesabın yok mu? <button id="go-reg">Kayıt Ol</button></div>
-      </div>
 
       <!-- S0: MC IGN -->
       <div class="sv" id="vs0">
@@ -1175,7 +1240,7 @@ textarea.fi {
           <div class="fh m" id="ns"></div>
         </div>
         <div id="b-s0n" style="margin-top:8px"></div>
-        <div class="tlink">Hesabın var mı? <button id="go-login">Giriş Yap</button></div>
+        <div class="tlink"><button id="go-back-landing-reg">← İptal Et</button></div>
       </div>
 
       <!-- S1: Email + Password -->
@@ -1234,7 +1299,7 @@ textarea.fi {
 
       <!-- S3: Profile Customize -->
       <div class="sv" id="vs3">
-        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Banner rengini belirle ve kendini kısaca tanıt!</div>
+        <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Banner rengini belirle ve kendini kısaca tanıt! Arka plan dinamik değişir.</div>
         <div class="fg">
           <label class="flbl">Banner Rengi</label>
           <div class="swatches" id="swatches"></div>
@@ -1273,6 +1338,33 @@ textarea.fi {
     </div><!-- /hud-card -->
   </div><!-- /hud-pane -->
 
+  <!-- CENTERED LOGIN OVERLAY (Orta alanda sorsun) -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <button class="modal-close-btn" id="btn-close-login">✕</button>
+      <div class="hud-card-header">
+        <div class="hud-quest-label">LOBBY.GG GİRİŞ</div>
+        <div class="hud-title">Giriş Yap</div>
+      </div>
+      <div class="step-s" style="margin-bottom:15px; font-size:11px; color:var(--t2);">Hesabına erişmek için bilgilerini gir.</div>
+      <div class="fg">
+        <label class="flbl">E-posta</label>
+        <input class="fi" type="email" id="l-em" placeholder="ornek@mail.com">
+      </div>
+      <div class="fg">
+        <label class="flbl">Şifre</label>
+        <div class="pw-wrap">
+          <input class="fi" type="password" id="l-pw" placeholder="••••••••">
+          <button class="pw-eye" id="l-pwt">👁</button>
+        </div>
+      </div>
+      <div id="b-login" style="margin-bottom:10px"></div>
+      <div class="sep">veya</div>
+      <div id="b-gl"></div>
+      <div class="tlink">Hesabın yok mu? <button id="go-reg-from-login">Kayıt Ol</button></div>
+    </div>
+  </div>
+
 </div><!-- /page-container -->
 
 <script>
@@ -1285,7 +1377,16 @@ const db=supabase.createClient(SUPA_URL,SUPA_KEY);
 const S={nick:'',nickOk:false,email:'',pw:'',mainTag:'',subTag:'',displayTag:'',banner:'#1a2a4a',bio:'',server:'',serverName:''};
 
 /* ══ DATA ══ */
-const BANNERS=['#1a2a4a','#1a1a4a','#4a1a1a','#1a4a2a','#4a3a1a','#1a3a4a','#3a1a4a','#2a2a2a','#0a2a1a','#2a1a0a'];
+const BANNERS=['#1a2a4a','#e83838','#556075','#2d3440','#ed8936','#9f7aea','#48bb78'];
+const BG_CLASSES={
+  '#1a2a4a':'bg-blue',
+  '#e83838':'bg-red',
+  '#556075':'bg-gray',
+  '#2d3440':'bg-black',
+  '#ed8936':'bg-orange',
+  '#9f7aea':'bg-purple',
+  '#48bb78':'bg-green'
+};
 const TCOLORS={Oyuncu:'#2e6e1a',Developer:'#1a4ea0','Plugin Dev':'#1a4ea0','Web Dev':'#0a6060',Skripter:'#4a1aa0',Builder:'#904a10',YouTuber:'#aa0000',TikToker:'#111',Kick:'#0a4a0a',Twitch:'#4a1a90',Instagram:'#90108a','Diğer':'#444'};
 const PLAT={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
 const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.chickennw.com'},{n:'BLOKYA',ip:'oyna.blokya.com'},{n:'DugeCraft',ip:'play.dugecraft.com.tr'},{n:'ZENITMC',ip:'play.zenitmc.com'},{n:'SENTORCRAFT',ip:'sentorcraft.com'},{n:'SOULCRAFT',ip:'soulcraft.tc'},{n:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{n:'AtlantikMC',ip:'atlantikmc.com'},{n:'NAVELYA',ip:'navelya.net'},{n:'CRAFTLUNA',ip:'play.craftluna.net'},{n:'Melonya',ip:'melonya.net'},{n:'Rush Craft',ip:'play.rushcraft.com.tr'},{n:'RebornCraft',ip:'play.reborncraft.pw'},{n:'LuneCraft',ip:'mc.lunecraft.net'},{n:'SimitSMP',ip:'simitsmp.net'},{n:'MC4FUN',ip:'play.mc4fun.net'},{n:'İmibiyum',ip:'play.imibiyum.com'}];
@@ -1341,7 +1442,7 @@ function startCamTransition(posY, posZ, lookY) {
 // Camera LERP update loop
 function updateCamera() {
   if (viewer && camTransitionTime > 0) {
-    const k = 0.08; // smooth factor
+    const k = 0.08; 
     viewer.camera.position.y += (targetCamPos.y - viewer.camera.position.y) * k;
     viewer.camera.position.z += (targetCamPos.z - viewer.camera.position.z) * k;
     
@@ -1521,7 +1622,6 @@ function pvShow(){document.getElementById('prev-card').classList.add('show')}
 function pvName(v){const el=document.getElementById('pv-nick');el.classList.add('flash');el.textContent=v||'kullanici';setTimeout(()=>el.classList.remove('flash'),350);}
 function pvSkin(url){document.getElementById('pv-av').src=url}
 function pvSkinDirect(nick){
-  // Set avatar using mc-heads or crafatar
   pvSkin(`https://mc-heads.net/avatar/${nick}/64`);
 }
 function pvBanner(){document.getElementById('pv-banner').style.background=S.banner}
@@ -1613,8 +1713,15 @@ function goStep(s){
   if(s!==4){hideSrvBadge();}
 }
 
+function changeBgColor(hexColor) {
+  const body = document.body;
+  // Clear other bg color classes
+  Object.values(BG_CLASSES).forEach(cls => body.classList.remove(cls));
+  const newClass = BG_CLASSES[hexColor] || 'bg-blue';
+  body.classList.add(newClass);
+}
+
 function switchMode(m){
-  document.getElementById('vl').classList.remove('act');
   VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('act');});
   document.getElementById('prog').classList.remove('show');
   
@@ -1623,17 +1730,13 @@ function switchMode(m){
   const card = document.getElementById('prev-card');
 
   if(m==='reg'){
+    document.getElementById('page-container').classList.add('register-active');
     buildProg();
     pvShow();
     goStep(0);
   }
-  else{
-    document.getElementById('vl').classList.add('act');
-    if(viewer)setSkinAnim('idle');
-    if(card)card.classList.remove('show');
-    qLbl.textContent = "LOBBY.GG LOBİSİ";
-    hT.textContent = "Giriş Yap";
-    startCamTransition(10, 22, 8); // Zoom full body
+  else if (m==='login') {
+    document.getElementById('page-container').classList.add('login-active');
   }
 }
 
@@ -1690,6 +1793,7 @@ function buildSwatches(){
     sw.onclick=()=>{
       document.querySelectorAll('.sw').forEach(x=>x.classList.remove('sel'));
       sw.classList.add('sel');S.banner=col;pvBanner();
+      changeBgColor(col); // Dynamically change background color
     };
     wrap.appendChild(sw);
   });
@@ -1814,7 +1918,7 @@ function triggerVictorySequence() {
   document.getElementById('vic-name').textContent = S.nick;
   
   // Slide out right panel and make character arena take full screen width
-  document.getElementById('page-container').classList.add('victory-active');
+  document.getElementById('page-container').className = 'page-container victory-active';
   
   // Confetti and flying pose
   confetti();
@@ -1858,7 +1962,7 @@ function pwToggle(inpId,btnId){
   document.getElementById(btnId).onclick=()=>{
     const i=document.getElementById(inpId);const b=document.getElementById(btnId);
     i.type=i.type==='password'?'text':'password';
-    b.textContent=i.type==='password'?'👁':'🙈';
+    b.textContent=i.type==='password'?'👁':'👁‍🗨';
   };
 }
 
@@ -1880,8 +1984,28 @@ document.addEventListener('DOMContentLoaded',async()=>{
   pwToggle('l-pw','l-pwt');
   pwToggle('r-pw','r-pwt');
   document.getElementById('l-pw').onkeydown=e=>{if(e.key==='Enter')doLogin();};
-  document.getElementById('go-reg').onclick=()=>switchMode('reg');
-  document.getElementById('go-login').onclick=()=>switchMode('login');
+  
+  // Landing Actions
+  document.getElementById('btn-start-reg').onclick=()=>switchMode('reg');
+  document.getElementById('btn-start-login').onclick=()=>switchMode('login');
+  
+  // Back from nick registration step to landing
+  document.getElementById('go-back-landing-reg').onclick=()=>{
+    document.getElementById('page-container').classList.remove('register-active');
+    document.getElementById('char-nametag').classList.remove('show');
+    startCamTransition(10, 22, 8); // zoom out full body
+  };
+  
+  // Close Login overlay
+  document.getElementById('btn-close-login').onclick=()=>{
+    document.getElementById('page-container').classList.remove('login-active');
+  };
+  
+  // Shift from Login modal to Register steps
+  document.getElementById('go-reg-from-login').onclick=()=>{
+    document.getElementById('page-container').classList.remove('login-active');
+    switchMode('reg');
+  };
   
   document.getElementById('btn-victory-go').onclick = () => {
     location.href = 'lobbyx.html';
