@@ -578,7 +578,156 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
 
-/* Preview card removed */
+/* ── Character Preview Container & Digital Card ── */
+.char-preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 15px;
+  position: relative;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .char-preview-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+.digital-card {
+  width: 260px;
+  background: rgba(6, 10, 22, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transform: translateX(-30px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-align: left;
+}
+.digital-card.show {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.dc-banner {
+  height: 50px;
+  background: #1a2a4a;
+  transition: background 0.5s ease;
+  position: relative;
+}
+.dc-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+  background-size: 16px 16px;
+  opacity: 0.2;
+}
+.dc-profile {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  margin-top: -25px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.dc-avatar-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: #0e1428;
+  border: 2.5px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+.dc-avatar-wrap img {
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+}
+.dc-info {
+  margin-top: 20px;
+}
+.dc-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+}
+.dc-tag {
+  font-size: 8px;
+  font-weight: 900;
+  color: #fff;
+  background: var(--gold);
+  padding: 1px 5px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.dc-body {
+  padding: 12px;
+  border-top: 1.5px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dc-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dc-lbl {
+  font-size: 7px;
+  font-weight: 800;
+  color: var(--t2);
+  letter-spacing: 0.8px;
+}
+.dc-val {
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  word-break: break-all;
+}
+.dc-val-bio {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--t2);
+  line-height: 1.4;
+  background: rgba(0,0,0,0.25);
+  padding: 5px 8px;
+  border-radius: 5px;
+  min-height: 34px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+.dc-val-server {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.25);
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+.dc-val-server img {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+.dc-val-server span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+}
 </style>
 </head>
 <body>
@@ -636,19 +785,51 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
 <!-- MAIN STAGE -->
 <div class="stage" id="stage">
 
-  <!-- Character Arena -->
   <div class="char-arena" id="char-arena">
 
-    <div class="viewer-wrap" id="viewer-wrap" style="position:relative">
-      <!-- Minecraft nametag floating above character -->
-      <div class="char-nametag" id="char-nametag">Notch</div>
+    <div class="char-preview-container">
+      <!-- Digital Card (slides in from left) -->
+      <div class="digital-card" id="digital-card">
+        <div class="dc-banner" id="dc-banner"></div>
+        <div class="dc-profile">
+          <div class="dc-avatar-wrap">
+            <img id="dc-avatar" src="https://mc-heads.net/avatar/MHF_Steve/64" alt="Avatar">
+          </div>
+          <div class="dc-info">
+            <div class="dc-name" id="dc-name">Steve</div>
+            <div class="dc-tag" id="dc-tag">OYUNCU</div>
+          </div>
+        </div>
+        <div class="dc-body">
+          <div class="dc-row" id="dc-row-email">
+            <span class="dc-lbl">E-POSTA</span>
+            <span class="dc-val" id="dc-val-email">-</span>
+          </div>
+          <div class="dc-row" id="dc-row-bio">
+            <span class="dc-lbl">HAKKIMDA</span>
+            <div class="dc-val-bio" id="dc-val-bio">Henüz bir şey yazılmadı...</div>
+          </div>
+          <div class="dc-row" id="dc-row-server">
+            <span class="dc-lbl">SUNUCU</span>
+            <div class="dc-val-server" id="dc-val-server">
+              <img id="dc-server-img" src="" style="display:none;">
+              <span id="dc-server-name">Seçilmedi</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <canvas id="skin-canvas" width="240" height="360"></canvas>
+      <div class="viewer-wrap" id="viewer-wrap" style="position:relative">
+        <!-- Minecraft nametag floating above character -->
+        <div class="char-nametag" id="char-nametag">Notch</div>
 
-      <!-- Server badge below pedestal -->
-      <div class="srv-badge" id="srv-badge">
-        <img id="srv-badge-img" src="" alt="">
-        <span id="srv-badge-name"></span>
+        <canvas id="skin-canvas" width="240" height="360"></canvas>
+
+        <!-- Server badge below pedestal -->
+        <div class="srv-badge" id="srv-badge">
+          <img id="srv-badge-img" src="" alt="">
+          <span id="srv-badge-name"></span>
+        </div>
       </div>
     </div>
 
@@ -868,21 +1049,15 @@ function initViewer(){
       skin:'https://minotar.net/skin/MHF_Steve'
     });
     viewer.renderer.setClearColor(0x000000,0);
-    // Lock controls so our camera lerp isn't overridden
+    // Lock controls and override update to allow custom camera lerping
     viewer.controls.enabled=false;
     viewer.controls.enableZoom=false;
     viewer.controls.enableRotate=false;
     viewer.controls.enablePan=false;
+    viewer.controls.update = () => {};
     viewer.fov=70;
     viewer.camera.position.set(0,10,26);
-    viewer.controls.target.set(0,8,0);
-    viewer.controls.update();
 
-    // Persistent slow rotation — kept separate so it never gets removed
-    if(viewer.animations && typeof viewer.animations.add==='function'){
-      _rotAnim=viewer.animations.add(skinview3d.RotatingAnimation);
-      _rotAnim.speed=0.5;
-    }
     setSkinAnim('walk'); // Walk by default on landing
     camLoop();
     console.log('skinview3d OK ✓');
@@ -898,12 +1073,11 @@ function camLoop(){
   camCurrent.posY += (camTarget.posY - camCurrent.posY)*k;
   camCurrent.posZ += (camTarget.posZ - camCurrent.posZ)*k;
   camCurrent.lookY += (camTarget.lookY - camCurrent.lookY)*k;
-  // Always keep X centered
-  viewer.camera.position.x = 0;
-  viewer.camera.position.y = camCurrent.posY;
-  viewer.camera.position.z = camCurrent.posZ;
-  viewer.controls.target.set(0, camCurrent.lookY, 0);
-  viewer.controls.update();
+  
+  // Set camera and target positions directly
+  viewer.camera.position.set(0, camCurrent.posY, camCurrent.posZ);
+  viewer.camera.lookAt(0, camCurrent.lookY, 0);
+  
   requestAnimationFrame(camLoop);
 }
 
@@ -911,26 +1085,22 @@ function setCamTarget(posY,posZ,lookY){
   camTarget.posY=posY; camTarget.posZ=posZ; camTarget.lookY=lookY;
 }
 
-/* Animation switcher — only swaps the MOVEMENT layer, rotation stays */
+/* Animation switcher — fully clears anims and re-adds rotation + chosen anim */
 function setSkinAnim(t){
   if(!viewer||typeof skinview3d==='undefined')return;
   try {
-    // Remove only the previous movement animation, NOT the rotation
-    if(_moveAnim){
-      try{ _moveAnim.remove&&_moveAnim.remove(); }catch(e){}
-      _moveAnim=null;
-    }
+    viewer.animations.clear();
+    
+    // Add back slow rotation
+    _rotAnim = viewer.animations.add(skinview3d.RotatingAnimation);
+    _rotAnim.speed = 0.35;
+    
     const M={idle:skinview3d.IdleAnimation,walk:skinview3d.WalkingAnimation,run:skinview3d.RunningAnimation,fly:skinview3d.FlyingAnimation};
     const Cls=M[t]||skinview3d.IdleAnimation;
-    const spd={idle:0.6,walk:0.9,run:1.6,fly:1.1};
-    if(viewer.animations && typeof viewer.animations.add==='function'){
-      _moveAnim=viewer.animations.add(Cls);
-      _moveAnim.speed=spd[t]||0.7;
-    } else {
-      // Fallback: direct assignment (only works if no .animations API)
-      viewer.animation=new Cls();
-      viewer.animation.speed=spd[t]||0.7;
-    }
+    const spd={idle:0.6,walk:1.0,run:1.6,fly:1.1};
+    
+    _moveAnim=viewer.animations.add(Cls);
+    _moveAnim.speed=spd[t]||0.7;
   } catch(e){console.error('setSkinAnim:',e);}
 }
 
@@ -968,13 +1138,36 @@ function confetti(){
   }
 }
 
-/* ══ PREVIEW (no card — functions kept as no-ops for safety) ══ */
-function pvShow(){}
-function pvName(v){}
-function pvSkinDirect(nick){}
-function pvBanner(){}
-function pvBio(){}
-function pvTag(){}
+/* ══ PREVIEW ══ */
+function pvShow(){
+  const dc = document.getElementById('digital-card');
+  if(dc) dc.classList.add('show');
+}
+function pvName(v){
+  const nameEl = document.getElementById('dc-name');
+  if(nameEl) nameEl.textContent = v || 'Steve';
+}
+function pvSkinDirect(nick){
+  const imgEl = document.getElementById('dc-avatar');
+  if(imgEl) imgEl.src = `https://mc-heads.net/avatar/${nick}/64`;
+}
+function pvBanner(){
+  const bannerEl = document.getElementById('dc-banner');
+  if(bannerEl) bannerEl.style.background = S.banner;
+}
+function pvBio(){
+  const bioEl = document.getElementById('dc-val-bio');
+  if(bioEl) bioEl.textContent = S.bio || 'Henüz bir şey yazılmadı...';
+}
+function pvTag(){
+  const tagEl = document.getElementById('dc-tag');
+  if(tagEl) {
+    tagEl.textContent = S.displayTag || S.mainTag || 'OYUNCU';
+    const color = TCOLORS[S.displayTag] || TCOLORS[S.mainTag] || '#ffd13b';
+    tagEl.style.background = color;
+    tagEl.style.color = '#fff';
+  }
+}
 
 /* ══ HELPERS ══ */
 function toast(m,t='err'){const c=document.getElementById('tc');const el=document.createElement('div');el.className='toast'+(t==='ok'?' ok':'');el.textContent=m;c.appendChild(el);setTimeout(()=>el.remove(),4000);}
@@ -1042,7 +1235,8 @@ function showLanding(){
   const reg=document.getElementById('reg-ui');
   reg.classList.remove('show');
   document.getElementById('char-nametag').classList.remove('show');
-  document.getElementById('prev-card').classList.remove('show');
+  const dc = document.getElementById('digital-card');
+  if(dc) dc.classList.remove('show');
   const cam=CAM.landing;
   setCamTarget(cam[0],cam[1],cam[2]);
   setSkinAnim('idle');
@@ -1153,6 +1347,17 @@ function buildSrvGrid(){
       document.querySelectorAll('.srv-c').forEach(x=>x.classList.remove('sel'));
       c.classList.add('sel'); S.server=srv.ip; S.serverName=srv.n;
       showSrvBadge(srv.ip,srv.n);
+      
+      // Update digital card server view
+      const sImg = document.getElementById('dc-server-img');
+      const sName = document.getElementById('dc-server-name');
+      if (sImg && sName) {
+        sImg.src = `https://api.mcsrvstat.us/icon/${srv.ip}`;
+        sImg.style.display = 'block';
+        sImg.onerror = () => sImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(srv.n)}&background=0e1428&color=ffd13b&size=32&bold=true`;
+        sName.textContent = srv.n;
+      }
+
       const nb=document.getElementById('b-s4-next'); if(nb) nb.disabled=false;
     };
     g.appendChild(c);
@@ -1233,7 +1438,13 @@ async function doReg(){
   if(!em||!pw){toast('E-posta ve şifreyi gir.'); return;}
   if(pw.length<6){toast('Şifre en az 6 karakter.'); return;}
   if(!S.nickOk){toast('Geçerli MC nick gir!'); goStep(0); return;}
-  S.email=em; S.pw=pw; wrapJump(); setTimeout(()=>goStep(2),400);
+  S.email=em; S.pw=pw; 
+  
+  // Update digital card email view
+  const emailVal = document.getElementById('dc-val-email');
+  if(emailVal) emailVal.textContent = em;
+
+  wrapJump(); setTimeout(()=>goStep(2),400);
 }
 
 async function doGoogle(){
@@ -1246,7 +1457,8 @@ function triggerVictory(){
   document.getElementById('vic-name').textContent=S.nick;
   confetti(); setSkinAnim('fly'); setCamTarget(11,16,9);
   document.getElementById('reg-ui').classList.remove('show');
-  document.getElementById('prev-card').classList.remove('show');
+  const dc = document.getElementById('digital-card');
+  if(dc) dc.classList.remove('show');
   setTimeout(()=>{document.getElementById('victory-screen').classList.add('show');},400);
 }
 
