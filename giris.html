@@ -6,7 +6,7 @@
 <title>Giriş / Kayıt — LOBBY.GG</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://unpkg.com/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -51,7 +51,10 @@ html,body{width:100%;min-height:100%;font-family:'Montserrat',sans-serif;backgro
   filter:drop-shadow(0 16px 40px rgba(255,209,59,.3));
   flex-shrink:0;
 }
-#skin-canvas{display:block}
+    #skin-canvas{
+      display:block;
+      background:#0c1020; /* dark navy - renderer bunu override eder */
+    }
 .viewer-wrap.shake{animation:svShake .35s ease}
 .viewer-wrap.jump{animation:svJump .45s cubic-bezier(.175,.885,.32,1.275)}
 @keyframes svShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
@@ -584,19 +587,37 @@ let viewer=null;
 let bubT=null;
 
 function initViewer(){
-  if(typeof skinview3d==='undefined'){console.warn('skinview3d yüklenemedi');return;}
+  if(typeof skinview3d==='undefined'){
+    console.error('skinview3d CDN yüklenemedi!');
+    // fallback: static skin img
+    document.getElementById('skin-canvas').style.display='none';
+    const fb=document.createElement('img');
+    fb.id='skin-fallback';
+    fb.style.cssText='width:180px;height:280px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 16px 40px rgba(255,209,59,.3));animation:svFbIdle 2s ease-in-out infinite';
+    const style=document.createElement('style');
+    style.textContent='@keyframes svFbIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}';
+    document.head.appendChild(style);
+    fb.src='https://mc-heads.net/body/MHF_Steve/100';
+    document.getElementById('viewer-wrap').appendChild(fb);
+    window._fallbackMode=true;
+    return;
+  }
   try{
     viewer=new skinview3d.SkinViewer({
       canvas:document.getElementById('skin-canvas'),
-      width:180,height:280
+      width:200,height:320,
+      skin:'https://minotar.net/skin/MHF_Steve'
     });
-    viewer.renderer.setClearColor(0x000000,0);
+    // dark navy background (matches site)
+    viewer.renderer.setClearColor(0x0c1020,1);
     viewer.controls.enabled=true;
     viewer.controls.enableZoom=false;
-    viewer.fov=75;
+    viewer.fov=70;
     setSkinAnim('idle');
-    viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve').catch(()=>{});
-  }catch(e){console.warn('viewer err',e);}
+    console.log('skinview3d OK ✓');
+  }catch(e){
+    console.error('skinview3d init hatası:',e);
+  }
 }
 
 function setSkinAnim(t){
@@ -609,10 +630,30 @@ function setSkinAnim(t){
 }
 
 function loadPlayerSkin(nick){
+  // Fallback mode (no skinview3d)
+  if(window._fallbackMode){
+    const fb=document.getElementById('skin-fallback');
+    if(fb){
+      fb.style.opacity='.4';
+      // try to load player body
+      const tmp=new Image();
+      tmp.onload=()=>{fb.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;fb.style.opacity='1';};
+      tmp.onerror=()=>{fb.style.opacity='1';};
+      tmp.src=`https://mc-heads.net/body/${encodeURIComponent(nick)}/100`;
+    }
+    return;
+  }
   if(!viewer)return;
-  viewer.loadSkin(`https://mc-heads.net/skin/${encodeURIComponent(nick)}`)
+  // minotar.net - CORS destekli skin API
+  const skinUrl=`https://minotar.net/skin/${encodeURIComponent(nick)}`;
+  viewer.loadSkin(skinUrl)
     .then(()=>{setSkinAnim('walk');wrapJump();})
-    .catch(()=>viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve').catch(()=>{}));
+    .catch(err=>{
+      console.warn('minotar yüklenemedi, mc-heads deneniyor...',err);
+      viewer.loadSkin(`https://mc-heads.net/skin/${nick}`)
+        .then(()=>{setSkinAnim('walk');wrapJump();})
+        .catch(()=>console.warn('skin yüklenemedi'));
+    });
 }
 
 function wrapJump(){
