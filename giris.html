@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/skinview3d@3.0.0-alpha.3/bundles/skinview3d.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -50,24 +51,24 @@
     @keyframes gp{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8}50%{transform:translate(-50%,-50%) scale(1.1);opacity:1}}
     .panel-right::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:30px 30px;pointer-events:none}
 
-    /* ══ MASCOT AREA ══ */
-    .mascot-area{
+    /* ══ SKIN VIEWER AREA ══ */
+    .skin-area{
       position:relative;z-index:2;
       display:flex;flex-direction:column;
       align-items:center;
-      gap:12px;
+      gap:10px;
     }
 
-    /* mascot message bubble */
+    /* message bubble */
     .mascot-bubble{
       background:rgba(255,255,255,.07);
       border:2px solid #1a2a40;
       box-shadow:3px 3px 0 #000;
       padding:10px 18px;
       font-size:12px;font-weight:700;color:var(--t2);
-      text-align:center;max-width:260px;line-height:1.5;
+      text-align:center;max-width:280px;line-height:1.5;
       position:relative;
-      animation:bubbleIn .3s cubic-bezier(.175,.885,.32,1.275);
+      transition:opacity .3s,transform .3s;
     }
     .mascot-bubble::after{
       content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
@@ -75,57 +76,40 @@
       border-left:8px solid transparent;border-right:8px solid transparent;
       border-top:10px solid #1a2a40;
     }
-    @keyframes bubbleIn{from{opacity:0;transform:scale(.8) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
-    /* mascot wrapper */
-    .mascot-wrap{position:relative;width:200px;display:flex;justify-content:center}
-    .mascot-img{
-      width:180px;height:180px;object-fit:contain;
-      image-rendering:pixelated;
-      transition:opacity .15s ease;
-      filter:drop-shadow(0 8px 20px rgba(255,209,59,.2));
+    /* skin canvas wrapper */
+    .skin-viewer-wrap{
+      position:relative;
+      filter:drop-shadow(0 20px 50px rgba(255,209,59,.25));
+    }
+    #skin-canvas{
+      display:block;
+      /* skinview3d renders here */
     }
 
-    /* mascot animations */
-    .mascot-img.idle   {animation:mIdle 2.5s ease-in-out infinite}
-    .mascot-img.happy  {animation:mHappy .5s cubic-bezier(.175,.885,.32,1.275) forwards}
-    .mascot-img.thinking{animation:mThink 2s ease-in-out infinite}
-    .mascot-img.holding{animation:mHold 2s ease-in-out infinite}
-    .mascot-img.celebrate{animation:mCelebrate .8s ease forwards}
-    .mascot-img.shake  {animation:mShake .4s ease}
+    /* shake animation for canvas wrapper */
+    .skin-viewer-wrap.shake{animation:svShake .4s ease}
+    @keyframes svShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+    .skin-viewer-wrap.jump{animation:svJump .5s cubic-bezier(.175,.885,.32,1.275)}
+    @keyframes svJump{0%{transform:translateY(0)}40%{transform:translateY(-22px)}70%{transform:translateY(-8px)}100%{transform:translateY(0)}}
 
-    @keyframes mIdle    {0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-    @keyframes mHappy   {0%{transform:translateY(0) scale(1)}30%{transform:translateY(-22px) scale(1.05)}60%{transform:translateY(-8px) scale(.98)}100%{transform:translateY(0) scale(1)}}
-    @keyframes mThink   {0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-4px) rotate(-3deg)}}
-    @keyframes mHold    {0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.02)}}
-    @keyframes mCelebrate{0%{transform:scale(1) rotate(0)}20%{transform:scale(1.12) rotate(-5deg)}40%{transform:scale(1.1) rotate(5deg)}60%{transform:scale(1.08) rotate(-3deg)}80%{transform:scale(1.05) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
-    @keyframes mShake  {0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
-
-    /* server logo in hands */
-    .mascot-held{
+    /* server logo overlay on skin viewer */
+    .held-overlay{
       position:absolute;
-      bottom:-10px;left:50%;
+      bottom:30px;left:50%;
       transform:translateX(-50%);
       display:flex;flex-direction:column;align-items:center;gap:5px;
       opacity:0;pointer-events:none;
-      transition:opacity .2s;
+      z-index:5;
     }
-    .mascot-held.visible{opacity:1;animation:heldIn .4s cubic-bezier(.175,.885,.32,1.275)}
+    .held-overlay.visible{opacity:1;animation:heldIn .4s cubic-bezier(.175,.885,.32,1.275)}
     @keyframes heldIn{
       0%  {transform:translateX(-50%) scale(0) rotate(-20deg)}
       70% {transform:translateX(-50%) scale(1.15) rotate(3deg)}
       100%{transform:translateX(-50%) scale(1) rotate(0)}
     }
-    .held-logo-img{
-      width:48px;height:48px;
-      border:3px solid #000;box-shadow:3px 3px 0 #000;
-      background:#090d1a;image-rendering:pixelated;
-    }
-    .held-server-name{
-      font-size:9px;font-weight:900;color:var(--gold);text-transform:uppercase;
-      letter-spacing:.5px;text-shadow:1px 1px 0 #000;
-      background:rgba(0,0,0,.6);padding:2px 8px;
-    }
+    .held-logo-img{width:52px;height:52px;border:3px solid #000;box-shadow:3px 3px 0 #000;background:#090d1a;image-rendering:pixelated;}
+    .held-server-name{font-size:9px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;text-shadow:1px 1px 0 #000;background:rgba(0,0,0,.7);padding:2px 10px;}
 
     /* confetti */
     .confetti-piece{
@@ -482,28 +466,25 @@
   <!-- ═══ RIGHT ═══ -->
   <div class="panel-right" id="panel-right">
 
-    <!-- Mascot area -->
-    <div class="mascot-area" id="mascot-area">
+    <!-- Skin viewer area -->
+    <div class="skin-area">
 
       <!-- Message bubble -->
       <div class="mascot-bubble" id="mascot-bubble">
         Merhaba! Giriş yap veya yeni hesap oluştur. 👋
       </div>
 
-      <!-- Mascot + held item -->
-      <div class="mascot-wrap">
-        <img class="mascot-img idle" id="mascot-img"
-          src="mascot/idle.png" alt="Maskot">
-
-        <!-- Server logo held in hands -->
-        <div class="mascot-held" id="mascot-held">
+      <!-- skinview3d canvas + server logo overlay -->
+      <div class="skin-viewer-wrap" id="skin-viewer-wrap">
+        <canvas id="skin-canvas" width="220" height="340"></canvas>
+        <div class="held-overlay" id="mascot-held">
           <img class="held-logo-img" id="held-logo" src="" alt="">
           <div class="held-server-name" id="held-name"></div>
         </div>
       </div>
     </div>
 
-    <!-- Mini profile preview (shown during registration) -->
+    <!-- Mini profile preview -->
     <div class="mini-preview" id="mini-prev">
       <div class="mini-banner" id="mp-banner">
         <div class="mini-avatar-wrap">
@@ -534,73 +515,105 @@ const TAG_COLORS={Oyuncu:'#3a8527',Developer:'#2a5eb8','Plugin Dev':'#2a5eb8','W
 const PLATFORM_LOGOS={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
 const SERVERS=[{name:'HanedanMC',ip:'play.hanedanmc.com'},{name:'ChickenNW',ip:'oyna.chickennw.com'},{name:'BLOKYA',ip:'oyna.blokya.com'},{name:'DugeCraft',ip:'play.dugecraft.com.tr'},{name:'ZENITMC',ip:'play.zenitmc.com'},{name:'SENTORCRAFT',ip:'sentorcraft.com'},{name:'SOULCRAFT',ip:'soulcraft.tc'},{name:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{name:'AtlantikMC',ip:'atlantikmc.com'},{name:'NAVELYA',ip:'navelya.net'},{name:'CRAFTLUNA',ip:'play.craftluna.net'},{name:'Melonya',ip:'melonya.net'},{name:'Rush Craft',ip:'play.rushcraft.com.tr'},{name:'RebornCraft',ip:'play.reborncraft.pw'},{name:'LuneCraft',ip:'mc.lunecraft.net'},{name:'SimitSMP',ip:'simitsmp.net'},{name:'MC4FUN',ip:'play.mc4fun.net'},{name:'İmibiyum',ip:'play.imibiyum.com'}];
 
-/* ══ MASCOT SYSTEM ══ */
-const MASCOT_POSES={idle:'mascot/idle.png',happy:'mascot/happy.png',thinking:'mascot/thinking.png',holding:'mascot/holding.png',celebrate:'mascot/celebrate.png'};
-const MASCOT_MSGS={
+/* ══ SKINVIEW3D SYSTEM ══ */
+const MSGS={
   login:'Merhaba! Giriş yap veya yeni hesap oluştur. 👋',
   s0:'Önce bir kullanıcı adı seç. Dikkatli seç, değiştiremezsin! 😤',
   s0_thinking:'Uygunluk kontrol ediliyor... ⏳',
   s0_ok:'Harika isim! Devam edelim 🎉',
   s0_err:'Bu isim alınmış, başka bir şey dene 😅',
-  s1:'Şimdi e-posta ve şifreni gir. Güvenli bir şifre seç! 🔐',
+  s1:'E-posta ve şifreni gir. Güvenli bir şifre seç! 🔐',
   s2:'Kim olduğunu söyle! Hangi roldesin? ⚔️',
   s2_done:'Süper! Bu tag sana çok yakışacak 😎',
-  s3:'Profilini güzelleştir! Minecraft IGN\'ini gir 🎨',
-  s3_skin:'Skinini bulduk! Çok şık görünüyorsun 🧙',
-  s4:'Son adım! Hangi sunucudasın? Seçersen tutarım! 🏰',
+  s3:'Minecraft IGN\'ini gir — kendi karakterin çıksın! 🎨',
+  s3_skin:'İşte bu senin karakterin! Çok şık görünüyorsun 🧙',
+  s4:'Son adım! Hangi sunucudasın? 🏰',
   s4_held:'Bu sunucuyu tutuyorum senin için! 💪',
-  s5:'Hoş geldin! Topluluğa katıldın, iyi eğlenceler! 🎊'
+  s5:'Hoş geldin topluluğa! İyi eğlenceler! 🎊'
 };
 
-let currentEmotion='idle';
-let emotionTimer=null;
+let viewer=null;
+let bubbleTimer=null;
 
-function setMascot(emotion,msg,hold=false){
-  const img=document.getElementById('mascot-img');
-  const bubble=document.getElementById('mascot-bubble');
+function initSkinViewer(){
+  if(typeof skinview3d==='undefined'){console.warn('skinview3d yüklenemedi');return;}
+  viewer=new skinview3d.SkinViewer({
+    canvas:document.getElementById('skin-canvas'),
+    width:220,height:340,
+    skin:'https://mc-heads.net/skin/MHF_Steve'
+  });
+  viewer.renderer.setClearColor(0x000000,0); // transparent bg
+  viewer.controls.enabled=true;   // mouse rotate
+  viewer.controls.enableZoom=false;
+  viewer.fov=70;
+  setSkinAnim('idle');
+}
 
-  // Switch image if pose exists
-  if(MASCOT_POSES[emotion]){
-    img.style.opacity='0';
-    setTimeout(()=>{
-      img.src=MASCOT_POSES[emotion];
-      img.className='mascot-img '+emotion;
-      img.style.opacity='1';
-    },120);
-  } else {
-    img.className='mascot-img '+emotion;
-  }
+function setSkinAnim(type){
+  if(!viewer)return;
+  const A=skinview3d;
+  const map={
+    idle:A.IdleAnimation,
+    walk:A.WalkingAnimation,
+    run:A.RunningAnimation,
+    fly:A.FlyingAnimation
+  };
+  const Cls=map[type]||A.IdleAnimation;
+  viewer.animation=new Cls();
+  viewer.animation.speed=type==='run'?2.5:type==='walk'?0.8:type==='fly'?1.2:0.5;
+}
 
-  // Update bubble with animation
-  if(msg){
-    bubble.style.opacity='0';
-    bubble.style.transform='scale(.92) translateY(-5px)';
-    setTimeout(()=>{
-      bubble.textContent=msg;
-      bubble.style.opacity='1';
-      bubble.style.transform='scale(1) translateY(0)';
-      bubble.style.transition='all .3s cubic-bezier(.175,.885,.32,1.275)';
-    },150);
-  }
+function loadSkin(ign){
+  if(!viewer)return;
+  const url=`https://mc-heads.net/skin/${encodeURIComponent(ign)}`;
+  viewer.loadSkin(url).then(()=>{
+    setSkinAnim('walk');
+    triggerWrap('jump');
+  }).catch(()=>{
+    viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve');
+  });
+}
 
-  currentEmotion=emotion;
+function triggerWrap(cls){
+  const w=document.getElementById('skin-viewer-wrap');
+  w.classList.remove(cls);
+  void w.offsetWidth;
+  w.classList.add(cls);
+  setTimeout(()=>w.classList.remove(cls),600);
+}
 
-  // Auto return to idle (not for holding/idle itself)
-  clearTimeout(emotionTimer);
-  if(emotion!=='idle'&&emotion!=='holding'&&emotion!=='thinking'){
-    emotionTimer=setTimeout(()=>setMascot('idle',null),2000);
-  }
+function setBubble(msg){
+  if(!msg)return;
+  const b=document.getElementById('mascot-bubble');
+  b.style.opacity='0';
+  b.style.transform='scale(.92) translateY(-5px)';
+  clearTimeout(bubbleTimer);
+  bubbleTimer=setTimeout(()=>{
+    b.textContent=msg;
+    b.style.transition='all .3s cubic-bezier(.175,.885,.32,1.275)';
+    b.style.opacity='1';
+    b.style.transform='scale(1) translateY(0)';
+  },150);
+}
+
+function setMascot(emotion,msg){
+  if(msg)setBubble(msg);
+  if(!viewer)return;
+  if(emotion==='shake')  {triggerWrap('shake');return;}
+  if(emotion==='happy')  {triggerWrap('jump');setSkinAnim('walk');return;}
+  if(emotion==='thinking'){setSkinAnim('idle');return;}
+  if(emotion==='holding') {setSkinAnim('walk');return;}
+  if(emotion==='celebrate'){setSkinAnim('fly');return;}
+  if(emotion==='run')    {setSkinAnim('run');return;}
+  setSkinAnim('idle');
 }
 
 function holdServer(ip,name){
-  // Switch to holding pose
-  setMascot('holding',MASCOT_MSGS.s4_held);
-
-  // Animate held item
+  setBubble(MSGS.s4_held);
+  setSkinAnim('run');
   const held=document.getElementById('mascot-held');
   const logo=document.getElementById('held-logo');
   const hName=document.getElementById('held-name');
-
   held.classList.remove('visible');
   setTimeout(()=>{
     logo.src=`https://api.mcsrvstat.us/icon/${ip}`;
@@ -611,9 +624,9 @@ function holdServer(ip,name){
 }
 
 function releaseServer(){
-  const held=document.getElementById('mascot-held');
-  held.classList.remove('visible');
-  setTimeout(()=>setMascot('idle',MASCOT_MSGS.s4),300);
+  document.getElementById('mascot-held').classList.remove('visible');
+  setSkinAnim('walk');
+  setBubble(MSGS.s4);
 }
 
 /* ══ CONFETTI ══ */
@@ -687,19 +700,21 @@ function goStep(step){
   updProg(step);
 
   // Mascot reactions per step
-  const msgs=[MASCOT_MSGS.s0,MASCOT_MSGS.s1,MASCOT_MSGS.s2,MASCOT_MSGS.s3,MASCOT_MSGS.s4,MASCOT_MSGS.s5];
-  const poses=['thinking','idle','idle','idle','idle','celebrate'];
-  setMascot(poses[step]||'idle', msgs[step]);
+  const msgs=[MSGS.s0,MSGS.s1,MSGS.s2,MSGS.s3,MSGS.s4,MSGS.s5];
+  const anims=['idle','walk','walk','walk','walk','fly'];
+  setBubble(msgs[step]);
+  if(viewer)setSkinAnim(anims[step]||'idle');
 
-  if(step===5){setTimeout(()=>{spawnConfetti();setMascot('celebrate',MASCOT_MSGS.s5);},300);}
-  if(step===4){document.getElementById('mascot-held').classList.remove('visible');releaseServer();}
+  if(step===5){setTimeout(()=>{spawnConfetti();setSkinAnim('fly');setBubble(MSGS.s5);},300);}
+  if(step===4){document.getElementById('mascot-held').classList.remove('visible');}
+  if(step===0){if(viewer)setSkinAnim('idle');}
 }
 function switchMode(mode){
   document.getElementById('vl').classList.remove('active');
   VIEWS.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
   const bar=document.getElementById('prog-bar');
   if(mode==='reg'){bar.classList.remove('hidden');buildProg();showPreview();goStep(0);}
-  else{bar.classList.add('hidden');hidePreview();document.getElementById('vl').classList.add('active');setMascot('idle',MASCOT_MSGS.login);}
+  else{bar.classList.add('hidden');hidePreview();document.getElementById('vl').classList.add('active');setBubble(MSGS.login);if(viewer)setSkinAnim('idle');}
 }
 
 /* ══ BUILD BUTTONS ══ */
@@ -711,7 +726,7 @@ function buildBtns(){
   const bs1b=mkBtn('← Geri','btn-ghost btn-sm');bs1b.onclick=()=>goStep(0);ca('b-s1bk',bs1b);
   const bgr=mkBtn('G — Google ile Kayıt Ol','btn-discord');bgr.onclick=doGoogle;ca('b-gr',bgr);
   const bs2b=mkBtn('←','btn-ghost btn-sm');bs2b.onclick=()=>goStep(1);ca('b-s2bk',bs2b);
-  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{if(!S.mainTag){toast('Tag seç!');setMascot('shake',null);return;}if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}setMascot('happy',MASCOT_MSGS.s2_done);setTimeout(()=>goStep(3),600);};ca('b-s2n',bs2n);
+  const bs2n=mkBtn('İleri →','btn-gold');bs2n.onclick=()=>{if(!S.mainTag){toast('Tag seç!');setMascot('shake',null);return;}if((S.mainTag==='Developer'||S.mainTag==='Medya')&&!S.subTag){toast('Alt kategori seç!');return;}setMascot('happy',MSGS.s2_done);setTimeout(()=>goStep(3),600);};ca('b-s2n',bs2n);
   const bs3b=mkBtn('←','btn-ghost btn-sm');bs3b.onclick=()=>goStep(2);ca('b-s3bk',bs3b);
   const bs3n=mkBtn('İleri →','btn-gold');bs3n.onclick=()=>goStep(4);ca('b-s3n',bs3n);
   const bs4b=mkBtn('←','btn-ghost btn-sm');bs4b.onclick=()=>{releaseServer();goStep(3);};ca('b-s4bk',bs4b);
@@ -782,12 +797,12 @@ function initNick(){
     if(!v){inp.className='fi';st.textContent='';prevName('');return;}
     if(!/^[a-zA-Z0-9_]{3,20}$/.test(v)){inp.className='fi err';st.className='fhint r';st.textContent='3-20 karakter, harf/rakam/alt çizgi.';setMascot('shake',null);return;}
     inp.className='fi';st.className='fhint m';st.textContent='Kontrol ediliyor...';
-    setMascot('thinking',MASCOT_MSGS.s0_thinking);
+    setMascot('thinking',MSGS.s0_thinking);
     clearTimeout(nickT);
     nickT=setTimeout(async()=>{
       const{data}=await db.from('kullanicilar').select('id').eq('kullanici_adi',v).maybeSingle();
-      if(data){inp.className='fi err';st.className='fhint r';st.textContent='✗ Bu kullanıcı adı alınmış.';setMascot('shake',MASCOT_MSGS.s0_err);}
-      else{inp.className='fi ok';st.className='fhint g';st.textContent='✓ Kullanıcı adı uygun!';S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;prevName(v);setMascot('happy',MASCOT_MSGS.s0_ok);}
+      if(data){inp.className='fi err';st.className='fhint r';st.textContent='✗ Bu kullanıcı adı alınmış.';setMascot('shake',MSGS.s0_err);}
+      else{inp.className='fi ok';st.className='fhint g';st.textContent='✓ Kullanıcı adı uygun!';S.nick=v;S.nickOk=true;if(nb)nb.disabled=false;prevName(v);setMascot('happy',MSGS.s0_ok);}
     },650);
   };
 }
@@ -799,12 +814,24 @@ function initSkin(){
   inp.oninput=()=>{
     const v=inp.value.trim();S.mcIgn=v;
     clearTimeout(skinT);
-    if(!v){document.getElementById('sk-img').src='https://mc-heads.net/avatar/MHF_Steve/32';document.getElementById('sk-mini').className='skin-mini';document.getElementById('sk-st').textContent='IGN\'ini gir, skinin profil fotoğrafın olacak.';return;}
-    if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){document.getElementById('sk-st').className='fhint r';document.getElementById('sk-st').textContent='Geçersiz MC kullanıcı adı.';return;}
+    if(!v){
+      document.getElementById('sk-img').src='https://mc-heads.net/avatar/MHF_Steve/32';
+      document.getElementById('sk-mini').className='skin-mini';
+      document.getElementById('sk-st').textContent='IGN\'ini gir, skinin profil fotoğrafın olacak.';
+      if(viewer)viewer.loadSkin('https://mc-heads.net/skin/MHF_Steve');
+      return;
+    }
+    if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
+      document.getElementById('sk-st').className='fhint r';
+      document.getElementById('sk-st').textContent='Geçersiz MC kullanıcı adı.';
+      return;
+    }
     document.getElementById('sk-mini').className='skin-mini loading';
-    document.getElementById('sk-st').className='fhint m';document.getElementById('sk-st').textContent='Skin yükleniyor...';
+    document.getElementById('sk-st').className='fhint m';
+    document.getElementById('sk-st').textContent='Skin yükleniyor...';
     skinT=setTimeout(()=>{
-      const small=`https://mc-heads.net/avatar/${v}/32`;const big=`https://mc-heads.net/avatar/${v}/64`;
+      const small=`https://mc-heads.net/avatar/${v}/32`;
+      const big=`https://mc-heads.net/avatar/${v}/64`;
       const t=new Image();
       t.onload=()=>{
         document.getElementById('sk-img').src=small;
@@ -812,9 +839,14 @@ function initSkin(){
         document.getElementById('sk-st').className='fhint g';
         document.getElementById('sk-st').textContent=`✓ ${v} skinini bulduk!`;
         prevSkin(big);
-        setMascot('happy',MASCOT_MSGS.s3_skin);
+        loadSkin(v);
+        setBubble(MSGS.s3_skin);
       };
-      t.onerror=()=>{document.getElementById('sk-mini').className='skin-mini';document.getElementById('sk-st').className='fhint r';document.getElementById('sk-st').textContent='Bu IGN\'de skin bulunamadı.';};
+      t.onerror=()=>{
+        document.getElementById('sk-mini').className='skin-mini';
+        document.getElementById('sk-st').className='fhint r';
+        document.getElementById('sk-st').textContent='Bu IGN\'de skin bulunamadı.';
+      };
       t.src=small;
     },700);
   };
@@ -865,9 +897,10 @@ document.addEventListener('DOMContentLoaded',async()=>{
   setTimeout(()=>document.getElementById('load').classList.add('out'),800);
   const{data:{session}}=await db.auth.getSession();
   if(session){location.href='lobbyx.html';return;}
+  initSkinViewer();
   buildBtns();initNick();initSkin();initBio();buildSrvGrid();buildBanners();initTags();
   prevBanner();
-  setMascot('idle',MASCOT_MSGS.login);
+  setBubble(MSGS.login);
 
   document.getElementById('l-pwt').onclick=()=>{const i=document.getElementById('l-pw');const b=document.getElementById('l-pwt');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';};
   document.getElementById('r-pwt').onclick=()=>{const i=document.getElementById('r-pw');const b=document.getElementById('r-pwt');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';};
