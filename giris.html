@@ -765,8 +765,15 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
   transform: translateX(-50px);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.4s ease, padding 0.4s ease, border-width 0.4s ease, margin 0.4s ease;
   width: 68px;
+}
+body:not(.in-reg) .locker-sidebar {
+  width: 0;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  overflow: hidden;
 }
 body.in-reg .locker-sidebar {
   transform: translateX(0);
@@ -832,7 +839,14 @@ body.in-reg .locker-sidebar {
   transform: translateX(-50px);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.4s ease, padding 0.4s ease, border-width 0.4s ease, margin 0.4s ease;
+}
+body:not(.in-reg) .locker-panel {
+  width: 0;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  overflow: hidden;
 }
 body.in-reg .locker-panel {
   transform: translateX(0);
@@ -1449,7 +1463,9 @@ const CAM={
 const ANIMS=['idle','walk','walk','walk','run','fly'];
 
 function buildProgDots(){
-  const bar=document.getElementById('prog-dots'); bar.innerHTML='';
+  const bar=document.getElementById('prog-dots');
+  if(!bar) return;
+  bar.innerHTML='';
   for(let i=0;i<STEP_COUNT;i++){
     const d=document.createElement('div'); d.className='pd'; bar.appendChild(d);
   }
