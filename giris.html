@@ -1519,9 +1519,9 @@ function initViewer(){
   scene.add(pedestalGroup);
 
   const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xffd13b,
-    roughness: 0.3,
-    metalness: 0.7
+    color: 0xe6a800, // Vibrant gold/mustard yellow
+    roughness: 0.6,
+    metalness: 0.0  // Disabled metallic reflection to prevent dark mud shadows!
   });
   const whiteMat = new THREE.MeshStandardMaterial({
     color: 0xf3f4f6,
