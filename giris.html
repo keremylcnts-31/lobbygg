@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Giriş / Kayıt — LOBBY.GG</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -122,29 +122,23 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 /* Minecraft floating nametag */
 .char-nametag {
   position:absolute;
-  top:-38px; left:50%;
-  transform:translateX(-50%) scale(0.8);
-  background:rgba(0,0,0,0.78);
-  border:1.5px solid rgba(255,255,255,0.18);
-  border-radius:4px;
-  padding:3px 14px 4px;
-  font-size:13px; font-weight:800;
+  top:-30px; left:50%;
+  transform:translateX(-50%) scale(0.9);
+  background:rgba(0,0,0,0.45);
+  border:none;
+  border-radius:0;
+  padding:6px 12px;
+  font-size:16px;
+  font-family:'Press Start 2P', monospace;
+  font-weight:normal;
   color:#fff;
-  text-shadow:1px 1px 0 #000;
-  letter-spacing:0.3px;
+  text-shadow:2px 2px 0px #3f3f3f;
+  letter-spacing:0px;
   pointer-events:none;
   opacity:0;
   white-space:nowrap;
   transition:opacity 0.3s ease, transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
   z-index:20;
-}
-.char-nametag::after {
-  content:'';
-  position:absolute;
-  top:100%; left:50%;
-  transform:translateX(-50%);
-  border:5px solid transparent;
-  border-top-color:rgba(0,0,0,0.78);
 }
 .char-nametag.show {
   opacity:1;
@@ -162,13 +156,7 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 
 /* Pedestal */
 .pedestal {
-  width:160px; height:10px;
-  background:rgba(255,255,255,0.07);
-  border:1.5px solid rgba(255,255,255,0.14);
-  border-radius:50%;
-  box-shadow:0 0 30px rgba(0,180,255,0.25);
-  margin-top:-4px;
-  transition:box-shadow 0.6s ease;
+  display: none;
 }
 
 /* ── Landing UI ─────────────────────── */
@@ -735,7 +723,7 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 24px;
+  gap: 36px;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -743,6 +731,87 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
   position: relative;
   transition: all 0.5s ease;
   z-index: 10;
+}
+
+/* Landing Info Panel */
+.landing-info {
+  width: 460px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), width 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+  z-index: 10;
+  text-align: left;
+}
+body.in-reg .landing-info {
+  width: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.li-tag {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.li-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 38px;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  text-shadow: 2px 2px 0 #000;
+}
+.li-desc {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.6;
+  font-weight: 500;
+}
+.li-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+.li-feat {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+.li-feat-icon {
+  font-size: 18px;
+  color: var(--gold);
+  line-height: 1;
+}
+.li-feat-text h4 {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.li-feat-text p {
+  font-size: 10px;
+  color: var(--t2);
+  margin-top: 2px;
+  line-height: 1.4;
 }
 
 /* Hide step dots at the top of the step card */
@@ -902,6 +971,16 @@ body.in-reg .character-preview-section {
     align-items: center;
     padding: 10px;
   }
+  .landing-info {
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    align-items: center;
+    padding: 0 10px;
+  }
+  .li-title {
+    font-size: 28px;
+  }
   body.in-reg .character-preview-section {
     padding-right: 0;
     justify-content: center;
@@ -1033,6 +1112,37 @@ body.in-reg .character-preview-section {
 <div class="stage" id="stage">
 
   <div class="locker-layout">
+    
+    <!-- Landing Info Panel (Left side on landing state) -->
+    <div class="landing-info" id="landing-info">
+      <div class="li-tag">LOBBY.GG PORTAL</div>
+      <h1 class="li-title">Minecraft Dünyanı Tasarla</h1>
+      <p class="li-desc">Kendi Minecraft skininle kaydol, favori sunucularını seç ve topluluğun bir parçası ol. Lobiye katılmak ve diğer oyuncularla etkileşime geçmek için hemen profilini oluştur!</p>
+      
+      <div class="li-features">
+        <div class="li-feat">
+          <span class="li-feat-icon">⚡</span>
+          <div class="li-feat-text">
+            <h4>Anında Skin Entegrasyonu</h4>
+            <p>Kullanıcı adını gir, skinin 3D olarak anında yüklensin.</p>
+          </div>
+        </div>
+        <div class="li-feat">
+          <span class="li-feat-icon">🌐</span>
+          <div class="li-feat-text">
+            <h4>Sunucu Desteği</h4>
+            <p>Oynadığın sunucuları profilinde göster, rozetlerini kazan.</p>
+          </div>
+        </div>
+        <div class="li-feat">
+          <span class="li-feat-icon">🏆</span>
+          <div class="li-feat-text">
+            <h4>Özel Roller</h4>
+            <p>Geliştirici, Yayıncı veya Oyuncu rollerini kap.</p>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- Left Side: Step Sidebar (Yellow Zone) -->
     <div class="locker-sidebar" id="locker-sidebar">
@@ -1186,7 +1296,7 @@ body.in-reg .character-preview-section {
             <!-- Minecraft nametag floating above character -->
             <div class="char-nametag" id="char-nametag">Notch</div>
 
-            <canvas id="skin-canvas" width="240" height="360"></canvas>
+            <canvas id="skin-canvas" width="300" height="450"></canvas>
 
             <!-- Server badge below pedestal -->
             <div class="srv-badge" id="srv-badge">
@@ -1290,6 +1400,8 @@ function createTileTexture(img, x, y, w, h) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.NearestFilter;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
   return texture;
 }
 
@@ -1297,10 +1409,9 @@ function sliceBoxMaterials(img, rects) {
   return rects.map(r => {
     return new THREE.MeshStandardMaterial({
       map: createTileTexture(img, r.x, r.y, r.w, r.h),
-      transparent: true,
-      alphaTest: 0.5,
-      roughness: 0.9,
-      metalness: 0.1
+      transparent: false,
+      roughness: 1.0,
+      metalness: 0.0
     });
   });
 }
@@ -1380,8 +1491,8 @@ function getMinecraftMaterials(img) {
 
 function initViewer(){
   const canvas = document.getElementById('skin-canvas');
-  const width = 240;
-  const height = 360;
+  const width = 300;
+  const height = 450;
   
   scene = new THREE.Scene();
   
@@ -1403,29 +1514,52 @@ function initViewer(){
   dirLight.castShadow = true;
   scene.add(dirLight);
 
-  // Pedestal (Fortnite Neon Stand)
-  const pedestalGeo = new THREE.CylinderGeometry(0.8, 0.9, 0.12, 32);
-  const pedestalMat = new THREE.MeshStandardMaterial({ 
-    color: 0x070b19, 
-    roughness: 0.2, 
-    metalness: 0.8 
-  });
-  const pedestalMesh = new THREE.Mesh(pedestalGeo, pedestalMat);
-  pedestalMesh.position.y = 0.06;
-  pedestalMesh.receiveShadow = true;
-  scene.add(pedestalMesh);
+  // 3D White Square Architectural Pedestal
+  const pedestalGroup = new THREE.Group();
+  scene.add(pedestalGroup);
 
-  // Neon ring outline
-  const ringGeo = new THREE.RingGeometry(0.8, 0.83, 32);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd13b, side: THREE.DoubleSide });
-  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-  ringMesh.rotation.x = Math.PI / 2;
-  ringMesh.position.y = 0.122;
-  scene.add(ringMesh);
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: 0xeef0f6,
+    roughness: 0.4,
+    metalness: 0.1
+  });
+  const glowLineMat = new THREE.MeshBasicMaterial({
+    color: 0x00d4ff
+  });
+
+  // Tier 1 (bottom slab)
+  const tier1Geo = new THREE.BoxGeometry(1.8, 0.1, 1.8);
+  const tier1 = new THREE.Mesh(tier1Geo, baseMat);
+  tier1.position.y = 0.05;
+  tier1.receiveShadow = true;
+  tier1.castShadow = true;
+  pedestalGroup.add(tier1);
+
+  // Tier 2 (middle block)
+  const tier2Geo = new THREE.BoxGeometry(1.5, 0.2, 1.5);
+  const tier2 = new THREE.Mesh(tier2Geo, baseMat);
+  tier2.position.y = 0.2;
+  tier2.receiveShadow = true;
+  tier2.castShadow = true;
+  pedestalGroup.add(tier2);
+
+  // Cyan neon glow line in between Tier 2 and Tier 3
+  const glowStripGeo = new THREE.BoxGeometry(1.52, 0.02, 1.52);
+  const glowStrip = new THREE.Mesh(glowStripGeo, glowLineMat);
+  glowStrip.position.y = 0.31;
+  pedestalGroup.add(glowStrip);
+
+  // Tier 3 (top slab)
+  const tier3Geo = new THREE.BoxGeometry(1.3, 0.08, 1.3);
+  const tier3 = new THREE.Mesh(tier3Geo, baseMat);
+  tier3.position.y = 0.36;
+  tier3.receiveShadow = true;
+  tier3.castShadow = true;
+  pedestalGroup.add(tier3);
 
   // Create empty player group
   playerGroup = new THREE.Group();
-  playerGroup.position.y = 0.12; // Stand on pedestal
+  playerGroup.position.y = 0.4; // Stand on top of the architectural pedestal
   scene.add(playerGroup);
 
   // Load default skin
@@ -1673,12 +1807,12 @@ const STEP_COUNT=5;
 // Camera presets per step:
 //   [posY, posZ, lookY]
 const CAM={
-  landing:[1.8, 4.5, 1.6],
-  0:[2.8, 1.8, 2.8], // zoom head for nick
-  1:[1.8, 4.5, 1.6], // full body
-  2:[2.2, 3.0, 2.0], // mid body
-  3:[2.2, 3.0, 2.0], // mid body banner
-  4:[1.8, 4.5, 1.6], // full body server
+  landing:[2.2, 5.2, 1.9],
+  0:[3.2, 2.6, 3.2], // zoom head for nick
+  1:[2.2, 5.2, 1.9], // full body
+  2:[2.6, 3.5, 2.4], // mid body
+  3:[2.6, 3.5, 2.4], // mid body banner
+  4:[2.2, 5.2, 1.9], // full body server
 };
 const ANIMS=['idle','walk','walk','walk','run','fly'];
 
@@ -1698,11 +1832,7 @@ function updDots(s){
   });
 }
 
-function triggerGlitch() {
-  const el = document.body;
-  el.classList.add('glitch-flash');
-  setTimeout(() => el.classList.remove('glitch-flash'), 250);
-}
+function triggerGlitch() {}
 
 function goStep(s){
   currentStep=s;
@@ -1719,8 +1849,7 @@ function goStep(s){
   document.getElementById('step-label').textContent=s<STEP_COUNT?`ADIM ${s+1} / ${STEP_COUNT}`:'TAMAMLANDI';
   document.getElementById('step-title').textContent=STEP_LABELS[s]||'';
 
-  // Trigger glitch flash and GSAP panel transitions
-  triggerGlitch();
+  // GSAP panel transitions
   gsap.fromTo("#locker-panel", 
     { x: -30, opacity: 0.8 }, 
     { x: 0, opacity: 1, duration: 0.5, ease: "power2.out" }
