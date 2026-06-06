@@ -1483,20 +1483,10 @@ function resetViewerDragState() {
   clearTimeout(returnTimeout);
   isDragging = false;
   isThrown = false;
-  isReturning = false;
   
-  if (playerGroup && pedestalGroup) {
-    // Force snap to current pedestal position
-    const spacer = document.getElementById('viewer-spacer');
-    if (spacer) {
-      const rect = spacer.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const currentPedestalPos = window.get3DMousePos ? window.get3DMousePos(centerX, centerY, 0) : new THREE.Vector3(0, 0, 0);
-      pedestalGroup.position.copy(currentPedestalPos);
-      playerGroup.position.copy(currentPedestalPos).add(new THREE.Vector3(0, 0.22, 0));
-    }
-    playerGroup.rotation.set(0, 0, 0);
+  if (playerGroup) {
+    isReturning = true;
+    setSkinAnim('pose');
   }
   
   // Restore nametag visibility on layout reset
@@ -1873,9 +1863,9 @@ function camLoop(){
       camera.aspect = winW / winH;
       camera.updateProjectionMatrix();
 
-      // Find center of the spacer in screen pixels
+      // Find center of the spacer in screen pixels (closer to the bottom to align with shadow)
       const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const centerY = rect.bottom - 60;
       
       // Project spacer center to 3D space at z = 0
       pedestalPos3D.copy(get3DPosFromScreen(centerX, centerY, 0));
@@ -1964,8 +1954,6 @@ function camLoop(){
             // Settle rotations inside canvas
             playerGroup.rotation.set(0, 0, 0);
             setSkinAnim('pose');
-            
-            triggerReturnTimer();
           }
         }
       }
