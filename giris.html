@@ -189,12 +189,14 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 
 /* Skin Canvas */
 #skin-canvas {
-  display:block;
-  cursor:grab;
-  filter:drop-shadow(0 20px 50px rgba(0,100,255,0.18));
-  transition:filter 0.5s ease;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 150;
+  pointer-events: none;
+  display: block;
 }
-#skin-canvas:active { cursor:grabbing; }
 
 /* Pedestal */
 .pedestal {
@@ -606,14 +608,9 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
 .viewer-wrap {
   width: 300px;
   height: 450px;
-  position: fixed;
-  z-index: 150;
-  cursor: grab;
-  touch-action: none;
+  position: absolute;
+  pointer-events: none;
   user-select: none;
-}
-.viewer-wrap:active {
-  cursor: grabbing;
 }
 .viewer-wrap.jump { animation:jump 0.5s ease; }
 .viewer-wrap.shake { animation:shake 0.4s ease; }
@@ -1450,68 +1447,81 @@ let _rotAnim = { speed: 0.35 };
 let camTarget = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
 let camCurrent = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
 
-// Physics Drag & Fling State (Screen viewport-wide)
+// Physics Drag & Fling State (Screen viewport-wide & 3D space)
 let isDragging = false;
 let isThrown = false;
 let isReturning = false;
 let returnTimeout = null;
 
-let screenPos = { x: 0, y: 0 };
-let lastScreenPos = { x: 0, y: 0 };
-let screenVel = { x: 0, y: 0 };
-let dragOffset = { x: 0, y: 0 };
-
+// 3D physics variables
+let playerVel3D = new THREE.Vector3(0, 0, 0);
+let lastPlayerPos3D = new THREE.Vector3(0, 0.22, 0);
+let dragOffset3D = new THREE.Vector3(0, 0, 0);
 let playerRotVel = { x: 0, y: 0, z: 0 };
 
-// Return to pedestal helper function
+// Spring physics variables for limbs
+let rightArmRotVel = { x: 0, z: 0 };
+let leftArmRotVel = { x: 0, z: 0 };
+let rightLegRotVel = { x: 0, z: 0 };
+let leftLegRotVel = { x: 0, z: 0 };
+let headRotVel = { x: 0, y: 0 };
+
+// Tracker for camera viewOffset optimizations
+let lastSpacerRect = { left: 0, top: 0, width: 0, height: 0, winW: 0, winH: 0 };
+
+// Return to pedestal helper function (runs in 3D coordinates!)
 function triggerReturnTimer() {
   clearTimeout(returnTimeout);
   returnTimeout = setTimeout(() => {
     isReturning = true;
-    const spacer = document.getElementById('viewer-spacer');
-    if (spacer) {
-      const rect = spacer.getBoundingClientRect();
-      gsap.killTweensOf(screenPos);
-      
-      // Smoothly restore 3D offsets and rotations inside canvas
-      gsap.to(playerGroup.rotation, { x: 0, y: 0, z: 0, duration: 1.2, ease: "power2.inOut" });
-      gsap.to(playerGroup.position, { x: 0, y: 0.22, z: 0, duration: 1.2, ease: "power2.inOut" });
-      
-      setSkinAnim('pose');
-      
-      gsap.to(screenPos, {
-        x: rect.left,
-        y: rect.top,
-        duration: 1.2,
-        ease: "power3.inOut",
-        onUpdate: () => {
-          const wrap = document.getElementById('viewer-wrap');
-          if (wrap) {
-            wrap.style.left = `${screenPos.x}px`;
-            wrap.style.top = `${screenPos.y}px`;
-          }
-        },
-        onComplete: () => {
-          isReturning = false;
-        }
-      });
-    } else {
-      isReturning = false;
-    }
+    gsap.killTweensOf(playerGroup.position);
+    gsap.killTweensOf(playerGroup.rotation);
+    
+    // Smoothly restore 3D positions and rotations
+    gsap.to(playerGroup.position, {
+      x: 0,
+      y: 0.22,
+      z: 0,
+      duration: 1.5,
+      ease: "power3.inOut",
+      onStart: () => {
+        setSkinAnim('pose');
+      },
+      onComplete: () => {
+        isReturning = false;
+        // Fade nametag back in when returning completes
+        document.getElementById('char-nametag').classList.add('show');
+        if (currentStep === 4) showSrvBadge(S.server, S.serverName);
+      }
+    });
+    
+    gsap.to(playerGroup.rotation, {
+      x: 0,
+      y: 0,
+      z: 0,
+      duration: 1.5,
+      ease: "power3.inOut"
+    });
   }, 2000);
 }
 
 // Reset viewer snap state when transitioning layouts/steps
 function resetViewerDragState() {
   clearTimeout(returnTimeout);
-  gsap.killTweensOf(screenPos);
+  gsap.killTweensOf(playerGroup.position);
+  gsap.killTweensOf(playerGroup.rotation);
   isDragging = false;
   isThrown = false;
   isReturning = false;
+  
   if (playerGroup) {
     playerGroup.position.set(0, 0.22, 0);
     playerGroup.rotation.set(0, 0, 0);
   }
+  
+  // Restore nametag visibility on layout reset
+  document.getElementById('char-nametag').classList.add('show');
+  if (currentStep === 4) showSrvBadge(S.server, S.serverName);
 }
 
 // Helper to slice texture from skin sheet
@@ -1617,19 +1627,26 @@ function getMinecraftMaterials(img) {
 
 function initViewer(){
   const canvas = document.getElementById('skin-canvas');
-  const width = 300;
-  const height = 450;
   
   scene = new THREE.Scene();
   
-  camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, camCurrent.posY, camCurrent.posZ);
   camera.lookAt(0, camCurrent.lookY, 0);
   
   renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-  renderer.setSize(width, height);
+  renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
+
+  // Resize Handler
+  window.addEventListener('resize', () => {
+    if (renderer && camera) {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    }
+  });
 
   // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
@@ -1640,14 +1657,14 @@ function initViewer(){
   dirLight.castShadow = true;
   scene.add(dirLight);
 
-  // 3D Circular Layered Gold-White Pedestal (based on reference image)
+  // 3D Circular Layered Gold-White Pedestal
   const pedestalGroup = new THREE.Group();
   scene.add(pedestalGroup);
 
   const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xe6a800, // Vibrant gold/mustard yellow
+    color: 0xe6a800,
     roughness: 0.6,
-    metalness: 0.0  // Disabled metallic reflection to prevent dark mud shadows!
+    metalness: 0.0
   });
   const whiteMat = new THREE.MeshStandardMaterial({
     color: 0xf3f4f6,
@@ -1655,7 +1672,7 @@ function initViewer(){
     metalness: 0.1
   });
 
-  // Tier 1 (bottom gold slab)
+  // Tier 1
   const tier1Geo = new THREE.CylinderGeometry(1.0, 1.05, 0.08, 32);
   const tier1 = new THREE.Mesh(tier1Geo, goldMat);
   tier1.position.y = 0.04;
@@ -1663,7 +1680,7 @@ function initViewer(){
   tier1.castShadow = true;
   pedestalGroup.add(tier1);
 
-  // Tier 2 (middle white slab)
+  // Tier 2
   const tier2Geo = new THREE.CylinderGeometry(0.9, 0.9, 0.08, 32);
   const tier2 = new THREE.Mesh(tier2Geo, whiteMat);
   tier2.position.y = 0.12;
@@ -1671,7 +1688,7 @@ function initViewer(){
   tier2.castShadow = true;
   pedestalGroup.add(tier2);
 
-  // Tier 3 (top gold slab)
+  // Tier 3
   const tier3Geo = new THREE.CylinderGeometry(0.8, 0.8, 0.06, 32);
   const tier3 = new THREE.Mesh(tier3Geo, goldMat);
   tier3.position.y = 0.19;
@@ -1681,65 +1698,80 @@ function initViewer(){
 
   // Create empty player group
   playerGroup = new THREE.Group();
-  playerGroup.position.y = 0.22; // Stand exactly on top of the tier 3
+  playerGroup.position.y = 0.22;
   scene.add(playerGroup);
 
-  // Load default skin (Conor McGregor local file)
+  // Load default skin
   loadPlayerSkin('mcgregor.png');
 
-  // Retrieve wrapper container
-  const wrap = document.getElementById('viewer-wrap');
+  // Raycasting & Interaction Helper Functions
+  function checkRaycastHit(clientX, clientY) {
+    if (!camera || !playerGroup) return null;
+    const mouse = new THREE.Vector2(
+      (clientX / window.innerWidth) * 2 - 1,
+      -(clientY / window.innerHeight) * 2 + 1
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(playerGroup.children, true);
+    return intersects.length > 0 ? intersects[0] : null;
+  }
 
-  // Attach Drag-and-Fling mouse/touch events to the wrapper
-  wrap.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return; // Only drag with left click
-    
-    clearTimeout(returnTimeout);
-    gsap.killTweensOf(screenPos);
-    isReturning = false;
-    isThrown = false;
-    
-    isDragging = true;
-    
-    const rect = wrap.getBoundingClientRect();
-    dragOffset.x = e.clientX - rect.left;
-    dragOffset.y = e.clientY - rect.top;
-    
-    screenPos.x = rect.left;
-    screenPos.y = rect.top;
-    
-    lastScreenPos.x = screenPos.x;
-    lastScreenPos.y = screenPos.y;
-    
-    screenVel.x = 0;
-    screenVel.y = 0;
-    
-    playerRotVel.x = 0; playerRotVel.y = 0; playerRotVel.z = 0;
-    setSkinAnim('fly'); // Spreading pose
-    
-    const dp = document.getElementById('drag-prompt');
-    if (dp) dp.classList.add('hide'); // Hide prompt on first drag!
+  function get3DMousePos(clientX, clientY) {
+    const mouse = new THREE.Vector2(
+      (clientX / window.innerWidth) * 2 - 1,
+      -(clientY / window.innerHeight) * 2 + 1
+    );
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const target = new THREE.Vector3();
+    raycaster.ray.intersectPlane(plane, target);
+    return target;
+  }
+
+  // Hover Cursor Handler
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      document.body.style.cursor = 'grabbing';
+      return;
+    }
+    const hit = checkRaycastHit(e.clientX, e.clientY);
+    document.body.style.cursor = hit ? 'grab' : '';
+  });
+
+  // Mouse drag events
+  window.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    const hit = checkRaycastHit(e.clientX, e.clientY);
+    if (hit) {
+      isDragging = true;
+      isThrown = false;
+      isReturning = false;
+      clearTimeout(returnTimeout);
+      gsap.killTweensOf(playerGroup.position);
+      gsap.killTweensOf(playerGroup.rotation);
+
+      const hitPoint = get3DMousePos(e.clientX, e.clientY);
+      dragOffset3D.copy(hitPoint).sub(playerGroup.position);
+      lastPlayerPos3D.copy(playerGroup.position);
+      playerVel3D.set(0, 0, 0);
+
+      document.getElementById('char-nametag').classList.remove('show');
+      hideSrvBadge();
+      const dp = document.getElementById('drag-prompt');
+      if (dp) dp.classList.add('hide');
+      
+      e.preventDefault();
+    }
   });
 
   window.addEventListener('mousemove', (e) => {
     if (isDragging) {
-      screenPos.x = e.clientX - dragOffset.x;
-      screenPos.y = e.clientY - dragOffset.y;
-      
-      wrap.style.left = `${screenPos.x}px`;
-      wrap.style.top = `${screenPos.y}px`;
-      
-      screenVel.x = screenPos.x - lastScreenPos.x;
-      screenVel.y = screenPos.y - lastScreenPos.y;
-      
-      lastScreenPos.x = screenPos.x;
-      lastScreenPos.y = screenPos.y;
-      
-      // Direct tilt based on drag speed
-      if (playerGroup) {
-        playerGroup.rotation.z = -screenVel.x * 0.025;
-        playerGroup.rotation.x = screenVel.y * 0.02;
-      }
+      const currentTarget = get3DMousePos(e.clientX, e.clientY);
+      playerGroup.position.copy(currentTarget.sub(dragOffset3D));
+      playerVel3D.subVectors(playerGroup.position, lastPlayerPos3D);
+      lastPlayerPos3D.copy(playerGroup.position);
     }
   });
 
@@ -1747,74 +1779,62 @@ function initViewer(){
     if (isDragging) {
       isDragging = false;
       isThrown = true;
-      
-      // Tumbling rotation speed
-      playerRotVel.y = screenVel.x * 0.015;
-      playerRotVel.x = screenVel.y * 0.012;
-      playerRotVel.z = (Math.random() - 0.5) * 0.04;
+      document.body.style.cursor = '';
+      playerRotVel.y = playerVel3D.x * 2.0;
+      playerRotVel.x = -playerVel3D.y * 2.0;
+      playerRotVel.z = (Math.random() - 0.5) * 0.1;
     }
   });
 
-  // Touch Support
-  wrap.addEventListener('touchstart', (e) => {
-    clearTimeout(returnTimeout);
-    gsap.killTweensOf(screenPos);
-    isReturning = false;
-    isThrown = false;
-    
-    isDragging = true;
-    
-    const rect = wrap.getBoundingClientRect();
-    dragOffset.x = e.touches[0].clientX - rect.left;
-    dragOffset.y = e.touches[0].clientY - rect.top;
-    
-    screenPos.x = rect.left;
-    screenPos.y = rect.top;
-    
-    lastScreenPos.x = screenPos.x;
-    lastScreenPos.y = screenPos.y;
-    
-    screenVel.x = 0;
-    screenVel.y = 0;
-    
-    playerRotVel.x = 0; playerRotVel.y = 0; playerRotVel.z = 0;
-    setSkinAnim('fly');
-    
-    const dp = document.getElementById('drag-prompt');
-    if (dp) dp.classList.add('hide');
-  });
+  // Touch drag events
+  window.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const hit = checkRaycastHit(touch.clientX, touch.clientY);
+    if (hit) {
+      isDragging = true;
+      isThrown = false;
+      isReturning = false;
+      clearTimeout(returnTimeout);
+      gsap.killTweensOf(playerGroup.position);
+      gsap.killTweensOf(playerGroup.rotation);
+
+      const hitPoint = get3DMousePos(touch.clientX, touch.clientY);
+      dragOffset3D.copy(hitPoint).sub(playerGroup.position);
+      lastPlayerPos3D.copy(playerGroup.position);
+      playerVel3D.set(0, 0, 0);
+
+      document.getElementById('char-nametag').classList.remove('show');
+      hideSrvBadge();
+      const dp = document.getElementById('drag-prompt');
+      if (dp) dp.classList.add('hide');
+
+      e.preventDefault();
+    }
+  }, { passive: false });
 
   window.addEventListener('touchmove', (e) => {
     if (isDragging) {
-      screenPos.x = e.touches[0].clientX - dragOffset.x;
-      screenPos.y = e.touches[0].clientY - dragOffset.y;
-      
-      wrap.style.left = `${screenPos.x}px`;
-      wrap.style.top = `${screenPos.y}px`;
-      
-      screenVel.x = screenPos.x - lastScreenPos.x;
-      screenVel.y = screenPos.y - lastScreenPos.y;
-      
-      lastScreenPos.x = screenPos.x;
-      lastScreenPos.y = screenPos.y;
-      
-      if (playerGroup) {
-        playerGroup.rotation.z = -screenVel.x * 0.025;
-        playerGroup.rotation.x = screenVel.y * 0.02;
-      }
+      const touch = e.touches[0];
+      const currentTarget = get3DMousePos(touch.clientX, touch.clientY);
+      playerGroup.position.copy(currentTarget.sub(dragOffset3D));
+      playerVel3D.subVectors(playerGroup.position, lastPlayerPos3D);
+      lastPlayerPos3D.copy(playerGroup.position);
+      e.preventDefault();
     }
-  });
+  }, { passive: false });
 
   window.addEventListener('touchend', () => {
     if (isDragging) {
       isDragging = false;
       isThrown = true;
-      
-      playerRotVel.y = screenVel.x * 0.015;
-      playerRotVel.x = screenVel.y * 0.012;
-      playerRotVel.z = (Math.random() - 0.5) * 0.04;
+      playerRotVel.y = playerVel3D.x * 2.0;
+      playerRotVel.x = -playerVel3D.y * 2.0;
+      playerRotVel.z = (Math.random() - 0.5) * 0.1;
     }
   });
+
+  // Expose raycast helpers globally for camera utility boundary collision checks
+  window.get3DMousePos = get3DMousePos;
 
   // Start loop
   camLoop();
@@ -1828,34 +1848,70 @@ function camLoop(){
     return;
   }
   
-  // Set camera and target positions directly based on current tweened values (updated via GSAP)
+  // Update camera coordinates from GSAP tween values
   camera.position.set(0, camCurrent.posY, camCurrent.posZ);
   camera.lookAt(0, camCurrent.lookY, 0);
 
-  // Viewport-wide element physics and snap-to-spacer layout
+  // 1. Dynamic Camera viewOffset and Pedestal Spacer Snapping (3D alignment to 2D HTML layout)
   const spacer = document.getElementById('viewer-spacer');
   const wrap = document.getElementById('viewer-wrap');
   
-  if (playerGroup && spacer && wrap) {
+  if (spacer && wrap) {
     const rect = spacer.getBoundingClientRect();
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
     
+    // Check if window resize or layout shift occurred, and only update viewOffset then
+    if (rect.left !== lastSpacerRect.left || rect.top !== lastSpacerRect.top ||
+        rect.width !== lastSpacerRect.width || rect.height !== lastSpacerRect.height ||
+        winW !== lastSpacerRect.winW || winH !== lastSpacerRect.winH) {
+      
+      camera.setViewOffset(winW, winH, rect.left, rect.top, rect.width, rect.height);
+      camera.aspect = winW / winH;
+      camera.updateProjectionMatrix();
+      
+      lastSpacerRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, winW, winH };
+    }
+
+    // Anchor HTML elements (#viewer-wrap containing nametag and badges) over the spacer
+    wrap.style.position = 'fixed';
+    wrap.style.left = `${rect.left}px`;
+    wrap.style.top = `${rect.top}px`;
+    wrap.style.width = `${rect.width}px`;
+    wrap.style.height = `${rect.height}px`;
+  }
+
+  // Helper projection functions inside loop scope
+  function getScreenPosOf3D(pos3D) {
+    const tempV = pos3D.clone().project(camera);
+    const x = (tempV.x + 1) * window.innerWidth / 2;
+    const y = (-tempV.y + 1) * window.innerHeight / 2;
+    return { x, y };
+  }
+
+  function get3DPosFromScreen(screenX, screenY) {
+    if (window.get3DMousePos) {
+      return window.get3DMousePos(screenX, screenY);
+    }
+    return new THREE.Vector3(0, 0, 0);
+  }
+
+  // 2. Character 3D Physics (Flinging, border bouncing, settling)
+  if (playerGroup) {
     if (isDragging) {
-      // Direct tilt while dragging is already computed in the move listener.
-      // But let's also keep the 3D position relative to the local camera viewport clean:
-      playerGroup.position.set(0, 0.22, 0);
+      // While dragging, position is set directly by mouse/touch listeners.
+      // But we can reset rotation values if user tries to manually rotate
     } 
     else if (isThrown) {
-      // Screen space physics
-      // Gravity pulls DOWN on the screen, which means increasing Y in screen pixels!
-      screenVel.y += 0.8; // gravity force (px/frame^2)
+      // Gravity pulls down in negative Y direction in 3D coordinates
+      playerVel3D.y -= 0.018; 
       
       // Air resistance (damping)
-      screenVel.x *= 0.985;
-      screenVel.y *= 0.985;
+      playerVel3D.x *= 0.985;
+      playerVel3D.y *= 0.985;
       
-      // Apply velocity to screen position
-      screenPos.x += screenVel.x;
-      screenPos.y += screenVel.y;
+      // Apply 3D velocity
+      playerGroup.position.add(playerVel3D);
       
       // 3D character rotation tumbling inside the canvas
       playerGroup.rotation.x += playerRotVel.x;
@@ -1865,149 +1921,234 @@ function camLoop(){
       playerRotVel.y *= 0.98;
       playerRotVel.z *= 0.98;
       
-      // Screen boundaries
-      const rectWidth = 300;
-      const rectHeight = 450;
+      // Screen viewport boundary check using projected screen coordinates
+      const screenPos = getScreenPosOf3D(playerGroup.position);
       const winW = window.innerWidth;
       const winH = window.innerHeight;
+      const boundMarginX = 60; // pixel width boundaries
+      const boundMarginY = 100; // pixel height boundaries
       
-      // Left boundary
-      if (screenPos.x < 0) {
-        screenPos.x = 0;
-        screenVel.x = -screenVel.x * 0.6; // bounce
-        playerRotVel.z = (Math.random() - 0.5) * 0.1; // tumble change
+      let collided = false;
+      
+      // Left edge bounce
+      if (screenPos.x < boundMarginX) {
+        playerVel3D.x = Math.abs(playerVel3D.x) * 0.6;
+        const corrected3D = get3DPosFromScreen(boundMarginX, screenPos.y);
+        playerGroup.position.x = corrected3D.x;
+        collided = true;
       }
-      // Right boundary
-      if (screenPos.x + rectWidth > winW) {
-        screenPos.x = winW - rectWidth;
-        screenVel.x = -screenVel.x * 0.6; // bounce
-        playerRotVel.z = (Math.random() - 0.5) * 0.1;
+      // Right edge bounce
+      else if (screenPos.x > winW - boundMarginX) {
+        playerVel3D.x = -Math.abs(playerVel3D.x) * 0.6;
+        const corrected3D = get3DPosFromScreen(winW - boundMarginX, screenPos.y);
+        playerGroup.position.x = corrected3D.x;
+        collided = true;
       }
-      // Top boundary
-      if (screenPos.y < 0) {
-        screenPos.y = 0;
-        screenVel.y = -screenVel.y * 0.6; // bounce
+      // Ceiling bounce
+      if (screenPos.y < boundMarginY) {
+        playerVel3D.y = -Math.abs(playerVel3D.y) * 0.6;
+        const corrected3D = get3DPosFromScreen(screenPos.x, boundMarginY);
+        playerGroup.position.y = corrected3D.y;
+        collided = true;
       }
-      // Bottom boundary (floor)
-      if (screenPos.y + rectHeight > winH) {
-        screenPos.y = winH - rectHeight;
+      // Floor bounce (settle / pedestal return)
+      else if (screenPos.y > winH - boundMarginY) {
+        const corrected3D = get3DPosFromScreen(screenPos.x, winH - boundMarginY);
+        playerGroup.position.y = corrected3D.y;
+        collided = true;
         
-        // Bounce or settle
-        if (Math.abs(screenVel.y) > 3.0) {
-          screenVel.y = -screenVel.y * 0.45; // bounce factor
-          screenVel.x *= 0.7; // friction
+        if (Math.abs(playerVel3D.y) > 0.08) {
+          playerVel3D.y = Math.abs(playerVel3D.y) * 0.45; // bounce up
+          playerVel3D.x *= 0.7; // friction
           wrapShake(); // Shake camera/canvas slightly on heavy landing
-          playerRotVel.y = (Math.random() - 0.5) * 0.1;
         } else {
-          screenVel.y = 0;
-          screenVel.x *= 0.8; // slide friction
+          playerVel3D.y = 0;
+          playerVel3D.x *= 0.8;
           
-          if (Math.abs(screenVel.x) < 0.3) {
-            screenVel.x = 0;
+          if (Math.abs(playerVel3D.x) < 0.005) {
+            playerVel3D.x = 0;
             isThrown = false;
             
-            // Settle character in canvas
+            // Settle rotations inside canvas
             gsap.to(playerGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.5, ease: "power2.out" });
-            gsap.to(playerGroup.position, { x: 0, y: 0.22, z: 0, duration: 0.5, ease: "power2.out" });
+            gsap.to(playerGroup.position, { x: playerGroup.position.x, y: playerGroup.position.y, z: 0, duration: 0.5, ease: "power2.out" });
             setSkinAnim('pose');
             
-            // Start return timer
             triggerReturnTimer();
           }
         }
       }
       
-      // Update element position
-      wrap.style.left = `${screenPos.x}px`;
-      wrap.style.top = `${screenPos.y}px`;
+      if (collided) {
+        // Tumble adjustments on impact
+        playerRotVel.y = (Math.random() - 0.5) * 0.1;
+        playerRotVel.z = (Math.random() - 0.5) * 0.1;
+      }
     } 
-    else if (isReturning) {
-      // During returning, GSAP is tweening screenPos and updating wrap style.
-      // So we don't overwrite it here.
-    } 
-    else {
-      // Locked to the spacer layout!
-      wrap.style.position = 'fixed';
-      wrap.style.left = `${rect.left}px`;
-      wrap.style.top = `${rect.top}px`;
-      wrap.style.width = `${rect.width}px`;
-      wrap.style.height = `${rect.height}px`;
-      
-      // Reset variables to match spacer location
-      screenPos.x = rect.left;
-      screenPos.y = rect.top;
-      
-      // Face forward / snap player mesh back to default inside canvas
+    else if (!isReturning) {
+      // Smoothly snap rotations and position back to pedestal surface when idle
       playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.1;
       playerGroup.rotation.x += (0 - playerGroup.rotation.x) * 0.1;
       playerGroup.rotation.z += (0 - playerGroup.rotation.z) * 0.1;
+      
       playerGroup.position.x += (0 - playerGroup.position.x) * 0.1;
       playerGroup.position.y += (0.22 - playerGroup.position.y) * 0.1;
       playerGroup.position.z += (0 - playerGroup.position.z) * 0.1;
     }
   }
 
-  // Skeletal animations
+  // 3. Procedural Spring-Mass Ragdoll Skeletal Animations (Clumsy Ninja-style)
   if (torsoMesh) {
     const time = Date.now();
     
+    // Default limb target angles
+    let targetRightArmX = 0, targetRightArmZ = 0;
+    let targetLeftArmX = 0, targetLeftArmZ = 0;
+    let targetRightLegX = 0, targetRightLegZ = 0;
+    let targetLeftLegX = 0, targetLeftLegZ = 0;
+    let targetTorsoY = 1.8;
+    
     if (currentAnim === 'walk') {
       const t = time * 0.007;
-      rightArmGroup.rotation.x = Math.sin(t) * 0.45;
-      leftArmGroup.rotation.x = -Math.sin(t) * 0.45;
-      rightLegGroup.rotation.x = -Math.sin(t) * 0.45;
-      leftLegGroup.rotation.x = Math.sin(t) * 0.45;
-
-      rightArmGroup.rotation.z = 0.05 + (Math.sin(t) + 1) * 0.02;
-      leftArmGroup.rotation.z = -0.05 - (Math.sin(t) + 1) * 0.02;
+      targetRightArmX = Math.sin(t) * 0.45;
+      targetLeftArmX = -Math.sin(t) * 0.45;
+      targetRightLegX = -Math.sin(t) * 0.45;
+      targetLeftLegX = Math.sin(t) * 0.45;
+      targetRightArmZ = 0.05 + (Math.sin(t) + 1) * 0.02;
+      targetLeftArmZ = -0.05 - (Math.sin(t) + 1) * 0.02;
     } 
     else if (currentAnim === 'run') {
       const t = time * 0.012;
-      rightArmGroup.rotation.x = Math.sin(t) * 0.75;
-      leftArmGroup.rotation.x = -Math.sin(t) * 0.75;
-      rightLegGroup.rotation.x = -Math.sin(t) * 0.75;
-      leftLegGroup.rotation.x = Math.sin(t) * 0.75;
+      targetRightArmX = Math.sin(t) * 0.75;
+      targetLeftArmX = -Math.sin(t) * 0.75;
+      targetRightLegX = -Math.sin(t) * 0.75;
+      targetLeftLegX = Math.sin(t) * 0.75;
     } 
     else if (currentAnim === 'fly') {
       const t = time * 0.004;
-      rightLegGroup.rotation.x = 0.25 + Math.sin(t) * 0.08;
-      leftLegGroup.rotation.x = -0.15 + Math.cos(t) * 0.08;
-      rightArmGroup.rotation.x = -0.6 + Math.sin(t) * 0.1;
-      leftArmGroup.rotation.x = -0.6 + Math.cos(t) * 0.1;
+      targetRightLegX = 0.25 + Math.sin(t) * 0.08;
+      targetLeftLegX = -0.15 + Math.cos(t) * 0.08;
+      targetRightArmX = -0.6 + Math.sin(t) * 0.1;
+      targetLeftArmX = -0.6 + Math.cos(t) * 0.1;
     }
     else if (currentAnim === 'pose') {
       // Hands on hips pose
-      rightArmGroup.rotation.set(-0.15, 0, -0.35);
-      leftArmGroup.rotation.set(-0.15, 0, 0.35);
-      rightLegGroup.rotation.set(0, 0, 0.05);
-      leftLegGroup.rotation.set(0, 0, -0.05);
+      targetRightArmX = -0.15; targetRightArmZ = -0.35;
+      targetLeftArmX = -0.15; targetLeftArmZ = 0.35;
+      targetRightLegZ = 0.05;
+      targetLeftLegZ = -0.05;
     }
     else { // idle / breathing
       const t = time * 0.002;
-      rightArmGroup.rotation.z = 0.05 + Math.sin(t) * 0.02;
-      leftArmGroup.rotation.z = -0.05 - Math.sin(t) * 0.02;
-      
-      rightArmGroup.rotation.x = Math.sin(t) * 0.04;
-      leftArmGroup.rotation.x = -Math.sin(t) * 0.04;
-      
-      rightLegGroup.rotation.x = 0;
-      leftLegGroup.rotation.x = 0;
+      targetRightArmZ = 0.05 + Math.sin(t) * 0.02;
+      targetLeftArmZ = -0.05 - Math.sin(t) * 0.02;
+      targetRightArmX = Math.sin(t) * 0.04;
+      targetLeftArmX = -Math.sin(t) * 0.04;
     }
 
-    // Breathing torso bobbing
+    // Apply inertia based on 3D movement velocity vector
+    if (isDragging || isThrown) {
+      const swayScaleX = 18.0; 
+      const swayScaleY = 12.0;
+      
+      const vx = playerVel3D.x;
+      const vy = playerVel3D.y;
+      
+      // Pull arms and legs behind moving torso
+      targetRightArmX -= vy * swayScaleY;
+      targetLeftArmX -= vy * swayScaleY;
+      
+      targetRightArmZ -= vx * swayScaleX;
+      targetLeftArmZ -= vx * swayScaleX;
+      
+      targetRightLegX += vy * swayScaleY * 0.5;
+      targetLeftLegX += vy * swayScaleY * 0.5;
+      
+      targetRightLegZ -= vx * swayScaleX * 0.3;
+      targetLeftLegZ -= vx * swayScaleX * 0.3;
+      
+      // Tumbling wild flail
+      if (isThrown) {
+        const ft = time * 0.025;
+        targetRightArmX += Math.sin(ft) * 0.8;
+        targetLeftArmX += Math.cos(ft) * 0.8;
+        targetRightLegX += Math.cos(ft) * 0.5;
+        targetLeftLegX += Math.sin(ft) * 0.5;
+      }
+    }
+
+    // Torso breathing bob
     const bt = time * 0.002;
     const offsetBob = Math.sin(bt) * 0.015;
-    torsoMesh.position.y = 1.8 + offsetBob;
-    headGroup.position.y = 2.4 + offsetBob;
-    rightArmGroup.position.y = 2.4 + offsetBob;
-    leftArmGroup.position.y = 2.4 + offsetBob;
+    targetTorsoY = 1.8 + offsetBob;
+
+    // Solver coefficients
+    const k = 0.15; // spring constant
+    const d = 0.78; // damping factor
+    
+    // Right Arm
+    rightArmRotVel.x += (targetRightArmX - rightArmGroup.rotation.x) * k;
+    rightArmRotVel.x *= d;
+    rightArmGroup.rotation.x += rightArmRotVel.x;
+    
+    rightArmRotVel.z += (targetRightArmZ - rightArmGroup.rotation.z) * k;
+    rightArmRotVel.z *= d;
+    rightArmGroup.rotation.z += rightArmRotVel.z;
+    
+    // Left Arm
+    leftArmRotVel.x += (targetLeftArmX - leftArmGroup.rotation.x) * k;
+    leftArmRotVel.x *= d;
+    leftArmGroup.rotation.x += leftArmRotVel.x;
+    
+    leftArmRotVel.z += (targetLeftArmZ - leftArmGroup.rotation.z) * k;
+    leftArmRotVel.z *= d;
+    leftArmGroup.rotation.z += leftArmRotVel.z;
+    
+    // Right Leg
+    rightLegRotVel.x += (targetRightLegX - rightLegGroup.rotation.x) * k;
+    rightLegRotVel.x *= d;
+    rightLegGroup.rotation.x += rightLegRotVel.x;
+    
+    rightLegRotVel.z += (targetRightLegZ - rightLegGroup.rotation.z) * k;
+    rightLegRotVel.z *= d;
+    rightLegGroup.rotation.z += rightLegRotVel.z;
+    
+    // Left Leg
+    leftLegRotVel.x += (targetLeftLegX - leftLegGroup.rotation.x) * k;
+    leftLegRotVel.x *= d;
+    leftLegGroup.rotation.x += leftLegRotVel.x;
+    
+    leftLegRotVel.z += (targetLeftLegZ - leftLegGroup.rotation.z) * k;
+    leftLegRotVel.z *= d;
+    leftLegGroup.rotation.z += leftLegRotVel.z;
+    
+    // Torso position bob
+    torsoMesh.position.y += (targetTorsoY - torsoMesh.position.y) * 0.2;
+    headGroup.position.y = torsoMesh.position.y + 0.6;
+    rightArmGroup.position.y = torsoMesh.position.y + 0.6;
+    leftArmGroup.position.y = torsoMesh.position.y + 0.6;
   }
 
-  // Smoothly track head to mouse/inputs
-  if (headGroup && !isDragging) {
-    const lerpK = 0.12;
-    headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
-    headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
+  // 4. Head Tracking and Drag Tilt
+  if (headGroup) {
+    if (isDragging || isThrown) {
+      const k = 0.15;
+      const d = 0.78;
+      const targetHeadX = -playerVel3D.y * 5.0;
+      const targetHeadY = playerVel3D.x * 5.0;
+      
+      headRotVel.x += (targetHeadX - headGroup.rotation.x) * k;
+      headRotVel.x *= d;
+      headGroup.rotation.x += headRotVel.x;
+      
+      headRotVel.y += (targetHeadY - headGroup.rotation.y) * k;
+      headRotVel.y *= d;
+      headGroup.rotation.y += headRotVel.y;
+    } else {
+      const lerpK = 0.12;
+      headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
+      headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
+    }
   }
 
   renderer.render(scene, camera);
