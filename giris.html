@@ -1861,22 +1861,25 @@ function camLoop(){
     const winW = window.innerWidth;
     const winH = window.innerHeight;
     
-    // Check if window resize or layout shift occurred, and only update viewOffset then
-    if (rect.left !== lastSpacerRect.left || rect.top !== lastSpacerRect.top ||
-        rect.width !== lastSpacerRect.width || rect.height !== lastSpacerRect.height ||
-        winW !== lastSpacerRect.winW || winH !== lastSpacerRect.winH) {
-      
-      // Calculate dynamic FOV to maintain original visual scale in the 450px height slot
-      const targetHeight = 450;
-      const targetFOV = 50;
-      const halfFOVRad = Math.atan(Math.tan((targetFOV / 2) * Math.PI / 180) * (winH / rect.height));
-      camera.fov = halfFOVRad * 2 * 180 / Math.PI;
-      
-      camera.setViewOffset(winW, winH, rect.left, rect.top, rect.width, rect.height);
-      camera.aspect = winW / winH;
-      camera.updateProjectionMatrix();
-      
-      lastSpacerRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, winW, winH };
+    // Safety guard: only update camera projection if the spacer has been laid out with valid dimensions
+    if (rect.width > 0 && rect.height > 0) {
+      // Check if window resize or layout shift occurred, and only update viewOffset then
+      if (rect.left !== lastSpacerRect.left || rect.top !== lastSpacerRect.top ||
+          rect.width !== lastSpacerRect.width || rect.height !== lastSpacerRect.height ||
+          winW !== lastSpacerRect.winW || winH !== lastSpacerRect.winH) {
+        
+        // Calculate dynamic FOV to maintain original visual scale in the 450px height slot
+        const targetHeight = 450;
+        const targetFOV = 50;
+        const halfFOVRad = Math.atan(Math.tan((targetFOV / 2) * Math.PI / 180) * (winH / rect.height));
+        camera.fov = halfFOVRad * 2 * 180 / Math.PI;
+        
+        camera.setViewOffset(winW, winH, rect.left, rect.top, rect.width, rect.height);
+        camera.aspect = winW / winH;
+        camera.updateProjectionMatrix();
+        
+        lastSpacerRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, winW, winH };
+      }
     }
 
     // Anchor HTML elements (#viewer-wrap containing nametag and badges) over the spacer
