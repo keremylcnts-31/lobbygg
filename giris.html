@@ -1294,7 +1294,7 @@ body.in-reg .character-preview-section {
         <div class="char-preview-container">
           <div class="viewer-wrap" id="viewer-wrap" style="position:relative">
             <!-- Minecraft nametag floating above character -->
-            <div class="char-nametag" id="char-nametag">Notch</div>
+            <div class="char-nametag show" id="char-nametag">McGregor</div>
 
             <canvas id="skin-canvas" width="300" height="450"></canvas>
 
@@ -1562,8 +1562,8 @@ function initViewer(){
   playerGroup.position.y = 0.4; // Stand on top of the architectural pedestal
   scene.add(playerGroup);
 
-  // Load default skin
-  loadPlayerSkin('MHF_Steve');
+  // Load default skin (Conor McGregor)
+  loadPlayerSkin('https://www.minecraftskins.com/uploads/skins/2026/05/14/conor-mcgregor-24051631.png?v951');
 
   // Start loop
   camLoop();
@@ -1738,7 +1738,7 @@ function buildPlayerMesh(img) {
   leftLegGroup.add(lLegMesh);
 }
 
-function loadPlayerSkin(nick){
+function loadPlayerSkin(nickOrUrl){
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.onload = () => {
@@ -1751,7 +1751,11 @@ function loadPlayerSkin(nick){
     fb.onload = () => buildPlayerMesh(fb);
     fb.src = "https://mc-heads.net/skin/MHF_Steve";
   };
-  img.src = `https://mc-heads.net/skin/${nick}`;
+  if (nickOrUrl.startsWith('http://') || nickOrUrl.startsWith('https://')) {
+    img.src = nickOrUrl;
+  } else {
+    img.src = `https://mc-heads.net/skin/${nickOrUrl}`;
+  }
 }
 
 function wrapJump(){
@@ -1865,7 +1869,11 @@ function goStep(s){
 function showLanding(){
   document.body.classList.remove('in-reg');
   document.getElementById('landing-ui').classList.remove('hidden');
-  document.getElementById('char-nametag').classList.remove('show');
+  
+  const nameTag = document.getElementById('char-nametag');
+  nameTag.textContent = S.nick || 'McGregor';
+  nameTag.classList.add('show');
+  
   const dc = document.getElementById('digital-card');
   if(dc) dc.classList.remove('show');
   
@@ -2032,8 +2040,9 @@ function initNick(){
     clearTimeout(nickT); clearTimeout(skinT2);
     if(!v){
       inp.className='fi'; st.textContent=''; mini.className='nick-skin-mini';
-      nameTag.classList.remove('show');
-      loadPlayerSkin('MHF_Steve');
+      nameTag.textContent='McGregor';
+      nameTag.classList.add('show');
+      loadPlayerSkin('https://www.minecraftskins.com/uploads/skins/2026/05/14/conor-mcgregor-24051631.png?v951');
       return;
     }
     if(!/^[a-zA-Z0-9_]{2,16}$/.test(v)){
