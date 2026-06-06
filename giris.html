@@ -1440,7 +1440,7 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
 
 /* ══ THREE.JS & GSAP 3D ENGINE ══ */
 let scene, camera, renderer;
-let playerGroup, headGroup, torsoMesh, leftArmGroup, rightArmGroup, leftLegGroup, rightLegGroup;
+let playerGroup, headGroup, torsoMesh, leftArmGroup, rightArmGroup, leftLegGroup, rightLegGroup, pedestalGroup;
 let currentAnim = 'pose'; // Heroic "hands on hips" pose as default
 let _rotAnim = { speed: 0.35 };
 
@@ -1474,48 +1474,28 @@ function triggerReturnTimer() {
   clearTimeout(returnTimeout);
   returnTimeout = setTimeout(() => {
     isReturning = true;
-    gsap.killTweensOf(playerGroup.position);
-    gsap.killTweensOf(playerGroup.rotation);
-    
-    // Smoothly restore 3D positions and rotations
-    gsap.to(playerGroup.position, {
-      x: 0,
-      y: 0.22,
-      z: 0,
-      duration: 1.5,
-      ease: "power3.inOut",
-      onStart: () => {
-        setSkinAnim('pose');
-      },
-      onComplete: () => {
-        isReturning = false;
-        // Fade nametag back in when returning completes
-        document.getElementById('char-nametag').classList.add('show');
-        if (currentStep === 4) showSrvBadge(S.server, S.serverName);
-      }
-    });
-    
-    gsap.to(playerGroup.rotation, {
-      x: 0,
-      y: 0,
-      z: 0,
-      duration: 1.5,
-      ease: "power3.inOut"
-    });
+    setSkinAnim('pose');
   }, 2000);
 }
 
 // Reset viewer snap state when transitioning layouts/steps
 function resetViewerDragState() {
   clearTimeout(returnTimeout);
-  gsap.killTweensOf(playerGroup.position);
-  gsap.killTweensOf(playerGroup.rotation);
   isDragging = false;
   isThrown = false;
   isReturning = false;
   
-  if (playerGroup) {
-    playerGroup.position.set(0, 0.22, 0);
+  if (playerGroup && pedestalGroup) {
+    // Force snap to current pedestal position
+    const spacer = document.getElementById('viewer-spacer');
+    if (spacer) {
+      const rect = spacer.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const currentPedestalPos = window.get3DMousePos ? window.get3DMousePos(centerX, centerY, 0) : new THREE.Vector3(0, 0, 0);
+      pedestalGroup.position.copy(currentPedestalPos);
+      playerGroup.position.copy(currentPedestalPos).add(new THREE.Vector3(0, 0.22, 0));
+    }
     playerGroup.rotation.set(0, 0, 0);
   }
   
@@ -1658,7 +1638,7 @@ function initViewer(){
   scene.add(dirLight);
 
   // 3D Circular Layered Gold-White Pedestal
-  const pedestalGroup = new THREE.Group();
+  pedestalGroup = new THREE.Group();
   scene.add(pedestalGroup);
 
   const goldMat = new THREE.MeshStandardMaterial({
@@ -1717,14 +1697,14 @@ function initViewer(){
     return intersects.length > 0 ? intersects[0] : null;
   }
 
-  function get3DMousePos(clientX, clientY) {
+  function get3DMousePos(clientX, clientY, targetZ = 0) {
     const mouse = new THREE.Vector2(
       (clientX / window.innerWidth) * 2 - 1,
       -(clientY / window.innerHeight) * 2 + 1
     );
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
-    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -targetZ);
     const target = new THREE.Vector3();
     raycaster.ray.intersectPlane(plane, target);
     return target;
@@ -1852,44 +1832,6 @@ function camLoop(){
   camera.position.set(0, camCurrent.posY, camCurrent.posZ);
   camera.lookAt(0, camCurrent.lookY, 0);
 
-  // 1. Dynamic Camera viewOffset and Pedestal Spacer Snapping (3D alignment to 2D HTML layout)
-  const spacer = document.getElementById('viewer-spacer');
-  const wrap = document.getElementById('viewer-wrap');
-  
-  if (spacer && wrap) {
-    const rect = spacer.getBoundingClientRect();
-    const winW = window.innerWidth;
-    const winH = window.innerHeight;
-    
-    // Safety guard: only update camera projection if the spacer has been laid out with valid dimensions
-    if (rect.width > 0 && rect.height > 0) {
-      // Check if window resize or layout shift occurred, and only update viewOffset then
-      if (rect.left !== lastSpacerRect.left || rect.top !== lastSpacerRect.top ||
-          rect.width !== lastSpacerRect.width || rect.height !== lastSpacerRect.height ||
-          winW !== lastSpacerRect.winW || winH !== lastSpacerRect.winH) {
-        
-        // Calculate dynamic FOV to maintain original visual scale in the 450px height slot
-        const targetHeight = 450;
-        const targetFOV = 50;
-        const halfFOVRad = Math.atan(Math.tan((targetFOV / 2) * Math.PI / 180) * (winH / rect.height));
-        camera.fov = halfFOVRad * 2 * 180 / Math.PI;
-        
-        camera.setViewOffset(winW, winH, rect.left, rect.top, rect.width, rect.height);
-        camera.aspect = winW / winH;
-        camera.updateProjectionMatrix();
-        
-        lastSpacerRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, winW, winH };
-      }
-    }
-
-    // Anchor HTML elements (#viewer-wrap containing nametag and badges) over the spacer
-    wrap.style.position = 'fixed';
-    wrap.style.left = `${rect.left}px`;
-    wrap.style.top = `${rect.top}px`;
-    wrap.style.width = `${rect.width}px`;
-    wrap.style.height = `${rect.height}px`;
-  }
-
   // Helper projection functions inside loop scope
   function getScreenPosOf3D(pos3D) {
     const tempV = pos3D.clone().project(camera);
@@ -1898,18 +1840,59 @@ function camLoop(){
     return { x, y };
   }
 
-  function get3DPosFromScreen(screenX, screenY) {
+  function get3DPosFromScreen(screenX, screenY, targetZ = 0) {
     if (window.get3DMousePos) {
-      return window.get3DMousePos(screenX, screenY);
+      return window.get3DMousePos(screenX, screenY, targetZ);
     }
     return new THREE.Vector3(0, 0, 0);
   }
+
+  // 1. Dynamic Camera aspect ratio update and Pedestal Position calculation
+  const spacer = document.getElementById('viewer-spacer');
+  const wrap = document.getElementById('viewer-wrap');
+  let pedestalPos3D = new THREE.Vector3(0, 0, 0);
+  
+  if (spacer && wrap) {
+    const rect = spacer.getBoundingClientRect();
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    
+    // Anchor HTML elements (#viewer-wrap containing nametag and badges) over the spacer
+    wrap.style.position = 'fixed';
+    wrap.style.left = `${rect.left}px`;
+    wrap.style.top = `${rect.top}px`;
+    wrap.style.width = `${rect.width}px`;
+    wrap.style.height = `${rect.height}px`;
+
+    // Safety guard: only update camera projection if the spacer has been laid out with valid dimensions
+    if (rect.width > 0 && rect.height > 0) {
+      // Calculate dynamic FOV to maintain original visual scale in the 450px height slot
+      const targetFOV = 50;
+      const halfFOVRad = Math.atan(Math.tan((targetFOV / 2) * Math.PI / 180) * (winH / rect.height));
+      camera.fov = halfFOVRad * 2 * 180 / Math.PI;
+      camera.aspect = winW / winH;
+      camera.updateProjectionMatrix();
+
+      // Find center of the spacer in screen pixels
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      // Project spacer center to 3D space at z = 0
+      pedestalPos3D.copy(get3DPosFromScreen(centerX, centerY, 0));
+    }
+  }
+
+  // Position pedestal at the calculated 3D position
+  if (pedestalGroup) {
+    pedestalGroup.position.copy(pedestalPos3D);
+  }
+
+  const targetRestPos3D = pedestalPos3D.clone().add(new THREE.Vector3(0, 0.22, 0));
 
   // 2. Character 3D Physics (Flinging, border bouncing, settling)
   if (playerGroup) {
     if (isDragging) {
       // While dragging, position is set directly by mouse/touch listeners.
-      // But we can reset rotation values if user tries to manually rotate
     } 
     else if (isThrown) {
       // Gravity pulls down in negative Y direction in 3D coordinates
@@ -1979,8 +1962,7 @@ function camLoop(){
             isThrown = false;
             
             // Settle rotations inside canvas
-            gsap.to(playerGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.5, ease: "power2.out" });
-            gsap.to(playerGroup.position, { x: playerGroup.position.x, y: playerGroup.position.y, z: 0, duration: 0.5, ease: "power2.out" });
+            playerGroup.rotation.set(0, 0, 0);
             setSkinAnim('pose');
             
             triggerReturnTimer();
@@ -1994,15 +1976,30 @@ function camLoop(){
         playerRotVel.z = (Math.random() - 0.5) * 0.1;
       }
     } 
-    else if (!isReturning) {
+    else if (isReturning) {
+      // Smoothly return character to pedestal
+      playerGroup.position.lerp(targetRestPos3D, 0.08);
+      playerGroup.rotation.x += (0 - playerGroup.rotation.x) * 0.08;
+      playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.08;
+      playerGroup.rotation.z += (0 - playerGroup.rotation.z) * 0.08;
+      
+      if (playerGroup.position.distanceTo(targetRestPos3D) < 0.05) {
+        playerGroup.position.copy(targetRestPos3D);
+        playerGroup.rotation.set(0, 0, 0);
+        isReturning = false;
+        document.getElementById('char-nametag').classList.add('show');
+        if (currentStep === 4) showSrvBadge(S.server, S.serverName);
+      }
+    }
+    else {
       // Smoothly snap rotations and position back to pedestal surface when idle
       playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.1;
       playerGroup.rotation.x += (0 - playerGroup.rotation.x) * 0.1;
       playerGroup.rotation.z += (0 - playerGroup.rotation.z) * 0.1;
       
-      playerGroup.position.x += (0 - playerGroup.position.x) * 0.1;
-      playerGroup.position.y += (0.22 - playerGroup.position.y) * 0.1;
-      playerGroup.position.z += (0 - playerGroup.position.z) * 0.1;
+      playerGroup.position.x += (targetRestPos3D.x - playerGroup.position.x) * 0.1;
+      playerGroup.position.y += (targetRestPos3D.y - playerGroup.position.y) * 0.1;
+      playerGroup.position.z += (targetRestPos3D.z - playerGroup.position.z) * 0.1;
     }
   }
 
@@ -2262,7 +2259,7 @@ function loadPlayerSkin(nickOrUrl){
     const fb = new Image();
     fb.crossOrigin = "anonymous";
     fb.onload = () => buildPlayerMesh(fb);
-    fb.src = "https://mc-heads.net/skin/MHF_Steve";
+    fb.src = "https://minotar.net/skin/MHF_Steve";
   };
   if (nickOrUrl.startsWith('http://') || nickOrUrl.startsWith('https://') || nickOrUrl.endsWith('.png') || nickOrUrl.includes('/')) {
     img.src = nickOrUrl;
