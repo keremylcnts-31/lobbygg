@@ -1385,8 +1385,8 @@ let playerGroup, headGroup, torsoMesh, leftArmGroup, rightArmGroup, leftLegGroup
 let currentAnim = 'walk';
 let _rotAnim = { speed: 0.35 };
 
-let camTarget = { posY: 2.2, posZ: 5.2, lookY: 1.9 };
-let camCurrent = { posY: 2.2, posZ: 5.2, lookY: 1.9 };
+let camTarget = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
+let camCurrent = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
 
 // Helper to slice texture from skin sheet
 function createTileTexture(img, x, y, w, h) {
@@ -1514,52 +1514,48 @@ function initViewer(){
   dirLight.castShadow = true;
   scene.add(dirLight);
 
-  // 3D White Square Architectural Pedestal
+  // 3D Circular Layered Gold-White Pedestal (based on reference image)
   const pedestalGroup = new THREE.Group();
   scene.add(pedestalGroup);
 
-  const baseMat = new THREE.MeshStandardMaterial({
-    color: 0xeef0f6,
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xffd13b,
+    roughness: 0.3,
+    metalness: 0.7
+  });
+  const whiteMat = new THREE.MeshStandardMaterial({
+    color: 0xf3f4f6,
     roughness: 0.4,
     metalness: 0.1
   });
-  const glowLineMat = new THREE.MeshBasicMaterial({
-    color: 0x00d4ff
-  });
 
-  // Tier 1 (bottom slab - compact)
-  const tier1Geo = new THREE.BoxGeometry(1.2, 0.08, 1.2);
-  const tier1 = new THREE.Mesh(tier1Geo, baseMat);
+  // Tier 1 (bottom gold slab)
+  const tier1Geo = new THREE.CylinderGeometry(1.0, 1.05, 0.08, 32);
+  const tier1 = new THREE.Mesh(tier1Geo, goldMat);
   tier1.position.y = 0.04;
   tier1.receiveShadow = true;
   tier1.castShadow = true;
   pedestalGroup.add(tier1);
 
-  // Tier 2 (middle block - compact)
-  const tier2Geo = new THREE.BoxGeometry(1.0, 0.16, 1.0);
-  const tier2 = new THREE.Mesh(tier2Geo, baseMat);
-  tier2.position.y = 0.16;
+  // Tier 2 (middle white slab)
+  const tier2Geo = new THREE.CylinderGeometry(0.9, 0.9, 0.08, 32);
+  const tier2 = new THREE.Mesh(tier2Geo, whiteMat);
+  tier2.position.y = 0.12;
   tier2.receiveShadow = true;
   tier2.castShadow = true;
   pedestalGroup.add(tier2);
 
-  // Cyan neon glow line in between Tier 2 and Tier 3
-  const glowStripGeo = new THREE.BoxGeometry(1.02, 0.02, 1.02);
-  const glowStrip = new THREE.Mesh(glowStripGeo, glowLineMat);
-  glowStrip.position.y = 0.25;
-  pedestalGroup.add(glowStrip);
-
-  // Tier 3 (top slab - compact)
-  const tier3Geo = new THREE.BoxGeometry(0.9, 0.06, 0.9);
-  const tier3 = new THREE.Mesh(tier3Geo, baseMat);
-  tier3.position.y = 0.29;
+  // Tier 3 (top gold slab)
+  const tier3Geo = new THREE.CylinderGeometry(0.8, 0.8, 0.06, 32);
+  const tier3 = new THREE.Mesh(tier3Geo, goldMat);
+  tier3.position.y = 0.19;
   tier3.receiveShadow = true;
   tier3.castShadow = true;
   pedestalGroup.add(tier3);
 
   // Create empty player group
   playerGroup = new THREE.Group();
-  playerGroup.position.y = 0.32; // Stand exactly on top of the tier 3
+  playerGroup.position.y = 0.22; // Stand exactly on top of the tier 3
   scene.add(playerGroup);
 
   // Load default skin (Conor McGregor local file)
@@ -1811,12 +1807,12 @@ const STEP_COUNT=5;
 // Camera presets per step:
 //   [posY, posZ, lookY]
 const CAM={
-  landing:[2.2, 5.2, 1.9],
-  0:[3.2, 2.6, 3.2], // zoom head for nick
-  1:[2.2, 5.2, 1.9], // full body
-  2:[2.6, 3.5, 2.4], // mid body
-  3:[2.6, 3.5, 2.4], // mid body banner
-  4:[2.2, 5.2, 1.9], // full body server
+  landing:[2.1, 5.2, 1.8],
+  0:[3.1, 2.6, 3.1], // zoom head for nick
+  1:[2.1, 5.2, 1.8], // full body
+  2:[2.5, 3.5, 2.3], // mid body
+  3:[2.5, 3.5, 2.3], // mid body banner
+  4:[2.1, 5.2, 1.8], // full body server
 };
 const ANIMS=['idle','walk','walk','walk','run','fly'];
 
