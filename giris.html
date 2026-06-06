@@ -145,6 +145,48 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
   transform:translateX(-50%) scale(1);
 }
 
+/* Drag Prompt */
+.drag-prompt {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 10, 22, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 20;
+  animation: dpBlink 2s ease-in-out infinite;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.drag-prompt.hide {
+  opacity: 0;
+}
+.dp-icon {
+  font-size: 14px;
+  animation: dpWiggle 1.5s ease-in-out infinite;
+}
+.dp-text {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--t1);
+}
+@keyframes dpBlink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.95; }
+}
+@keyframes dpWiggle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 /* Skin Canvas */
 #skin-canvas {
   display:block;
@@ -1296,6 +1338,12 @@ body.in-reg .character-preview-section {
             <!-- Minecraft nametag floating above character -->
             <div class="char-nametag show" id="char-nametag">McGregor</div>
 
+            <!-- Drag Prompt -->
+            <div class="drag-prompt" id="drag-prompt">
+              <span class="dp-icon">👆</span>
+              <span class="dp-text">Tut ve Gezdir</span>
+            </div>
+
             <canvas id="skin-canvas" width="300" height="450"></canvas>
 
             <!-- Server badge below pedestal -->
@@ -1387,6 +1435,15 @@ let _rotAnim = { speed: 0.35 };
 
 let camTarget = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
 let camCurrent = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
+
+// Physics Drag & Fling State
+let isDragging = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let playerPos = { x: 0, y: 0.22, z: 0 };
+let playerVel = { x: 0, y: 0, z: 0 };
+let playerRotVel = { x: 0, y: 0, z: 0 };
+let isThrown = false;
 
 // Helper to slice texture from skin sheet
 function createTileTexture(img, x, y, w, h) {
@@ -1561,6 +1618,101 @@ function initViewer(){
   // Load default skin (Conor McGregor local file)
   loadPlayerSkin('mcgregor.png');
 
+  // Attach Drag-and-Fling mouse/touch events
+  canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    isThrown = false;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    playerVel.x = 0; playerVel.y = 0; playerVel.z = 0;
+    playerRotVel.x = 0; playerRotVel.y = 0; playerRotVel.z = 0;
+    setSkinAnim('fly'); // Spreading pose
+    const dp = document.getElementById('drag-prompt');
+    if (dp) dp.classList.add('hide'); // Hide prompt on first drag!
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      playerPos.x += dx * 0.015;
+      playerPos.y -= dy * 0.015;
+
+      // Bound character inside viewport box
+      playerPos.x = Math.max(-1.8, Math.min(1.8, playerPos.x));
+      playerPos.y = Math.max(0.22, Math.min(3.5, playerPos.y));
+
+      playerGroup.position.x = playerPos.x;
+      playerGroup.position.y = playerPos.y;
+
+      // Direct tilt based on drag speed
+      playerGroup.rotation.z = -dx * 0.04;
+      playerGroup.rotation.x = dy * 0.04;
+
+      // Track drag velocity
+      playerVel.x = dx * 0.05;
+      playerVel.y = -dy * 0.05;
+
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      isThrown = true;
+      playerRotVel.y = playerVel.x * 2.0;
+      playerRotVel.x = playerVel.y * 1.5;
+    }
+  });
+
+  // Touch Support
+  canvas.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    isThrown = false;
+    lastMouseX = e.touches[0].clientX;
+    lastMouseY = e.touches[0].clientY;
+    playerVel.x = 0; playerVel.y = 0; playerVel.z = 0;
+    playerRotVel.x = 0; playerRotVel.y = 0; playerRotVel.z = 0;
+    setSkinAnim('fly');
+    const dp = document.getElementById('drag-prompt');
+    if (dp) dp.classList.add('hide');
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDragging) {
+      const dx = e.touches[0].clientX - lastMouseX;
+      const dy = e.touches[0].clientY - lastMouseY;
+      playerPos.x += dx * 0.015;
+      playerPos.y -= dy * 0.015;
+
+      playerPos.x = Math.max(-1.8, Math.min(1.8, playerPos.x));
+      playerPos.y = Math.max(0.22, Math.min(3.5, playerPos.y));
+
+      playerGroup.position.x = playerPos.x;
+      playerGroup.position.y = playerPos.y;
+
+      playerGroup.rotation.z = -dx * 0.04;
+      playerGroup.rotation.x = dy * 0.04;
+
+      playerVel.x = dx * 0.05;
+      playerVel.y = -dy * 0.05;
+
+      lastMouseX = e.touches[0].clientX;
+      lastMouseY = e.touches[0].clientY;
+    }
+  });
+
+  window.addEventListener('touchend', () => {
+    if (isDragging) {
+      isDragging = false;
+      isThrown = true;
+      playerRotVel.y = playerVel.x * 2.0;
+      playerRotVel.x = playerVel.y * 1.5;
+    }
+  });
+
   // Start loop
   camLoop();
   console.log('Three.js OK ✓');
@@ -1577,13 +1729,84 @@ function camLoop(){
   camera.position.set(0, camCurrent.posY, camCurrent.posZ);
   camera.lookAt(0, camCurrent.lookY, 0);
 
-  // Character slow rotation or face forward
+  // Character slow rotation, physics and reset behavior
   if (playerGroup) {
-    if (!document.body.classList.contains('in-reg')) {
-      playerGroup.rotation.y += _rotAnim.speed * 0.04;
-    } else {
-      // Smoothly rotate back to face forward
-      playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.1;
+    if (isThrown) {
+      // Gravity
+      playerVel.y -= 0.007; // Pull down
+      
+      // Apply velocity
+      playerPos.x += playerVel.x;
+      playerPos.y += playerVel.y;
+      
+      // Air resistance (damping)
+      playerVel.x *= 0.98;
+      playerVel.y *= 0.98;
+      
+      // Rotate character while tumbling
+      playerGroup.rotation.x += playerRotVel.x;
+      playerGroup.rotation.y += playerRotVel.y;
+      playerRotVel.x *= 0.97;
+      playerRotVel.y *= 0.97;
+      
+      // Pedestal floor bounce collision
+      const floorY = 0.22;
+      if (playerPos.y <= floorY) {
+        playerPos.y = floorY;
+        
+        // If velocity is high, bounce!
+        if (Math.abs(playerVel.y) > 0.02) {
+          playerVel.y = -playerVel.y * 0.5; // Bounce factor
+          playerVel.x *= 0.7; // Floor friction
+          wrapShake(); // Shake camera/canvas slightly on heavy landing!
+        } else {
+          // Stop moving and stand upright!
+          playerVel.x = 0;
+          playerVel.y = 0;
+          isThrown = false;
+          
+          // Smoothly stand upright using GSAP
+          gsap.to(playerGroup.rotation, { x: 0, y: 0, z: 0, duration: 0.6, ease: "back.out(1.7)" });
+          gsap.to(playerGroup.position, { x: 0, y: 0.22, z: 0, duration: 0.6, ease: "back.out(1.7)" });
+          playerPos.x = 0;
+          playerPos.y = 0.22;
+          setSkinAnim('pose');
+        }
+      }
+      
+      // Wall bounce collision
+      const wallX = 1.6;
+      if (playerPos.x < -wallX) {
+        playerPos.x = -wallX;
+        playerVel.x = -playerVel.x * 0.6;
+      } else if (playerPos.x > wallX) {
+        playerPos.x = wallX;
+        playerVel.x = -playerVel.x * 0.6;
+      }
+      
+      // Ceiling bounce
+      const ceilY = 3.6;
+      if (playerPos.y > ceilY) {
+        playerPos.y = ceilY;
+        playerVel.y = -playerVel.y * 0.6;
+      }
+      
+      // Apply position
+      playerGroup.position.x = playerPos.x;
+      playerGroup.position.y = playerPos.y;
+    }
+    else if (!isDragging) {
+      // Smoothly rotate back to face forward (0) and reset position to pedestal
+      playerGroup.rotation.y += (0 - playerGroup.rotation.y) * 0.08;
+      playerGroup.rotation.x += (0 - playerGroup.rotation.x) * 0.08;
+      playerGroup.rotation.z += (0 - playerGroup.rotation.z) * 0.08;
+      
+      playerGroup.position.x += (0 - playerGroup.position.x) * 0.08;
+      playerGroup.position.y += (0.22 - playerGroup.position.y) * 0.08;
+      playerGroup.position.z += (0 - playerGroup.position.z) * 0.08;
+      
+      playerPos.x = playerGroup.position.x;
+      playerPos.y = playerGroup.position.y;
     }
   }
 
@@ -1615,6 +1838,13 @@ function camLoop(){
       rightArmGroup.rotation.x = -0.6 + Math.sin(t) * 0.1;
       leftArmGroup.rotation.x = -0.6 + Math.cos(t) * 0.1;
     }
+    else if (currentAnim === 'pose') {
+      // Hands on hips pose
+      rightArmGroup.rotation.set(-0.15, 0, -0.35);
+      leftArmGroup.rotation.set(-0.15, 0, 0.35);
+      rightLegGroup.rotation.set(0, 0, 0.05);
+      leftLegGroup.rotation.set(0, 0, -0.05);
+    }
     else { // idle / breathing
       const t = time * 0.002;
       rightArmGroup.rotation.z = 0.05 + Math.sin(t) * 0.02;
@@ -1637,7 +1867,7 @@ function camLoop(){
   }
 
   // Smoothly track head to mouse/inputs
-  if (headGroup) {
+  if (headGroup && !isDragging) {
     const lerpK = 0.12;
     headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
     headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
@@ -1814,7 +2044,7 @@ const CAM={
   3:[2.5, 3.5, 2.3], // mid body banner
   4:[2.1, 5.2, 1.8], // full body server
 };
-const ANIMS=['idle','walk','walk','walk','run','fly'];
+const ANIMS=['pose','pose','pose','pose','pose','fly'];
 
 function buildProgDots(){
   const bar=document.getElementById('prog-dots');
