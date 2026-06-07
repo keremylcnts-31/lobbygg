@@ -34,6 +34,9 @@ html,body {
   color:var(--t1);
   background: radial-gradient(ellipse at 50% 110%, #0a2a6e 0%, #060a18 60%);
 }
+html,body,input,select,textarea,button,a,[role="button"],.btn,.tcard,.srv-c,.sw,.chip,.ls-item {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 16 16' style='image-rendering:pixelated;'%3E%3Crect x='0' y='0' width='3' height='1' fill='%23000'/%3E%3Crect x='0' y='1' width='1' height='3' fill='%23000'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23000'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23000'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23000'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%23000'/%3E%3Crect x='1' y='1' width='2' height='1' fill='%235f676d'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%235f676d'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23939fa8'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%235f676d'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23939fa8'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%235f676d'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%23000'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23000'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23000'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%23000'/%3E%3Crect x='5' y='6' width='1' height='1' fill='%23000'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%23000'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%23000'/%3E%3Crect x='7' y='6' width='1' height='1' fill='%23000'/%3E%3Crect x='7' y='8' width='1' height='1' fill='%23000'/%3E%3Crect x='8' y='7' width='1' height='1' fill='%23000'/%3E%3Crect x='8' y='9' width='1' height='1' fill='%23000'/%3E%3Crect x='9' y='8' width='1' height='1' fill='%23000'/%3E%3Crect x='9' y='10' width='1' height='1' fill='%23000'/%3E%3Crect x='10' y='9' width='1' height='1' fill='%23000'/%3E%3Crect x='10' y='11' width='1' height='1' fill='%23000'/%3E%3Crect x='11' y='10' width='1' height='1' fill='%23000'/%3E%3Crect x='11' y='12' width='1' height='1' fill='%23000'/%3E%3Crect x='12' y='11' width='1' height='1' fill='%23000'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='6' y='6' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='7' y='7' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='8' y='8' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='9' y='9' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='10' y='10' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='11' y='11' width='1' height='1' fill='%238d5f30'/%3E%3Crect x='11' y='13' width='1' height='1' fill='%23000'/%3E%3Crect x='12' y='12' width='1' height='1' fill='%23000'/%3E%3Crect x='12' y='14' width='1' height='1' fill='%23000'/%3E%3Crect x='13' y='11' width='1' height='1' fill='%23000'/%3E%3Crect x='13' y='15' width='1' height='1' fill='%23000'/%3E%3Crect x='14' y='12' width='1' height='1' fill='%23000'/%3E%3Crect x='14' y='14' width='1' height='1' fill='%23000'/%3E%3Crect x='15' y='13' width='1' height='1' fill='%23000'/%3E%3Crect x='12' y='13' width='1' height='1' fill='%23e3e3e3'/%3E%3Crect x='13' y='12' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='13' y='13' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='13' y='14' width='1' height='1' fill='%23e3e3e3'/%3E%3Crect x='14' y='13' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E") 0 0, auto !important;
+}
 
 /* ── Dynamic BG ─────────────────────── */
 body.bg-blue  { background: radial-gradient(ellipse at 50% 110%, #0a2a6e 0%, #060a18 60%); }
@@ -114,7 +117,7 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
   position:absolute;
   bottom:0; left:50%;
   transform:translateX(-50%);
-  width:220px; height:60px;
+  width:300px; height:80px;
   background:radial-gradient(ellipse, rgba(0,180,255,0.18) 0%, transparent 70%);
   pointer-events:none;
   transition:background 0.8s ease;
@@ -123,7 +126,7 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 /* Minecraft floating nametag */
 .char-nametag {
   position:absolute;
-  top:-30px; left:50%;
+  top:50px; left:50%;
   transform:translateX(-50%) scale(0.9);
   background:rgba(0,0,0,0.45);
   border:none;
@@ -207,7 +210,7 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 /* ── Landing UI ─────────────────────── */
 .landing-ui {
   margin-top:20px;
-  display:flex; flex-direction:column; align-items:center; gap:14px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:14px;
   transition:opacity 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1);
 }
 .landing-ui.hidden {
@@ -216,7 +219,7 @@ body.bg-green { background: radial-gradient(ellipse at 50% 110%, #0a3a1a 0%, #03
 .landing-title {
   font-size:11px; font-weight:800; color:var(--t2);
   letter-spacing:2px; text-transform:uppercase;
-  text-align:center;
+  text-align:left;
 }
 .landing-btns {
   display:flex; gap:12px;
@@ -607,8 +610,8 @@ textarea.fi { resize:none; height:68px; line-height:1.5; }
   40%,80%{transform:translateX(6px)}
 }
 .viewer-wrap {
-  width: 300px;
-  height: 450px;
+  width: 400px;
+  height: 600px;
   position: absolute;
   pointer-events: none;
   user-select: none;
@@ -822,10 +825,21 @@ body.in-reg .landing-info {
   font-style: italic;
   font-size: 38px;
   text-transform: uppercase;
-  color: #fff;
   line-height: 1.1;
   letter-spacing: -0.5px;
-  text-shadow: 2px 2px 0 #000;
+  filter: drop-shadow(2px 2px 0px #000);
+}
+.shimmer-text {
+  background: linear-gradient(120deg, #ffffff 30%, #aee5ff 45%, #ffffff 60%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 3.5s linear infinite;
+  display: inline-block;
+}
+@keyframes textShimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 .li-desc {
   font-size: 13px;
@@ -844,9 +858,28 @@ body.in-reg .landing-info {
   gap: 12px;
   align-items: flex-start;
   background: rgba(255, 255, 255, 0.02);
-  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
   padding: 12px 14px;
   border-radius: 10px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.02);
+  animation: borderPulse 4s infinite alternate;
+  transition: all 0.3s ease;
+}
+.li-feat:hover {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.12), inset 0 0 8px rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
+@keyframes borderPulse {
+  0% {
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.01);
+  }
+  100% {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.06);
+  }
 }
 .li-feat-icon {
   font-size: 18px;
@@ -1013,10 +1046,12 @@ body.in-reg .locker-panel {
 }
 body:not(.in-reg) .character-preview-section {
   width: 100%;
+  justify-content: flex-end;
+  padding-right: 60px;
 }
 body.in-reg .character-preview-section {
   justify-content: flex-end;
-  padding-right: 40px;
+  padding-right: 15px;
 }
 @media (max-width: 900px) {
   .locker-layout {
@@ -1030,6 +1065,12 @@ body.in-reg .character-preview-section {
     text-align: center;
     align-items: center;
     padding: 0 10px;
+  }
+  .landing-ui {
+    align-items: center;
+  }
+  .landing-title {
+    text-align: center;
   }
   .li-title {
     font-size: 28px;
@@ -1118,6 +1159,7 @@ body.in-reg .character-preview-section {
 
 <div id="tc"></div>
 <canvas id="bg-canvas"></canvas>
+<canvas id="skin-canvas"></canvas>
 
 <!-- Logo -->
 <div class="logo-corner">
@@ -1169,7 +1211,7 @@ body.in-reg .character-preview-section {
     <!-- Landing Info Panel (Left side on landing state) -->
     <div class="landing-info" id="landing-info">
       <div class="li-tag">LOBBY.GG PORTAL</div>
-      <h1 class="li-title">Minecraft Dünyanı Tasarla</h1>
+      <h1 class="li-title"><span class="shimmer-text">Minecraft Dünyanı Tasarla</span></h1>
       <p class="li-desc">Kendi Minecraft skininle kaydol, favori sunucularını seç ve topluluğun bir parçası ol. Lobiye katılmak ve diğer oyuncularla etkileşime geçmek için hemen profilini oluştur!</p>
       
       <div class="li-features">
@@ -1193,6 +1235,15 @@ body.in-reg .character-preview-section {
             <h4>Özel Roller</h4>
             <p>Geliştirici, Yayıncı veya Oyuncu rollerini kap.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Landing UI (Centered under character in landing state) -->
+      <div class="landing-ui" id="landing-ui">
+        <div class="landing-title">⚔️ &nbsp;Lobiye Katılmak için Seç&nbsp; ⚔️</div>
+        <div class="landing-btns">
+          <button class="btn btn-gold" id="btn-start-reg" style="width:180px">KAYIT OL</button>
+          <button class="btn btn-ghost" id="btn-start-login" style="width:180px">GİRİŞ YAP</button>
         </div>
       </div>
     </div>
@@ -1345,18 +1396,12 @@ body.in-reg .character-preview-section {
       <div class="char-arena" id="char-arena">
         
         <div class="char-preview-container">
-          <div id="viewer-spacer" style="width: 300px; height: 450px; flex-shrink: 0;"></div>
+          <div id="viewer-spacer" style="width: 400px; height: 600px; flex-shrink: 0;"></div>
           <div class="viewer-wrap" id="viewer-wrap">
             <!-- Minecraft nametag floating above character -->
             <div class="char-nametag show" id="char-nametag">McGregor</div>
 
-            <!-- Drag Prompt -->
-            <div class="drag-prompt" id="drag-prompt">
-              <span class="dp-icon">👆</span>
-              <span class="dp-text">Tut ve Gezdir</span>
-            </div>
 
-            <canvas id="skin-canvas" width="300" height="450"></canvas>
 
             <!-- Server badge below pedestal -->
             <div class="srv-badge" id="srv-badge">
@@ -1373,15 +1418,6 @@ body.in-reg .character-preview-section {
     </div><!-- /character-preview-section -->
 
   </div><!-- /locker-layout -->
-
-  <!-- Landing UI (Centered under character in landing state) -->
-  <div class="landing-ui" id="landing-ui">
-    <div class="landing-title">⚔️ &nbsp;Lobiye Katılmak için Seç&nbsp; ⚔️</div>
-    <div class="landing-btns">
-      <button class="btn btn-gold" id="btn-start-reg" style="width:180px">KAYIT OL</button>
-      <button class="btn btn-ghost" id="btn-start-login" style="width:180px">GİRİŞ YAP</button>
-    </div>
-  </div>
 
 </div><!-- /stage -->
 
@@ -1417,11 +1453,13 @@ const TCOLORS={Oyuncu:'#2e6e1a',Developer:'#1a4ea0','Plugin Dev':'#1a4ea0','Web 
 const PLAT={YouTube:'https://cdn.simpleicons.org/youtube/FFFFFF',TikTok:'https://cdn.simpleicons.org/tiktok/FFFFFF',Kick:'https://cdn.simpleicons.org/kick/53FC18',Twitch:'https://cdn.simpleicons.org/twitch/9146FF',Instagram:'https://cdn.simpleicons.org/instagram/FFFFFF'};
 const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.chickennw.com'},{n:'BLOKYA',ip:'oyna.blokya.com'},{n:'DugeCraft',ip:'play.dugecraft.com.tr'},{n:'ZENITMC',ip:'play.zenitmc.com'},{n:'SENTORCRAFT',ip:'sentorcraft.com'},{n:'SOULCRAFT',ip:'soulcraft.tc'},{n:'AtlasOyuncu',ip:'play.atlasoyuncu.com'},{n:'AtlantikMC',ip:'atlantikmc.com'},{n:'NAVELYA',ip:'navelya.net'},{n:'CRAFTLUNA',ip:'play.craftluna.net'},{n:'Melonya',ip:'melonya.net'},{n:'Rush Craft',ip:'play.rushcraft.com.tr'},{n:'RebornCraft',ip:'play.reborncraft.pw'},{n:'LuneCraft',ip:'mc.lunecraft.net'},{n:'SimitSMP',ip:'simitsmp.net'},{n:'MC4FUN',ip:'play.mc4fun.net'},{n:'İmibiyum',ip:'play.imibiyum.com'}];
 
-/* ══ BG PARTICLES ══ */
+/* ══ BG PARTICLES & MOUSE TRAIL ══ */
 (function(){
   const c=document.getElementById('bg-canvas');
   const ctx=c.getContext('2d');
   let W,H,pts=[];
+  let mousePts=[];
+  
   function resize(){
     W=c.width=innerWidth; H=c.height=innerHeight;
     pts=Array.from({length:50},()=>({
@@ -1432,8 +1470,95 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
     }));
   }
   window.addEventListener('resize',resize); resize();
+
+  // Mouse speed tracking variables
+  let lastX = null, lastY = null, lastT = null;
+
+  function getSpeedColor(clientX, clientY) {
+    const now = performance.now();
+    let speed = 0;
+    if (lastX !== null && lastY !== null && lastT !== null) {
+      const dx = clientX - lastX;
+      const dy = clientY - lastY;
+      const dt = Math.max(1, now - lastT);
+      speed = (Math.sqrt(dx*dx + dy*dy) / dt) * 10;
+    }
+    lastX = clientX;
+    lastY = clientY;
+    lastT = now;
+
+    if (speed >= 30) return 'rgba(255, 53, 53, ';   // Red (en hızlı)
+    if (speed >= 15) return 'rgba(255, 130, 0, ';  // Orange (biraz daha hızlı)
+    if (speed >= 5)  return 'rgba(0, 212, 255, ';  // Cyan (biraz hızlı)
+    return 'rgba(255, 255, 255, ';                  // White (en yavaş)
+  }
+
+  // Mouse trail listener
+  window.addEventListener('mousemove', (e) => {
+    const color = getSpeedColor(e.clientX, e.clientY);
+    for (let i = 0; i < 2; i++) {
+      mousePts.push({
+        x: e.clientX,
+        y: e.clientY,
+        vx: (Math.random() - 0.5) * 1.6,
+        vy: (Math.random() - 0.5) * 1.6 + 0.3,
+        r: 1.5 + Math.random() * 3.5,
+        a: 1.0,
+        decay: 0.02 + Math.random() * 0.02,
+        color: color
+      });
+    }
+  });
+
+  // Touch support for mobile devices
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      const color = getSpeedColor(touch.clientX, touch.clientY);
+      for (let i = 0; i < 2; i++) {
+        mousePts.push({
+          x: touch.clientX,
+          y: touch.clientY,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: (Math.random() - 0.5) * 1.6 + 0.3,
+          r: 1.5 + Math.random() * 3.5,
+          a: 1.0,
+          decay: 0.02 + Math.random() * 0.02,
+          color: color
+        });
+      }
+    }
+  });
+
+  // Burst explosion particles on character click
+  window.spawnClickBurst = function(x, y) {
+    const colors = [
+      'rgba(255, 255, 255, ', // White
+      'rgba(0, 212, 255, ',   // Cyan
+      'rgba(255, 130, 0, ',  // Orange
+      'rgba(255, 53, 53, '    // Red
+    ];
+    for (let i = 0; i < 45; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.2 + Math.random() * 4.2;
+      mousePts.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.2,
+        r: 2.0 + Math.random() * 3.5,
+        a: 1.0,
+        decay: 0.012 + Math.random() * 0.015,
+        gravity: 0.09, // custom gravity to make them fall down!
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+  };
+
   function draw(){
     ctx.clearRect(0,0,W,H);
+    
+    // Draw background stars/dust
     pts.forEach(p=>{
       ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fillStyle=`rgba(255,209,59,${p.a})`; ctx.fill();
@@ -1441,6 +1566,25 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
       if(p.x<0||p.x>W)p.vx*=-1;
       if(p.y<0){p.y=H; p.x=Math.random()*W;}
     });
+
+    // Draw mouse sparkles (Minecraft style pixel-squares)
+    for (let i = mousePts.length - 1; i >= 0; i--) {
+      const p = mousePts[i];
+      ctx.fillStyle = p.color + p.a + ')';
+      ctx.fillRect(p.x - p.r/2, p.y - p.r/2, p.r, p.r);
+      
+      // Update physics
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.gravity) p.vy += p.gravity;
+      p.a -= p.decay;
+      
+      // Remove dead particles
+      if (p.a <= 0) {
+        mousePts.splice(i, 1);
+      }
+    }
+
     requestAnimationFrame(draw);
   }
   draw();
@@ -1449,14 +1593,21 @@ const SERVERS=[{n:'HanedanMC',ip:'play.hanedanmc.com'},{n:'ChickenNW',ip:'oyna.c
 /* ══ THREE.JS & GSAP 3D ENGINE ══ */
 let scene, camera, renderer;
 let playerGroup, pedestalGroup, torsoMesh;
+let portalGroup;
+let portalTexture, portalCtx;
+let portalParticles = [];
+let endCrystals = [];
+let lobbyParticles = [];
+let camCurrentOffsetX = 0, camCurrentOffsetY = 0;
+let catModel;
 let headMesh, rightArmMesh, leftArmMesh, rightLegMesh, leftLegMesh;
 let currentAnim = 'pose'; // Heroic "hands on hips" pose as default
-let _rotAnim = { speed: 0.35 };
+let _rotAnim = { speed: 0 };
 
 // Animation tracker group references
 let headGroup, rightArmGroup, leftArmGroup, rightLegGroup, leftLegGroup;
 
-let currentTorsoBobY = 1.8;
+let currentTorsoBobY = 1.58;
 
 let camTarget = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
 let camCurrent = { posY: 2.1, posZ: 5.2, lookY: 1.8 };
@@ -1798,11 +1949,52 @@ function getScreenPosOf3D(pos3D) {
   return { x, y };
 }
 
-function get3DPosFromScreen(screenX, screenY, targetZ = 0) {
-  if (window.get3DMousePos) {
-    return window.get3DMousePos(screenX, screenY, targetZ);
-  }
-  return new THREE.Vector3(0, 0, 0);
+// Petting & Heart Particle Globals
+let isStevePetting = false;
+let pettingTimer = 0;
+let pettingCooldown = 0;
+let heartParticles = [];
+let heartGeo = null;
+const heartMat = new THREE.MeshBasicMaterial({ color: 0xff2b56, side: THREE.DoubleSide, transparent: true });
+
+function initHeartGeometry() {
+  const x = 0, y = 0;
+  const heartShape = new THREE.Shape();
+  heartShape.moveTo( x + 0.05, y + 0.05 );
+  heartShape.bezierCurveTo( x + 0.05, y + 0.05, x + 0.04, y + 0.07, x, y + 0.07 );
+  heartShape.bezierCurveTo( x - 0.06, y + 0.07, x - 0.06, y + 0.01, x - 0.06, y + 0.01 );
+  heartShape.bezierCurveTo( x - 0.06, y - 0.05, x - 0.01, y - 0.11, x + 0.05, y - 0.16 );
+  heartShape.bezierCurveTo( x + 0.11, y - 0.11, x + 0.16, y - 0.05, x + 0.16, y + 0.01 );
+  heartShape.bezierCurveTo( x + 0.16, y + 0.01, x + 0.16, y + 0.07, x + 0.10, y + 0.07 );
+  heartShape.bezierCurveTo( x + 0.07, y + 0.07, x + 0.05, y + 0.05, x + 0.05, y + 0.05 );
+  
+  heartGeo = new THREE.ShapeGeometry(heartShape);
+  heartGeo.center();
+}
+
+function spawnHeart(posX, posY, posZ) {
+  if (!heartGeo) initHeartGeometry();
+  
+  const heartMesh = new THREE.Mesh(heartGeo, heartMat.clone());
+  heartMesh.position.set(
+    posX + (Math.random() - 0.5) * 0.15,
+    posY + Math.random() * 0.1,
+    posZ + (Math.random() - 0.5) * 0.15
+  );
+  
+  const scale = 0.4 + Math.random() * 0.4;
+  heartMesh.scale.set(scale, scale, scale);
+  
+  heartMesh.userData = {
+    speedY: 0.008 + Math.random() * 0.008,
+    speedX: (Math.random() - 0.5) * 0.004,
+    life: 1.0,
+    decay: 0.015 + Math.random() * 0.015,
+    rotSpeed: (Math.random() - 0.5) * 0.05
+  };
+  
+  scene.add(heartMesh);
+  heartParticles.push(heartMesh);
 }
 
 function initViewer(){
@@ -1832,49 +2024,51 @@ function initViewer(){
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-  dirLight.position.set(2, 6, 4);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+  dirLight.position.set(3, 7, 5);
   dirLight.castShadow = true;
+  dirLight.shadow.mapSize.width = 1024;
+  dirLight.shadow.mapSize.height = 1024;
+  dirLight.shadow.camera.near = 0.5;
+  dirLight.shadow.camera.far = 15;
+  const d = 2.0;
+  dirLight.shadow.camera.left = -d;
+  dirLight.shadow.camera.right = d;
+  dirLight.shadow.camera.top = d;
+  dirLight.shadow.camera.bottom = -d;
+  dirLight.shadow.bias = -0.0005;
   scene.add(dirLight);
 
-  // 3D Circular Layered Gold-White Pedestal
-  pedestalGroup = new THREE.Group();
-  scene.add(pedestalGroup);
+  // Soft Ground Shadow Plane (receives realistic character shadows)
+  const shadowPlaneGeo = new THREE.PlaneGeometry(10, 10);
+  const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.38 });
+  const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
+  shadowPlane.rotation.x = -Math.PI / 2;
+  shadowPlane.position.y = 0.0;
+  shadowPlane.receiveShadow = true;
+  scene.add(shadowPlane);
 
-  const goldMat = new THREE.MeshStandardMaterial({
-    color: 0xe6a800,
-    roughness: 0.6,
-    metalness: 0.0
+  // Lobby EXP Particles (Glowing Purple/Magenta Dust)
+  lobbyParticles = [];
+  const partCount = 35; // increased count
+  const lobbyPartGeo = new THREE.BoxGeometry(0.07, 0.07, 0.07); // larger size
+  const lobbyPartMat = new THREE.MeshBasicMaterial({
+    color: 0xd858ff, // purplish magenta
+    transparent: true,
+    opacity: 0.75
   });
-  const whiteMat = new THREE.MeshStandardMaterial({
-    color: 0xf3f4f6,
-    roughness: 0.4,
-    metalness: 0.1
-  });
+  for (let i = 0; i < partCount; i++) {
+    const p = new THREE.Mesh(lobbyPartGeo, lobbyPartMat.clone());
+    resetLobbyParticle(p);
+    scene.add(p);
+    lobbyParticles.push(p);
+  }
 
-  // Tier 1
-  const tier1Geo = new THREE.CylinderGeometry(1.0, 1.05, 0.08, 32);
-  const tier1 = new THREE.Mesh(tier1Geo, goldMat);
-  tier1.position.y = 0.04;
-  tier1.receiveShadow = true;
-  tier1.castShadow = true;
-  pedestalGroup.add(tier1);
 
-  // Tier 2
-  const tier2Geo = new THREE.CylinderGeometry(0.9, 0.9, 0.08, 32);
-  const tier2 = new THREE.Mesh(tier2Geo, whiteMat);
-  tier2.position.y = 0.12;
-  tier2.receiveShadow = true;
-  tier2.castShadow = true;
-  pedestalGroup.add(tier2);
 
-  // Tier 3
-  const tier3Geo = new THREE.CylinderGeometry(0.8, 0.8, 0.06, 32);
-  const tier3 = new THREE.Mesh(tier3Geo, goldMat);
-  tier3.position.y = 0.19;
-  tier3.receiveShadow = true;
-  tier3.castShadow = true;
-  pedestalGroup.add(tier3);
+  // Create Minecraft Cat
+  catModel = createMinecraftCat();
+  scene.add(catModel);
 
   // Create empty player group
   playerGroup = new THREE.Group();
@@ -1917,25 +2111,110 @@ function initViewer(){
     canvas.style.pointerEvents = hit ? 'auto' : 'none';
   });
 
-  // Mouse drag/click event
+  // Drag-to-rotate and Click-to-spin variables
+  let isDraggingRotate = false;
+  let previousMouseX = 0;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let hasDragged = false;
+
+  // Mouse Drag Events
   window.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
     const hit = checkRaycastHit(e.clientX, e.clientY);
-    if (hit) {
-      triggerJumpAndSpin();
-      e.preventDefault();
+    const wrap = document.getElementById('viewer-wrap');
+    const rect = wrap ? wrap.getBoundingClientRect() : null;
+    const insideWrap = rect && e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+    if (hit || insideWrap) {
+      isDraggingRotate = true;
+      previousMouseX = e.clientX;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      hasDragged = false;
+
+      const dragPrompt = document.getElementById('drag-prompt');
+      if (dragPrompt) dragPrompt.classList.add('hide');
+
+      if (hit) e.preventDefault();
     }
   });
 
-  // Touch drag events
+  window.addEventListener('mousemove', (e) => {
+    if (isDraggingRotate && playerGroup) {
+      const deltaX = e.clientX - previousMouseX;
+
+      if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) {
+        hasDragged = true;
+      }
+
+      playerGroup.rotation.y += deltaX * 0.01;
+      previousMouseX = e.clientX;
+    }
+  });
+
+  window.addEventListener('mouseup', (e) => {
+    if (isDraggingRotate) {
+      isDraggingRotate = false;
+      if (!hasDragged) {
+        const hit = checkRaycastHit(e.clientX, e.clientY);
+        if (hit) {
+          triggerJumpAndSpin();
+          if (window.spawnClickBurst) window.spawnClickBurst(e.clientX, e.clientY);
+        }
+      }
+    }
+  });
+
+  // Touch Drag Events
   window.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
     const touch = e.touches[0];
     const hit = checkRaycastHit(touch.clientX, touch.clientY);
-    if (hit) {
-      triggerJumpAndSpin();
-      e.preventDefault();
+    const wrap = document.getElementById('viewer-wrap');
+    const rect = wrap ? wrap.getBoundingClientRect() : null;
+    const insideWrap = rect && touch.clientX >= rect.left && touch.clientX <= rect.right && touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+
+    if (hit || insideWrap) {
+      isDraggingRotate = true;
+      previousMouseX = touch.clientX;
+      dragStartX = touch.clientX;
+      dragStartY = touch.clientY;
+      hasDragged = false;
+
+      const dragPrompt = document.getElementById('drag-prompt');
+      if (dragPrompt) dragPrompt.classList.add('hide');
+
+      if (hit) e.preventDefault();
     }
   }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDraggingRotate && playerGroup && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - previousMouseX;
+
+      if (Math.abs(touch.clientX - dragStartX) > 5 || Math.abs(touch.clientY - dragStartY) > 5) {
+        hasDragged = true;
+      }
+
+      playerGroup.rotation.y += deltaX * 0.01;
+      previousMouseX = touch.clientX;
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', (e) => {
+    if (isDraggingRotate) {
+      isDraggingRotate = false;
+      if (!hasDragged) {
+        const hit = checkRaycastHit(dragStartX, dragStartY);
+        if (hit) {
+          triggerJumpAndSpin();
+          if (window.spawnClickBurst) window.spawnClickBurst(dragStartX, dragStartY);
+        }
+      }
+    }
+  });
 
   // Expose raycast helpers globally for camera utility boundary collision checks
   window.get3DMousePos = get3DMousePos;
@@ -1960,8 +2239,8 @@ function initVerletPhysics() {
   P.head.x = 0; P.head.y = yBase + 1.22;
   P.rightHand.x = -0.6; P.rightHand.y = yBase - 0.38;
   P.leftHand.x = 0.6; P.leftHand.y = yBase - 0.38;
-  P.rightFoot.x = -0.2; P.rightFoot.y = 0.22;
-  P.leftFoot.x = 0.2; P.leftFoot.y = 0.22;
+  P.rightFoot.x = -0.2; P.rightFoot.y = 0.0;
+  P.leftFoot.x = 0.2; P.leftFoot.y = 0.0;
 
   for (const name in P) {
     P[name].px = P[name].x;
@@ -2075,6 +2354,15 @@ function camLoop(){
   
   // Update camera coordinates from GSAP tween values
   camera.position.set(0, camCurrent.posY, camCurrent.posZ);
+  
+  // Apply smooth dynamic mouse parallax offset (cinematic camera sway)
+  const targetOffsetX = headTargetYaw * 0.25; 
+  const targetOffsetY = -headTargetPitch * 0.15;
+  camCurrentOffsetX += (targetOffsetX - camCurrentOffsetX) * 0.08;
+  camCurrentOffsetY += (targetOffsetY - camCurrentOffsetY) * 0.08;
+  camera.position.x += camCurrentOffsetX;
+  camera.position.y += camCurrentOffsetY;
+
   camera.lookAt(0, camCurrent.lookY, 0);
 
 
@@ -2104,17 +2392,15 @@ function camLoop(){
       camera.aspect = winW / winH;
       camera.updateProjectionMatrix();
 
-      // Find center of the spacer in screen pixels (closer to the bottom to align with shadow)
+      // Find center of the spacer in screen pixels
       const centerX = rect.left + rect.width / 2;
-      const centerY = rect.bottom - 15;
+      const centerY = rect.top + rect.height / 2;
 
       // Convert center to Normalized Device Coordinates (NDC, -1 to 1)
       const ndcX = (centerX / winW) * 2 - 1;
       const ndcY = -(centerY / winH) * 2 + 1;
 
       // Apply asymmetric shear offset directly to the projection matrix.
-      // elements[8] is the horizontal shear, elements[9] is the vertical shear.
-      // This shifts the camera frustum center without rotating the camera, ensuring no perspective distortion (level pedestal).
       camera.projectionMatrix.elements[8] = -ndcX;
       camera.projectionMatrix.elements[9] = -ndcY;
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
@@ -2126,8 +2412,6 @@ function camLoop(){
     pedestalGroup.position.set(0, 0, 0);
   }
 
-  const targetRestPos3D = new THREE.Vector3(0, 2.02, 0);
-
   if (playerGroup) {
     if (_rotAnim && !gsap.isTweening(playerGroup.rotation)) {
       playerGroup.rotation.y += _rotAnim.speed * 0.03;
@@ -2138,77 +2422,127 @@ function camLoop(){
   if (torsoMesh && headGroup && headGroup.rotation) {
     const time = Date.now();
     
+    // Decrement petting cooldown
+    if (pettingCooldown > 0) pettingCooldown--;
+    
+    // Trigger petting if cat is sitting close and cooldown is finished
+    if (catModel && !isStevePetting && pettingCooldown <= 0) {
+      const ud = catModel.userData;
+      if (ud.state === 'sitting' && ud.sitFactor > 0.8) {
+        const dist = Math.sqrt(catModel.position.x * catModel.position.x + catModel.position.z * catModel.position.z);
+        if (dist < 0.95) {
+          isStevePetting = true;
+          pettingTimer = 150; // pet for 2.5 seconds
+        }
+      }
+    }
+    
+    if (isStevePetting) {
+      pettingTimer--;
+      
+      // Face the cat
+      if (catModel) {
+        const targetRotY = Math.atan2(catModel.position.x, catModel.position.z);
+        let diffY = targetRotY - playerGroup.rotation.y;
+        diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+        playerGroup.rotation.y += diffY * 0.1;
+
+        // Spawn heart particles from cat's head
+        if (time % 15 < 2) {
+          const catHeadPos = new THREE.Vector3(0, 0.35, -0.22);
+          catHeadPos.applyMatrix4(catModel.matrixWorld);
+          spawnHeart(catHeadPos.x, catHeadPos.y, catHeadPos.z);
+        }
+      }
+      
+      if (pettingTimer <= 0) {
+        isStevePetting = false;
+        pettingCooldown = 400; // Cooldown before next pet (6.6s)
+      }
+    }
+
     // Default limb target angles
     let targetRightArmX = 0, targetRightArmZ = 0;
     let targetLeftArmX = 0, targetLeftArmZ = 0;
     let targetRightLegX = 0, targetRightLegZ = 0;
     let targetLeftLegX = 0, targetLeftLegZ = 0;
-    let targetTorsoY = 1.8;
+    let targetTorsoY = 1.58;
     let targetTorsoZ = 0;
     
-    if (currentAnim === 'walk') {
-      const t = time * 0.007;
-      targetRightArmX = Math.sin(t) * 0.45;
-      targetLeftArmX = -Math.sin(t) * 0.45;
-      targetRightLegX = -Math.sin(t) * 0.45;
-      targetLeftLegX = Math.sin(t) * 0.45;
-      targetRightArmZ = 0.05 + (Math.sin(t) + 1) * 0.02;
-      targetLeftArmZ = -0.05 - (Math.sin(t) + 1) * 0.02;
-    } 
-    else if (currentAnim === 'run') {
-      const t = time * 0.012;
-      targetRightArmX = Math.sin(t) * 0.75;
-      targetLeftArmX = -Math.sin(t) * 0.75;
-      targetRightLegX = -Math.sin(t) * 0.75;
-      targetLeftLegX = Math.sin(t) * 0.75;
-    } 
-    else if (currentAnim === 'fly') {
-      const t = time * 0.004;
-      targetRightLegX = 0.25 + Math.sin(t) * 0.08;
-      targetLeftLegX = -0.15 + Math.cos(t) * 0.08;
-      targetRightArmX = -0.6 + Math.sin(t) * 0.1;
-      targetLeftArmX = -0.6 + Math.cos(t) * 0.1;
+    if (isStevePetting) {
+      // Bending forward at hips posture
+      targetTorsoY = 1.10;
+      targetRightArmX = -1.1;
+      targetRightArmZ = -0.25 + Math.sin(time * 0.015) * 0.15; // stroking movement
+      targetLeftArmX = 0.3;
+      targetLeftArmZ = 0.25;
+      targetRightLegX = -0.55;
+      targetLeftLegX = -0.55;
+    } else {
+      if (currentAnim === 'walk') {
+        const t = time * 0.007;
+        targetRightArmX = Math.sin(t) * 0.45;
+        targetLeftArmX = -Math.sin(t) * 0.45;
+        targetRightLegX = -Math.sin(t) * 0.45;
+        targetLeftLegX = Math.sin(t) * 0.45;
+        targetRightArmZ = 0.05 + (Math.sin(t) + 1) * 0.02;
+        targetLeftArmZ = -0.05 - (Math.sin(t) + 1) * 0.02;
+      } 
+      else if (currentAnim === 'run') {
+        const t = time * 0.012;
+        targetRightArmX = Math.sin(t) * 0.75;
+        targetLeftArmX = -Math.sin(t) * 0.75;
+        targetRightLegX = -Math.sin(t) * 0.75;
+        targetLeftLegX = Math.sin(t) * 0.75;
+      } 
+      else if (currentAnim === 'fly') {
+        const t = time * 0.004;
+        targetRightLegX = 0.25 + Math.sin(t) * 0.08;
+        targetLeftLegX = -0.15 + Math.cos(t) * 0.08;
+        targetRightArmX = -0.6 + Math.sin(t) * 0.1;
+        targetLeftArmX = -0.6 + Math.cos(t) * 0.1;
+      }
+      else if (currentAnim === 'pose') {
+        // Hands on hips pose
+        targetRightArmX = -0.15; targetRightArmZ = -0.35;
+        targetLeftArmX = -0.15; targetLeftArmZ = 0.35;
+        targetRightLegZ = 0.05;
+        targetLeftLegZ = -0.05;
+      }
+      else if (currentAnim === 'wave') {
+        const t = time * 0.015;
+        targetRightArmX = -1.5; // raise arm
+        targetRightArmZ = Math.sin(t) * 0.4 - 0.2; // wave!
+        
+        // left arm on hip
+        targetLeftArmX = -0.15; targetLeftArmZ = 0.35;
+      }
+      else if (currentAnim === 'dance') {
+        const t = time * 0.01;
+        targetRightArmX = Math.sin(t * 2) * 0.4;
+        targetLeftArmX = Math.cos(t * 2) * 0.4;
+        targetRightLegX = Math.sin(t * 2) * 0.25;
+        targetLeftLegX = -Math.sin(t * 2) * 0.25;
+        
+        targetTorsoZ = Math.sin(t) * 0.15;
+        targetTorsoY = 1.58 + Math.abs(Math.sin(t * 2)) * 0.15;
+      }
+      else { // idle / breathing
+        const t = time * 0.002;
+        targetRightArmZ = 0.05 + Math.sin(t) * 0.02;
+        targetLeftArmZ = -0.05 - Math.sin(t) * 0.02;
+        targetRightArmX = Math.sin(t) * 0.04;
+        targetLeftArmX = -Math.sin(t) * 0.04;
+      }
     }
-    else if (currentAnim === 'pose') {
-      // Hands on hips pose
-      targetRightArmX = -0.15; targetRightArmZ = -0.35;
-      targetLeftArmX = -0.15; targetLeftArmZ = 0.35;
-      targetRightLegZ = 0.05;
-      targetLeftLegZ = -0.05;
-    }
-    else if (currentAnim === 'wave') {
-      const t = time * 0.015;
-      targetRightArmX = -1.5; // raise arm
-      targetRightArmZ = Math.sin(t) * 0.4 - 0.2; // wave!
-      
-      // left arm on hip
-      targetLeftArmX = -0.15; targetLeftArmZ = 0.35;
-    }
-    else if (currentAnim === 'dance') {
-      const t = time * 0.01;
-      targetRightArmX = Math.sin(t * 2) * 0.4;
-      targetLeftArmX = Math.cos(t * 2) * 0.4;
-      targetRightLegX = Math.sin(t * 2) * 0.25;
-      targetLeftLegX = -Math.sin(t * 2) * 0.25;
-      
-      targetTorsoZ = Math.sin(t) * 0.15;
-      targetTorsoY = 1.8 + Math.abs(Math.sin(t * 2)) * 0.15;
-    }
-    else { // idle / breathing
-      const t = time * 0.002;
-      targetRightArmZ = 0.05 + Math.sin(t) * 0.02;
-      targetLeftArmZ = -0.05 - Math.sin(t) * 0.02;
-      targetRightArmX = Math.sin(t) * 0.04;
-      targetLeftArmX = -Math.sin(t) * 0.04;
-    }
-
+ 
     // Torso breathing bob
-    if (currentAnim !== 'dance') {
+    if (currentAnim !== 'dance' && !isStevePetting) {
       const bt = time * 0.002;
       const offsetBob = Math.sin(bt) * 0.015;
-      targetTorsoY = 1.8 + offsetBob;
+      targetTorsoY = 1.58 + offsetBob;
     }
-
+ 
     // Solver coefficients
     let k = 0.15; // spring constant
     let d = 0.78; // damping factor
@@ -2252,17 +2586,281 @@ function camLoop(){
     // Torso position bob
     currentTorsoBobY += (targetTorsoY - currentTorsoBobY) * 0.2;
     torsoMesh.rotation.z += (targetTorsoZ - torsoMesh.rotation.z) * 0.2;
-
+ 
     if (!gsap.isTweening(playerGroup.position)) {
       playerGroup.position.y = currentTorsoBobY;
     }
-  }
 
+    if (isStevePetting) {
+      playerGroup.rotation.x += (0.5 - playerGroup.rotation.x) * 0.15;
+      playerGroup.position.z += (0.35 - playerGroup.position.z) * 0.15;
+    } else {
+      playerGroup.rotation.x += (0 - playerGroup.rotation.x) * 0.15;
+      playerGroup.position.z += (0 - playerGroup.position.z) * 0.15;
+    }
+  }
+ 
   // 4. Head Tracking
   if (headGroup && headGroup.rotation) {
     const lerpK = 0.12;
-    headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
-    headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
+    if (isStevePetting && catModel) {
+      const dx = catModel.position.x - playerGroup.position.x;
+      const dz = catModel.position.z - playerGroup.position.z;
+      const targetYaw = Math.atan2(dx, dz) - playerGroup.rotation.y;
+      const targetPitch = 0.45; // look down
+      
+      headGroup.rotation.y += (targetYaw - headGroup.rotation.y) * lerpK;
+      headGroup.rotation.x += (targetPitch - headGroup.rotation.x) * lerpK;
+    } else {
+      headGroup.rotation.y += (headTargetYaw - headGroup.rotation.y) * lerpK;
+      headGroup.rotation.x += (headTargetPitch - headGroup.rotation.x) * lerpK;
+    }
+  }
+
+  // Animate Lobby EXP Particles
+  if (lobbyParticles && lobbyParticles.length > 0) {
+    lobbyParticles.forEach(p => {
+      p.position.y += p.userData.speedY;
+      p.position.x += p.userData.speedX;
+      p.position.z += p.userData.speedZ;
+      p.userData.life -= p.userData.decay;
+      p.material.opacity = p.userData.life * 0.75;
+      p.scale.setScalar((0.6 + Math.random() * 0.4) * p.userData.life);
+      if (p.userData.life <= 0) {
+        resetLobbyParticle(p);
+      }
+    });
+  }
+
+  // 8. Minecraft Cat Walk & Wandering AI Animation
+  if (catModel) {
+    const time = Date.now();
+    const ud = catModel.userData;
+    
+    // Increment timers
+    if (!ud.stateTimer) ud.stateTimer = 0;
+    ud.stateTimer--;
+
+    // Target positions and state transitions
+    if (ud.stateTimer <= 0) {
+      const rand = Math.random();
+      if (rand < 0.25) {
+        // Sit down near Steve's feet
+        ud.state = 'sitting';
+        ud.stateTimer = 200 + Math.random() * 200; // 3 to 6 seconds
+        const sitAngle = Math.random() * Math.PI * 2;
+        const sitRadius = 0.60 + Math.random() * 0.25;
+        ud.targetX = Math.cos(sitAngle) * sitRadius;
+        ud.targetZ = Math.sin(sitAngle) * sitRadius;
+      } else if (rand < 0.80) {
+        // Wander around the site dynamically (explore zones)
+        ud.state = 'wander';
+        ud.stateTimer = 400 + Math.random() * 400; // 6 to 13 seconds
+        
+        const zones = [
+          { minX: -3.5, maxX: -2.0, minZ: -1.2, maxZ: 1.2 }, // Left forms
+          { minX: -2.0, maxX: -0.8, minZ: -1.5, maxZ: 1.5 }, // Mid-left
+          { minX: -0.8, maxX: 0.8, minZ: 0.6, maxZ: 1.6 },   // Front-center
+          { minX: -1.2, maxX: 1.2, minZ: -1.8, maxZ: -0.8 }  // Behind
+        ];
+        const z = zones[Math.floor(Math.random() * zones.length)];
+        ud.targetX = z.minX + Math.random() * (z.maxX - z.minX);
+        ud.targetZ = z.minZ + Math.random() * (z.maxZ - z.minZ);
+      } else {
+        // Circle Steve
+        ud.state = 'circle';
+        ud.stateTimer = 300 + Math.random() * 250; // 5 to 9 seconds
+        ud.orbitRadius = 0.70 + Math.random() * 0.40;
+      }
+    }
+
+    // Sitting transition smooth interpolation
+    const targetSitFactor = (ud.state === 'sitting' && Math.abs(catModel.position.x - ud.targetX) < 0.15 && Math.abs(catModel.position.z - ud.targetZ) < 0.15) ? 1.0 : 0.0;
+    ud.sitFactor += (targetSitFactor - ud.sitFactor) * 0.1;
+
+    let isMoving = false;
+
+    if (ud.state === 'sitting') {
+      const dx = ud.targetX - catModel.position.x;
+      const dz = ud.targetZ - catModel.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      
+      if (dist > 0.08) {
+        isMoving = true;
+        const speed = ud.speed;
+        catModel.position.x += (dx / dist) * speed;
+        catModel.position.z += (dz / dist) * speed;
+        
+        const targetRotY = Math.atan2(dx, dz) + Math.PI;
+        let diffY = targetRotY - catModel.rotation.y;
+        diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+        catModel.rotation.y += diffY * 0.15;
+      } else {
+        isMoving = false;
+        const targetRotY = Math.atan2(-catModel.position.x, -catModel.position.z) + Math.PI;
+        let diffY = targetRotY - catModel.rotation.y;
+        diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+        catModel.rotation.y += diffY * 0.08;
+      }
+    } 
+    else if (ud.state === 'wander') {
+      const dx = ud.targetX - catModel.position.x;
+      const dz = ud.targetZ - catModel.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      if (dist > 0.12) {
+        isMoving = true;
+        const speed = ud.speed * 0.95;
+        catModel.position.x += (dx / dist) * speed;
+        catModel.position.z += (dz / dist) * speed;
+        
+        const targetRotY = Math.atan2(dx, dz) + Math.PI;
+        let diffY = targetRotY - catModel.rotation.y;
+        diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+        catModel.rotation.y += diffY * 0.12;
+      } else {
+        // Reached target! Instead of standing still, pick another point in the wander zones
+        if (Math.random() < 0.6 && ud.stateTimer > 60) {
+          const zones = [
+            { minX: -3.5, maxX: -2.0, minZ: -1.2, maxZ: 1.2 }, // Left forms
+            { minX: -2.0, maxX: -0.8, minZ: -1.5, maxZ: 1.5 }, // Mid-left
+            { minX: -0.8, maxX: 0.8, minZ: 0.6, maxZ: 1.6 },   // Front-center
+            { minX: -1.2, maxX: 1.2, minZ: -1.8, maxZ: -0.8 }  // Behind
+          ];
+          const z = zones[Math.floor(Math.random() * zones.length)];
+          ud.targetX = z.minX + Math.random() * (z.maxX - z.minX);
+          ud.targetZ = z.minZ + Math.random() * (z.maxZ - z.minZ);
+        } else {
+          isMoving = false;
+          ud.head.rotation.y = Math.sin(time * 0.002) * 0.4;
+        }
+      }
+    } 
+    else if (ud.state === 'returning') {
+      const dx = 0 - catModel.position.x;
+      const dz = 0 - catModel.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      if (dist > ud.orbitRadius) {
+        isMoving = true;
+        const speed = ud.speed * 1.1;
+        catModel.position.x += (dx / dist) * speed;
+        catModel.position.z += (dz / dist) * speed;
+        
+        const targetRotY = Math.atan2(dx, dz) + Math.PI;
+        let diffY = targetRotY - catModel.rotation.y;
+        diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+        catModel.rotation.y += diffY * 0.15;
+      } else {
+        ud.state = 'circle';
+      }
+    }
+    else { // 'circle' state
+      isMoving = true;
+      ud.angle += ud.speed * 0.8 / ud.orbitRadius;
+      
+      const targetX = Math.cos(ud.angle) * ud.orbitRadius;
+      const targetZ = Math.sin(ud.angle) * ud.orbitRadius;
+      
+      catModel.position.x += (targetX - catModel.position.x) * 0.15;
+      catModel.position.z += (targetZ - catModel.position.z) * 0.15;
+      
+      const targetRotY = -ud.angle + Math.PI;
+      let diffY = targetRotY - catModel.rotation.y;
+      diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+      catModel.rotation.y += diffY * 0.15;
+    }
+
+    // Position Y clamp to ground
+    catModel.position.y = 0.0;
+
+    // Leg swings & body posture during walk vs sit
+    if (isMoving) {
+      ud.walkCycle += 0.22;
+      const swing = Math.sin(ud.walkCycle) * 0.55 * (1.0 - ud.sitFactor);
+      
+      ud.legFL.rotation.x = swing;
+      ud.legBR.rotation.x = swing;
+      ud.legFR.rotation.x = -swing;
+      ud.legBL.rotation.x = -swing;
+      
+      ud.legFL.rotation.z = 0;
+      ud.legFR.rotation.z = 0;
+      ud.legBL.rotation.z = 0;
+      ud.legBR.rotation.z = 0;
+    } else {
+      ud.legFL.rotation.x = (Math.PI / 10) * ud.sitFactor;
+      ud.legFR.rotation.x = (Math.PI / 10) * ud.sitFactor;
+      ud.legBL.rotation.x = (-Math.PI / 2.3) * ud.sitFactor;
+      ud.legBR.rotation.x = (-Math.PI / 2.3) * ud.sitFactor;
+
+      ud.legBL.position.y = 0.16 - 0.05 * ud.sitFactor;
+      ud.legBR.position.y = 0.16 - 0.05 * ud.sitFactor;
+      ud.legBL.position.z = 0.13 - 0.04 * ud.sitFactor;
+      ud.legBR.position.z = 0.13 - 0.04 * ud.sitFactor;
+    }
+
+    // Apply sit posture to body: tilt up
+    ud.body.rotation.x = (-Math.PI / 6.5) * ud.sitFactor;
+    ud.body.position.y = 0.18 - 0.06 * ud.sitFactor;
+    
+    // Keep collar aligned with body tilt
+    const collarAngle = (-Math.PI / 6.5) * ud.sitFactor;
+    const collarZ = -0.18 - 0.02 * ud.sitFactor;
+    const collarY = 0.20 - 0.06 * ud.sitFactor;
+    
+    if (catModel.children[1]) {
+      catModel.children[1].rotation.x = collarAngle;
+      catModel.children[1].position.y = collarY;
+      catModel.children[1].position.z = collarZ;
+    }
+
+    // Tail behavior
+    if (ud.sitFactor > 0.5) {
+      ud.tail.rotation.x = (-Math.PI / 4) + Math.sin(time * 0.002) * 0.08;
+      ud.tail.rotation.y = Math.sin(time * 0.005) * 0.12;
+    } else {
+      ud.tail.rotation.y = Math.sin(time * 0.008) * 0.3;
+      ud.tail.rotation.x = -Math.PI / 8 + Math.sin(time * 0.003) * 0.1;
+    }
+
+    // Head behavior (looks up at Steve when sitting)
+    if (ud.state === 'sitting' && ud.sitFactor > 0.8) {
+      const dx = 0 - catModel.position.x;
+      const dy = 1.5 - catModel.position.y;
+      const dz = 0 - catModel.position.z;
+      const distXZ = Math.sqrt(dx * dx + dz * dz);
+      const targetPitch = -Math.atan2(dy, distXZ) * 0.4;
+      ud.head.rotation.x += (targetPitch - ud.head.rotation.x) * 0.1;
+      ud.head.rotation.y += (0 - ud.head.rotation.y) * 0.1;
+    } else {
+      ud.head.rotation.x += (0 - ud.head.rotation.x) * 0.1;
+      if (isMoving) {
+        ud.head.rotation.y = Math.sin(time * 0.0015) * 0.20;
+      }
+    }
+  }
+
+  // Update heart particles
+  if (heartParticles.length > 0) {
+    for (let i = heartParticles.length - 1; i >= 0; i--) {
+      const hp = heartParticles[i];
+      hp.position.y += hp.userData.speedY;
+      hp.position.x += hp.userData.speedX;
+      hp.userData.life -= hp.userData.decay;
+      hp.material.opacity = hp.userData.life;
+      
+      hp.quaternion.copy(camera.quaternion);
+      hp.rotation.z += hp.userData.rotSpeed;
+      
+      const s = (0.4 + hp.userData.life * 0.6) * 0.8;
+      hp.scale.set(s, s, s);
+
+      if (hp.userData.life <= 0) {
+        scene.remove(hp);
+        heartParticles.splice(i, 1);
+      }
+    }
   }
 
   renderer.render(scene, camera);
@@ -2282,6 +2880,246 @@ function setCamTarget(posY,posZ,lookY){
 
 function setSkinAnim(t){
   currentAnim = t || 'idle';
+}
+
+function resetLobbyParticle(p) {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.random() * 0.8;
+  p.position.x = Math.cos(angle) * radius;
+  p.position.y = 0.0 + Math.random() * 0.3;
+  p.position.z = Math.sin(angle) * radius;
+  p.scale.setScalar(0.4 + Math.random() * 1.2);
+  p.userData = {
+    speedY: 0.004 + Math.random() * 0.007,
+    speedX: (Math.random() - 0.5) * 0.002,
+    speedZ: (Math.random() - 0.5) * 0.002,
+    life: 1.0,
+    decay: 0.005 + Math.random() * 0.008
+  };
+}
+
+function createDiamondSword() {
+  const swordGroup = new THREE.Group();
+  
+  // Pixel size
+  const px = 0.055;
+  const pixelGeo = new THREE.BoxGeometry(px, px, px);
+  
+  // Materials
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.8 }); // Brown
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xffd13b, roughness: 0.2, metalness: 0.8 }); // Gold guard
+  const diamondMat = new THREE.MeshStandardMaterial({
+    color: 0x00d4ff,
+    emissive: 0x00b4d8,
+    emissiveIntensity: 0.8,
+    roughness: 0.1,
+    metalness: 0.2
+  }); // Glowing Diamond Blue
+  const borderMat = new THREE.MeshStandardMaterial({ color: 0x005b7f, roughness: 0.5 }); // Dark blue border
+  
+  // Layout of the sword pixels (diagonally)
+  const grid = [
+    // Handle
+    { x: 0, y: 0, mat: woodMat },
+    { x: 1, y: 1, mat: woodMat },
+    { x: 2, y: 2, mat: woodMat },
+    
+    // Guard
+    { x: 3, y: 2, mat: goldMat },
+    { x: 2, y: 3, mat: goldMat },
+    { x: 3, y: 3, mat: goldMat },
+    { x: 4, y: 3, mat: goldMat },
+    { x: 3, y: 4, mat: goldMat },
+    
+    // Blade
+    { x: 4, y: 4, mat: borderMat },
+    { x: 5, y: 5, mat: diamondMat },
+    { x: 6, y: 6, mat: diamondMat },
+    { x: 7, y: 7, mat: diamondMat },
+    { x: 8, y: 8, mat: diamondMat },
+    { x: 9, y: 9, mat: diamondMat },
+    { x: 10, y: 10, mat: diamondMat },
+    
+    // Blade borders
+    { x: 5, y: 4, mat: borderMat },
+    { x: 6, y: 5, mat: borderMat },
+    { x: 7, y: 6, mat: borderMat },
+    { x: 8, y: 7, mat: borderMat },
+    { x: 9, y: 8, mat: borderMat },
+    { x: 10, y: 9, mat: borderMat },
+    
+    { x: 4, y: 5, mat: borderMat },
+    { x: 5, y: 6, mat: borderMat },
+    { x: 6, y: 7, mat: borderMat },
+    { x: 7, y: 8, mat: borderMat },
+    { x: 8, y: 9, mat: borderMat },
+    { x: 9, y: 10, mat: borderMat },
+    
+    { x: 11, y: 11, mat: borderMat }
+  ];
+  
+  grid.forEach(p => {
+    const mesh = new THREE.Mesh(pixelGeo, p.mat);
+    mesh.position.set(p.x * px, p.y * px, 0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    swordGroup.add(mesh);
+  });
+  
+  // Rotate and offset to sit naturally in hand
+  swordGroup.position.set(0.0, -1.15, 0.0);
+  swordGroup.rotation.set(-Math.PI / 2, Math.PI / 4, 0);
+  
+  return swordGroup;
+}
+
+function createMinecraftCat() {
+  const cat = new THREE.Group();
+  
+  // Materials
+  const gingerMat = new THREE.MeshStandardMaterial({ color: 0xe27b37, roughness: 0.95 }); // Ginger Orange
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf2eded, roughness: 0.95 });  // Soft White
+  const pinkMat = new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.95 });   // Pink Nose/Snout inner
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x55b848, roughness: 0.95 });    // Green eyes
+  const collarMat = new THREE.MeshStandardMaterial({ color: 0xb22222, roughness: 0.95 });  // Red Collar
+
+  // 1. Body
+  const bodyGeo = new THREE.BoxGeometry(0.16, 0.16, 0.38);
+  const body = new THREE.Mesh(bodyGeo, gingerMat);
+  body.position.set(0, 0.18, 0);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  cat.add(body);
+
+  // 2. Collar (Red band around neck)
+  const collarGeo = new THREE.BoxGeometry(0.17, 0.17, 0.04);
+  const collar = new THREE.Mesh(collarGeo, collarMat);
+  collar.position.set(0, 0.20, -0.18);
+  collar.castShadow = true;
+  cat.add(collar);
+
+  // 3. Head (Pivot at neck for rotations)
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, 0.22, -0.20);
+  cat.add(headGroup);
+
+  // Head main block
+  const headGeo = new THREE.BoxGeometry(0.18, 0.15, 0.15);
+  const headMesh = new THREE.Mesh(headGeo, gingerMat);
+  headMesh.position.set(0, 0.065, -0.065);
+  headMesh.castShadow = true;
+  headGroup.add(headMesh);
+
+  // Ears
+  const earGeo = new THREE.BoxGeometry(0.03, 0.05, 0.03);
+  const earL = new THREE.Mesh(earGeo, gingerMat);
+  earL.position.set(-0.06, 0.165, -0.05);
+  earL.castShadow = true;
+  headGroup.add(earL);
+
+  const earR = new THREE.Mesh(earGeo, gingerMat);
+  earR.position.set(0.06, 0.165, -0.05);
+  earR.castShadow = true;
+  headGroup.add(earR);
+
+  // Snout (mouth area)
+  const snoutGeo = new THREE.BoxGeometry(0.09, 0.05, 0.04);
+  const snout = new THREE.Mesh(snoutGeo, whiteMat);
+  snout.position.set(0, 0.04, -0.15);
+  snout.castShadow = true;
+  headGroup.add(snout);
+
+  // Nose (pink)
+  const noseGeo = new THREE.BoxGeometry(0.03, 0.02, 0.02);
+  const nose = new THREE.Mesh(noseGeo, pinkMat);
+  nose.position.set(0, 0.06, -0.165);
+  headGroup.add(nose);
+
+  // Eyes (white with green pupils)
+  const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.01), whiteMat);
+  eyeL.position.set(-0.05, 0.09, -0.145);
+  headGroup.add(eyeL);
+  const pupilL = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.03, 0.012), eyeMat);
+  pupilL.position.set(-0.05, 0.09, -0.148);
+  headGroup.add(pupilL);
+
+  const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.01), whiteMat);
+  eyeR.position.set(0.05, 0.09, -0.145);
+  headGroup.add(eyeR);
+  const pupilR = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.03, 0.012), eyeMat);
+  pupilR.position.set(0.05, 0.09, -0.148);
+  headGroup.add(pupilR);
+
+  // Helper function to build swingable leg
+  function createCatLeg(xOffset, zOffset) {
+    const legPivot = new THREE.Group();
+    legPivot.position.set(xOffset, 0.16, zOffset);
+    
+    const legGeo = new THREE.BoxGeometry(0.05, 0.16, 0.05);
+    const legMesh = new THREE.Mesh(legGeo, gingerMat);
+    legMesh.position.set(0, -0.08, 0);
+    legMesh.castShadow = true;
+    legPivot.add(legMesh);
+
+    const pawGeo = new THREE.BoxGeometry(0.052, 0.02, 0.06);
+    const pawMesh = new THREE.Mesh(pawGeo, whiteMat);
+    pawMesh.position.set(0, -0.16, 0.005);
+    pawMesh.castShadow = true;
+    legPivot.add(pawMesh);
+
+    cat.add(legPivot);
+    return legPivot;
+  }
+
+  // Create four legs
+  const legFL = createCatLeg(-0.05, -0.13);
+  const legFR = createCatLeg(0.05, -0.13);
+  const legBL = createCatLeg(-0.05, 0.13);
+  const legBR = createCatLeg(0.05, 0.13);
+
+  // 5. Tail Pivot & Segment 1 (swingable)
+  const tailPivot1 = new THREE.Group();
+  tailPivot1.position.set(0, 0.22, 0.18);
+  cat.add(tailPivot1);
+
+  const tailGeo1 = new THREE.BoxGeometry(0.03, 0.03, 0.14);
+  const tailMesh1 = new THREE.Mesh(tailGeo1, gingerMat);
+  tailMesh1.position.set(0, 0, 0.07);
+  tailMesh1.castShadow = true;
+  tailPivot1.add(tailMesh1);
+
+  // Tail Segment 2 (nested white tip)
+  const tailPivot2 = new THREE.Group();
+  tailPivot2.position.set(0, 0, 0.14);
+  tailPivot1.add(tailPivot2);
+
+  const tailGeo2 = new THREE.BoxGeometry(0.03, 0.03, 0.10);
+  const tailMesh2 = new THREE.Mesh(tailGeo2, whiteMat);
+  tailMesh2.position.set(0, 0, 0.05);
+  tailMesh2.castShadow = true;
+  tailPivot2.add(tailMesh2);
+  tailPivot2.rotation.x = -Math.PI / 6;
+
+  cat.userData = {
+    state: 'circle',
+    stateTimer: 0,
+    angle: 0.0,
+    orbitRadius: 0.85,
+    speed: 0.015,
+    walkCycle: 0.0,
+    sitFactor: 0.0,
+    targetX: 0,
+    targetZ: 0,
+    legFL: legFL,
+    legFR: legFR,
+    legBL: legBL,
+    legBR: legBR,
+    tail: tailPivot1,
+    head: headGroup,
+    body: body
+  };
+
+  return cat;
 }
 
 function buildPlayerMesh(img) {
@@ -2430,15 +3268,14 @@ const VIEWS=['vs0','vs1','vs2','vs3','vs4','vs5'];
 const STEP_COUNT=5;
 
 // Camera presets per step:
-// Camera presets per step:
 //   [posY, posZ, lookY]
 const CAM={
-  landing:[2.1, 5.2, 2.1],
-  0:[3.1, 2.6, 3.1], // zoom head for nick
-  1:[2.1, 5.2, 2.1], // full body
-  2:[2.5, 3.5, 2.5], // mid body
-  3:[2.5, 3.5, 2.5], // mid body banner
-  4:[2.1, 5.2, 2.1], // full body server
+  landing:[2.1, 5.2, 1.8],
+  0:[2.6, 2.6, 2.2], // pleasant upper body zoom
+  1:[2.1, 5.2, 1.8], // full body
+  2:[2.5, 2.3, 2.4], // mid body
+  3:[2.5, 2.3, 2.4], // mid body banner
+  4:[2.1, 5.2, 1.8], // full body server
 };
 const ANIMS=['pose','pose','pose','pose','pose','fly'];
 
@@ -2494,16 +3331,45 @@ function showLanding(){
   document.body.classList.remove('in-reg');
   document.getElementById('landing-ui').classList.remove('hidden');
   
+  // Reset registration state
+  S.nick = '';
+  S.nickOk = false;
+  
+  // Clear inputs and reset mini-thumbnail
+  const nickInput = document.getElementById('nick');
+  if (nickInput) nickInput.value = '';
+  
+  const np = document.getElementById('np');
+  if (np) np.innerHTML = 'lobby.gg/<b>...</b>';
+  
+  const ns = document.getElementById('ns');
+  if (ns) ns.textContent = '';
+  
+  const mini = document.getElementById('nsk-mini');
+  if (mini) mini.className = 'nick-skin-mini';
+  
+  const miniImg = document.getElementById('nsk-img');
+  if (miniImg) miniImg.src = 'https://mc-heads.net/avatar/MHF_Steve/32';
+
   const nameTag = document.getElementById('char-nametag');
-  nameTag.textContent = S.nick || 'McGregor';
-  nameTag.classList.add('show');
+  if (nameTag) {
+    nameTag.textContent = 'McGregor';
+    nameTag.classList.add('show');
+  }
   
   const dc = document.getElementById('digital-card');
   if(dc) dc.classList.remove('show');
+
+  // Disable next button for step 0
+  const nb = document.getElementById('b-s0-next');
+  if (nb) nb.disabled = true;
+
+  // Restore default McGregor skin
+  loadPlayerSkin('mcgregor.png');
   
-  // Resume body rotation
+  // Resume body rotation (disabled)
   if (_rotAnim) {
-    _rotAnim.speed = 0.35;
+    _rotAnim.speed = 0;
   }
   
   const cam=CAM.landing;
@@ -2826,7 +3692,6 @@ function triggerJumpAndSpin() {
   if (!playerGroup || gsap.isTweening(playerGroup.rotation) || gsap.isTweening(playerGroup.position)) return;
 
   setSkinAnim('fly');
-  confetti();
   wrapJump();
 
   // Jump up and down
@@ -2876,7 +3741,7 @@ function initHeadTracking() {
       const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
       const mouseY = (e.clientY / window.innerHeight) * 2 - 1;
       headTargetYaw = mouseX * 0.7; // Left/Right look limit (correct sign)
-      headTargetPitch = -mouseY * 0.4;  // Up/Down look limit (correct sign)
+      headTargetPitch = mouseY * 0.4;  // Up/Down look limit (correct sign)
     }
   });
 
